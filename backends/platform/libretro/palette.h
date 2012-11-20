@@ -22,7 +22,7 @@ struct RetroPalette
         if(aIndex < 256)
         {
             aR = _colors[aIndex * 3 + 0];
-            aG = _colors[aIndex * 3 + 2];
+            aG = _colors[aIndex * 3 + 1];
             aB = _colors[aIndex * 3 + 2];
         }
     }
