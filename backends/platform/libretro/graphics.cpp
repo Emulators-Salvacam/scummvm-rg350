@@ -4,10 +4,15 @@
 #include "os.h"
 
 
-RetroGraphicsManager::RetroGraphicsManager() { }
+RetroGraphicsManager::RetroGraphicsManager()
+{
+    _overlay.create(getOverlayWidth(), getOverlayHeight(), getOverlayFormat());
+}
+
 RetroGraphicsManager::~RetroGraphicsManager()
 {
     _gameScreen.free();
+    _overlay.free();
     _mouseImage.free();
 }
 
@@ -68,7 +73,7 @@ void RetroGraphicsManager::setFocusRectangle(const Common::Rect& rect) {}
 void RetroGraphicsManager::clearFocusRectangle() {}
 
 template<typename INPUT, typename OUTPUT>
-void blit(Graphics::Surface& aOut, Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
+void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
 {
     assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
 
@@ -115,21 +120,15 @@ uint16* RetroGraphicsManager::getScreen()
     static Graphics::Surface screen;
     screen.create(640, 480, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
     
-    if(_overlayVisible)
+    const Graphics::Surface& srcSurface = (_overlayVisible) ? _overlay : _gameScreen;
+    if(srcSurface.w && srcSurface.h)
     {
-        memcpy(screen.pixels, _overlay, sizeof(_overlay));
-    }
-    else
-    {
-        if(_gameScreen.w && _gameScreen.h)
+        switch(srcSurface.format.bytesPerPixel)
         {
-            switch(_gameScreen.format.bytesPerPixel)
-            {
-                case 1: blit<uint8, uint16>(screen, _gameScreen, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-                case 2: blit<uint16, uint16>(screen, _gameScreen, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-                case 3: blit<uint8, uint16>(screen, _gameScreen, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-                case 4: blit<uint32, uint16>(screen, _gameScreen, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-            }
+            case 1: blit<uint8, uint16>(screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+            case 2: blit<uint16, uint16>(screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+            case 3: blit<uint8, uint16>(screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+            case 4: blit<uint32, uint16>(screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
         }
     }
 

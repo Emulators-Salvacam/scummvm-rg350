@@ -4,7 +4,7 @@
 #include "os.h"
 
 bool RetroGraphicsManager::_overlayVisible;    
-uint16 RetroGraphicsManager::_overlay[640 * 480];
+Graphics::Surface RetroGraphicsManager::_overlay;
 
 // OVERLAY
 int16 RetroGraphicsManager::getOverlayWidth()
@@ -34,12 +34,12 @@ void RetroGraphicsManager::hideOverlay()
 
 void RetroGraphicsManager::clearOverlay()
 {
-    memset(_overlay, 0, sizeof(_overlay));
+    _overlay.fillRect(Common::Rect(_overlay.w, _overlay.h), 0);
 }
 
 void RetroGraphicsManager::grabOverlay(void *buf, int pitch)
 {
-	const byte *src = (byte *)_overlay;
+	const byte *src = (byte *)_overlay.pixels;
 	byte *dst = (byte *)buf;
 
 	for (int i = 0; i < 480; i++, dst += pitch, src += 640 * 2)
@@ -50,32 +50,13 @@ void RetroGraphicsManager::grabOverlay(void *buf, int pitch)
 
 void RetroGraphicsManager::copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h)
 {
-    const byte *src = (const byte *)buf;
-
-    // Clip the coordinates
-    if (x < 0)
-    {
-        w += x;
-        src -= x * 2;
-        x = 0;
-    }
-
-    if (y < 0)
-    {
-        h += y;
-        src -= y * pitch;
-        y = 0;
-    }
-
-    w = (w > 640 - x) ? 640 - x : w;
-    h = (h > 480 - y) ? 640 - y : h;
-
-    if(w > 0 || h > 0)
-    {
-        byte *dst = (byte *)&_overlay[y * 640];
-        for (int i = 0; i < h; i++, src += pitch, dst += 640 * 2)
-        {
-            memcpy(dst + x * 2, src, w * 2);
-        }
-    }
+	const byte *src = (const byte *)buf;
+	byte *dst = (byte *)_overlay.pixels + y * _overlay.pitch + x * _overlay.format.bytesPerPixel;
+	
+	for (int i = 0; i < h; i++)
+	{
+		memcpy(dst, src, w * _overlay.format.bytesPerPixel);
+		src += pitch;
+		dst += _overlay.pitch;
+	}
 }

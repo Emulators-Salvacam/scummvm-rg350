@@ -15,7 +15,7 @@ class RetroGraphicsManager : public GraphicsManager {
     static int _screenChangeCount;
     
     static bool _overlayVisible;    
-    static uint16 _overlay[640 * 480];
+    static Graphics::Surface _overlay;
     
     static bool _mouseVisible;
     static Graphics::Surface _mouseImage;

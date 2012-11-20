@@ -52,12 +52,6 @@ void RetroGraphicsManager::grabPalette(byte *colors, uint start, uint num)
 
 void RetroGraphicsManager::copyRectToScreen(const void *buf, int pitch, int x, int y, int w, int h)
 {
-	assert(x >= 0 && x < _gameScreen.w);
-	assert(y >= 0 && y < _gameScreen.h);
-	assert(h > 0 && y + h <= _gameScreen.h);
-	assert(w > 0 && x + w <= _gameScreen.w);
-
-	// Copy buffer data to game screen internal buffer
 	const byte *src = (const byte *)buf;
 	byte *dst = (byte *)_gameScreen.pixels + y * _gameScreen.pitch + x * _gameScreen.format.bytesPerPixel;
 	
@@ -80,41 +74,7 @@ void RetroGraphicsManager::unlockScreen()
 
 void RetroGraphicsManager::fillScreen(uint32 col)
 {
-	if(_gameScreen.format.bytesPerPixel == 1)
-	{
-		memset(_gameScreen.pixels, col, _gameScreen.h * _gameScreen.pitch);
-	}
-	else if(_gameScreen.format.bytesPerPixel == 2)
-	{
-		uint16 *pixels = (uint16 *)_gameScreen.pixels;
-		uint16 col16 = (uint16)col;
-		for (int i = 0; i < _gameScreen.w * _gameScreen.h; i++)
-		{
-			pixels[i] = col16;
-		}
-	}
-	else if(_gameScreen.format.bytesPerPixel == 3)
-	{
-		uint8 *pixels = (uint8 *)_gameScreen.pixels;
-		byte r = (col >> 16) & 0xFF;
-		byte g = (col >> 8) & 0xFF;
-		byte b = col & 0xFF;
-		for (int i = 0; i < _gameScreen.w * _gameScreen.h; i++)
-		{
-			pixels[0] = r;
-			pixels[1] = g;
-			pixels[2] = b;
-			pixels += 3;
-		}
-	}
-	else if (_gameScreen.format.bytesPerPixel == 4)
-	{
-		uint32 *pixels = (uint32 *)_gameScreen.pixels;
-		for (int i = 0; i < _gameScreen.w * _gameScreen.h; i++)
-		{
-			pixels[i] = col;
-		}
-	}
+    _gameScreen.fillRect(Common::Rect(_gameScreen.w, _gameScreen.h), col);
 }
 
 void RetroGraphicsManager::updateScreen()
