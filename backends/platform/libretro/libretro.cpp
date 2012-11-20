@@ -185,6 +185,8 @@ void retro_run (void)
         video_cb(lrsystem->getRetroGraphics()->getScreen(), 640, 480, 640 * 2);
     
         // Upload audio: TODO: Support sample rate control
+        static uint32 buf[48000];
+        ((Audio::MixerImpl*)lrsystem->getMixer())->mixCallback((byte*)buf, 24000);
 //        audio_batch_cb((int16_t*)audioData, samplesPerFrame);
     }
     else

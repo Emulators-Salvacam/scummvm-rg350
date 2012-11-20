@@ -11,6 +11,7 @@
 class RetroGraphicsManager : public GraphicsManager {
     static Graphics::Surface _gameScreen;
     static byte _gamePalette[256 * 3];
+    static int _screenChangeCount;
     
     static bool _overlayVisible;    
     static uint16 _overlay[640 * 480];

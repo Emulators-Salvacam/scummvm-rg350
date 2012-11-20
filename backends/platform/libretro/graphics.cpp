@@ -3,10 +3,6 @@
 #include "graphics.h"
 #include "os.h"
 
-Graphics::Surface RetroGraphicsManager::_gameScreen;
-byte RetroGraphicsManager::_gamePalette[256 * 3];
-
-
 
 RetroGraphicsManager::RetroGraphicsManager() { }
 RetroGraphicsManager::~RetroGraphicsManager()
@@ -48,13 +44,14 @@ const OSystem::GraphicsMode *RetroGraphicsManager::getSupportedGraphicsModes() c
 
 Graphics::PixelFormat RetroGraphicsManager::getScreenFormat() const
 {
-    return Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15);
+    return _gameScreen.format;
 }
 
 Common::List<Graphics::PixelFormat> RetroGraphicsManager::getSupportedFormats() const
 {
     Common::List<Graphics::PixelFormat> result;
     result.push_back(Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+    result.push_back(Graphics::PixelFormat::createFormatCLUT8());
     return result;
 }
 
@@ -64,39 +61,6 @@ bool RetroGraphicsManager::setGraphicsMode(int mode) { return true; }
 void RetroGraphicsManager::resetGraphicsScale() { }
 int RetroGraphicsManager::getGraphicsMode() const	{ return 0;	}
 		
-// GAME VIDEO
-void RetroGraphicsManager::initSize(uint width, uint height, const Graphics::PixelFormat *format)
-{
-    _gameScreen.create(width, height, Graphics::PixelFormat());
-}
-
-int RetroGraphicsManager::getScreenChangeID() const { return 0; }
-
-void RetroGraphicsManager::beginGFXTransaction() { }
-OSystem::TransactionError RetroGraphicsManager::endGFXTransaction() { return OSystem::kTransactionSuccess; }
-
-int16 RetroGraphicsManager::getHeight() { return _gameScreen.w; }
-int16 RetroGraphicsManager::getWidth() { return _gameScreen.h; }
-
-void RetroGraphicsManager::setPalette(const byte *colors, uint start, uint num)
-{ 
-	memcpy(_gamePalette + start * 3, colors, num * 3);
-}
-
-void RetroGraphicsManager::grabPalette(byte *colors, uint start, uint num) { }
-
-void RetroGraphicsManager::copyRectToScreen(const void *buf, int pitch, int x, int y, int w, int h) { }
-
-Graphics::Surface *RetroGraphicsManager::lockScreen() { return &_gameScreen; }
-
-void RetroGraphicsManager::unlockScreen() { }
-void RetroGraphicsManager::fillScreen(uint32 col) { }
-
-void RetroGraphicsManager::updateScreen()
-{
-    extern void retro_leave_thread();
-    retro_leave_thread();
-}
 
 // ???
 void RetroGraphicsManager::setShakePos(int shakeOffset) {}
@@ -106,6 +70,8 @@ void RetroGraphicsManager::clearFocusRectangle() {}
 template<typename INPUT, typename OUTPUT>
 void blit(Graphics::Surface& aOut, Graphics::Surface& aIn, int aX, int aY, const byte* aColors, uint32 aKeyColor)
 {
+    assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
+
     for(int i = 0; i != aIn.h; i ++)
     {
         if((i + aY) < 0 || (i + aY) >= 480)
@@ -151,7 +117,23 @@ uint16* RetroGraphicsManager::getScreen()
     static Graphics::Surface screen;
     screen.create(640, 480, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
     
-    memcpy(screen.pixels, _overlay, sizeof(_overlay));
+    if(_overlayVisible)
+    {
+        memcpy(screen.pixels, _overlay, sizeof(_overlay));
+    }
+    else
+    {
+        if(_gameScreen.w && _gameScreen.h)
+        {
+            switch(_gameScreen.format.bytesPerPixel)
+            {
+                case 1: blit<uint8, uint16>(screen, _gameScreen, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+                case 2: blit<uint16, uint16>(screen, _gameScreen, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+                case 3: blit<uint8, uint16>(screen, _gameScreen, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+                case 4: blit<uint32, uint16>(screen, _gameScreen, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+            }
+        }
+    }
 
     // Draw Mouse
     if(_mouseVisible)

@@ -37,14 +37,14 @@ ENABLE_SCUMM = $(ENABLED)
 #ENABLE_PARALLACTION = $(ENABLED)
 #ENABLE_QUEEN = $(ENABLED)
 #ENABLE_SAGA = $(ENABLED)
-#ENABLE_SKY = $(ENABLED)
+ENABLE_SKY = $(ENABLED)
 #ENABLE_SWORD1 = $(ENABLED)
 #ENABLE_SWORD2 = $(ENABLED)
 #ENABLE_TOUCHE = $(ENABLED)
 #ENABLE_TUCKER = $(ENABLED)
 
 OBJS :=	libretro.o ../../fs/posix/posix-fs.o ../../fs/posix/posix-fs-factory.o libco/libco.o os.o \
-        graphics.o graphics-overlay.o graphics-mouse.o
+        graphics.o graphics-overlay.o graphics-mouse.o graphics-game.o
 
 MODULE_DIRS += ./
 

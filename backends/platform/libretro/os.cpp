@@ -54,7 +54,7 @@ void OSystem_Libretro::initBackend()
     _graphicsManager = new RetroGraphicsManager();
     _mixer = new Audio::MixerImpl(this, 22050);
 
-    ((Audio::MixerImpl *)_mixer)->setReady(false);
+    ((Audio::MixerImpl *)_mixer)->setReady(true);
     ModularBackend::initBackend();	
 }
 
