@@ -107,7 +107,7 @@ Common::EventSource* OSystem_Libretro::getDefaultEventSource()
 {
     return this;
 }
-	
+
 void OSystem_Libretro::sendMouseData(int32 xMove, int32 yMove, bool down)
 {
     if(down != mouseDown)
@@ -117,9 +117,15 @@ void OSystem_Libretro::sendMouseData(int32 xMove, int32 yMove, bool down)
     }
     
     if(xMove || yMove)
-    {
+    {    
         mouseX += xMove;
+        mouseX = (mouseX < 0) ? 0 : mouseX;
+        mouseX = (mouseX >= getRetroGraphics()->getCurrentWidth()) ? getRetroGraphics()->getCurrentWidth() : mouseX;
+
         mouseY += yMove;
+        mouseY = (mouseY < 0) ? 0 : mouseY;
+        mouseY = (mouseY >= getRetroGraphics()->getCurrentHeight()) ? getRetroGraphics()->getCurrentHeight() : mouseY;
+
         needMoveEvent = true;
     }
 }

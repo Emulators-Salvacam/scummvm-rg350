@@ -4,13 +4,14 @@
 #include <stdio.h>
 
 #include "os.h"
+#include "palette.h"
 
 #include "graphics/surface.h"
 #include "backends/graphics/graphics.h"
 
 class RetroGraphicsManager : public GraphicsManager {
     static Graphics::Surface _gameScreen;
-    static byte _gamePalette[256 * 3];
+    static RetroPalette _gamePalette;
     static int _screenChangeCount;
     
     static bool _overlayVisible;    
@@ -23,7 +24,7 @@ class RetroGraphicsManager : public GraphicsManager {
     static int _mouseHotspotY;
     static bool _mouseDontScale;
     static uint32 _mouseKeyColor;
-    static byte _mousePalette[256 * 3];
+    static RetroPalette _mousePalette;
     static bool _mousePaletteEnabled;
 
 public:
@@ -92,7 +93,17 @@ public:
 	void setMouseCursor(const void *buf, uint w, uint h, int hotspotX, int hotspotY, uint32 keycolor, bool dontScale = false, const Graphics::PixelFormat *format = NULL);
 	void setCursorPalette(const byte *colors, uint start, uint num);
 	
+	// EXT
 	uint16* getScreen();
+	uint32 getCurrentWidth()
+	{
+	    return _overlayVisible ? 640 : _gameScreen.w;
+	};
+	
+	uint32 getCurrentHeight()
+	{
+	    return _overlayVisible ? 480 : _gameScreen.h;
+	};
 };
 
 #endif

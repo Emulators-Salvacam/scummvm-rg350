@@ -68,7 +68,7 @@ void RetroGraphicsManager::setFocusRectangle(const Common::Rect& rect) {}
 void RetroGraphicsManager::clearFocusRectangle() {}
 
 template<typename INPUT, typename OUTPUT>
-void blit(Graphics::Surface& aOut, Graphics::Surface& aIn, int aX, int aY, const byte* aColors, uint32 aKeyColor)
+void blit(Graphics::Surface& aOut, Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
 {
     assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
 
@@ -96,9 +96,7 @@ void blit(Graphics::Surface& aOut, Graphics::Surface& aIn, int aX, int aY, const
             {            
                 if(aIn.format.bytesPerPixel == 1)
                 {
-                    r = aColors[val * 3 + 0];
-                    g = aColors[val * 3 + 1];
-                    b = aColors[val * 3 + 2];
+                    aColors.getColor(val, r, g, b);
                 }
                 else
                 {

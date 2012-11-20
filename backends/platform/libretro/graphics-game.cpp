@@ -4,7 +4,7 @@
 #include "os.h"
 
 Graphics::Surface RetroGraphicsManager::_gameScreen;
-byte RetroGraphicsManager::_gamePalette[256 * 3];
+RetroPalette RetroGraphicsManager::_gamePalette;
 int RetroGraphicsManager::_screenChangeCount; 		
 		
 // GAME VIDEO
@@ -40,16 +40,14 @@ int RetroGraphicsManager::getScreenChangeID() const
     _screenChangeCount;
 }
 
-
 void RetroGraphicsManager::setPalette(const byte *colors, uint start, uint num)
-{ 
-	memcpy(_gamePalette + start * 3, colors, num * 3);
+{
+    _gamePalette.set(colors, start, num);
 }
 
 void RetroGraphicsManager::grabPalette(byte *colors, uint start, uint num)
 {
-	assert(colors && _gameScreen.format.bytesPerPixel == 1 && (start + num) < 256);
-	memcpy(colors, _gamePalette + start * 3, num * 3);
+    _gamePalette.get(colors, start, num);
 }
 
 void RetroGraphicsManager::copyRectToScreen(const void *buf, int pitch, int x, int y, int w, int h)

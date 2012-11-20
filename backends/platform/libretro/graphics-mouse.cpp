@@ -10,7 +10,7 @@ int RetroGraphicsManager::_mouseHotspotX;
 int RetroGraphicsManager::_mouseHotspotY;
 bool RetroGraphicsManager::_mouseDontScale;
 uint32 RetroGraphicsManager::_mouseKeyColor;
-byte RetroGraphicsManager::_mousePalette[256 * 3];
+RetroPalette RetroGraphicsManager::_mousePalette;
 bool RetroGraphicsManager::_mousePaletteEnabled;
 
 bool RetroGraphicsManager::showMouse(bool visible)
@@ -45,8 +45,6 @@ void RetroGraphicsManager::setMouseCursor(const void *buf, uint w, uint h, int h
 
 void RetroGraphicsManager::setCursorPalette(const byte *colors, uint start, uint num)
 {
-    assert(colors && (start + num) < 256);
-
-	memcpy(_mousePalette + start * 3, colors, num * 3);
+    _mousePalette.set(colors, start, num);
 	_mousePaletteEnabled = true;
 }
