@@ -6,7 +6,7 @@ VPATH = $(srcdir)
 CC=clang -g
 CXX=clang++ -g
 LD=clang++ -g -dynamiclib
-DEFINES=-D__LIBRETRO__ -DNONSTANDARD_PORT
+DEFINES=-D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR
 INCLUDES= -I./ -I$(srcdir) -I$(srcdir)/engines
 EXECUTABLE = libretro
 DEPDIR = .deps
@@ -43,7 +43,8 @@ ENABLE_SCUMM = $(ENABLED)
 #ENABLE_TOUCHE = $(ENABLED)
 #ENABLE_TUCKER = $(ENABLED)
 
-OBJS :=	libretro.o ../../fs/posix/posix-fs.o ../../fs/posix/posix-fs-factory.o libco/libco.o os.o graphics.o
+OBJS :=	libretro.o ../../fs/posix/posix-fs.o ../../fs/posix/posix-fs-factory.o libco/libco.o os.o \
+        graphics.o graphics-overlay.o graphics-mouse.o
 
 MODULE_DIRS += ./
 

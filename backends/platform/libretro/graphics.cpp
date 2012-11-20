@@ -3,19 +3,41 @@
 #include "graphics.h"
 #include "os.h"
 
-Graphics::Surface RetroGraphicsManager::_screenData;
+Graphics::Surface RetroGraphicsManager::_gameScreen;
+byte RetroGraphicsManager::_gamePalette[256 * 3];
 
-bool RetroGraphicsManager::_overlayVisible;    
-uint16 RetroGraphicsManager::_overlay[640 * 480];
 
 
 RetroGraphicsManager::RetroGraphicsManager() { }
-RetroGraphicsManager::~RetroGraphicsManager()	{ _screenData.free(); }
+RetroGraphicsManager::~RetroGraphicsManager()
+{
+    _gameScreen.free();
+    _mouseImage.free();
+}
 
 // VIDEO FEATURES
-bool RetroGraphicsManager::hasFeature(OSystem::Feature f) { return false;	}
-void RetroGraphicsManager::setFeatureState(OSystem::Feature f, bool enable) {	}
-bool RetroGraphicsManager::getFeatureState(OSystem::Feature f) { return false; }
+bool RetroGraphicsManager::hasFeature(OSystem::Feature f)
+{
+	return (f == OSystem::kFeatureCursorPalette);
+}
+
+void RetroGraphicsManager::setFeatureState(OSystem::Feature f, bool enable)
+{
+    switch(f)
+    {
+        case OSystem::kFeatureCursorPalette: _mousePaletteEnabled = enable; return;
+    }
+}
+
+bool RetroGraphicsManager::getFeatureState(OSystem::Feature f)
+{
+    switch(f)
+    {
+        case OSystem::kFeatureCursorPalette: return _mousePaletteEnabled;
+    }
+
+    return false;
+}
 
 // VIDEO MODE
 const OSystem::GraphicsMode *RetroGraphicsManager::getSupportedGraphicsModes() const
@@ -23,6 +45,19 @@ const OSystem::GraphicsMode *RetroGraphicsManager::getSupportedGraphicsModes() c
     static const OSystem::GraphicsMode s_noGraphicsModes[] = { {0, 0, 0} };
     return s_noGraphicsModes;
 }
+
+Graphics::PixelFormat RetroGraphicsManager::getScreenFormat() const
+{
+    return Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15);
+}
+
+Common::List<Graphics::PixelFormat> RetroGraphicsManager::getSupportedFormats() const
+{
+    Common::List<Graphics::PixelFormat> result;
+    result.push_back(Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+    return result;
+}
+
 
 int RetroGraphicsManager::getDefaultGraphicsMode() const { return 0; }
 bool RetroGraphicsManager::setGraphicsMode(int mode) { return true; }
@@ -32,7 +67,7 @@ int RetroGraphicsManager::getGraphicsMode() const	{ return 0;	}
 // GAME VIDEO
 void RetroGraphicsManager::initSize(uint width, uint height, const Graphics::PixelFormat *format)
 {
-    _screenData.create(width, height, Graphics::PixelFormat());
+    _gameScreen.create(width, height, Graphics::PixelFormat());
 }
 
 int RetroGraphicsManager::getScreenChangeID() const { return 0; }
@@ -40,15 +75,19 @@ int RetroGraphicsManager::getScreenChangeID() const { return 0; }
 void RetroGraphicsManager::beginGFXTransaction() { }
 OSystem::TransactionError RetroGraphicsManager::endGFXTransaction() { return OSystem::kTransactionSuccess; }
 
-int16 RetroGraphicsManager::getHeight() { return _screenData.w; }
-int16 RetroGraphicsManager::getWidth() { return _screenData.h; }
+int16 RetroGraphicsManager::getHeight() { return _gameScreen.w; }
+int16 RetroGraphicsManager::getWidth() { return _gameScreen.h; }
 
-void RetroGraphicsManager::setPalette(const byte *colors, uint start, uint num) { }
+void RetroGraphicsManager::setPalette(const byte *colors, uint start, uint num)
+{ 
+	memcpy(_gamePalette + start * 3, colors, num * 3);
+}
+
 void RetroGraphicsManager::grabPalette(byte *colors, uint start, uint num) { }
 
 void RetroGraphicsManager::copyRectToScreen(const void *buf, int pitch, int x, int y, int w, int h) { }
 
-Graphics::Surface *RetroGraphicsManager::lockScreen() { return &_screenData; }
+Graphics::Surface *RetroGraphicsManager::lockScreen() { return &_gameScreen; }
 
 void RetroGraphicsManager::unlockScreen() { }
 void RetroGraphicsManager::fillScreen(uint32 col) { }
@@ -64,74 +103,67 @@ void RetroGraphicsManager::setShakePos(int shakeOffset) {}
 void RetroGraphicsManager::setFocusRectangle(const Common::Rect& rect) {}
 void RetroGraphicsManager::clearFocusRectangle() {}
 
-// OVERLAY
-
-void RetroGraphicsManager::showOverlay() { _overlayVisible = true; }
-void RetroGraphicsManager::hideOverlay() { _overlayVisible = false; }
-
-Graphics::PixelFormat RetroGraphicsManager::getOverlayFormat() const { return Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15); }
-int16 RetroGraphicsManager::getOverlayHeight() { return 480; }
-int16 RetroGraphicsManager::getOverlayWidth() { return 640; }
-
-void RetroGraphicsManager::clearOverlay() { memset(_overlay, 0, sizeof(_overlay)); }
-
-void RetroGraphicsManager::grabOverlay(void *buf, int pitch)
+template<typename INPUT, typename OUTPUT>
+void blit(Graphics::Surface& aOut, Graphics::Surface& aIn, int aX, int aY, const byte* aColors, uint32 aKeyColor)
 {
-    
-}
-
-void RetroGraphicsManager::copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h)
-{
-    const byte *src = (const byte *)buf;
-
-    // Clip the coordinates
-    if (x < 0)
+    for(int i = 0; i != aIn.h; i ++)
     {
-        w += x;
-        src -= x * 2;
-        x = 0;
-    }
-
-    if (y < 0)
-    {
-        h += y;
-        src -= y * pitch;
-        y = 0;
-    }
-
-    w = (w > 640 - x) ? 640 - x : w;
-    h = (h > 480 - y) ? 640 - y : h;
-
-    if(w > 0 || h > 0)
-    {
-        byte *dst = (byte *)&_overlay[y * 640];
-        for (int i = 0; i < h; i++, src += pitch, dst += 640 * 2)
+        if((i + aY) < 0 || (i + aY) >= 480)
         {
-            memcpy(dst + x * 2, src, w * 2);
+            continue;
+        }
+    
+        INPUT* const in = (INPUT*)aIn.pixels + (i * aIn.w);
+        OUTPUT* const out = (OUTPUT*)aOut.pixels + ((i + aY) * aOut.w);
+        
+        for(int j = 0; j != aIn.w; j ++)
+        {
+            if((j + aX) < 0 || (j + aX) >= 640)
+            {
+                continue;
+            }
+        
+            uint8 r, g, b;
+
+            const INPUT val = in[j];
+            if(val != aKeyColor)
+            {            
+                if(aIn.format.bytesPerPixel == 1)
+                {
+                    r = aColors[val * 3 + 0];
+                    g = aColors[val * 3 + 1];
+                    b = aColors[val * 3 + 2];
+                }
+                else
+                {
+                    aIn.format.colorToRGB(in[j], r, g, b);
+                }
+                
+                out[j + aX] = aOut.format.RGBToColor(r, g, b);
+            }
         }
     }
 }
 
-// MOUSE
-bool RetroGraphicsManager::showMouse(bool visible) { return !visible; }
-void RetroGraphicsManager::warpMouse(int x, int y) {}
-void RetroGraphicsManager::setMouseCursor(const void *buf, uint w, uint h, int hotspotX, int hotspotY, uint32 keycolor, bool dontScale, const Graphics::PixelFormat *format) {}
-void RetroGraphicsManager::setCursorPalette(const byte *colors, uint start, uint num) {}
 
 uint16* RetroGraphicsManager::getScreen()
 {
-    static uint16 screen[640 * 480];
+    static Graphics::Surface screen;
+    screen.create(640, 480, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
     
-    memcpy(screen, _overlay, sizeof(_overlay));
+    memcpy(screen.pixels, _overlay, sizeof(_overlay));
 
     // Draw Mouse
-    const int32 mouseX = OSystem_Libretro::mouseX;
-    const int32 mouseY = OSystem_Libretro::mouseY;
-    
-    if(mouseY > 0 && mouseX > 0 && mouseX < 640 && mouseY < 480)
+    if(_mouseVisible)
     {
-        screen[mouseY * 640 + mouseX] = 0x7FFF;
+        const int32 mouseX = OSystem_Libretro::mouseX;
+        const int32 mouseY = OSystem_Libretro::mouseY;
+        
+        const int x = mouseX - _mouseHotspotX;
+        const int y = mouseY - _mouseHotspotY;
+
+        blit<uint8, uint16>(screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
     }
     
-    return screen;
+    return (uint16*)screen.pixels;
 }

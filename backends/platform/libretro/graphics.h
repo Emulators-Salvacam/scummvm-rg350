@@ -9,11 +9,21 @@
 #include "backends/graphics/graphics.h"
 
 class RetroGraphicsManager : public GraphicsManager {
-    static Graphics::Surface _screenData;
+    static Graphics::Surface _gameScreen;
+    static byte _gamePalette[256 * 3];
     
     static bool _overlayVisible;    
     static uint16 _overlay[640 * 480];
-
+    
+    static bool _mouseVisible;
+    static Graphics::Surface _mouseImage;
+    static Graphics::PixelFormat _mouseFormat;
+    static int _mouseHotspotX;
+    static int _mouseHotspotY;
+    static bool _mouseDontScale;
+    static uint32 _mouseKeyColor;
+    static byte _mousePalette[256 * 3];
+    static bool _mousePaletteEnabled;
 
 public:
     RetroGraphicsManager();
@@ -26,6 +36,9 @@ public:
 
     // VIDEO MODE
 	const OSystem::GraphicsMode *getSupportedGraphicsModes() const;
+    Graphics::PixelFormat getScreenFormat() const;
+    Common::List<Graphics::PixelFormat> getSupportedFormats() const;
+	
 	
 	int getDefaultGraphicsMode() const;
 	bool setGraphicsMode(int mode);
@@ -60,15 +73,15 @@ public:
 	void clearFocusRectangle();
 
     // OVERLAY
+	int16 getOverlayWidth();
+	int16 getOverlayHeight();
+	Graphics::PixelFormat getOverlayFormat() const;    
+    
 	void showOverlay();
 	void hideOverlay();
 	void clearOverlay();
 	void grabOverlay(void *buf, int pitch);	
 	void copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h);
-
-	Graphics::PixelFormat getOverlayFormat() const;
-	int16 getOverlayHeight();
-	int16 getOverlayWidth();
 
 
 
