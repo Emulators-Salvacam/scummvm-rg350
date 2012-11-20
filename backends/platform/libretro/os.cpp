@@ -30,8 +30,7 @@
 
 int32 OSystem_Libretro::mouseX;
 int32 OSystem_Libretro::mouseY;
-bool OSystem_Libretro::mouseDown;
-
+bool OSystem_Libretro::mouseButtons[2];
 
 OSystem_Libretro::OSystem_Libretro()
 {
@@ -126,16 +125,26 @@ void OSystem_Libretro::processMouse(retro_input_state_t aCallback)
         events.push_back(ev); 
     }
 
-    const bool down = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
-    if(down != mouseDown)
+    static const uint32_t retroButtons[2] = {RETRO_DEVICE_ID_MOUSE_LEFT, RETRO_DEVICE_ID_MOUSE_RIGHT};
+    static const Common::EventType eventID[2][2] = 
     {
-        mouseDown = down;
-        
-        Common::Event ev;
-        ev.type = down ? Common::EVENT_LBUTTONDOWN : Common::EVENT_LBUTTONUP;
-        ev.mouse.x = mouseX;
-        ev.mouse.y = mouseY;
-        events.push_back(ev);
+        {Common::EVENT_LBUTTONDOWN, Common::EVENT_LBUTTONUP},
+        {Common::EVENT_RBUTTONDOWN, Common::EVENT_RBUTTONUP}
+    };
+
+    for(int i = 0; i != 2; i ++)
+    {
+        const bool down = aCallback(0, RETRO_DEVICE_MOUSE, 0, retroButtons[i]);
+        if(down != mouseButtons[i])
+        {
+            mouseButtons[i] = down;
+            
+            Common::Event ev;
+            ev.type = eventID[i][down ? 0 : 1];
+            ev.mouse.x = mouseX;
+            ev.mouse.y = mouseY;
+            events.push_back(ev);
+        }
     }
 }
 

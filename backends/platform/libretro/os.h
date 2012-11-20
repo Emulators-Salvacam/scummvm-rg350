@@ -55,7 +55,7 @@ class OSystem_Libretro : public ModularBackend, public Common::EventSource
     public:
         static int32 mouseX;
         static int32 mouseY;
-        static bool mouseDown;
+        static bool mouseButtons[2];
     
     
         OSystem_Libretro();
