@@ -191,7 +191,8 @@
 		  defined(IPHONE) || \
 		  defined(__PLAYSTATION2__) || \
 		  defined(__PSP__) || \
-		  defined(__SYMBIAN32__)
+		  defined(__SYMBIAN32__) || \
+		  defined(__LIBRETRO__)
 
 		#define SCUMM_LITTLE_ENDIAN
 		#define SCUMM_NEED_ALIGNMENT
