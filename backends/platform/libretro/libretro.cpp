@@ -172,10 +172,8 @@ void retro_run (void)
         // Mouse
         if(lrsystem)
         {
-            const int16_t mouseX = input_cb(1, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-            const int16_t mouseY = input_cb(1, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
-            const bool mouseLeft = input_cb(1, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT) ? true : false;
-            lrsystem->sendMouseData(mouseX, mouseY, mouseLeft);
+            lrsystem->processMouse(input_cb);
+            lrsystem->processKeyboard(input_cb);
         }
     
         // Run emu

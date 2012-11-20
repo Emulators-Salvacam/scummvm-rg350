@@ -28,6 +28,7 @@
 
 #include <unistd.h>
 #include <sys/time.h>
+#include <list>
 
 #include "backends/modular-backend.h"
 #include "base/main.h"
@@ -40,6 +41,8 @@
 
 #include "audio/mixer_intern.h"
 #include "common/scummsys.h"
+#include "common/events.h"
+#include "libretro.h"
 
 //
 
@@ -50,8 +53,6 @@ class RetroGraphicsManager;
 class OSystem_Libretro : public ModularBackend, public Common::EventSource
 {
     public:
-        static bool needMoveEvent;
-        static bool needLeftEvent;
         static int32 mouseX;
         static int32 mouseY;
         static bool mouseDown;
@@ -63,10 +64,7 @@ class OSystem_Libretro : public ModularBackend, public Common::EventSource
         virtual void initBackend();
     
         virtual Common::EventSource *getDefaultEventSource();
-        virtual bool pollEvent(Common::Event &event);
-        void sendMouseData(int32 xMove, int32 yMove, bool down);
-    
-    
+        
         virtual uint32 getMillis();
         virtual void delayMillis(uint msecs);	
         virtual void getTimeAndDate(TimeDate &t) const;
@@ -75,6 +73,13 @@ class OSystem_Libretro : public ModularBackend, public Common::EventSource
         //
         
         RetroGraphicsManager* getRetroGraphics();
+        
+        // EVENTS
+        static std::list<Common::Event> events;
+        
+        virtual bool pollEvent(Common::Event &event);
+        void processMouse(retro_input_state_t aCallback);
+        void processKeyboard(retro_input_state_t aCallback);
 };
 
 #endif

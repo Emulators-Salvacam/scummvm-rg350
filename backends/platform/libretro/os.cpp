@@ -28,8 +28,6 @@
 #include "os.h"
 #include "graphics.h"
 
-bool OSystem_Libretro::needMoveEvent;
-bool OSystem_Libretro::needLeftEvent;
 int32 OSystem_Libretro::mouseX;
 int32 OSystem_Libretro::mouseY;
 bool OSystem_Libretro::mouseDown;
@@ -56,28 +54,6 @@ void OSystem_Libretro::initBackend()
 
     ((Audio::MixerImpl *)_mixer)->setReady(true);
     ModularBackend::initBackend();	
-}
-
-bool OSystem_Libretro::pollEvent(Common::Event &event)
-{
-    if(needMoveEvent)
-    {
-        event.type = Common::EVENT_MOUSEMOVE;
-        event.mouse.x = mouseX;
-        event.mouse.y = mouseY;
-        needMoveEvent = false;
-        return true;
-    }
-    else if(needLeftEvent)
-    {
-        event.type = mouseDown ? Common::EVENT_LBUTTONDOWN : Common::EVENT_LBUTTONUP;
-        event.mouse.x = mouseX;
-        event.mouse.y = mouseY;
-        needLeftEvent = false;
-        return true;
-    }
-
-    return false;
 }
 
 uint32 OSystem_Libretro::getMillis()
@@ -108,29 +84,79 @@ Common::EventSource* OSystem_Libretro::getDefaultEventSource()
     return this;
 }
 
-void OSystem_Libretro::sendMouseData(int32 xMove, int32 yMove, bool down)
-{
-    if(down != mouseDown)
-    {
-        mouseDown = down;
-        needLeftEvent = true;
-    }
-    
-    if(xMove || yMove)
-    {    
-        mouseX += xMove;
-        mouseX = (mouseX < 0) ? 0 : mouseX;
-        mouseX = (mouseX >= getRetroGraphics()->getCurrentWidth()) ? getRetroGraphics()->getCurrentWidth() : mouseX;
-
-        mouseY += yMove;
-        mouseY = (mouseY < 0) ? 0 : mouseY;
-        mouseY = (mouseY >= getRetroGraphics()->getCurrentHeight()) ? getRetroGraphics()->getCurrentHeight() : mouseY;
-
-        needMoveEvent = true;
-    }
-}
-
 RetroGraphicsManager* OSystem_Libretro::getRetroGraphics()
 {
     return (RetroGraphicsManager*)_graphicsManager;
+}
+
+// EVENTS
+std::list<Common::Event> OSystem_Libretro::events;
+
+bool OSystem_Libretro::pollEvent(Common::Event &event)
+{
+    if(!events.empty())
+    {
+        event = events.front();
+        events.pop_front();
+        return true;
+    }
+
+    return false;
+}
+
+void OSystem_Libretro::processMouse(retro_input_state_t aCallback)
+{
+    const int16_t x = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+    const int16_t y = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+    
+    if(x || y)
+    {
+        mouseX += x;
+        mouseX = (mouseX < 0) ? 0 : mouseX;
+        mouseX = (mouseX >= getRetroGraphics()->getCurrentWidth()) ? getRetroGraphics()->getCurrentWidth() : mouseX;
+
+        mouseY += y;
+        mouseY = (mouseY < 0) ? 0 : mouseY;
+        mouseY = (mouseY >= getRetroGraphics()->getCurrentHeight()) ? getRetroGraphics()->getCurrentHeight() : mouseY;
+        
+        Common::Event ev;
+        ev.type = Common::EVENT_MOUSEMOVE;
+        ev.mouse.x = mouseX;
+        ev.mouse.y = mouseY;
+        events.push_back(ev); 
+    }
+
+    const bool down = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
+    if(down != mouseDown)
+    {
+        mouseDown = down;
+        
+        Common::Event ev;
+        ev.type = down ? Common::EVENT_LBUTTONDOWN : Common::EVENT_LBUTTONUP;
+        ev.mouse.x = mouseX;
+        ev.mouse.y = mouseY;
+        events.push_back(ev);
+    }
+}
+
+void OSystem_Libretro::processKeyboard(retro_input_state_t aCallback)
+{
+    static bool states[RETROK_LAST];
+    
+    for(int i = 0; i != RETROK_LAST; i ++)
+    {
+        const bool down = aCallback(0, RETRO_DEVICE_KEYBOARD, 0, i);
+        
+        if(states[i] != down)
+        {
+            states[i] = down;
+            
+            Common::Event ev;
+            ev.type = down ? Common::EVENT_KEYDOWN : Common::EVENT_KEYUP;
+            ev.kbd.keycode = (Common::KeyCode)i;
+            ev.kbd.flags = 0;
+            ev.kbd.ascii = 0;
+            events.push_back(ev);
+        }
+    }
 }

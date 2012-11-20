@@ -1,4 +1,5 @@
-srcdir = ../../..
+srcdir = ../../../..
+retrodir = backends/platform/libretro/
 VPATH = $(srcdir)
 
 #DEFINES = -D__DC__ -DNONSTANDARD_PORT -DUSE_MAD -DUSE_ZLIB -DDISABLE_DEFAULT_SAVEFILEMANAGER -DDISABLE_TEXT_CONSOLE -DDISABLE_COMMAND_LINE -DUSE_RGB_COLOR
@@ -7,7 +8,7 @@ CC=clang -g
 CXX=clang++ -g
 LD=clang++ -g -dynamiclib
 DEFINES=-D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR
-INCLUDES= -I./ -I$(srcdir) -I$(srcdir)/engines
+INCLUDES= -I$(srcdir)/$(retrodir) -I. -I$(srcdir) -I$(srcdir)/engines
 EXECUTABLE = libretro
 DEPDIR = .deps
 MKDIR = mkdir -p
@@ -43,10 +44,17 @@ ENABLE_SKY = $(ENABLED)
 #ENABLE_TOUCHE = $(ENABLED)
 #ENABLE_TUCKER = $(ENABLED)
 
-OBJS :=	libretro.o ../../fs/posix/posix-fs.o ../../fs/posix/posix-fs-factory.o libco/libco.o os.o \
-        graphics.o graphics-overlay.o graphics-mouse.o graphics-game.o
+OBJS :=	$(retrodir)libretro.o \
+        $(retrodir)os.o \
+        $(retrodir)graphics.o \
+        $(retrodir)graphics-mouse.o \
+        $(retrodir)graphics-overlay.o \
+        $(retrodir)graphics-game.o \
+        $(retrodir)libco/libco.o \
+        backends/fs/posix/posix-fs.o \
+        backends/fs/posix/posix-fs-factory.o
 
-MODULE_DIRS += ./
+MODULE_DIRS += $(retrodir) $(retrodir)libco
 
 BACKEND := libretro
 
