@@ -180,7 +180,8 @@ void retro_run (void)
         co_switch(emuThread);
     
         // Upload video: TODO: Check the CANDUPE env value
-        video_cb(lrsystem->getRetroGraphics()->getScreen(), 640, 480, 640 * 2);
+        RetroGraphicsManager* gm = lrsystem->getRetroGraphics();
+        video_cb(gm->getScreen(), gm->getCurrentWidth(), gm->getCurrentHeight(), gm->getCurrentWidth() * 2);
     
         // Upload audio: TODO: Support sample rate control
         static uint32 buf[735];

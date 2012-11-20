@@ -3,6 +3,7 @@
 #include "graphics.h"
 #include "os.h"
 
+Graphics::Surface RetroGraphicsManager::_screen;
 
 RetroGraphicsManager::RetroGraphicsManager()
 {
@@ -14,6 +15,7 @@ RetroGraphicsManager::~RetroGraphicsManager()
     _gameScreen.free();
     _overlay.free();
     _mouseImage.free();
+    _screen.free();
 }
 
 // VIDEO FEATURES
@@ -117,18 +119,21 @@ void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY,
 
 uint16* RetroGraphicsManager::getScreen()
 {
-    static Graphics::Surface screen;
-    screen.create(640, 480, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
-    
     const Graphics::Surface& srcSurface = (_overlayVisible) ? _overlay : _gameScreen;
+
+    if(srcSurface.w != _screen.w || srcSurface.h != _screen.h)
+    {
+        _screen.create(srcSurface.w, srcSurface.h, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+    }
+    
     if(srcSurface.w && srcSurface.h)
     {
         switch(srcSurface.format.bytesPerPixel)
         {
-            case 1: blit<uint8, uint16>(screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-            case 2: blit<uint16, uint16>(screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-            case 3: blit<uint8, uint16>(screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-            case 4: blit<uint32, uint16>(screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+            case 1: blit<uint8, uint16>(_screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+            case 2: blit<uint16, uint16>(_screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+            case 3: blit<uint8, uint16>(_screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+            case 4: blit<uint32, uint16>(_screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
         }
     }
 
@@ -141,8 +146,8 @@ uint16* RetroGraphicsManager::getScreen()
         const int x = mouseX - _mouseHotspotX;
         const int y = mouseY - _mouseHotspotY;
 
-        blit<uint8, uint16>(screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
+        blit<uint8, uint16>(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
     }
     
-    return (uint16*)screen.pixels;
+    return (uint16*)_screen.pixels;
 }

@@ -4,9 +4,9 @@ VPATH = $(srcdir)
 
 #DEFINES = -D__DC__ -DNONSTANDARD_PORT -DUSE_MAD -DUSE_ZLIB -DDISABLE_DEFAULT_SAVEFILEMANAGER -DDISABLE_TEXT_CONSOLE -DDISABLE_COMMAND_LINE -DUSE_RGB_COLOR
 
-CC=clang -g
-CXX=clang++ -g
-LD=clang++ -g -dynamiclib
+CC=clang -g -O3
+CXX=clang++ -g -O3
+LD=clang++ -g -dynamiclib -O3
 DEFINES=-D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR
 INCLUDES= -I$(srcdir)/$(retrodir) -I. -I$(srcdir) -I$(srcdir)/engines
 EXECUTABLE = libretro

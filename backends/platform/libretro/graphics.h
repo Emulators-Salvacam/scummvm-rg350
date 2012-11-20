@@ -10,6 +10,8 @@
 #include "backends/graphics/graphics.h"
 
 class RetroGraphicsManager : public GraphicsManager {
+    static Graphics::Surface _screen;
+
     static Graphics::Surface _gameScreen;
     static RetroPalette _gamePalette;
     static int _screenChangeCount;
