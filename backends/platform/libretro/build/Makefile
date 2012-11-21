@@ -74,10 +74,6 @@ ENABLE_SKY = $(ENABLED)
 #
 OBJS :=	$(retrodir)libretro.o \
         $(retrodir)os.o \
-        $(retrodir)graphics.o \
-        $(retrodir)graphics-mouse.o \
-        $(retrodir)graphics-overlay.o \
-        $(retrodir)graphics-game.o \
         $(retrodir)libco/libco.o \
         backends/fs/posix/posix-fs.o \
         backends/fs/posix/posix-fs-factory.o

@@ -25,61 +25,13 @@
 
  
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
-
-#include <unistd.h>
-#include <sys/time.h>
-#include <list>
-
-#include "backends/modular-backend.h"
-#include "base/main.h"
-
-#include "backends/saves/default/default-saves.h"
-#include "backends/timer/default/default-timer.h"
-#include "backends/mutex/null/null-mutex.h"
-#include "backends/events/default/default-events.h"
-#include "backends/fs/posix/posix-fs-factory.h"
-
-#include "audio/mixer_intern.h"
-#include "common/scummsys.h"
-#include "common/events.h"
 #include "libretro.h"
 
-//
+OSystem* buildRetroOS();
+const Graphics::Surface& getScreen();
 
-class RetroGraphicsManager;
+void retroProcessMouse(retro_input_state_t aCallback);
+void retroProcessKeyboard(retro_input_state_t aCallback);
 
-//
-
-class OSystem_Libretro : public ModularBackend, public Common::EventSource
-{
-    public:
-        static int32 mouseX;
-        static int32 mouseY;
-        static bool mouseButtons[2];
-    
-    
-        OSystem_Libretro();
-        virtual ~OSystem_Libretro();
-    
-        virtual void initBackend();
-    
-        virtual Common::EventSource *getDefaultEventSource();
-        
-        virtual uint32 getMillis();
-        virtual void delayMillis(uint msecs);	
-        virtual void getTimeAndDate(TimeDate &t) const;
-        virtual void logMessage(LogMessageType::Type type, const char *message);
-        
-        //
-        
-        RetroGraphicsManager* getRetroGraphics();
-        
-        // EVENTS
-        static std::list<Common::Event> events;
-        
-        virtual bool pollEvent(Common::Event &event);
-        void processMouse(retro_input_state_t aCallback);
-        void processKeyboard(retro_input_state_t aCallback);
-};
 
 #endif

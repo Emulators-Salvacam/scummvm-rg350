@@ -1,11 +1,12 @@
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 
-#include "backends/modular-backend.h"
 #include "base/main.h"
 #include "common/scummsys.h"
+#include "graphics/surface.h"
+#include "audio/mixer_intern.h"
 
 #include "os.h"
-#include "graphics.h"
+
 
 #include "libco/libco.h"
 #include "libretro.h"
@@ -33,9 +34,6 @@ void retro_set_environment(retro_environment_t cb) { environ_cb = cb; }
 
 
 //
-static OSystem_Libretro* lrsystem;
-
-
 bool FRONTENDwantsExit;
 bool EMULATORwantsExit;
 
@@ -49,11 +47,10 @@ void retro_leave_thread()
 
 static void retro_start_emulator()
 {
-    g_system = lrsystem = new OSystem_Libretro();
+    g_system = buildRetroOS();
 
     static const char* argv[] = {"scummvm"};
     int res = scummvm_main(1, argv);
-    delete lrsystem;
 }
 
 static void retro_wrap_emulator()
@@ -170,22 +167,22 @@ void retro_run (void)
         poll_cb();
     
         // Mouse
-        if(lrsystem)
+        if(g_system)
         {
-            lrsystem->processMouse(input_cb);
-            lrsystem->processKeyboard(input_cb);
+            retroProcessMouse(input_cb);
+            retroProcessKeyboard(input_cb);
         }
     
         // Run emu
         co_switch(emuThread);
     
         // Upload video: TODO: Check the CANDUPE env value
-        RetroGraphicsManager* gm = lrsystem->getRetroGraphics();
-        video_cb(gm->getScreen(), gm->getCurrentWidth(), gm->getCurrentHeight(), gm->getCurrentWidth() * 2);
+        const Graphics::Surface& screen = getScreen();
+        video_cb(screen.pixels, screen.w, screen.h, screen.pitch);
     
         // Upload audio: TODO: Support sample rate control
         static uint32 buf[735];
-        int count = ((Audio::MixerImpl*)lrsystem->getMixer())->mixCallback((byte*)buf, 735*4);
+        int count = ((Audio::MixerImpl*)g_system->getMixer())->mixCallback((byte*)buf, 735*4);
         audio_batch_cb((int16_t*)buf, count);
     }
     else
