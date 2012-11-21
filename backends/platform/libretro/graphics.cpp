@@ -81,7 +81,7 @@ void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY,
 
     for(int i = 0; i != aIn.h; i ++)
     {
-        if((i + aY) < 0 || (i + aY) >= 480)
+        if((i + aY) < 0 || (i + aY) >= aOut.h)
         {
             continue;
         }
@@ -91,7 +91,7 @@ void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY,
         
         for(int j = 0; j != aIn.w; j ++)
         {
-            if((j + aX) < 0 || (j + aX) >= 640)
+            if((j + aX) < 0 || (j + aX) >= aOut.w)
             {
                 continue;
             }
