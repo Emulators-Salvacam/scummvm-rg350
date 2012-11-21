@@ -112,13 +112,6 @@ void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY,
     }
 }
 
-static void threadTimer(void* a)
-{
-    extern void retro_leave_thread();
-    retro_leave_thread();
-}
-
-
 #define SCUMMVM_ROOT_PATH "/var/mobile/Library/ScummVM"
 #define SCUMMVM_SAVE_PATH SCUMMVM_ROOT_PATH "/Savegames"
 #define SCUMMVM_PREFS_PATH SCUMMVM_ROOT_PATH "/Preferences"
@@ -145,6 +138,8 @@ public:
     bool _mouseDontScale;
     bool _mouseButtons[2];
 
+    uint32 _threadExitTime;
+
     std::list<Common::Event> _events;
     
     Audio::MixerImpl* _mixer;
@@ -152,7 +147,7 @@ public:
     
 	OSystem_RETRO() : 
 	    _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
-	    _mouseKeyColor(0), _mouseDontScale(false), _mixer(0)
+	    _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _threadExitTime(getMillis())
 	{
         _fsFactory = new POSIXFilesystemFactory();
         memset(_mouseButtons, 0, sizeof(_mouseButtons));
@@ -175,8 +170,6 @@ public:
         _timerManager = new DefaultTimerManager();
         
         _mixer->setReady(true);
-        
-        _timerManager->installTimerProc(threadTimer, 18000, 0, "threadTimer");
         
         BaseBackend::initBackend();	
 	}
@@ -396,17 +389,32 @@ public:
         _mousePaletteEnabled = true;
 	}
 
+    bool retroCheckThread(uint32 offset = 0)
+    {
+        if(_threadExitTime <= (getMillis() + offset))
+        {
+            extern void retro_leave_thread();
+            retro_leave_thread();
+            
+            _threadExitTime = getMillis() + 10;
+            return true;
+        }
+        
+        return false;
+    }
+
 	virtual bool pollEvent(Common::Event &event)
 	{
+	    retroCheckThread();
+
+        ((DefaultTimerManager*)_timerManager)->handler();
+
+	
         if(!_events.empty())
         {
             event = _events.front();
             _events.pop_front();
             return true;
-        }
-        else
-        {
-            ((DefaultTimerManager*)_timerManager)->handler();    
         }
     
         return false;	
@@ -422,9 +430,11 @@ public:
 	
 	virtual void delayMillis(uint msecs)
 	{
-	    usleep(1000 * msecs);
+		if(!retroCheckThread(msecs))
+		{
+		    usleep(1000 * msecs);
+		}
 	}
-
 
 
 	virtual MutexRef createMutex(void)
