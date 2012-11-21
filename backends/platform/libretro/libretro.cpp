@@ -35,7 +35,7 @@ void retro_set_environment(retro_environment_t cb) { environ_cb = cb; }
 
 //
 bool FRONTENDwantsExit;
-bool EMULATORwantsExit;
+bool EMULATORexited;
 
 cothread_t mainThread;
 cothread_t emuThread;
@@ -47,16 +47,26 @@ void retro_leave_thread()
 
 static void retro_start_emulator()
 {
-    g_system = buildRetroOS();
+    g_system = retroBuildOS();
 
     static const char* argv[] = {"scummvm"};
-    int res = scummvm_main(1, argv);
+    scummvm_main(1, argv);
+    EMULATORexited = true;
+
+    LOG("Emulator loop has ended.");
+
+    // NOTE: Deleting g_system here will crash...
 }
 
 static void retro_wrap_emulator()
 {
     retro_start_emulator();
-            
+
+    if(!FRONTENDwantsExit)
+    {
+        environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);    
+    }
+
     // Were done here
     co_switch(mainThread);
         
@@ -123,13 +133,12 @@ void retro_init (void)
 
 void retro_deinit(void)
 {
-    FRONTENDwantsExit = !EMULATORwantsExit;
-    
     if(emuThread)
     {
-        // If the frontend says to exit we need to let the emulator run to finish its job.
-        if(FRONTENDwantsExit)
+        FRONTENDwantsExit = true;
+        while(!EMULATORexited)
         {
+            retroPostQuit();
             co_switch(emuThread);
         }
         
@@ -176,14 +185,17 @@ void retro_run (void)
         // Run emu
         co_switch(emuThread);
     
-        // Upload video: TODO: Check the CANDUPE env value
-        const Graphics::Surface& screen = getScreen();
-        video_cb(screen.pixels, screen.w, screen.h, screen.pitch);
-    
-        // Upload audio: TODO: Support sample rate control
-        static uint32 buf[735];
-        int count = ((Audio::MixerImpl*)g_system->getMixer())->mixCallback((byte*)buf, 735*4);
-        audio_batch_cb((int16_t*)buf, count);
+        if(g_system)
+        {
+            // Upload video: TODO: Check the CANDUPE env value
+            const Graphics::Surface& screen = getScreen();
+            video_cb(screen.pixels, screen.w, screen.h, screen.pitch);
+        
+            // Upload audio: TODO: Support sample rate control
+            static uint32 buf[735];
+            int count = ((Audio::MixerImpl*)g_system->getMixer())->mixCallback((byte*)buf, 735*4);
+            audio_batch_cb((int16_t*)buf, count);
+        }
     }
     else
     {

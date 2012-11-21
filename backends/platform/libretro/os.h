@@ -27,11 +27,11 @@
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 #include "libretro.h"
 
-OSystem* buildRetroOS();
+OSystem* retroBuildOS();
 const Graphics::Surface& getScreen();
 
 void retroProcessMouse(retro_input_state_t aCallback);
 void retroProcessKeyboard(retro_input_state_t aCallback);
-
+void retroPostQuit();
 
 #endif

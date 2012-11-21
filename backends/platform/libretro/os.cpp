@@ -576,9 +576,15 @@ public:
         }
     }
 
+    void postQuit()
+    {
+        Common::Event ev;
+        ev.type = Common::EVENT_QUIT;
+        _events.push_back(ev);
+    }
 };
 
-OSystem* buildRetroOS()
+OSystem* retroBuildOS()
 {
     return new OSystem_RETRO();
 }
@@ -590,10 +596,15 @@ const Graphics::Surface& getScreen()
 
 void retroProcessMouse(retro_input_state_t aCallback)
 {
-    return ((OSystem_RETRO*)g_system)->processMouse(aCallback);
+    ((OSystem_RETRO*)g_system)->processMouse(aCallback);
 }
 
 void retroProcessKeyboard(retro_input_state_t aCallback)
 {
-    return ((OSystem_RETRO*)g_system)->processKeyboard(aCallback);
+    ((OSystem_RETRO*)g_system)->processKeyboard(aCallback);
+}
+
+void retroPostQuit()
+{
+    ((OSystem_RETRO*)g_system)->postQuit();
 }
