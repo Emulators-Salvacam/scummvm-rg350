@@ -79,6 +79,4 @@ void RetroGraphicsManager::fillScreen(uint32 col)
 
 void RetroGraphicsManager::updateScreen()
 {
-    extern void retro_leave_thread();
-    retro_leave_thread();
 }

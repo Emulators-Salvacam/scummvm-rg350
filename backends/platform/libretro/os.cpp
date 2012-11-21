@@ -32,6 +32,12 @@ int32 OSystem_Libretro::mouseX;
 int32 OSystem_Libretro::mouseY;
 bool OSystem_Libretro::mouseButtons[2];
 
+static void threadTimer(void* a)
+{
+    extern void retro_leave_thread();
+    retro_leave_thread();
+}
+
 OSystem_Libretro::OSystem_Libretro()
 {
     _fsFactory = new POSIXFilesystemFactory();
@@ -50,6 +56,9 @@ void OSystem_Libretro::initBackend()
     _savefileManager = new DefaultSaveFileManager();
     _graphicsManager = new RetroGraphicsManager();
     _mixer = new Audio::MixerImpl(this, 44100);
+
+    _timerManager->installTimerProc(threadTimer, 18000, 0, "threadTimer");
+
 
     ((Audio::MixerImpl *)_mixer)->setReady(true);
     ModularBackend::initBackend();	
@@ -98,6 +107,10 @@ bool OSystem_Libretro::pollEvent(Common::Event &event)
         event = events.front();
         events.pop_front();
         return true;
+    }
+    else
+    {
+        ((DefaultTimerManager*)_timerManager)->handler();    
     }
 
     return false;
