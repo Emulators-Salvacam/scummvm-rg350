@@ -71,7 +71,7 @@ struct RetroPalette
 
 
 template<typename INPUT, typename OUTPUT>
-void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
+static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
 {
     assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
 
@@ -112,9 +112,19 @@ void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY,
     }
 }
 
-#define SCUMMVM_ROOT_PATH "/var/mobile/Library/ScummVM"
-#define SCUMMVM_SAVE_PATH SCUMMVM_ROOT_PATH "/Savegames"
-#define SCUMMVM_PREFS_PATH SCUMMVM_ROOT_PATH "/Preferences"
+static void copyRectToSurface(Graphics::Surface& out, const void *buf, int pitch, int x, int y, int w, int h)
+{
+    const byte *src = (const byte *)buf;
+    byte *dst = (byte *)out.pixels + y * out.pitch + x * out.format.bytesPerPixel;
+    
+    for (int i = 0; i < h; i++)
+    {
+        memcpy(dst, src, w * out.format.bytesPerPixel);
+        src += pitch;
+        dst += out.pitch;
+    }	
+}
+
 
 class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 public:
@@ -266,15 +276,7 @@ protected:
 public:
 	virtual void copyRectToScreen(const void *buf, int pitch, int x, int y, int w, int h)
 	{
-        const byte *src = (const byte *)buf;
-        byte *dst = (byte *)_gameScreen.pixels + y * _gameScreen.pitch + x * _gameScreen.format.bytesPerPixel;
-        
-        for (int i = 0; i < h; i++)
-        {
-            memcpy(dst, src, w * _gameScreen.format.bytesPerPixel);
-            src += pitch;
-            dst += _gameScreen.pitch;
-        }	
+	    copyRectToSurface(_gameScreen, buf, pitch, x, y, w, h);
 	}
 	
 	virtual void updateScreen()
@@ -325,15 +327,7 @@ public:
 	
 	virtual void copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h)
 	{
-        const byte *src = (const byte *)buf;
-        byte *dst = (byte *)_overlay.pixels + y * _overlay.pitch + x * _overlay.format.bytesPerPixel;
-        
-        for (int i = 0; i < h; i++)
-        {
-            memcpy(dst, src, w * _overlay.format.bytesPerPixel);
-            src += pitch;
-            dst += _overlay.pitch;
-        }
+	    copyRectToSurface(_overlay, buf, pitch, x, y, w, h);
 	}
 	
 	virtual int16 getOverlayHeight()
@@ -469,7 +463,15 @@ public:
 	
 	virtual void getTimeAndDate(TimeDate &t) const
 	{
-	    // TODO
+        time_t curTime = time(0);
+        struct tm lt = *localtime(&curTime);
+        t.tm_sec = lt.tm_sec;
+        t.tm_min = lt.tm_min;
+        t.tm_hour = lt.tm_hour;
+        t.tm_mday = lt.tm_mday;
+        t.tm_mon = lt.tm_mon;
+        t.tm_year = lt.tm_year;
+        t.tm_wday = lt.tm_wday;
 	}
 
 	virtual Audio::Mixer *getMixer()
