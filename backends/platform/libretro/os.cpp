@@ -34,6 +34,7 @@
 #include "backends/timer/default/default-timer.h"
 #include "graphics/colormasks.h"
 #include "graphics/palette.h"
+#include "backends/saves/default/default-saves.h"
 
 #include "libretro.h"
 
@@ -175,6 +176,7 @@ public:
 
 	virtual void initBackend()
 	{
+	    _savefileManager = new DefaultSaveFileManager();
         _overlay.create(640, 480, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));	
         _mixer = new Audio::MixerImpl(this, 44100);
         _timerManager = new DefaultTimerManager();
