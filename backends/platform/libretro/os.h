@@ -22,7 +22,6 @@
  
 #ifndef BACKENDS_LIBRETRO_OS_H
 #define BACKENDS_LIBRETRO_OS_H
-
  
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 #include "libretro.h"
@@ -33,5 +32,7 @@ const Graphics::Surface& getScreen();
 void retroProcessMouse(retro_input_state_t aCallback);
 void retroProcessKeyboard(retro_input_state_t aCallback);
 void retroPostQuit();
+
+void retroSetSystemDir(const char* aPath);
 
 #endif

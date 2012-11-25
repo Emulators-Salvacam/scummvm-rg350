@@ -126,6 +126,7 @@ static void copyRectToSurface(Graphics::Surface& out, const void *buf, int pitch
     }	
 }
 
+static Common::String s_systemDir;
 
 class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 public:
@@ -155,13 +156,17 @@ public:
     
     Audio::MixerImpl* _mixer;
     
-    
 	OSystem_RETRO() : 
 	    _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
 	    _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _threadExitTime(getMillis())
 	{
         _fsFactory = new POSIXFilesystemFactory();
         memset(_mouseButtons, 0, sizeof(_mouseButtons));
+
+        if(s_systemDir.empty())
+        {
+            s_systemDir = ".";
+        }
 	}
 
 	virtual ~OSystem_RETRO()
@@ -481,7 +486,10 @@ public:
 	    return _mixer;
 	}
 
-	//virtual Common::String getDefaultConfigFileName();
+	virtual Common::String getDefaultConfigFileName()
+	{
+	    return s_systemDir + "/scummvm.ini";   
+	}
 
 	virtual void logMessage(LogMessageType::Type type, const char *message)
 	{
@@ -621,4 +629,9 @@ void retroProcessKeyboard(retro_input_state_t aCallback)
 void retroPostQuit()
 {
     ((OSystem_RETRO*)g_system)->postQuit();
+}
+
+void retroSetSystemDir(const char* aPath)
+{
+    s_systemDir = Common::String(aPath ? aPath : ".");
 }

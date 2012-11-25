@@ -153,6 +153,17 @@ void retro_deinit(void)
 
 bool retro_load_game(const struct retro_game_info *game)
 {
+    const char* sysdir;
+    if(environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &sysdir))
+    {
+        retroSetSystemDir(sysdir);
+    }
+    else
+    {
+        LOG("No System directory specified, using current directory.");
+        retroSetSystemDir(".");
+    }
+
     if(emuThread)
     {
         return true;
