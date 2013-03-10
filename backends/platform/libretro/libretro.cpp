@@ -64,12 +64,12 @@ static void retro_wrap_emulator()
 
     if(!FRONTENDwantsExit)
     {
-        environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);    
+        environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
     }
 
     // Were done here
     co_switch(mainThread);
-        
+
     // Dead emulator, but libco says not to return
     while(true)
     {
@@ -119,6 +119,8 @@ void retro_init (void)
         }
     }*/
 
+    retro_keyboard_callback cb = {retroKeyEvent};
+    environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
 
     if(!emuThread && !mainThread)
     {
@@ -141,7 +143,7 @@ void retro_deinit(void)
             retroPostQuit();
             co_switch(emuThread);
         }
-        
+
         co_delete(emuThread);
         emuThread = 0;
     }
@@ -184,24 +186,22 @@ void retro_run (void)
 {
     if(emuThread)
     {
-        poll_cb();
-    
         // Mouse
         if(g_system)
         {
+            poll_cb();
             retroProcessMouse(input_cb);
-            retroProcessKeyboard(input_cb);
         }
-    
+
         // Run emu
         co_switch(emuThread);
-    
+
         if(g_system)
         {
             // Upload video: TODO: Check the CANDUPE env value
             const Graphics::Surface& screen = getScreen();
             video_cb(screen.pixels, screen.w, screen.h, screen.pitch);
-        
+
             // Upload audio
             static uint32 buf[735];
             int count = ((Audio::MixerImpl*)g_system->getMixer())->mixCallback((byte*)buf, 735*4);

@@ -19,10 +19,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  */
- 
+
 #ifndef BACKENDS_LIBRETRO_OS_H
 #define BACKENDS_LIBRETRO_OS_H
- 
+
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 #include "libretro.h"
 
@@ -30,9 +30,10 @@ OSystem* retroBuildOS();
 const Graphics::Surface& getScreen();
 
 void retroProcessMouse(retro_input_state_t aCallback);
-void retroProcessKeyboard(retro_input_state_t aCallback);
 void retroPostQuit();
 
 void retroSetSystemDir(const char* aPath);
+
+void retroKeyEvent(bool down, unsigned keycode, uint32_t character, uint16_t key_modifiers);
 
 #endif
