@@ -39,7 +39,7 @@
 
 namespace Kyra {
 
-#define RESFILE_VERSION 83
+#define RESFILE_VERSION 84
 
 namespace {
 bool checkKyraDat(Common::SeekableReadStream *file) {
@@ -1109,13 +1109,13 @@ const uint8 KyraEngine_LoK::_itemPosY[] = {
 };
 
 void GUI_LoK::initStaticResource() {
-	GUI_V1_BUTTON(_scrollUpButton, 0x12, 1, 1, 1, 0x483, 0, 0, 0, 0x18, 0x0f, 0);
-	GUI_V1_BUTTON(_scrollDownButton, 0x13, 1, 1, 1, 0x483, 0, 0, 0, 0x18, 0x0f, 0);
+	GUI_V1_BUTTON(_scrollUpButton, 0x12, 1, 1, 1, 0x483, 0, 0, 0, 0x18, 0x0F, 0);
+	GUI_V1_BUTTON(_scrollDownButton, 0x13, 1, 1, 1, 0x483, 0, 0, 0, 0x18, 0x0F, 0);
 
-	GUI_V1_BUTTON(_menuButtonData[0], 0x0c, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
-	GUI_V1_BUTTON(_menuButtonData[1], 0x0d, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
-	GUI_V1_BUTTON(_menuButtonData[2], 0x0e, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
-	GUI_V1_BUTTON(_menuButtonData[3], 0x0f, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
+	GUI_V1_BUTTON(_menuButtonData[0], 0x0C, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
+	GUI_V1_BUTTON(_menuButtonData[1], 0x0D, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
+	GUI_V1_BUTTON(_menuButtonData[2], 0x0E, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
+	GUI_V1_BUTTON(_menuButtonData[3], 0x0F, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
 	GUI_V1_BUTTON(_menuButtonData[4], 0x10, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
 	GUI_V1_BUTTON(_menuButtonData[5], 0x11, 1, 1, 1, 0x487, 0, 0, 0, 0, 0, 0);
 
@@ -1514,7 +1514,7 @@ void KyraEngine_HoF::initInventoryButtonList() {
 		_inventoryButtons[i].buttonCallback = inventoryCallback;
 
 	_buttonList = &_inventoryButtons[0];
-	for (size_t i = 1; i < 15; ++i)
+	for (int i = 1; i < 15; ++i)
 		_buttonList = _gui->addButtonToList(_buttonList, &_inventoryButtons[i]);
 }
 
