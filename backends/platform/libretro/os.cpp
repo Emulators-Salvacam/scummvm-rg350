@@ -185,7 +185,11 @@ public:
 	virtual void initBackend()
 	{
 	    _savefileManager = new DefaultSaveFileManager();
-        _overlay.create(640, 480, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+#ifdef FRONTEND_SUPPORTS_RGB565
+       _overlay.create(640, 480, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
+#else
+       _overlay.create(640, 480, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+#endif
         _mixer = new Audio::MixerImpl(this, 44100);
         _timerManager = new DefaultTimerManager();
 
@@ -261,7 +265,19 @@ public:
 	virtual Common::List<Graphics::PixelFormat> getSupportedFormats() const
 	{
         Common::List<Graphics::PixelFormat> result;
+
+        /* RGBA8888 */
+        //result.push_back(Graphics::PixelFormat(4, 8, 8, 8, 8, 24, 16, 8, 0));
+
+#ifdef FRONTEND_SUPPORTS_RGB565
+        /* RGB565 - overlay */
+        result.push_back(Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
+#else
+        /* RGB555 - fmtowns */
         result.push_back(Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+#endif
+
+        /* Palette - most games */
         result.push_back(Graphics::PixelFormat::createFormatCLUT8());
         return result;
 	}
@@ -508,7 +524,11 @@ public:
 
         if(srcSurface.w != _screen.w || srcSurface.h != _screen.h)
         {
+#ifdef FRONTEND_SUPPORTS_RGB565
+            _screen.create(srcSurface.w, srcSurface.h, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
+#else
             _screen.create(srcSurface.w, srcSurface.h, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+#endif
         }
 
         if(srcSurface.w && srcSurface.h)

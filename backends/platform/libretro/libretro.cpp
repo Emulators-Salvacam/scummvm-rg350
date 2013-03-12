@@ -118,6 +118,11 @@ void retro_init (void)
             RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_0RGB1555;
         }
     }*/
+#ifdef FRONTEND_SUPPORTS_RGB565
+   enum retro_pixel_format rgb565 = RETRO_PIXEL_FORMAT_RGB565;
+   if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
+      LOG("Frontend supports RGB565 -will use that instead of XRGB1555.\n");
+#endif
 
     retro_keyboard_callback cb = {retroKeyEvent};
     environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
