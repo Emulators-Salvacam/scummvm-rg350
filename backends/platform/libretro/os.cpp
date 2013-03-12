@@ -150,6 +150,7 @@ public:
     int _mouseKeyColor;
     bool _mouseDontScale;
     bool _mouseButtons[2];
+    bool _joypadmouseButtons[2];
 
     uint32 _threadExitTime;
 
@@ -158,6 +159,7 @@ public:
     Audio::MixerImpl* _mixer;
 
     int _keyflags;
+    uint64_t joypad_pressed;
 
 	OSystem_RETRO() :
 	    _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
@@ -165,6 +167,7 @@ public:
 	{
         _fsFactory = new POSIXFilesystemFactory();
         memset(_mouseButtons, 0, sizeof(_mouseButtons));
+        memset(_joypadmouseButtons, 0, sizeof(_joypadmouseButtons));
 
         if(s_systemDir.empty())
         {
@@ -554,10 +557,134 @@ public:
         return _screen;
 	}
 
+#define ANALOG_VALUE_X_ADD 8
+#define ANALOG_VALUE_Y_ADD 8
+
 	void processMouse(retro_input_state_t aCallback)
     {
-        const int16_t x = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-        const int16_t y = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+        int16_t joy_x, joy_y, x, y;
+        bool do_joystick, down;
+
+        static const uint32_t retroButtons[2] = {RETRO_DEVICE_ID_MOUSE_LEFT, RETRO_DEVICE_ID_MOUSE_RIGHT};
+        static const Common::EventType eventID[2][2] =
+        {
+            {Common::EVENT_LBUTTONDOWN, Common::EVENT_LBUTTONUP},
+            {Common::EVENT_RBUTTONDOWN, Common::EVENT_RBUTTONUP}
+        };
+
+        down = false;
+        joypad_pressed = 0;
+        do_joystick = false;
+        x = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+        y = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+        joy_x = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+        joy_y = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
+
+        if (joy_x > 0)
+        {
+           _mouseX += ANALOG_VALUE_X_ADD;
+           _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+           _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+            do_joystick = true;
+        }
+        else if (joy_x < 0)
+        {
+           _mouseX -= ANALOG_VALUE_X_ADD;
+           _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+           _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+            do_joystick = true;
+        }
+
+        if (joy_y > 0)
+        {
+            _mouseY += ANALOG_VALUE_Y_ADD; 
+            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+            do_joystick = true;
+        }
+        else if (joy_y < 0)
+        {
+            _mouseY -= ANALOG_VALUE_Y_ADD; 
+            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+            do_joystick = true;
+        }
+
+        {
+           if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+           {
+              _mouseX -= ANALOG_VALUE_X_ADD >> 1;
+              _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+              _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+              do_joystick = true;
+           }
+
+           if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+           {
+              _mouseX += ANALOG_VALUE_X_ADD >> 1;
+              _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+              _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+              do_joystick = true;
+           }
+
+           if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+           {
+              _mouseY -= ANALOG_VALUE_Y_ADD >> 1; 
+              _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+              _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+              do_joystick = true;
+           }
+
+           if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+           {
+              _mouseY += ANALOG_VALUE_Y_ADD >> 1; 
+              _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+              _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+              do_joystick = true;
+           }
+        }
+
+        if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+        {
+            Common::Event ev;
+            ev.type = Common::EVENT_MAINMENU;
+            _events.push_back(ev);
+        }
+
+        if (do_joystick)
+        {
+            Common::Event ev;
+            ev.type = Common::EVENT_MOUSEMOVE;
+            ev.mouse.x = _mouseX;
+            ev.mouse.y = _mouseY;
+            _events.push_back(ev);
+        }
+
+        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B);
+
+        if(down != _joypadmouseButtons[0])
+        {
+           _joypadmouseButtons[0] = down;
+
+           Common::Event ev;
+           ev.type = eventID[0][down ? 0 : 1];
+           ev.mouse.x = _mouseX;
+           ev.mouse.y = _mouseY;
+           _events.push_back(ev);
+        }
+
+        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A);
+
+        if(down != _joypadmouseButtons[0])
+        {
+           _joypadmouseButtons[1] = down;
+
+           Common::Event ev;
+           ev.type = eventID[1][down ? 0 : 1];
+           ev.mouse.x = _mouseX;
+           ev.mouse.y = _mouseY;
+           _events.push_back(ev);
+        }
 
         if(x || y)
         {
@@ -576,26 +703,21 @@ public:
             _events.push_back(ev);
         }
 
-        static const uint32_t retroButtons[2] = {RETRO_DEVICE_ID_MOUSE_LEFT, RETRO_DEVICE_ID_MOUSE_RIGHT};
-        static const Common::EventType eventID[2][2] =
-        {
-            {Common::EVENT_LBUTTONDOWN, Common::EVENT_LBUTTONUP},
-            {Common::EVENT_RBUTTONDOWN, Common::EVENT_RBUTTONUP}
-        };
 
         for(int i = 0; i != 2; i ++)
         {
-            const bool down = aCallback(0, RETRO_DEVICE_MOUSE, 0, retroButtons[i]);
+           Common::Event ev;
+            bool down = aCallback(0, RETRO_DEVICE_MOUSE, 0, retroButtons[i]);
             if(down != _mouseButtons[i])
             {
                 _mouseButtons[i] = down;
 
-                Common::Event ev;
                 ev.type = eventID[i][down ? 0 : 1];
                 ev.mouse.x = _mouseX;
                 ev.mouse.y = _mouseY;
                 _events.push_back(ev);
             }
+
         }
     }
 
@@ -609,6 +731,11 @@ public:
         _keyflags |= (key_modifiers & RETROKMOD_CAPSLOCK) ? Common::KBD_CAPS : 0;
         _keyflags |= (key_modifiers & RETROKMOD_NUMLOCK) ? Common::KBD_NUM : 0;
         _keyflags |= (key_modifiers & RETROKMOD_SCROLLOCK) ? Common::KBD_SCRL : 0;
+
+        if (joypad_pressed)
+        {
+           _keyflags |= (joypad_pressed & (1ULL << RETRO_DEVICE_ID_JOYPAD_START)) ? Common::EVENT_QUIT : 0;
+        }
 
         Common::Event ev;
         ev.type = down ? Common::EVENT_KEYDOWN : Common::EVENT_KEYUP;
