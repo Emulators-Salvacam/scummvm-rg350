@@ -159,7 +159,6 @@ public:
     Audio::MixerImpl* _mixer;
 
     int _keyflags;
-    uint64_t joypad_pressed;
 
 	OSystem_RETRO() :
 	    _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
@@ -573,7 +572,6 @@ public:
         };
 
         down = false;
-        joypad_pressed = 0;
         do_joystick = false;
         x = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
         y = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
@@ -731,11 +729,6 @@ public:
         _keyflags |= (key_modifiers & RETROKMOD_CAPSLOCK) ? Common::KBD_CAPS : 0;
         _keyflags |= (key_modifiers & RETROKMOD_NUMLOCK) ? Common::KBD_NUM : 0;
         _keyflags |= (key_modifiers & RETROKMOD_SCROLLOCK) ? Common::KBD_SCRL : 0;
-
-        if (joypad_pressed)
-        {
-           _keyflags |= (joypad_pressed & (1ULL << RETRO_DEVICE_ID_JOYPAD_START)) ? Common::EVENT_QUIT : 0;
-        }
 
         Common::Event ev;
         ev.type = down ? Common::EVENT_KEYDOWN : Common::EVENT_KEYUP;
