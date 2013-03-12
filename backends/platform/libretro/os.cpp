@@ -35,6 +35,7 @@
 #include "graphics/colormasks.h"
 #include "graphics/palette.h"
 #include "backends/saves/default/default-saves.h"
+#include <time.h>
 
 #include "libretro.h"
 
