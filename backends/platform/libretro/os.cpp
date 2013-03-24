@@ -35,7 +35,19 @@
 #include "graphics/colormasks.h"
 #include "graphics/palette.h"
 #include "backends/saves/default/default-saves.h"
+#if defined(_WIN32)
+#include <direct.h>
+#ifdef _XBOX
+#include <xtl.h>
+#else
+#include <windows.h>
+#endif
+#elif defined(__CELLOS_LV2__)
+#include <sys/sys_time.h>
+#include <sys/timer.h>
+#else
 #include <time.h>
+#endif
 
 #include "libretro.h"
 
@@ -79,9 +91,7 @@ static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, 
     for(int i = 0; i != aIn.h; i ++)
     {
         if((i + aY) < 0 || (i + aY) >= aOut.h)
-        {
-            continue;
-        }
+           continue;
 
         INPUT* const in = (INPUT*)aIn.pixels + (i * aIn.w);
         OUTPUT* const out = (OUTPUT*)aOut.pixels + ((i + aY) * aOut.w);
@@ -89,9 +99,7 @@ static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, 
         for(int j = 0; j != aIn.w; j ++)
         {
             if((j + aX) < 0 || (j + aX) >= aOut.w)
-            {
-                continue;
-            }
+               continue;
 
             uint8 r, g, b;
 
@@ -99,13 +107,9 @@ static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, 
             if(val != aKeyColor)
             {
                 if(aIn.format.bytesPerPixel == 1)
-                {
                     aColors.getColor(val, r, g, b);
-                }
                 else
-                {
                     aIn.format.colorToRGB(in[j], r, g, b);
-                }
 
                 out[j + aX] = aOut.format.RGBToColor(r, g, b);
             }
@@ -347,9 +351,7 @@ public:
         byte *dst = (byte *)buf;
 
         for (int i = 0; i < 480; i++, dst += pitch, src += 640 * 2)
-        {
-            memcpy(dst, src, 640 * 2);
-        }
+           memcpy(dst, src, 640 * 2);
 	}
 
 	virtual void copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h)
@@ -443,18 +445,30 @@ public:
 
 	virtual uint32 getMillis()
 	{
+#if defined(GEKKO)
+   return ticks_to_microsecs(gettime()) / 1000.0;
+#elif defined(__CELLOS_LV2__)
+   return sys_time_get_system_time() / 1000.0;
+#else
         struct timeval t;
         gettimeofday(&t, 0);
 
         return (t.tv_sec * 1000) + (t.tv_usec / 1000);
+#endif
 	}
 
 	virtual void delayMillis(uint msecs)
 	{
 		if(!retroCheckThread(msecs))
-		{
-		    usleep(1000 * msecs);
-		}
+      {
+#if defined(_WIN32)
+         Sleep(1000 * msecs);
+#elif defined(__CELLOS_LV2__)
+         sys_timer_usleep(1000 * msecs);
+#else
+         usleep(1000 * msecs);
+#endif
+      }
 	}
 
 
