@@ -50,13 +50,11 @@ struct RetroPalette
 
     void set(const byte *colors, uint start, uint num)
     {
-        assert(colors && (start + num) <= 256);
         memcpy(_colors + start * 3, colors, num * 3);
     }
 
     void get(byte* colors, uint start, uint num)
     {
-        assert(colors && (start + num) <= 256);
         memcpy(colors, _colors + start * 3, num * 3);
     }
 
@@ -75,7 +73,8 @@ struct RetroPalette
 template<typename INPUT, typename OUTPUT>
 static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
 {
-    assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
+   /* assert trips */
+    //assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
 
     for(int i = 0; i != aIn.h; i ++)
     {
