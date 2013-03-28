@@ -85,8 +85,7 @@ struct RetroPalette
 template<typename INPUT, typename OUTPUT>
 static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
 {
-   /* assert trips */
-    //assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
+    assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
 
     for(int i = 0; i != aIn.h; i ++)
     {
@@ -155,6 +154,7 @@ public:
     bool _mouseButtons[2];
     bool _joypadmouseButtons[2];
 
+    uint32 _startTime;
     uint32 _threadExitTime;
 
     std::list<Common::Event> _events;
@@ -165,16 +165,16 @@ public:
 
 	OSystem_RETRO() :
 	    _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
-	    _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _threadExitTime(getMillis()), _keyflags(0)
+	    _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _startTime(0), _threadExitTime(10), _keyflags(0)
 	{
         _fsFactory = new POSIXFilesystemFactory();
         memset(_mouseButtons, 0, sizeof(_mouseButtons));
         memset(_joypadmouseButtons, 0, sizeof(_joypadmouseButtons));
 
+        _startTime = getMillis();
+
         if(s_systemDir.empty())
-        {
             s_systemDir = ".";
-        }
 	}
 
 	virtual ~OSystem_RETRO()
@@ -210,20 +210,13 @@ public:
 
 	virtual void setFeatureState(Feature f, bool enable)
 	{
-        switch(f)
-        {
-            case OSystem::kFeatureCursorPalette: _mousePaletteEnabled = enable;
-        }
+        if (f == kFeatureCursorPalette)
+            _mousePaletteEnabled = enable;
 	}
 
 	virtual bool getFeatureState(Feature f)
 	{
-        switch(f)
-        {
-            case OSystem::kFeatureCursorPalette: return _mousePaletteEnabled;
-        }
-
-        return false;
+        return (f == kFeatureCursorPalette) ? _mousePaletteEnabled : false;
 	}
 
 	virtual const GraphicsMode *getSupportedGraphicsModes() const
@@ -446,14 +439,14 @@ public:
 	virtual uint32 getMillis()
 	{
 #if defined(GEKKO)
-   return ticks_to_microsecs(gettime()) / 1000.0;
+   return (ticks_to_microsecs(gettime()) / 1000.0) - _startTime;
 #elif defined(__CELLOS_LV2__)
-   return sys_time_get_system_time() / 1000.0;
+   return (sys_time_get_system_time() / 1000.0) - _startTime;
 #else
         struct timeval t;
         gettimeofday(&t, 0);
 
-        return (t.tv_sec * 1000) + (t.tv_usec / 1000);
+        return ((t.tv_sec * 1000) + (t.tv_usec / 1000)) - _startTime;
 #endif
 	}
 
@@ -558,7 +551,7 @@ public:
         }
 
         // Draw Mouse
-        if(_mouseVisible)
+        if(_mouseVisible && _mouseImage.w && _mouseImage.h)
         {
             const int x = _mouseX - _mouseHotspotX;
             const int y = _mouseY - _mouseHotspotY;
