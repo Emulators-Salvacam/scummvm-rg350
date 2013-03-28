@@ -22,6 +22,11 @@ else ifeq ($(platform), osx)
    TARGET  := libretro.dylib
    DEFINES += -fPIC
    LDFLAGS += -dynamiclib -fPIC
+else ifeq ($(platform), ios)
+   TARGET  := scummvm_libretro.dylib
+   DEFINES += -fPIC -DCOTHREAD_PTHREAD
+   LDFLAGS += -dynamiclib -fPIC
+   CXX      = clang++ -arch armv7 -isysroot $(IOSSDK)
 else ifeq ($(platform), qnx)
    TARGET  := libretro.so
    DEFINES += -fPIC
