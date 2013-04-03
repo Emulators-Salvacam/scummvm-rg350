@@ -87,7 +87,7 @@ static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, 
 {
     assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
 
-    for(int i = 0; i != aIn.h; i ++)
+    for(int i = 0; i < aIn.h; i ++)
     {
         if((i + aY) < 0 || (i + aY) >= aOut.h)
            continue;
@@ -95,7 +95,7 @@ static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, 
         INPUT* const in = (INPUT*)aIn.pixels + (i * aIn.w);
         OUTPUT* const out = (OUTPUT*)aOut.pixels + ((i + aY) * aOut.w);
 
-        for(int j = 0; j != aIn.w; j ++)
+        for(int j = 0; j < aIn.w; j ++)
         {
             if((j + aX) < 0 || (j + aX) >= aOut.w)
                continue;
@@ -707,7 +707,7 @@ public:
         }
 
 
-        for(int i = 0; i != 2; i ++)
+        for(int i = 0; i < 2; i ++)
         {
            Common::Event ev;
             bool down = aCallback(0, RETRO_DEVICE_MOUSE, 0, retroButtons[i]);

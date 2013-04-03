@@ -29,7 +29,7 @@ else ifeq ($(platform), ios)
    CXX      = clang++ -arch armv7 -isysroot $(IOSSDK)
 else ifeq ($(platform), qnx)
    TARGET  := libretro.so
-   DEFINES += -fPIC
+   DEFINES += -fPIC -DCOTHREAD_PTHREAD -DSYSTEM_NOT_SUPPORTING_D_TYPE
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    CC = qcc -Vgcc_ntoarmv7le
    CXX = QCC -Vgcc_ntoarmv7le
