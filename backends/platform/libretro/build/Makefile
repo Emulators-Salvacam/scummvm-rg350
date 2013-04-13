@@ -14,30 +14,38 @@ else ifneq ($(findstring win,$(shell uname -a)),)
 endif
 endif
 
+TARGET_NAME := scummvm
+
 ifeq ($(platform), unix)
-   TARGET  := libretro.so
+   TARGET  := $(TARGET_NAME)_libretro.so
    DEFINES += -fPIC
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
 else ifeq ($(platform), osx)
-   TARGET  := libretro.dylib
+   TARGET  := $(TARGET_NAME)_libretro.dylib
    DEFINES += -fPIC
    LDFLAGS += -dynamiclib -fPIC
 else ifeq ($(platform), ios)
-   TARGET  := scummvm_libretro.dylib
+   TARGET  := $(TARGET_NAME)_libretro.dylib
    DEFINES += -fPIC -DCOTHREAD_PTHREAD
    LDFLAGS += -dynamiclib -fPIC
    CXX      = clang++ -arch armv7 -isysroot $(IOSSDK)
 else ifeq ($(platform), qnx)
-   TARGET  := libretro.so
-   DEFINES += -fPIC -DCOTHREAD_PTHREAD -DSYSTEM_NOT_SUPPORTING_D_TYPE
+   TARGET  := $(TARGET_NAME)_libretro.so
+   DEFINES += -fPIC -DSYSTEM_NOT_SUPPORTING_D_TYPE
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    CC = qcc -Vgcc_ntoarmv7le
    CXX = QCC -Vgcc_ntoarmv7le
    LD = QCC -Vgcc_ntoarmv7le
    AR = qcc -Vgcc_ntoarmv7le -A
    RANLIB="${QNX_HOST}/usr/bin/ntoarmv7-ranlib"
+else ifeq ($(platform), ps3)
+   TARGET  := $(TARGET_NAME)_libretro_ps3.a
+   CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
+   CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
+   LD = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ld.exe
+   AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
 else ifeq ($(platform), android)
-   TARGET  := libretro_scummvm.so
+   TARGET  := $(TARGET_NAME)_libretro_android_arm.so
    DEFINES += -fPIC -Wno-multichar
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
