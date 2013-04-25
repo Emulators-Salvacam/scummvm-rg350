@@ -35,6 +35,9 @@ namespace Hopkins {
 
 FileManager::FileManager(HopkinsEngine *vm) {
 	_vm = vm;
+
+	_catalogPos = 0;
+	_catalogSize = 0;
 }
 
 /**
@@ -93,8 +96,9 @@ bool FileManager::fileExists(const Common::String &file) {
 /**
  * Search file in Cat file
  */
-byte *FileManager::searchCat(const Common::String &file, CatMode mode) {
+byte *FileManager::searchCat(const Common::String &file, CatMode mode, bool &fileFoundFl) {
 	byte *ptr = NULL;
+	fileFoundFl = true;
 	Common::File f;
 
 	Common::String filename = file;
@@ -103,54 +107,68 @@ byte *FileManager::searchCat(const Common::String &file, CatMode mode) {
 
 	switch (mode) {
 	case RES_INI:
-		if (!f.exists("RES_INI.CAT"))
-			return g_PTRNUL;
+		if (!f.exists("RES_INI.CAT")) {
+			fileFoundFl = false;
+			return NULL;
+		}
 
 		ptr = loadFile("RES_INI.CAT");
 		secondaryFilename = "RES_INI.RES";
 		break;
 
 	case RES_REP:
-		if (!f.exists("RES_REP.CAT"))
-			return g_PTRNUL;
+		if (!f.exists("RES_REP.CAT")) {
+			fileFoundFl = false;
+			return NULL;
+		}
 
 		ptr = loadFile("RES_REP.CAT");
 		secondaryFilename = "RES_REP.RES";
 		break;
 
 	case RES_LIN:
-		if (!f.exists("RES_LIN.CAT"))
-			return g_PTRNUL;
+		if (!f.exists("RES_LIN.CAT")) {
+			fileFoundFl = false;
+			return NULL;
+		}
 
 		ptr = loadFile("RES_LIN.CAT");
 		secondaryFilename = "RES_LIN.RES";
 		break;
 
 	case RES_PER:
-		if (!f.exists("RES_PER.CAT"))
-			return g_PTRNUL;
+		if (!f.exists("RES_PER.CAT")) {
+			fileFoundFl = false;
+			return NULL;
+		}
 
 		ptr = loadFile("RES_PER.CAT");
 		secondaryFilename = "RES_PER.RES";
 		break;
 
 	case RES_PIC:
-		if (!f.exists("PIC.CAT"))
-			return g_PTRNUL;
+		if (!f.exists("PIC.CAT")) {
+			fileFoundFl = false;
+			return NULL;
+		}
 
 		ptr = loadFile("PIC.CAT");
 		break;
 
 	case RES_SAN:
-		if (!f.exists("RES_SAN.CAT"))
-			return g_PTRNUL;
+		if (!f.exists("RES_SAN.CAT")) {
+			fileFoundFl = false;
+			return NULL;
+		}
 
 		ptr = loadFile("RES_SAN.CAT");
 		break;
 
 	case RES_SLI:
-		if (!f.exists("RES_SLI.CAT"))
-			return g_PTRNUL;
+		if (!f.exists("RES_SLI.CAT")) {
+			fileFoundFl = false;
+			return NULL;
+		}
 
 		ptr = loadFile("RES_SLI.CAT");
 		break;
@@ -174,13 +192,15 @@ byte *FileManager::searchCat(const Common::String &file, CatMode mode) {
 			}
 		}
 
-		if (!f.exists(tmpFilename))
-			return g_PTRNUL;
+		if (!f.exists(tmpFilename)) {
+			fileFoundFl = false;
+			return NULL;
+		}
 
 		ptr = loadFile(tmpFilename);
 		break;
 		}
-		// Deliberate fall-through to
+
 	default:
 		break;
 	}
@@ -196,14 +216,15 @@ byte *FileManager::searchCat(const Common::String &file, CatMode mode) {
 		if (name == filename) {
 			// Found entry for file, so get it's details from the catalogue entry
 			const byte *pData = ptr + offsetVal;
-			_vm->_globals->_catalogPos = READ_LE_UINT32(pData + 15);
-			_vm->_globals->_catalogSize = READ_LE_UINT32(pData + 19);
+			_catalogPos = READ_LE_UINT32(pData + 15);
+			_catalogSize = READ_LE_UINT32(pData + 19);
 			matchFlag = true;
 		}
 
 		if (name == "FINIS") {
 			_vm->_globals->freeMemory(ptr);
-			return g_PTRNUL;
+			fileFoundFl = false;
+			return NULL;
 		}
 
 		offsetVal += 23;
@@ -215,13 +236,13 @@ byte *FileManager::searchCat(const Common::String &file, CatMode mode) {
 		if (!f.open(secondaryFilename))
 			error("CHARGE_FICHIER");
 
-		f.seek(_vm->_globals->_catalogPos);
+		f.seek(_catalogPos);
 
-		byte *catData = _vm->_globals->allocMemory(_vm->_globals->_catalogSize);
-		if (catData == g_PTRNUL)
+		byte *catData = _vm->_globals->allocMemory(_catalogSize);
+		if (catData == NULL)
 			error("CHARGE_FICHIER");
 
-		readStream(f, catData, _vm->_globals->_catalogSize);
+		readStream(f, catData, _catalogSize);
 		f.close();
 		result = catData;
 	} else {

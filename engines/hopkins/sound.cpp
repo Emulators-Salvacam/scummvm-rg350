@@ -456,10 +456,8 @@ void SoundManager::checkSounds() {
 void SoundManager::checkVoiceActivity() {
 	// Check the status of each voice.
 	bool hasActiveVoice = false;
-	for (int i = 0; i < VOICE_COUNT; ++i) {
-		checkVoiceStatus(i);
-		hasActiveVoice |= _voice[i]._status;
-	}
+	for (int i = 0; i < VOICE_COUNT; ++i)
+		hasActiveVoice |= checkVoiceStatus(i);
 
 	if (!hasActiveVoice && _soundFl) {
 		_soundFl = false;
@@ -517,7 +515,9 @@ bool SoundManager::mixVoice(int voiceId, int voiceMode, bool dispTxtFl) {
 
 	filename = Common::String::format("%s%d", prefix.c_str(), mappedFileNumber);
 
-	if (!_vm->_fileManager->searchCat(filename + ".WAV", RES_VOI)) {
+	bool fileFoundFl = false;
+	_vm->_fileIO->searchCat(filename + ".WAV", RES_VOI, fileFoundFl);
+	if (fileFoundFl) {
 		if (_vm->getPlatform() == Common::kPlatformOS2 || _vm->getPlatform() == Common::kPlatformBeOS)
 			filename = "ENG_VOI.RES";
 		// Win95 and Linux versions uses another set of names
@@ -528,46 +528,51 @@ bool SoundManager::mixVoice(int voiceId, int voiceMode, bool dispTxtFl) {
 		else if (_vm->_globals->_language == LANG_SP)
 			filename = "RES_VES.RES";
 
-		catPos = _vm->_globals->_catalogPos;
-		catLen = _vm->_globals->_catalogSize;
-	} else if (!_vm->_fileManager->searchCat(filename + ".APC", RES_VOI)) {
-		if (_vm->getPlatform() == Common::kPlatformOS2 || _vm->getPlatform() == Common::kPlatformBeOS)
-			filename = "ENG_VOI.RES";
-		// Win95 and Linux versions uses another set of names
-		else if (_vm->_globals->_language == LANG_FR)
-			filename = "RES_VFR.RES";
-		else if (_vm->_globals->_language == LANG_EN)
-			filename = "RES_VAN.RES";
-		else if (_vm->_globals->_language == LANG_SP)
-			filename = "RES_VES.RES";
-
-		catPos = _vm->_globals->_catalogPos;
-		catLen = _vm->_globals->_catalogSize;
-	} else if (!_vm->_fileManager->searchCat(filename + ".RAW", RES_VOI)) {
-		if (_vm->getPlatform() == Common::kPlatformOS2 || _vm->getPlatform() == Common::kPlatformBeOS)
-			filename = "ENG_VOI.RES";
-		// Win95 and Linux versions uses another set of names
-		else if (_vm->_globals->_language == LANG_FR)
-			filename = "RES_VFR.RES";
-		else if (_vm->_globals->_language == LANG_EN)
-			filename = "RES_VAN.RES";
-		else if (_vm->_globals->_language == LANG_SP)
-			filename = "RES_VES.RES";
-
-		catPos = _vm->_globals->_catalogPos;
-		catLen = _vm->_globals->_catalogSize;
+		catPos = _vm->_fileIO->_catalogPos;
+		catLen = _vm->_fileIO->_catalogSize;
 	} else {
-		if (!f.exists(filename + ".WAV")) {
-			if (!f.exists(filename + ".APC"))
-				return false;
-			filename = filename + ".APC";
-		} else
-			filename = filename + ".WAV";
+		_vm->_fileIO->searchCat(filename + ".APC", RES_VOI, fileFoundFl);
+		if (fileFoundFl) {
+			if (_vm->getPlatform() == Common::kPlatformOS2 || _vm->getPlatform() == Common::kPlatformBeOS)
+				filename = "ENG_VOI.RES";
+			// Win95 and Linux versions uses another set of names
+			else if (_vm->_globals->_language == LANG_FR)
+				filename = "RES_VFR.RES";
+			else if (_vm->_globals->_language == LANG_EN)
+				filename = "RES_VAN.RES";
+			else if (_vm->_globals->_language == LANG_SP)
+				filename = "RES_VES.RES";
 
-		catPos = 0;
-		catLen = 0;
+			catPos = _vm->_fileIO->_catalogPos;
+			catLen = _vm->_fileIO->_catalogSize;
+		} else {
+			_vm->_fileIO->searchCat(filename + ".RAW", RES_VOI, fileFoundFl);
+			if (fileFoundFl) {
+				if (_vm->getPlatform() == Common::kPlatformOS2 || _vm->getPlatform() == Common::kPlatformBeOS)
+					filename = "ENG_VOI.RES";
+				// Win95 and Linux versions uses another set of names
+				else if (_vm->_globals->_language == LANG_FR)
+					filename = "RES_VFR.RES";
+				else if (_vm->_globals->_language == LANG_EN)
+					filename = "RES_VAN.RES";
+				else if (_vm->_globals->_language == LANG_SP)
+					filename = "RES_VES.RES";
+
+				catPos = _vm->_fileIO->_catalogPos;
+				catLen = _vm->_fileIO->_catalogSize;
+			} else {
+				if (!f.exists(filename + ".WAV")) {
+					if (!f.exists(filename + ".APC"))
+						return false;
+					filename = filename + ".APC";
+				} else
+					filename = filename + ".WAV";
+
+				catPos = 0;
+				catLen = 0;
+			}
+		}
 	}
-
 	oldMusicVol = _musicVolume;
 	if (!loadVoice(filename, catPos, catLen, _sWav[20])) {
 		// This case only concerns the English Win95 demo
@@ -586,23 +591,23 @@ bool SoundManager::mixVoice(int voiceId, int voiceMode, bool dispTxtFl) {
 	}
 	playVoice();
 
-	_vm->_eventsManager->_escKeyFl = false;
+	_vm->_events->_escKeyFl = false;
 
 	// Loop for playing voice
 	breakFlag = false;
 	do {
 		if (_specialSoundNum != 4 && !_skipRefreshFl)
-			_vm->_eventsManager->refreshScreenAndEvents();
-		if (_vm->_eventsManager->getMouseButton())
+			_vm->_events->refreshScreenAndEvents();
+		if (_vm->_events->getMouseButton())
 			break;
-		_vm->_eventsManager->refreshEvents();
-		if (_vm->_eventsManager->_escKeyFl)
+		_vm->_events->refreshEvents();
+		if (_vm->_events->_escKeyFl)
 			break;
 		// We only check the voice status if the file has been loaded properly
 		// This avoids skipping completely the talk animations in the Win95 UK Demo
 		if (!checkVoiceStatus(2) && _sWav[20]._active)
 			breakFlag = true;
-		// This is specific to the Win95 UK Demo again: if nothing is displayed, 
+		// This is specific to the Win95 UK Demo again: if nothing is displayed,
 		// don't wait for a click event.
 		if (!_sWav[20]._active && !dispTxtFl)
 			break;
@@ -617,7 +622,7 @@ bool SoundManager::mixVoice(int voiceId, int voiceMode, bool dispTxtFl) {
 	if (!_musicOffFl && _musicVolume > 2) {
 		setMODMusicVolume(_musicVolume);
 	}
-	_vm->_eventsManager->_escKeyFl = false;
+	_vm->_events->_escKeyFl = false;
 	_skipRefreshFl = false;
 	return true;
 }
@@ -627,8 +632,6 @@ void SoundManager::removeSample(int soundIndex) {
 		stopVoice(1);
 	if (checkVoiceStatus(2))
 		stopVoice(2);
-	if (checkVoiceStatus(3))
-		stopVoice(3);
 	removeWavSample(soundIndex);
 	_sound[soundIndex]._active = false;
 }
@@ -693,12 +696,11 @@ void SoundManager::playSample(int wavIndex, int voiceMode) {
 
 	if (_soundFl)
 		delWav(_currentSoundIndex);
-	
+
 	switch (voiceMode) {
 	case 5:
-	case 8:
 	// Case added to identify the former PLAY_SAMPLE2 calls
-	case 9: 
+	case 9:
 		if (checkVoiceStatus(1))
 			stopVoice(1);
 		playWavSample(1, wavIndex);
@@ -708,11 +710,6 @@ void SoundManager::playSample(int wavIndex, int voiceMode) {
 			stopVoice(1);
 		playWavSample(2, wavIndex);
 		break;
-	case 7:
-		if (checkVoiceStatus(3))
-			stopVoice(1);
-		playWavSample(3, wavIndex);
-		break;
 	default:
 		break;
 	}
@@ -721,7 +718,7 @@ void SoundManager::playSample(int wavIndex, int voiceMode) {
 bool SoundManager::checkVoiceStatus(int voiceIndex) {
 	if (_voice[voiceIndex]._status) {
 		int wavIndex = _voice[voiceIndex]._wavIndex;
-		if (_sWav[wavIndex]._audioStream != NULL && _sWav[wavIndex]._audioStream->endOfStream())
+		if (_sWav[wavIndex]._audioStream && _sWav[wavIndex]._audioStream->endOfStream())
 			stopVoice(voiceIndex);
 	}
 
@@ -768,7 +765,7 @@ bool SoundManager::loadVoice(const Common::String &filename, size_t fileOffset, 
 	if (!f.open(filename)) {
 		// Fallback to APC...
 		if (!f.open(setExtension(filename, ".APC"))) {
-			// The English demo doesn't include the speech file. 
+			// The English demo doesn't include the speech file.
 			// This avoids it to crash when discussing with other characters
 			if (!_vm->getIsDemo())
 				error("Could not open %s for reading", filename.c_str());

@@ -74,8 +74,6 @@ enum {
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
 
-#define MAX_LINES 400
-
 /**
  * A wrapper macro used around three character constants, like 'END', to
  * ensure portability. Typical usage: MKTAG24('E','N','D').
@@ -126,7 +124,7 @@ private:
 	void loadCredits();
 	void displayCredits(int startPosY, byte *buffer, char color);
 	void displayCredits();
-	void handleNotAvailable(int sortie);
+	void handleNotAvailable(int nextScreen);
 
 	bool runWin95Demo();
 	bool runLinuxDemo();
@@ -142,22 +140,22 @@ protected:
 	virtual bool hasFeature(EngineFeature f) const;
 
 public:
-	AnimationManager *_animationManager;
-	ComputerManager *_computerManager;
-	DialogsManager *_dialogsManager;
-	Debugger *_debugger;
-	EventsManager *_eventsManager;
-	FileManager *_fileManager;
-	FontManager *_fontManager;
+	AnimationManager *_animMan;
+	ComputerManager *_computer;
+	DialogsManager *_dialog;
+	Debugger *_debug;
+	EventsManager *_events;
+	FileManager *_fileIO;
+	FontManager *_fontMan;
 	Globals *_globals;
-	GraphicsManager *_graphicsManager;
-	LinesManager *_linesManager;
-	MenuManager *_menuManager;
-	ObjectsManager *_objectsManager;
-	SaveLoadManager *_saveLoadManager;
-	ScriptManager *_scriptManager;
-	SoundManager *_soundManager;
-	TalkManager *_talkManager;
+	GraphicsManager *_graphicsMan;
+	LinesManager *_linesMan;
+	MenuManager *_menuMan;
+	ObjectsManager *_objectsMan;
+	SaveLoadManager *_saveLoad;
+	ScriptManager *_script;
+	SoundManager *_soundMan;
+	TalkManager *_talkMan;
 
 public:
 	HopkinsEngine(OSystem *syst, const HopkinsGameDescription *gameDesc);
@@ -177,7 +175,7 @@ public:
 	virtual bool canSaveGameStateCurrently();
 	virtual Common::Error loadGameState(int slot);
 	virtual Common::Error saveGameState(int slot, const Common::String &desc);
-
+	int _startGameSlot;
 	/**
 	 * Run the introduction sequence
 	 */

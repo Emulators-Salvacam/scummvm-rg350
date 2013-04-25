@@ -48,7 +48,7 @@ private:
 	HopkinsEngine *_vm;
 
 	void pollEvents();
-	void handleKey(Common::Event &event);
+	void handleKey(const Common::Event &event);
 	void checkForNextFrameCounter();
 	void updateCursor();
 

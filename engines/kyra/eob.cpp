@@ -338,6 +338,14 @@ void EoBEngine::replaceMonster(int unit, uint16 block, int pos, int dir, int typ
 	}
 }
 
+bool EoBEngine::killMonsterExtra(EoBMonsterInPlay *m) {
+	if (m->type == 21) {
+		_playFinale = true;
+		_runFlag = false;
+	}
+	return true;
+}
+
 void EoBEngine::updateScriptTimersExtra() {
 	int cnt = 0;
 	for (int i = 1; i < 30; i++) {
@@ -387,6 +395,8 @@ void EoBEngine::loadDoorShapes(int doorType1, int shapeId1, int doorType2, int s
 void EoBEngine::drawDoorIntern(int type, int index, int x, int y, int w, int wall, int mDim, int16 y1, int16 y2) {
 	int shapeIndex = type + 2 - mDim;
 	uint8 *shp = _doorShapes[shapeIndex];
+	if (!shp)
+		return;
 
 	int d1 = 0;
 	int d2 = 0;

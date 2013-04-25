@@ -33,11 +33,14 @@ namespace Hopkins {
 class HopkinsEngine;
 
 // RES_ANI = 4 has been removed because it's not used
-enum CatMode { RES_INI = 1, RES_REP = 2, RES_LIN = 3, RES_PER = 5, 
+enum CatMode { RES_INI = 1, RES_REP = 2, RES_LIN = 3, RES_PER = 5,
                RES_PIC = 6, RES_SAN = 7, RES_SLI = 8, RES_VOI = 9 };
 
 class FileManager {
 public:
+	uint32 _catalogPos;
+	uint32 _catalogSize;
+
 	HopkinsEngine *_vm;
 
 	FileManager(HopkinsEngine *vm);
@@ -46,7 +49,7 @@ public:
 	byte *loadFile(const Common::String &file);
 	int readStream(Common::ReadStream &stream, void *buf, size_t nbytes);
 	void initCensorship();
-	byte *searchCat(const Common::String &file, CatMode mode);
+	byte *searchCat(const Common::String &file, CatMode mode, bool &fileFoundFl);
 	uint32 fileSize(const Common::String &filename);
 };
 
