@@ -136,6 +136,8 @@ void retro_init (void)
     {
         LOG("retro_init called more than once.");
     }
+
+    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &cb);
 }
 
 void retro_deinit(void)
