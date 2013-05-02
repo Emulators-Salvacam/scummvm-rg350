@@ -30,7 +30,12 @@ void retro_set_audio_sample(retro_audio_sample_t cb) { }
 void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_cb = cb; }
 void retro_set_input_poll(retro_input_poll_t cb) { poll_cb = cb; }
 void retro_set_input_state(retro_input_state_t cb) { input_cb = cb; }
-void retro_set_environment(retro_environment_t cb) { environ_cb = cb; }
+
+void retro_set_environment(retro_environment_t cb)
+{
+   environ_cb = cb;
+   environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &cb);
+}
 
 
 //
@@ -137,7 +142,6 @@ void retro_init (void)
         LOG("retro_init called more than once.");
     }
 
-    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &cb);
 }
 
 void retro_deinit(void)
