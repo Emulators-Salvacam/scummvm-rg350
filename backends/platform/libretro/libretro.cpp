@@ -34,7 +34,8 @@ void retro_set_input_state(retro_input_state_t cb) { input_cb = cb; }
 void retro_set_environment(retro_environment_t cb)
 {
    environ_cb = cb;
-   environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &cb);
+   bool tmp = true;
+   environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &tmp);
 }
 
 
