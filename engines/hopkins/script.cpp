@@ -197,64 +197,70 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 		opcodeType = 1;
 		break;
 	case MKTAG24('S', 'T', 'P'):
-			if (!_vm->_objectsMan->_disableFl) {
-				_vm->_objectsMan->_twoCharactersFl = false;
-				_vm->_objectsMan->_characterPos.x = READ_LE_INT16(dataP + 6);
-				_vm->_objectsMan->_characterPos.y = READ_LE_INT16(dataP + 8);
-				_vm->_objectsMan->_startSpriteIndex = dataP[5];
-				if (_vm->_objectsMan->_changeHeadFl) {
-					if (_vm->_globals->_saveData->_data[svField354] == 1
-							&& _vm->_globals->_saveData->_cloneHopkins._pos.x && _vm->_globals->_saveData->_cloneHopkins._pos.y
-							&& _vm->_globals->_saveData->_cloneHopkins._startSpriteIndex && _vm->_globals->_saveData->_cloneHopkins._location) {
+		if (!_vm->_objectsMan->_disableFl) {
+			// HACK: This piece of code is a replacement to the missing STE opcode when entering the FBI lab.
+			if (_vm->_globals->_curRoomNum == 10) {
+				_vm->_globals->_prevScreenId = _vm->_globals->_screenId;
+				_vm->_globals->_saveData->_data[svLastPrevScreenId] = _vm->_globals->_screenId;
+				_vm->_globals->_screenId = _vm->_globals->_saveData->_data[svLastScreenId] = 10;
+			}
+			_vm->_objectsMan->_twoCharactersFl = false;
+			_vm->_objectsMan->_characterPos.x = READ_LE_INT16(dataP + 6);
+			_vm->_objectsMan->_characterPos.y = READ_LE_INT16(dataP + 8);
+			_vm->_objectsMan->_startSpriteIndex = dataP[5];
+			if (_vm->_objectsMan->_changeHeadFl) {
+				if (_vm->_globals->_saveData->_data[svField354] == 1
+						&& _vm->_globals->_saveData->_cloneHopkins._pos.x && _vm->_globals->_saveData->_cloneHopkins._pos.y
+						&& _vm->_globals->_saveData->_cloneHopkins._startSpriteIndex && _vm->_globals->_saveData->_cloneHopkins._location) {
 
-						_vm->_objectsMan->_characterPos = _vm->_globals->_saveData->_cloneHopkins._pos;
-						_vm->_objectsMan->_startSpriteIndex = _vm->_globals->_saveData->_cloneHopkins._startSpriteIndex;
-					}
-					if (_vm->_globals->_saveData->_data[svField356] == 1
-							&& _vm->_globals->_saveData->_samantha._pos.x && _vm->_globals->_saveData->_samantha._pos.y
-							&& _vm->_globals->_saveData->_samantha._startSpriteIndex && _vm->_globals->_saveData->_samantha._location) {
-						_vm->_objectsMan->_characterPos = _vm->_globals->_saveData->_samantha._pos;
-						_vm->_objectsMan->_startSpriteIndex = _vm->_globals->_saveData->_samantha._startSpriteIndex;
-					}
-					if (_vm->_globals->_saveData->_data[svField357] == 1
-							&& _vm->_globals->_saveData->_realHopkins._pos.x && _vm->_globals->_saveData->_realHopkins._pos.y
-							&& _vm->_globals->_saveData->_realHopkins._startSpriteIndex && _vm->_globals->_saveData->_realHopkins._location) {
-						_vm->_objectsMan->_characterPos = _vm->_globals->_saveData->_realHopkins._pos;
-						_vm->_objectsMan->_startSpriteIndex = _vm->_globals->_saveData->_realHopkins._startSpriteIndex;
-					}
+					_vm->_objectsMan->_characterPos = _vm->_globals->_saveData->_cloneHopkins._pos;
+					_vm->_objectsMan->_startSpriteIndex = _vm->_globals->_saveData->_cloneHopkins._startSpriteIndex;
 				}
 				if (_vm->_globals->_saveData->_data[svField356] == 1
-						&& _vm->_globals->_saveData->_realHopkins._location == _vm->_globals->_screenId) {
-					_vm->_objectsMan->addStaticSprite(
-					    _vm->_objectsMan->_headSprites,
-					    _vm->_globals->_saveData->_realHopkins._pos,
-					    1,
-					    2,
-					    _vm->_globals->_saveData->_realHopkins._zoomFactor,
-					    false,
-					    34,
-					    190);
-					_vm->_objectsMan->animateSprite(1);
-					_vm->_objectsMan->_twoCharactersFl = true;
+						&& _vm->_globals->_saveData->_samantha._pos.x && _vm->_globals->_saveData->_samantha._pos.y
+						&& _vm->_globals->_saveData->_samantha._startSpriteIndex && _vm->_globals->_saveData->_samantha._location) {
+					_vm->_objectsMan->_characterPos = _vm->_globals->_saveData->_samantha._pos;
+					_vm->_objectsMan->_startSpriteIndex = _vm->_globals->_saveData->_samantha._startSpriteIndex;
 				}
 				if (_vm->_globals->_saveData->_data[svField357] == 1
-				        && _vm->_globals->_saveData->_data[svField355] == 1
-				        && _vm->_globals->_saveData->_samantha._location == _vm->_globals->_screenId) {
-					_vm->_objectsMan->addStaticSprite(
-					    _vm->_objectsMan->_headSprites,
-					    _vm->_globals->_saveData->_samantha._pos,
-					    1,
-					    3,
-					    _vm->_globals->_saveData->_samantha._zoomFactor,
-					    false,
-					    20,
-					    127);
-					_vm->_objectsMan->animateSprite(1);
-					_vm->_objectsMan->_twoCharactersFl = true;
+						&& _vm->_globals->_saveData->_realHopkins._pos.x && _vm->_globals->_saveData->_realHopkins._pos.y
+						&& _vm->_globals->_saveData->_realHopkins._startSpriteIndex && _vm->_globals->_saveData->_realHopkins._location) {
+					_vm->_objectsMan->_characterPos = _vm->_globals->_saveData->_realHopkins._pos;
+					_vm->_objectsMan->_startSpriteIndex = _vm->_globals->_saveData->_realHopkins._startSpriteIndex;
 				}
 			}
-			opcodeType = 1;
-			_vm->_objectsMan->_changeHeadFl = false;
+			if (_vm->_globals->_saveData->_data[svField356] == 1
+					&& _vm->_globals->_saveData->_realHopkins._location == _vm->_globals->_screenId) {
+				_vm->_objectsMan->addStaticSprite(
+				    _vm->_objectsMan->_headSprites,
+				    _vm->_globals->_saveData->_realHopkins._pos,
+				    1,
+				    2,
+				    _vm->_globals->_saveData->_realHopkins._zoomFactor,
+				    false,
+				    34,
+				    190);
+				_vm->_objectsMan->animateSprite(1);
+				_vm->_objectsMan->_twoCharactersFl = true;
+			}
+			if (_vm->_globals->_saveData->_data[svField357] == 1
+			        && _vm->_globals->_saveData->_data[svField355] == 1
+			        && _vm->_globals->_saveData->_samantha._location == _vm->_globals->_screenId) {
+				_vm->_objectsMan->addStaticSprite(
+				    _vm->_objectsMan->_headSprites,
+				    _vm->_globals->_saveData->_samantha._pos,
+				    1,
+				    3,
+				    _vm->_globals->_saveData->_samantha._zoomFactor,
+				    false,
+				    20,
+				    127);
+				_vm->_objectsMan->animateSprite(1);
+				_vm->_objectsMan->_twoCharactersFl = true;
+			}
+		}
+		opcodeType = 1;
+		_vm->_objectsMan->_changeHeadFl = false;
 		break;
 	case MKTAG24('S', 'T', 'E'):
 		if (!_vm->_objectsMan->_disableFl) {
@@ -581,7 +587,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			if (!_vm->_globals->_censorshipFl) {
 				_vm->_soundMan->_specialSoundNum = 16;
 				_vm->_graphicsMan->_fadingFl = true;
-				_vm->_animMan->playAnim("EGORGE.ANM", 50, 28, 500);
+				_vm->_animMan->playAnim("EGORGE.ANM", "EGORGE.ANM", 50, 28, 500);
 				_vm->_soundMan->_specialSoundNum = 0;
 			}
 			_vm->_animMan->loadAnim("ASCEN");
@@ -722,7 +728,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			_vm->_animMan->playSequence("grenade.SEQ", 1, 32, 100, false, false);
 			_vm->_soundMan->_specialSoundNum = 0;
 			_vm->_graphicsMan->_fadingFl = true;
-			_vm->_animMan->playAnim("CREVE17.ANM", 24, 24, 200);
+			_vm->_animMan->playAnim("CREVE17.ANM", "CREVE17.ANM", 24, 24, 200);
 			_vm->_soundMan->removeSample(1);
 			_vm->_soundMan->removeSample(2);
 			_vm->_soundMan->removeSample(3);
@@ -949,21 +955,23 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 
 		case 56:
 			_vm->_globals->_characterSpriteBuf = _vm->_fileIO->loadFile("HOPFEM.SPR");
-			_vm->_globals->_characterType = 1;
+			_vm->_globals->_characterType = CHARACTER_HOPKINS_CLONE;
 			_vm->_globals->_saveData->_data[svAlternateSpriteFl] = 1;
 			_vm->_globals->loadCharacterData();
 			_vm->_objectsMan->_sprite[0]._deltaX = 28;
 			_vm->_objectsMan->_sprite[0]._deltaY = 155;
+			_vm->_objectsMan->_sprite[0]._spriteData = _vm->_globals->_characterSpriteBuf;
 			_vm->_objectsMan->computeAndSetSpriteSize();
 			break;
 
 		case 57:
 			_vm->_globals->_characterSpriteBuf = _vm->_fileIO->loadFile("PERSO.SPR");
-			_vm->_globals->_characterType = 0;
+			_vm->_globals->_characterType = CHARACTER_HOPKINS;
 			_vm->_globals->_saveData->_data[svAlternateSpriteFl] = 0;
 			_vm->_globals->loadCharacterData();
 			_vm->_objectsMan->_sprite[0]._deltaX = 34;
 			_vm->_objectsMan->_sprite[0]._deltaY = 190;
+			_vm->_objectsMan->_sprite[0]._spriteData = _vm->_globals->_characterSpriteBuf;
 			_vm->_objectsMan->computeAndSetSpriteSize();
 			break;
 
@@ -1392,7 +1400,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			_vm->_globals->_introSpeechOffFl = true;
 			_vm->_talkMan->startAnimatedCharacterDialogue("tourist1.pe2");
 			_vm->_globals->_introSpeechOffFl = false;
-			_vm->_animMan->playAnim2("T421.ANM", 100, 14, 500);
+				_vm->_animMan->playAnim2("T421A.ANM", "T421.ANM", 100, 14, 500);
 			_vm->_events->refreshScreenAndEvents();
 			_vm->_events->refreshScreenAndEvents();
 			_vm->_events->refreshScreenAndEvents();
@@ -1954,7 +1962,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			_vm->_animMan->playSequence("SECRET2.SEQ", 1, 12, 100, false, true);
 			_vm->_soundMan->_specialSoundNum = 0;
 			_vm->_graphicsMan->_noFadingFl = true;
-			_vm->_graphicsMan->fadeOutLong();
+			_vm->_graphicsMan->fadeOutShort();
 
 			for (int i = 1; i <= 39; i++) {
 				if (_vm->shouldQuit())
@@ -2323,7 +2331,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			if (!_vm->getIsDemo()) {
 				_vm->_graphicsMan->_fadingFl = true;
 				_vm->_graphicsMan->_fadeDefaultSpeed = 1;
-				_vm->_animMan->playAnim("BOMBE1A.ANM", 100, 18, 100);
+				_vm->_animMan->playAnim("BOMBE1A.ANM", "BOMBE1.ANM", 100, 18, 100);
 			}
 			_vm->_graphicsMan->loadImage("BOMBEB");
 			_vm->_graphicsMan->setColorPercentage(252, 100, 100, 100);
@@ -2349,7 +2357,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			_vm->_objectsMan->setAndPlayAnim(3, 0, 16, true);
 			_vm->_soundMan->_specialSoundNum = 199;
 			_vm->_graphicsMan->_fadingFl = true;
-			_vm->_animMan->playAnim("BOMBE2A.ANM", 50, 14, 500);
+			_vm->_animMan->playAnim("BOMBE2A.ANM", "BOMBE2.ANM", 50, 14, 500);
 			_vm->_soundMan->_specialSoundNum = 0;
 			memset(_vm->_graphicsMan->_frontBuffer, 0, 614400);
 			_vm->_graphicsMan->_noFadingFl = true;
@@ -2360,7 +2368,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			_vm->_graphicsMan->fastDisplay(_vm->_globals->_levelSpriteBuf, 513, 163, 7, false);
 			_vm->_objectsMan->setAndPlayAnim(1, 0, 16, true);
 			_vm->_soundMan->_specialSoundNum = 199;
-			_vm->_animMan->playAnim("BOMBE2A.ANM", 50, 14, 500);
+			_vm->_animMan->playAnim("BOMBE2A.ANM", "BOMBE2.ANM", 50, 14, 500);
 			_vm->_soundMan->_specialSoundNum = 0;
 			_vm->_graphicsMan->_noFadingFl = true;
 			memset(_vm->_graphicsMan->_frontBuffer, 0, 614400);
@@ -2373,7 +2381,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			_vm->_graphicsMan->fadeOutShort();
 			_vm->_soundMan->_specialSoundNum = 199;
 			_vm->_graphicsMan->_fadingFl = true;
-			_vm->_animMan->playAnim("BOMBE2A.ANM", 50, 14, 500);
+			_vm->_animMan->playAnim("BOMBE2A.ANM", "BOMBE2.ANM", 50, 14, 500);
 			_vm->_soundMan->_specialSoundNum = 0;
 			_vm->_graphicsMan->_noFadingFl = true;
 			memset(_vm->_graphicsMan->_frontBuffer, 0, 614400);
@@ -2384,7 +2392,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			_vm->_graphicsMan->fastDisplay(_vm->_globals->_levelSpriteBuf, 513, 163, 7, false);
 			_vm->_objectsMan->setAndPlayAnim(6, 0, 16, true);
 			if ((_vm->getPlatform() != Common::kPlatformWindows) || !_vm->getIsDemo()) {
-				_vm->_animMan->playAnim("BOMBE3A.ANM", 50, 14, 500);
+				_vm->_animMan->playAnim("BOMBE3A.ANM", "BOMBE3.ANM", 50, 14, 500);
 				memset(_vm->_graphicsMan->_frontBuffer, 0, 614400);
 			}
 			_vm->_globals->_exitId = 6;
@@ -2394,7 +2402,7 @@ int ScriptManager::handleOpcode(const byte *dataP) {
 			// Display bomb plan
 			if (!_vm->getIsDemo()) {
 				memcpy(_vm->_graphicsMan->_oldPalette, _vm->_graphicsMan->_palette, 769);
-				_vm->_animMan->playAnim2("PLAN.ANM", 50, 10, 800);
+				_vm->_animMan->playAnim2("PLAN.ANM", "PLAN.ANM", 50, 10, 800);
 			}
 			_vm->_graphicsMan->resetDirtyRects();
 			break;

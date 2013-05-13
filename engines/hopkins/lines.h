@@ -115,11 +115,9 @@ private:
 	Directions _smoothMoveDirection;
 	LigneZoneItem _zoneLine[MAX_LINES+1];
 	SegmentItem _segment[101];
-	SquareZoneItem _squareZone[101];
 	int _currentSegmentId;
 	int _maxLineIdx;
 	int _lastLine;
-	int _linesNumb;
 	int _newLineIdx;
 	int _newLineDataIdx;
 	int _newRouteIdx;
@@ -136,7 +134,6 @@ private:
 	RouteItem *_testRoute0;
 	RouteItem *_testRoute1;
 	int16 *_lineBuf;
-	LigneItem _lineItem[MAX_LINES];
 	RouteItem _bestRoute[8001];
 	int _zoneSkipCount;
 	int _oldMouseZoneId;
@@ -168,6 +165,9 @@ public:
 	int _bobZone[105];
 	bool _bobZoneFl[105];
 	ZoneItem _zone[106];
+	SquareZoneItem _squareZone[101];
+	LigneItem _lineItem[MAX_LINES];
+	int _linesNumb;
 
 	LinesManager(HopkinsEngine *vm);
 	~LinesManager();

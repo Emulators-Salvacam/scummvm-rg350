@@ -2186,7 +2186,7 @@ void ObjectsManager::changeCharacterHead(PlayerCharacter oldCharacter, PlayerCha
 		loc->_pos.y = getSpriteY(0);
 		loc->_startSpriteIndex = 64;
 		loc->_location = _vm->_globals->_screenId;
-		loc->_zoomFactor = _sprite[0]._animationType;
+		loc->_zoomFactor = _sprite[0]._zoomFactor;
 
 		removeSprite(1);
 		addStaticSprite(_headSprites, loc->_pos, 1, 3, loc->_zoomFactor, false, 20, 127);
@@ -2199,7 +2199,7 @@ void ObjectsManager::changeCharacterHead(PlayerCharacter oldCharacter, PlayerCha
 
 		loc = &_vm->_globals->_saveData->_realHopkins;
 		_vm->_globals->_characterSpriteBuf = _vm->_fileIO->loadFile("PERSO.SPR");
-		_vm->_globals->_characterType = 0;
+		_vm->_globals->_characterType = CHARACTER_HOPKINS;
 		addStaticSprite(_vm->_globals->_characterSpriteBuf, loc->_pos, 0, 64, loc->_zoomFactor, false, 34, 190);
 		animateSprite(0);
 		_vm->_globals->loadCharacterData();
@@ -2224,7 +2224,7 @@ void ObjectsManager::changeCharacterHead(PlayerCharacter oldCharacter, PlayerCha
 
 		loc = &_vm->_globals->_saveData->_samantha;
 		_vm->_globals->_characterSpriteBuf = _vm->_fileIO->loadFile("PSAMAN.SPR");
-		_vm->_globals->_characterType = 2;
+		_vm->_globals->_characterType = CHARACTER_SAMANTHA;
 		addStaticSprite(_vm->_globals->_characterSpriteBuf, loc->_pos, 0, 64, loc->_zoomFactor, false, 20, 127);
 		animateSprite(0);
 		_vm->_globals->loadCharacterData();
@@ -2287,9 +2287,9 @@ void ObjectsManager::changeCharacterHead(PlayerCharacter oldCharacter, PlayerCha
 // Check Size
 void ObjectsManager::computeAndSetSpriteSize() {
 	int size = _vm->_globals->_spriteSize[getSpriteY(0)];
-	if (_vm->_globals->_characterType == 1) {
+	if (_vm->_globals->_characterType == CHARACTER_HOPKINS_CLONE) {
 		size = 20 * (5 * abs(size) - 100) / -80;
-	} else if (_vm->_globals->_characterType == 2) {
+	} else if (_vm->_globals->_characterType == CHARACTER_SAMANTHA) {
 		size = 20 * (5 * abs(size) - 165) / -67;
 	}
 	setSpriteZoom(0, size);
@@ -2676,7 +2676,7 @@ void ObjectsManager::handleSpecialGames() {
 		_vm->_soundMan->_specialSoundNum = 198;
 		_charactersEnabledFl = true;
 		_vm->_animMan->unsetClearAnimFlag();
-		_vm->_animMan->playAnim("otage.ANM", 1, 24, 500, true);
+		_vm->_animMan->playAnim("OTAGE.ANM", "OTAGE.ANM", 1, 24, 500, true);
 		_vm->_soundMan->_specialSoundNum = 0;
 		_vm->_graphicsMan->displayScreen(false);
 
@@ -2890,7 +2890,7 @@ void ObjectsManager::doActionRight(int idx) {
 		showSpecialActionAnimationWithFlip(_gestureBuf, "23,24,25,-1,", 8, false);
 		break;
 	case 6:
-		showSpecialActionAnimation(_gestureBuf, "24,,23,-1,", 8);
+		showSpecialActionAnimation(_gestureBuf, "24,23,-1,", 8);
 		break;
 	case 7:
 		showSpecialActionAnimationWithFlip(_gestureBuf, "23,24,25,26,27,-1,", 8, false);
@@ -2934,7 +2934,7 @@ void ObjectsManager::doActionDiagRight(int idx) {
 		showSpecialActionAnimation(_gestureBuf, "17,16,15,-1,", 8);
 		break;
 	case 7:
-		showSpecialActionAnimationWithFlip(_gestureBuf, "15,16,17,18,19,20-1,", 8, false);
+		showSpecialActionAnimationWithFlip(_gestureBuf, "15,16,17,18,19,20,-1,", 8, false);
 		break;
 	case 8:
 		showSpecialActionAnimation(_gestureBuf, "19,18,17,16,15,-1,", 8);
@@ -3036,7 +3036,7 @@ void ObjectsManager::doActionLeft(int idx) {
 		showSpecialActionAnimationWithFlip(_gestureBuf, "23,24,25,-1,", 8, true);
 		break;
 	case 6:
-		showSpecialActionAnimation(_gestureBuf, "24,,23,-1,", 8);
+		showSpecialActionAnimation(_gestureBuf, "24,23,-1,", 8);
 		break;
 	case 7:
 		showSpecialActionAnimationWithFlip(_gestureBuf, "23,24,25,26,27,-1,", 8, true);
@@ -3713,7 +3713,7 @@ void ObjectsManager::handleForest(int screenId, int minX, int maxX, int minY, in
 		}
 		if (_vm->_globals->_saveData->_data[savegameIdx] == 3) {
 			_vm->_graphicsMan->_fadingFl = true;
-			_vm->_animMan->playAnim("CREVE2.ANM", 100, 24, 500);
+			_vm->_animMan->playAnim("CREVE2.ANM", "CREVE2.ANM", 100, 24, 500);
 			_vm->_globals->_exitId = 150;
 			_vm->_graphicsMan->_noFadingFl = true;
 			hideBob(1);
@@ -3861,30 +3861,29 @@ void ObjectsManager::sceneControl2(const Common::String &backgroundFile, const C
 	_vm->_graphicsMan->setColorPercentage(253, 100, 100, 100);
 	_vm->_graphicsMan->setColorPercentage(251, 100, 100, 100);
 	_vm->_graphicsMan->setColorPercentage(254, 0, 0, 0);
-	if (_vm->_globals->_characterType) {
-		if (!_vm->_globals->_saveData->_data[svAlternateSpriteFl] && !_vm->_globals->_saveData->_data[svField356]) {
-			_vm->_globals->_characterSpriteBuf = _vm->_fileIO->loadFile("PERSO.SPR");
-			_vm->_globals->_characterType = 0;
-		}
-	}
-	if (!_vm->_globals->_characterType && _vm->_globals->_saveData->_data[svAlternateSpriteFl] == 1) {
-		_vm->_globals->_characterSpriteBuf = _vm->_fileIO->loadFile("HOPFEM.SPR");
-		_vm->_globals->_characterType = 1;
+	if (_vm->_globals->_characterType != CHARACTER_HOPKINS && !_vm->_globals->_saveData->_data[svAlternateSpriteFl] && !_vm->_globals->_saveData->_data[svField356]) {
+		_vm->_globals->_characterSpriteBuf = _vm->_fileIO->loadFile("PERSO.SPR");
+		_vm->_globals->_characterType = CHARACTER_HOPKINS;
 	}
 
-	if (_vm->_globals->_characterType != 2 && _vm->_globals->_saveData->_data[svField356] == 1) {
+	if (_vm->_globals->_characterType == CHARACTER_HOPKINS && _vm->_globals->_saveData->_data[svAlternateSpriteFl] == 1) {
+		_vm->_globals->_characterSpriteBuf = _vm->_fileIO->loadFile("HOPFEM.SPR");
+		_vm->_globals->_characterType = CHARACTER_HOPKINS_CLONE;
+	}
+
+	if (_vm->_globals->_characterType != CHARACTER_SAMANTHA && _vm->_globals->_saveData->_data[svField356] == 1) {
 		_vm->_globals->_characterSpriteBuf = _vm->_fileIO->loadFile("PSAMAN.SPR");
-		_vm->_globals->_characterType = 2;
+		_vm->_globals->_characterType = CHARACTER_SAMANTHA;
 	}
 	_vm->_globals->loadCharacterData();
 	switch (_vm->_globals->_characterType) {
-	case 0:
+	case CHARACTER_HOPKINS:
 		addStaticSprite(_vm->_globals->_characterSpriteBuf, _characterPos, 0, _startSpriteIndex, 0, false, 34, 190);
 		break;
-	case 1:
+	case CHARACTER_HOPKINS_CLONE:
 		addStaticSprite(_vm->_globals->_characterSpriteBuf, _characterPos, 0, _startSpriteIndex, 0, false, 28, 155);
 		break;
-	case 2:
+	case CHARACTER_SAMANTHA:
 		addStaticSprite(_vm->_globals->_characterSpriteBuf, _characterPos, 0, _startSpriteIndex, 0, false, 20, 127);
 		break;
 	}

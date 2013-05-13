@@ -73,6 +73,8 @@ GraphicsManager::GraphicsManager(HopkinsEngine *vm) {
 	_zoomOutFactor = 0;
 	_width = 0;
 	_specialWidth = 0;
+	_showZones = false;
+	_showLines = false;
 
 	Common::fill(&_paletteBuffer[0], &_paletteBuffer[PALETTE_SIZE * 2], 0);
 	Common::fill(&_colorTable[0], &_colorTable[PALETTE_EXT_BLOCK_SIZE], 0);
@@ -663,10 +665,16 @@ uint16 GraphicsManager::mapRGB(byte r, byte g, byte b) {
 }
 
 void GraphicsManager::updateScreen() {
-	// TODO: Is this okay here?
 	// Display any aras of the screen that need refreshing
 	displayDirtyRects();
 	displayRefreshRects();
+
+	// Extra checks for debug information
+	if (_showZones)
+		displayZones();
+
+	if (_showLines)
+		displayLines();
 
 	// Update the screen
 	g_system->updateScreen();
@@ -1140,6 +1148,7 @@ void GraphicsManager::displayRefreshRects() {
 		screenSurface = g_system->lockScreen();
 		g_system->copyRectToScreen(_screenBuffer, _screenLineSize, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 	}
+
 	// Loop through copying over any  specified rects to the screen
 	for (uint idx = 0; idx < _refreshRects.size(); ++idx) {
 		const Common::Rect &r = _refreshRects[idx];
@@ -1157,6 +1166,75 @@ void GraphicsManager::displayRefreshRects() {
 	resetRefreshRects();
 }
 
+/**
+ * Display any zones for the current room
+ */
+void GraphicsManager::displayZones() {
+	Graphics::Surface *screenSurface = g_system->lockScreen();
+
+	for (int bobZoneId = 0; bobZoneId <= 48; bobZoneId++) {
+		int bobId = _vm->_linesMan->_bobZone[bobZoneId];
+		if (bobId) {
+			// Get the rectangle for the zone
+			Common::Rect r(_vm->_objectsMan->_bob[bobId]._oldX, _vm->_objectsMan->_bob[bobId]._oldY,
+				_vm->_objectsMan->_bob[bobId]._oldX + _vm->_objectsMan->_bob[bobId]._oldWidth,
+				_vm->_objectsMan->_bob[bobId]._oldY + _vm->_objectsMan->_bob[bobId]._oldHeight);
+				
+			displayDebugRect(screenSurface, r, 0xff0000);
+		}
+	}
+
+	for (int squareZoneId = 0; squareZoneId <= 99; squareZoneId++) {
+		if (_vm->_linesMan->_zone[squareZoneId]._enabledFl && _vm->_linesMan->_squareZone[squareZoneId]._enabledFl) {
+			Common::Rect r(_vm->_linesMan->_squareZone[squareZoneId]._left, _vm->_linesMan->_squareZone[squareZoneId]._top,
+				_vm->_linesMan->_squareZone[squareZoneId]._right, _vm->_linesMan->_squareZone[squareZoneId]._bottom);
+
+			displayDebugRect(screenSurface, r, 0x00ff00);
+		}
+	}
+
+	g_system->unlockScreen();
+}
+
+/**
+ * Display any zones for the current room
+ */
+void GraphicsManager::displayLines() {
+	Graphics::Surface *screenSurface = g_system->lockScreen();
+
+	uint16* pixels = (uint16*)screenSurface->pixels;
+
+	for (int lineIndex = 0; lineIndex < _vm->_linesMan->_linesNumb; lineIndex++) {	
+		int i = 0;
+		do {
+			int x = _vm->_linesMan->_lineItem[lineIndex]._lineData[i] - _scrollPosX;
+			int y = _vm->_linesMan->_lineItem[lineIndex]._lineData[i+1];
+			if (x >= 0 && x < SCREEN_WIDTH && y >= 0 && y < SCREEN_HEIGHT) {
+				pixels[ y * screenSurface->w + x ] = 0xffff;
+			}
+			i += 2;
+		}
+		while(_vm->_linesMan->_lineItem[lineIndex]._lineData[i] != -1);
+	}
+
+	g_system->unlockScreen();
+}
+
+
+void GraphicsManager::displayDebugRect(Graphics::Surface *surface, const Common::Rect &srcRect, uint32 color) {
+	Common::Rect r = srcRect;
+
+	// Move for scrolling offset and adjust to crop on-screen
+	r.translate(-_scrollPosX, 0);
+	r.left = MAX(r.left, (int16)0);
+	r.top = MAX(r.top, (int16)0);
+	r.right = MIN(r.right, (int16)SCREEN_WIDTH);
+	r.bottom = MIN(r.bottom, (int16)SCREEN_HEIGHT);
+				
+	// If there's an on-screen portion, display it
+	if (r.isValidRect())
+		surface->frameRect(r, color);
+}
 
 /**
  * Fast Display of either a compressed or vesa sprite

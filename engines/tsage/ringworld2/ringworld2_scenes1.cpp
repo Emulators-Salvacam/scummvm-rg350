@@ -1062,9 +1062,10 @@ void Scene1200::Area1::process(Event &event) {
 	CursorType cursor = R2_GLOBALS._events.getCursor();
 
 	if (_actor2._bounds.contains(event.mousePos.x + g_globals->gfxManager()._bounds.left , event.mousePos.y)) {
-		if (cursor == _cursorNum)
+		if (cursor == _cursorNum) {
 			warning("TODO: _cursorState = ???");
 			R2_GLOBALS._events.setCursor(_savedCursorNum); //, _cursorState);
+		}
 	} else if (event.mousePos.y < 168) {
 		if (cursor != _cursorNum) {
 			_savedCursorNum = cursor;
@@ -6930,9 +6931,10 @@ void Scene1550::UnkArea1550::process(Event &event) {
 	CursorType cursor = R2_GLOBALS._events.getCursor();
 
 	if (_areaActor._bounds.contains(event.mousePos.x + g_globals->gfxManager()._bounds.left , event.mousePos.y)) {
-		if (cursor == _cursorNum)
+		if (cursor == _cursorNum) {
 			warning("TODO: _cursorState = ???");
 			R2_GLOBALS._events.setCursor(_savedCursorNum); //, _cursorState);
+		}
 	} else if (event.mousePos.y < 168) {
 		if (cursor != _cursorNum) {
 			_savedCursorNum = cursor;
@@ -8232,9 +8234,10 @@ void Scene1550::subA2B2F() {
 			R2_GLOBALS._sceneManager._fadeMode = FADEMODE_IMMEDIATE;
 
 			if (varA == 0) {
-				if (_field417 != 1550)
+				if (_field417 != 1550) {
 					g_globals->_scenePalette.loadPalette(1550);
 					R2_GLOBALS._sceneManager._hasPalette = true;
+				}
 			} else {
 				g_globals->_scenePalette.loadPalette(varA);
 				R2_GLOBALS._sceneManager._hasPalette = true;
@@ -12951,9 +12954,10 @@ void Scene1950::Area1::process(Event &event) {
 	CursorType cursor = R2_GLOBALS._events.getCursor();
 
 	if (_areaActor._bounds.contains(event.mousePos.x + g_globals->gfxManager()._bounds.left , event.mousePos.y)) {
-		if (cursor == _cursorNum)
+		if (cursor == _cursorNum) {
 			warning("TODO: _cursorState = ???");
 			R2_GLOBALS._events.setCursor(_savedCursorNum); //, _cursorState);
+		}
 	} else if (event.mousePos.y < 168) {
 		if (cursor != _cursorNum) {
 			_savedCursorNum = cursor;
@@ -14556,9 +14560,10 @@ void Scene1950::signal() {
 	case 1964:
 	// No break on purpose
 	case 1965:
-		if (!R2_GLOBALS.getFlag(37))
+		if (!R2_GLOBALS.getFlag(37)) {
 			SceneItem::display(1950, 26, 0, 280, 1, 160, 9, 1, 2, 20, 7, 7, -999);
 			R2_GLOBALS._player.enableControl();
+		}
 		break;
 	case 1966:
 		_actor4.remove();

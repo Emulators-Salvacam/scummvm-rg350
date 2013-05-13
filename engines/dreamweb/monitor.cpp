@@ -148,7 +148,7 @@ bool DreamWebEngine::execCommand() {
 	
 	static const char *const comlistDE[] = {
 		"ENDE",
-		"HILFE",
+		"HILF",
 		"LISTE",
 		"LIES",
 		"ZUGRIFF",
@@ -161,8 +161,18 @@ bool DreamWebEngine::execCommand() {
 		"AIUTO",
 		"ELENCA",
 		"LEGGI",
-		"REGISTRA",
+		"ACCEDI",
 		"CHIAVI",
+		NULL
+	};
+	
+	static const char *const comlistES[] = {
+		"SALIR",
+		"AYUDA",
+		"LISTA",
+		"LEER",
+		"ACCESO",
+		"CLAVES",
 		NULL
 	};
 
@@ -186,6 +196,8 @@ bool DreamWebEngine::execCommand() {
 			cmd = findCommand(comlistIT);
 			break;
 		case Common::ES_ESP:
+			cmd = findCommand(comlistES);
+			break;
 		default:
 			break;
 		}
@@ -210,7 +222,7 @@ bool DreamWebEngine::execCommand() {
 				monPrint("G\232LTIGE BEFEHLE SIND ENDE, HILFE, LISTE, LIES, ZUGRIFF, DATEN");
 				break;
 			case Common::IT_ITA:
-				monPrint("I COMANDI VALIDI SONO ESCI, AIUTO, ELENCA, LEGGI, REGISTRA, CHIAVI");
+				monPrint("I COMANDI VALIDI SONO ESCI, AIUTO, ELENCA, LEGGI, ACCEDI, CHIAVI");
 				break;
 			case Common::ES_ESP:
 			default:

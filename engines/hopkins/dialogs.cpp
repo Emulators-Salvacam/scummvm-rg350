@@ -422,6 +422,7 @@ void DialogsManager::showInventory() {
 			if (cursorId != 1 && cursorId != 2 && cursorId != 3 && cursorId != 16) {
 				if (mouseButton == 2) {
 					_vm->_objectsMan->nextObjectIcon(newInventoryItem);
+					cursorId = _vm->_events->_mouseCursorId;
 					if (cursorId != 23)
 						_vm->_events->changeMouseCursor(cursorId);
 				}
@@ -639,6 +640,7 @@ void DialogsManager::showSaveGame() {
 		// Since the original GUI doesn't support save names, use a default name
 		Common::String saveName = Common::String::format("Save #%d", slotNumber);
 
+		_vm->_events->refreshScreenAndEvents();
 		// Save the game
 		_vm->_saveLoad->saveGame(slotNumber, saveName);
 	}

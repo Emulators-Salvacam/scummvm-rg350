@@ -118,12 +118,14 @@ public:
 	Common::Array<Common::Rect> _dirtyRects;
 	Common::Array<Common::Rect> _refreshRects;
 	bool _showDirtyRects;
+	bool _showZones;
+	bool _showLines;
 
 	byte *_palettePixels;
 public:
 	GraphicsManager(HopkinsEngine *vm);
 	~GraphicsManager();
-
+	
 	void clearPalette();
 	void clearScreen();
 	void clearVesaScreen();
@@ -135,6 +137,9 @@ public:
 	void addRectToArray(Common::Array<Common::Rect> &rects, const Common::Rect &newRect);
 	void displayDirtyRects();
 	void displayRefreshRects();
+	void displayZones();
+	void displayLines();
+	void displayDebugRect(Graphics::Surface *surface, const Common::Rect &srcRect, uint32 color = 0xffffff);
 	void copySurface(const byte *surface, int x1, int y1, int width, int height, byte *destSurface, int destX, int destY);
 	void loadImage(const Common::String &file);
 	void loadVgaImage(const Common::String &file);

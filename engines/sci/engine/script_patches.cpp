@@ -63,7 +63,7 @@ struct SciScriptSignature {
 //  boundaries of room 660. Normally a textbox is supposed to get on screen
 //  but the call is wrong, so not only do we get an error message the script
 //  is also hanging because the cue won't get sent out
-//  This also happens in sierra sci - ffs. bug #3038387
+//  This also happens in sierra sci - refer to bug #3038387
 const byte ecoquest1SignatureStayAndHelp[] = {
 	40,
 	0x3f, 0x01,        // link 01
@@ -129,7 +129,7 @@ const SciScriptSignature ecoquest1Signatures[] = {
 //  ecorder. This is done by reusing temp-space, that was filled on state 1.
 //  this worked in sierra sci just by accident. In our sci, the temp space
 //  is resetted every time, which means the previous text isn't available
-//  anymore. We have to patch the code because of that ffs. bug #3035386
+//  anymore. We have to patch the code because of that - bug #3035386
 const byte ecoquest2SignatureEcorder[] = {
 	35,
 	0x31, 0x22,        // bnt [next state]
@@ -364,10 +364,42 @@ const uint16 freddypharkasPatchLadderEvent[] = {
 	PATCH_END
 };
 
+// In the Macintosh version of Freddy Pharkas, kRespondsTo is broken for
+// property selectors. They hacked the script to work around the issue,
+// so we revert the script back to using the values of the DOS script.
+const byte freddypharkasSignatureMacInventory[] = {
+	10,
+	0x39, 0x23,       // pushi 23
+	0x39, 0x74,       // pushi 74
+	0x78,             // push1
+	0x38, 0x01, 0x74, // pushi 0174
+	0x85, 0x15,       // lat 15
+	0
+};
+
+const uint16 freddypharkasPatchMacInventory[] = {
+	0x39, 0x02,       // pushi 02 (now matches the DOS version)
+	0x39, 0x74,       // pushi 74
+	0x78,             // push1
+	0x38, 0x01, 0x74, // pushi 0174
+	0x85, 0x15,       // lat 15
+	0x4a, 0x06,       // send 06
+	0x31, 0x08,       // bnt 08
+	0x38, 0x01, 0x74, // pushi 0174
+	0x76,             // push0
+	0x85, 0x15,       // lat 15
+	0x4a, 0x04,       // send 04
+	0x02,             // add
+	0xa5, 0x12,       // sat 12
+	0x39, 0x04,       // pushi 04 (now matches the DOS version)
+	PATCH_END
+};
+
 //    script, description,                                      magic DWORD,                                  adjust
 const SciScriptSignature freddypharkasSignatures[] = {
 	{      0, "CD: score early disposal",                    1, PATCH_MAGICDWORD(0x39, 0x0d, 0x43, 0x75),    -3, freddypharkasSignatureScoreDisposal, freddypharkasPatchScoreDisposal },
-	{    235, "CD: canister pickup hang",                   3, PATCH_MAGICDWORD(0x39, 0x07, 0x39, 0x08),     -4, freddypharkasSignatureCanisterHang,  freddypharkasPatchCanisterHang },
+	{     15, "Mac: broken inventory",                       1, PATCH_MAGICDWORD(0x39, 0x23, 0x39, 0x74),     0, freddypharkasSignatureMacInventory,  freddypharkasPatchMacInventory },
+	{    235, "CD: canister pickup hang",                    3, PATCH_MAGICDWORD(0x39, 0x07, 0x39, 0x08),    -4, freddypharkasSignatureCanisterHang,  freddypharkasPatchCanisterHang },
 	{    320, "ladder event issue",                          2, PATCH_MAGICDWORD(0x6d, 0x76, 0x38, 0xf5),    -1, freddypharkasSignatureLadderEvent,   freddypharkasPatchLadderEvent },
 	SCI_SIGNATUREENTRY_TERMINATOR
 };
@@ -1070,7 +1102,7 @@ const SciScriptSignature qfg3Signatures[] = {
 //   adds it to nest::x. The problem is that the script also checks if x exceeds
 //   we never reach that of course, so the pterodactyl-flight will go endlessly
 //   we could either calculate property count differently somehow fixing this
-//   but I think just patching it out is cleaner (ffs. bug #3037938)
+//   but I think just patching it out is cleaner (bug #3037938)
 const byte sq4FloppySignatureEndlessFlight[] = {
 	8,
 	0x39, 0x04,       // pushi 04 (selector x)
@@ -1081,7 +1113,7 @@ const byte sq4FloppySignatureEndlessFlight[] = {
 	0
 };
 
-// Similar to the above, for the German version (ffs. bug #3110215)
+// Similar to the above, for the German version (bug #3110215)
 const byte sq4FloppySignatureEndlessFlightGerman[] = {
 	8,
 	0x39, 0x04,       // pushi 04 (selector x)
