@@ -945,48 +945,45 @@ int LinesManager::computeRouteIdx(int lineIdx, int dataIdx, int fromX, int fromY
 	if (destX >= minLineX && destX <= maxLineX && destY >= minLineY && destY <= maxLineY) {
 		int curY = destY;
 		int linesIdxUp = -1;
-		for (;;) {
+		do {
 			--curY;
-			if (!checkCollisionLine(destX, curY, &foundDataIdx, &foundLineIdx, startLineIdx, endLineIdx))
+			if (checkCollisionLine(destX, curY, &foundDataIdx, &foundLineIdx, startLineIdx, endLineIdx)) {
+				linesIdxUp = foundLineIdx;
 				break;
+			}
+		} while (curY && curY >= minLineY);
 
-			linesIdxUp = foundLineIdx;
-			if (!curY || minLineY > curY)
-				break;
-		}
 		curY = destY;
 		int lineIdxDown = -1;
-		for (;;) {
+		do {
 			++curY;
-			if (!checkCollisionLine(destX, curY, &foundDataIdx, &foundLineIdx, startLineIdx, endLineIdx))
+			if (checkCollisionLine(destX, curY, &foundDataIdx, &foundLineIdx, startLineIdx, endLineIdx)) {
+				lineIdxDown = foundLineIdx;
 				break;
+			}
+		} while (curY < _vm->_globals->_characterMaxPosY && curY < maxLineY);
 
-			lineIdxDown = foundLineIdx;
-			if (_vm->_globals->_characterMaxPosY <= curY || maxLineY <= curY)
-				break;
-		}
 		int curX = destX;
 		int lineIdxRight = -1;
-		for (;;) {
+		do {
 			++curX;
-			if (!checkCollisionLine(curX, destY, &foundDataIdx, &foundLineIdx, startLineIdx, endLineIdx))
+			if (checkCollisionLine(curX, destY, &foundDataIdx, &foundLineIdx, startLineIdx, endLineIdx)) {
+				lineIdxRight = foundLineIdx;
 				break;
+			}
+		} while (curX < _vm->_graphicsMan->_maxX && curX < maxLineX);
 
-			lineIdxRight = foundLineIdx;
-
-			if (_vm->_graphicsMan->_maxX <= curX || maxLineX <= curX)
-				break;
-		}
 		curX = destX;
 		int lineIdxLeft = -1;
-		for(;;) {
+		loopCond = false;
+		do {
 			--curX;
-			if (!checkCollisionLine(curX, destY, &foundDataIdx, &foundLineIdx, startLineIdx, endLineIdx))
+			if (checkCollisionLine(curX, destY, &foundDataIdx, &foundLineIdx, startLineIdx, endLineIdx)) {
+				lineIdxLeft = foundLineIdx;
 				break;
-			lineIdxLeft = foundLineIdx;
-			if (curX <= 0 || minLineX >= curX)
-				break;
-		}
+			}
+		} while (curX > 0 && curX > minLineX);
+
 		if (lineIdxRight != -1 && lineIdxLeft != -1 && linesIdxUp != -1 && lineIdxDown != -1) {
 			route[routerIdx].invalidate();
 			return -1;
@@ -1988,8 +1985,8 @@ int LinesManager::characterRoute(int fromX, int fromY, int destX, int destY, int
 				_newRouteIdx = curRouteIdx;
 				return 2;
 			}
-			// CHECKME: Checking essai0[0]._x might make more sense here?
-			if (_testRoute1[0]._x != -1 && foundLineIdx > collLineIdxRoute0 && collLineIdxRoute1 >= collLineIdxRoute0 && collLineIdxRoute2 >= collLineIdxRoute0 && endLineIdx <= collLineIdxRoute0) {
+
+			if (_testRoute0[0]._x != -1 && foundLineIdx > collLineIdxRoute0 && collLineIdxRoute1 >= collLineIdxRoute0 && collLineIdxRoute2 >= collLineIdxRoute0 && endLineIdx <= collLineIdxRoute0) {
 				_newLineIdx = collLineIdxRoute0;
 				_newLineDataIdx = collDataIdxRoute0;
 				int i = 0;
@@ -2596,6 +2593,11 @@ int LinesManager::getMouseZone() {
 							_zone[bobZoneId]._destY = _vm->_objectsMan->_bob[bobId]._oldHeight + _vm->_objectsMan->_bob[bobId]._oldY + 6;
 							_zone[bobZoneId]._spriteIndex = -1;
 						}
+
+						// WORKAROUND: Avoid allowing hotspots that should remain non-interactive
+						if (bobZoneId == 24 && _vm->_globals->_curRoomNum == 14)
+							continue;
+
 						return bobZoneId;
 					}
 			}
@@ -2891,6 +2893,10 @@ void LinesManager::checkZone() {
 		int zoneId;
 		if (_oldMouseX != mouseX || _oldMouseY != oldMouseY) {
 			zoneId = getMouseZone();
+
+			// WORKAROUND: Incorrect hotspot zones in the guard's control room
+			if (_vm->_globals->_curRoomNum == 71 && (zoneId == 14 || zoneId == 12 || zoneId == 17))
+				zoneId = _oldMouseZoneId;
 		} else {
 			zoneId = _oldMouseZoneId;
 		}
