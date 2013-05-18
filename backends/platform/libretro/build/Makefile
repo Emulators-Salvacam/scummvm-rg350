@@ -14,7 +14,15 @@ else ifneq ($(findstring win,$(shell uname -a)),)
 endif
 endif
 
+ifeq ($(shell uname -a),)
+   EXE_EXT = .exe
+endif
+
 TARGET_NAME := scummvm
+
+LD        = $(CXX)
+AR        = ar cru
+RANLIB    = ranlib
 
 ifeq ($(platform), unix)
    TARGET  := $(TARGET_NAME)_libretro.so
@@ -44,11 +52,21 @@ else ifeq ($(platform), ps3)
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
    LD = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ld.exe
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
+else ifeq ($(platform), wii)
+   TARGET := $(TARGET_NAME)_libretro_wii.a
+   CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+   CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
+   LD = ./fake-link.sh $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
+   AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT) cru
+   DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float -D__ppc__ -I$(DEVKITPRO)/libogc/include
 else ifeq ($(platform), android)
    TARGET  := $(TARGET_NAME)_libretro_android_arm.so
    DEFINES += -fPIC -Wno-multichar
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
+else
+   TARGET  := $(TARGET_NAME)_retro.dll
+   LDFLAGS += -shared -Wl,--version-script=../link.T
 endif
 
 ifeq ($(DEBUG), 1)
@@ -69,12 +87,6 @@ ifdef TOOLSET
     LD        = $(TOOLSET)g++
     AR        = $(TOOLSET)ar cru
     RANLIB    = $(TOOLSET)ranlib
-else
-ifneq ($(platform), qnx)
-    LD        = $(CXX)
-    AR        = ar cru
-    RANLIB    = ranlib
-endif
 endif
 
 MKDIR         = mkdir -p
@@ -82,7 +94,7 @@ RM            = rm -f
 RM_REC        = rm -rf
 
 # Define build flags
-DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_COMMAND_LINE -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565
+DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_COMMAND_LINE -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565 -Wno-multichar
 INCLUDES      += -I$(srcdir)/$(retrodir) -I. -I$(srcdir) -I$(srcdir)/engines
 EXECUTABLE    = $(TARGET)
 DEPDIR        = .deps
@@ -113,4 +125,6 @@ MODULE_DIRS += $(retrodir) $(retrodir)libco
 BACKEND := libretro
 
 include $(srcdir)/Makefile.common
-	
+
+clean:
+	rm -f $(shell find -name *.o) $(TARGET)

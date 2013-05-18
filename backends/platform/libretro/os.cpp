@@ -45,6 +45,8 @@
 #elif defined(__CELLOS_LV2__)
 #include <sys/sys_time.h>
 #include <sys/timer.h>
+#elif defined(GEKKO)
+#include <ogc/lwp_watchdog.h>
 #else
 #include <time.h>
 #endif

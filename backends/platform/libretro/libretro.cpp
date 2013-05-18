@@ -17,6 +17,8 @@
 # define LOG(msg)
 #endif
 
+#include <unistd.h>
+
 //
 
 static retro_video_refresh_t video_cb = NULL;
@@ -238,3 +240,39 @@ void retro_cheat_reset(void) { }
 void retro_cheat_set(unsigned unused, bool unused1, const char* unused2) { }
 void retro_unload_game (void) { }
 unsigned retro_get_region (void) { return RETRO_REGION_NTSC; }
+
+#ifdef GEKKO
+int access(const char *path, int amode)
+{
+    FILE *f;
+    const char *mode;
+    
+    switch (amode)
+    {
+        // we don't really care if a file exists but isn't readable
+        case F_OK:
+        case R_OK:
+            mode = "r";
+            break;
+
+        case W_OK:
+            mode = "r+";
+            break;
+
+        default:
+            return -1;
+    }
+
+    f = fopen(path, mode);
+
+    if (f)
+    {
+        fclose(f);
+        return 0;
+    }
+    else
+    {
+        return -1;
+    }
+}
+#endif
