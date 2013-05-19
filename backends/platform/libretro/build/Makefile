@@ -78,8 +78,6 @@ else
    DEFINES += -O3
 endif
 
-DEFINES += -DFS_TYPE=$(FS_TYPE)
-
 ###SCUMM VM
 srcdir = ../../../..
 retrodir = backends/platform/libretro/
@@ -126,6 +124,14 @@ OBJS :=	$(retrodir)libretro.o \
 ifeq ($(FS_TYPE), posix)
 OBJS += backends/fs/posix/posix-fs.o \
         backends/fs/posix/posix-fs-factory.o
+DEFINES += -DFS_TYPE_POSIX
+else ifeq ($(FS_TYPE), ps3)
+
+OBJS += $(retrodir)ps3-fs.o \
+        $(retrodir)ps3-filestream.o \
+        $(retrodir)ps3-fs-factory.o
+
+DEFINES += -DFS_TYPE_PS3
 endif
 
 MODULE_DIRS += $(retrodir) $(retrodir)libco

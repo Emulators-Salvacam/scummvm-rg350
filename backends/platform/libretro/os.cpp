@@ -31,8 +31,12 @@
 #include "common/events.h"
 #include "audio/mixer_intern.h"
 
-#if (FS_TYPE == posix)
+#if defined(FS_TYPE_POSIX)
 #include "backends/fs/posix/posix-fs-factory.h"
+#define FS_SYSTEM_FACTORY POSIXFilesystemFactory
+#elif defined(FS_TYPE_PS3)
+#include "ps3-fs-factory.h"
+#define FS_SYSTEM_FACTORY Ps3FilesystemFactory
 #endif
 
 #include "backends/timer/default/default-timer.h"
@@ -173,7 +177,7 @@ public:
 	    _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
 	    _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _startTime(0), _threadExitTime(10), _keyflags(0)
 	{
-        _fsFactory = new POSIXFilesystemFactory();
+        _fsFactory = new FS_SYSTEM_FACTORY();
         memset(_mouseButtons, 0, sizeof(_mouseButtons));
         memset(_joypadmouseButtons, 0, sizeof(_joypadmouseButtons));
 
