@@ -663,6 +663,14 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		AD_LISTEND},
 	 	Common::EN_ANY, Common::kPlatformDOS, ADGF_DEMO, GUIO3(GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
+	// Gabriel Knight - English DOS CD Demo (from DrMcCoy)
+	// SCI interpreter version 1.001.092
+	{"gk1", "CD Demo", {
+		{"resource.map", 0, "8cad2a256f41463030cbb7ea1bfb2857", 2490},
+		{"resource.000", 0, "eb3ed7477ca4110813fe1fcf35928561", 1718450},
+		AD_LISTEND},
+	 	Common::EN_ANY, Common::kPlatformDOS, ADGF_DEMO, GUIO3(GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+
 #ifdef ENABLE_SCI32
 	// Gabriel Knight - English DOS Floppy
 	// SCI interpreter version 2.000.000
@@ -1622,6 +1630,14 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		{"resource.000", 0, "d9659d2cf0c269c6a9dc776707f5bea0", 2433827},
 		AD_LISTEND},
 	 	Common::EN_ANY, Common::kPlatformDOS, ADGF_DEMO | ADGF_UNSTABLE, GUIO5(GUIO_NOSPEECH, GUIO_NOASPECT, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+
+	// King's Quest 7 - English Windows Demo (from DrMcCoy)
+	// SCI interpreter version 2.100.002
+	{"kq7", "Demo", {
+		{"resource.map", 0, "38e627a37a975aea40cc72b0518b0709", 18412},
+		{"resource.000", 0, "bad61d50aaa64298fa57a7c6ccd3bccf", 84020382},
+		AD_LISTEND},
+	 	Common::EN_ANY, Common::kPlatformWindows, ADGF_DEMO | ADGF_UNSTABLE, GUIO5(GUIO_NOSPEECH, GUIO_NOASPECT, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
 #endif // ENABLE_SCI32
 
