@@ -26,6 +26,22 @@
 #define FORBIDDEN_SYMBOL_ALLOW_ALL
 #include "libretro.h"
 
+#ifndef F_OK
+#define F_OK 0
+#endif
+
+#ifndef _WOK
+#define W_OK 2
+#endif
+
+#ifndef R_OK
+#define R_OK 4
+#endif
+
+#if defined(GEKKO) || defined(__CELLOS_LV2__)
+extern int access(const char *path, int amode);
+#endif
+
 OSystem* retroBuildOS();
 const Graphics::Surface& getScreen();
 

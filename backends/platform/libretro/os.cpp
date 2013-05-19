@@ -30,7 +30,11 @@
 #include "backends/base-backend.h"
 #include "common/events.h"
 #include "audio/mixer_intern.h"
+
+#if (FS_TYPE == posix)
 #include "backends/fs/posix/posix-fs-factory.h"
+#endif
+
 #include "backends/timer/default/default-timer.h"
 #include "graphics/colormasks.h"
 #include "graphics/palette.h"

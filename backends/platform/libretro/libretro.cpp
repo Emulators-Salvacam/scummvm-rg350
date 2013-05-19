@@ -241,7 +241,7 @@ void retro_cheat_set(unsigned unused, bool unused1, const char* unused2) { }
 void retro_unload_game (void) { }
 unsigned retro_get_region (void) { return RETRO_REGION_NTSC; }
 
-#ifdef GEKKO
+#if defined(GEKKO) || defined(__CELLOS_LV2__)
 int access(const char *path, int amode)
 {
     FILE *f;

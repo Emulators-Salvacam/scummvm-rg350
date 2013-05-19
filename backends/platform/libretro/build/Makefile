@@ -24,6 +24,8 @@ LD        = $(CXX)
 AR        = ar cru
 RANLIB    = ranlib
 
+FS_TYPE := posix
+
 ifeq ($(platform), unix)
    TARGET  := $(TARGET_NAME)_libretro.so
    DEFINES += -fPIC
@@ -50,8 +52,9 @@ else ifeq ($(platform), ps3)
    TARGET  := $(TARGET_NAME)_libretro_ps3.a
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
-   LD = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ld.exe
-   AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
+   LD = ./fake-link.sh $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
+   AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe cru
+	FS_TYPE := ps3
 else ifeq ($(platform), wii)
    TARGET := $(TARGET_NAME)_libretro_wii.a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
@@ -65,7 +68,7 @@ else ifeq ($(platform), android)
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
 else
-   TARGET  := $(TARGET_NAME)_retro.dll
+   TARGET  := $(TARGET_NAME)_libretro.dll
    LDFLAGS += -shared -Wl,--version-script=../link.T
 endif
 
@@ -74,6 +77,8 @@ ifeq ($(DEBUG), 1)
 else
    DEFINES += -O3
 endif
+
+DEFINES += -DFS_TYPE=$(FS_TYPE)
 
 ###SCUMM VM
 srcdir = ../../../..
@@ -116,9 +121,12 @@ ENABLE_TINSEL = $(ENABLED)
 #
 OBJS :=	$(retrodir)libretro.o \
         $(retrodir)os.o \
-        $(retrodir)libco/libco.o \
-        backends/fs/posix/posix-fs.o \
+        $(retrodir)libco/libco.o
+
+ifeq ($(FS_TYPE), posix)
+OBJS += backends/fs/posix/posix-fs.o \
         backends/fs/posix/posix-fs-factory.o
+endif
 
 MODULE_DIRS += $(retrodir) $(retrodir)libco
 
