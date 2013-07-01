@@ -31,8 +31,6 @@ namespace Neverhood {
 Module2200::Module2200(NeverhoodEngine *vm, Module *parentModule, int which)
 	: Module(vm, parentModule) {
 	
-	debug("Create Module2200(%d)", which);
-
 	_vm->_soundMan->addMusic(0x11391412, 0x601C908C); 
 
 	if (which < 0)
@@ -47,11 +45,12 @@ Module2200::~Module2200() {
 }
 
 void Module2200::createScene(int sceneNum, int which) {
-	debug("Module2200::createScene(%d, %d)", sceneNum, which);
+	debug(1, "Module2200::createScene(%d, %d)", sceneNum, which);
 	_sceneNum = sceneNum;
 	switch (_sceneNum) {
 	case 0:
 		_vm->gameState().sceneNum = 0;
+		_vm->_soundMan->startMusic(0x601C908C, 0, 2);
 		_childObject = new Scene2201(_vm, this, which);
 		break;
 	case 1:
@@ -683,7 +682,7 @@ static const uint32 kSsScene2202PuzzleCubeFileHashes2[] = {
 SsScene2202PuzzleCube::SsScene2202PuzzleCube(NeverhoodEngine *vm, Scene *parentScene, int16 cubePosition, int16 cubeSymbol)
 	: StaticSprite(vm, 900), _parentScene(parentScene), _cubeSymbol(cubeSymbol), _cubePosition(cubePosition), _isMoving(false) {
 
-	int surfacePriority;	
+	int surfacePriority;
 
 	SetUpdateHandler(&SsScene2202PuzzleCube::update);
 	SetMessageHandler(&SsScene2202PuzzleCube::handleMessage);
@@ -693,6 +692,7 @@ SsScene2202PuzzleCube::SsScene2202PuzzleCube(NeverhoodEngine *vm, Scene *parentS
 		surfacePriority = 300;
 	else
 		surfacePriority = 500;
+	debug(1, "TODO: Unused SurfacePriority: %d", surfacePriority);
 	loadSprite(kSsScene2202PuzzleCubeFileHashes2[_cubeSymbol], kSLFCenteredDrawOffset | kSLFSetPosition | kSLFDefCollisionBoundsOffset, 0,
 		kSsScene2202PuzzleCubePoints[_cubePosition].x, kSsScene2202PuzzleCubePoints[_cubePosition].y);
 	loadSound(0, 0x40958621);
@@ -1586,7 +1586,7 @@ void Scene2206::klaymenInFrontSpikes() {
 }
 
 void Scene2206::klaymenBehindSpikes() {
-	if (!getGlobalVar(V_LIGHTS_ON)) {
+	if (getGlobalVar(V_LIGHTS_ON)) {
 		_palette->addBasePalette(0xB103B604, 0, 65, 0);
 		_palette->startFadeToPalette(12);
 	}
@@ -2141,17 +2141,17 @@ Scene2208::Scene2208(NeverhoodEngine *vm, Module *parentModule, int which)
 
 	_fontSurface = FontSurface::createFontSurface(_vm, 0x0800090C);
 
-	_backgroundSurface = new BaseSurface(_vm, 0, 640, 480);
+	_backgroundSurface = new BaseSurface(_vm, 0, 640, 480, "background");
 	spriteResource.load(0x08100289, true);
 	_backgroundSurface->drawSpriteResourceEx(spriteResource, false, false, 0, 0);
 
-	_topBackgroundSurface = new BaseSurface(_vm, 0, 640, 192);
+	_topBackgroundSurface = new BaseSurface(_vm, 0, 640, 192, "top background");
 	spriteResource.load(!getGlobalVar(V_COLUMN_BACK_NAME)
 		? kScene2208FileHashes1[getGlobalVar(V_CLICKED_COLUMN_INDEX) % 6]
 		: getGlobalVar(V_COLUMN_BACK_NAME), true);
 	_topBackgroundSurface->drawSpriteResourceEx(spriteResource, false, false, 0, 0);
 
-	_bottomBackgroundSurface = new BaseSurface(_vm, 0, 640, 192);
+	_bottomBackgroundSurface = new BaseSurface(_vm, 0, 640, 192, "bottom background");
 	spriteResource.load(kScene2208FileHashes2[getGlobalVar(V_CLICKED_COLUMN_INDEX) % 6], true);
 	_bottomBackgroundSurface->drawSpriteResourceEx(spriteResource, false, false, 0, 0);
 	

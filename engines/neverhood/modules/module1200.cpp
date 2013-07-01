@@ -45,7 +45,7 @@ Module1200::~Module1200() {
 }
 
 void Module1200::createScene(int sceneNum, int which) {
-	debug("Module1200::createScene(%d, %d)", sceneNum, which);
+	debug(1, "Module1200::createScene(%d, %d)", sceneNum, which);
 	_sceneNum = sceneNum;
 	switch (_sceneNum) {
 	case 0:
@@ -133,7 +133,7 @@ SsScene1201Tnt::SsScene1201Tnt(NeverhoodEngine *vm, uint32 elemIndex, uint32 poi
 	if (x < 300)
 		loadSprite(kScene1201TntFileHashList1[elemIndex], kSLFDefDrawOffset | kSLFDefPosition, 50);
 	else
-		loadSprite(kScene1201TntFileHashList2[elemIndex], kSLFCenteredDrawOffset | kSLFSetPosition, 50, x, y);
+		loadSprite(kScene1201TntFileHashList2[elemIndex], kSLFCenteredDrawOffset | kSLFSetPosition, 50, x, y - 20);
 	setClipRect(0, 0, 640, clipY2);
 }
 	

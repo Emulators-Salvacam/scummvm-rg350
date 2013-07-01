@@ -27,8 +27,6 @@ namespace Neverhood {
 Module1000::Module1000(NeverhoodEngine *vm, Module *parentModule, int which)
 	: Module(vm, parentModule) {
 	
-	debug("Create Module1000(%d)", which);
-
 	_musicFileHash = getGlobalVar(V_ENTRANCE_OPEN) ? 0x81106480 : 0x00103144;		
 
 	_vm->_soundMan->addMusic(0x03294419, 0x061880C6);
@@ -48,7 +46,7 @@ Module1000::~Module1000() {
 }
 
 void Module1000::createScene(int sceneNum, int which) {
-	debug("Module1000::createScene(%d, %d)", sceneNum, which);
+	debug(1, "Module1000::createScene(%d, %d)", sceneNum, which);
 	_sceneNum = sceneNum;
 	switch (_sceneNum) {
 	case 0:
@@ -719,7 +717,7 @@ void AsScene1002DoorSpy::stDoorSpyBoxingGlove() {
 }
 
 SsCommonPressButton::SsCommonPressButton(NeverhoodEngine *vm, Scene *parentScene, uint32 fileHash1, uint32 fileHash2, int surfacePriority, uint32 soundFileHash) 
-	: StaticSprite(vm, 1100), _parentScene(parentScene), _status(0) {
+	: StaticSprite(vm, 1100), _parentScene(parentScene), _status(0), _countdown(0) {
 
 	_soundFileHash = soundFileHash != 0 ? soundFileHash : 0x44141000;
 	_fileHashes[0] = fileHash1;
