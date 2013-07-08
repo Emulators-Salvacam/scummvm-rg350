@@ -276,6 +276,49 @@ public:
 	}
 };
 
+enum MazeDirection { MAZEDIR_NONE = 0, MAZEDIR_NORTH = 1, MAZEDIR_NORTHEAST = 2, MAZEDIR_EAST = 3,
+	MAZEDIR_SOUTHEAST = 4, MAZEDIR_SOUTH = 5, MAZEDIR_SOUTHWEST = 6, MAZEDIR_WEST = 7,
+	MAZEDIR_NORTHWEST = 8 };
+
+class MazeUI: public SceneObject {
+private:
+	void clear();
+public:
+	// The dimensions (in cells) of the entire maze map
+	Rect _mapBounds;
+
+	// Encoded cell map specifying the features of the maze
+	byte *_mapData;
+	// Image surface used to store a line of the map for rendering
+	GfxSurface _mapImage;
+
+	Common::Point _cellsVisible;
+	Common::Point _mapCells;
+	Common::Point _cellSize;
+	Common::Point _mapOffset;
+	int _resNum;
+	int _cellsResNum;
+	int _frameCount;
+	int _resCount;
+	int _mapImagePitch;
+	int _unused;
+public:
+	MazeUI();
+	virtual ~MazeUI();
+
+	void setDisplayBounds(const Rect &r);
+	bool setMazePosition(const Common::Point &pt);
+	void load(int resNum);
+	int getCellFromPixelXY(const Common::Point &pt);
+	int getCellFromCellXY(const Common::Point &p);
+	int pixelToCellXY(Common::Point &pt);
+
+	virtual Common::String getClassName() { return "MazeUI"; }
+	void synchronize(Serializer &s);
+	virtual void reposition();
+	virtual void draw();
+};
+
 class SceneAreaObject: public SceneArea {
 	class Object1: public SceneActor {
 	public:
@@ -288,41 +331,6 @@ public:
 	virtual void process(Event &event);
 	void setDetails(int visage, int strip, int frameNumber, const Common::Point &pt);
 	void setDetails(int resNum, int lookLineNum, int talkLineNum, int useLineNum);
-};
-
-class UnkObject1200 : public SavedObject {
-public:
-	Rect _rect1;
-	Rect _rect2;
-
-	int *_field16;
-	int *_field3A;
-
-	int _field12;
-	int _field14;
-	int _field26;
-	int _field28;
-	int _field2A;
-	int _field2C;
-	int _field2E;
-	int _field30;
-	int _field32;
-	int _field34;
-	int _field36;
-	int _field38;
-	int _field3E;
-	int _field40;
-
-	UnkObject1200();
-	void synchronize(Serializer &s);
-
-	void sub51AE9(int arg1);
-	int sub51AF8(Common::Point pt);
-	bool sub51AFD(Common::Point pt);
-	void sub51B02();
-	void sub9EDE8(Rect rect);
-	int sub9EE22(int &arg1, int &arg2);
-	virtual Common::String getClassName() { return "UnkObject1200"; }
 };
 
 /*--------------------------------------------------------------------------*/

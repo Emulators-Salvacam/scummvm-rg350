@@ -858,16 +858,17 @@ void Scene1100::saveCharacter(int characterIndex) {
 }
 
 /*--------------------------------------------------------------------------
- * Scene 1200 -
+ * Scene 1200 - Air Ducts Maze
  *
  *--------------------------------------------------------------------------*/
+
 Scene1200::Scene1200() {
 	_field412 = 0;
 	_field414 = 0;
 	_field416 = 0;
 	_field418 = 0;
 	_field41A = 0;
-	_field41C = 1; //CHECKME: Only if fixup_flag == 6??
+	_fixupMaze = false;
 }
 
 void Scene1200::synchronize(Serializer &s) {
@@ -878,20 +879,20 @@ void Scene1200::synchronize(Serializer &s) {
 	s.syncAsSint16LE(_field416);
 	s.syncAsSint16LE(_field418);
 	s.syncAsSint16LE(_field41A);
-	s.syncAsSint16LE(_field41C);
+	s.syncAsSint16LE(_fixupMaze);
 }
 
-Scene1200::Area1::Area1() {
+Scene1200::LaserPanel::LaserPanel() {
 	_field20 = 0;
 }
 
-void Scene1200::Area1::synchronize(Serializer &s) {
+void Scene1200::LaserPanel::synchronize(Serializer &s) {
 	SceneArea::synchronize(s);
 
 	s.syncAsByte(_field20);
 }
 
-void Scene1200::Area1::Actor3::init(int state) {
+void Scene1200::LaserPanel::Jumper::init(int state) {
 	_state = state;
 
 	SceneActor::postInit();
@@ -912,6 +913,7 @@ void Scene1200::Area1::Actor3::init(int state) {
 		default:
 			break;
 		}
+		break;
 	case 2:
 		switch (R2_GLOBALS._v56AA7) {
 		case 1:
@@ -929,6 +931,7 @@ void Scene1200::Area1::Actor3::init(int state) {
 		default:
 			break;
 		}
+		break;
 	case 3:
 		switch (R2_GLOBALS._v56AA8) {
 		case 1:
@@ -942,6 +945,7 @@ void Scene1200::Area1::Actor3::init(int state) {
 		default:
 			break;
 		}
+		break;
 	default:
 		break;
 	}
@@ -949,7 +953,7 @@ void Scene1200::Area1::Actor3::init(int state) {
 	setDetails(1200, 12, -1, -1, 2, (SceneItem *) NULL);
 }
 
-bool Scene1200::Area1::Actor3::startAction(CursorType action, Event &event) {
+bool Scene1200::LaserPanel::Jumper::startAction(CursorType action, Event &event) {
 	if (action != CURSOR_USE)
 		return SceneActor::startAction(action, event);
 
@@ -1018,7 +1022,7 @@ bool Scene1200::Area1::Actor3::startAction(CursorType action, Event &event) {
 	return true;
 }
 
-void Scene1200::Area1::postInit(SceneObjectList *OwnerList) {
+void Scene1200::LaserPanel::postInit(SceneObjectList *OwnerList) {
 	Scene1200 *scene = (Scene1200 *)R2_GLOBALS._sceneManager._scene;
 
 	scene->_field41A = 1;
@@ -1026,36 +1030,35 @@ void Scene1200::Area1::postInit(SceneObjectList *OwnerList) {
 	proc12(1003, 1, 1, 100, 40);
 	proc13(1200, 11, -1, -1);
 	R2_GLOBALS._sound2.play(259);
-	_actor3.init(1);
-	_actor4.init(2);
-	_actor5.init(3);
+	_jumper1.init(1);
+	_jumper2.init(2);
+	_jumper3.init(3);
 
 	R2_GLOBALS._player._canWalk = false;
 }
 
-void Scene1200::Area1::remove() {
+void Scene1200::LaserPanel::remove() {
 	Scene1200 *scene = (Scene1200 *)R2_GLOBALS._sceneManager._scene;
 
 	scene->_field41A = 0;
 	warning("Unexpected _sceneAreas.remove() call");
-//	scene->_sceneAreas.remove(&_actor3);
-//	scene->_sceneAreas.remove(&_actor4);
-//	scene->_sceneAreas.remove(&_actor5);
-	_actor3.remove();
-	_actor4.remove();
-	_actor5.remove();
+//	scene->_sceneAreas.remove(&_jumper1);
+//	scene->_sceneAreas.remove(&_jumper2);
+//	scene->_sceneAreas.remove(&_jumper3);
+	_jumper1.remove();
+	_jumper2.remove();
+	_jumper3.remove();
 
 	// sub201EA
 	R2_GLOBALS._sceneItems.remove((SceneItem *)this);
 	_actor2.remove();
 	SceneArea::remove();
 	R2_GLOBALS._insetUp--;
-	//
 
 	R2_GLOBALS._player._canWalk = true;
 }
 
-void Scene1200::Area1::process(Event &event) {
+void Scene1200::LaserPanel::process(Event &event) {
 	if (_field20 != R2_GLOBALS._insetUp)
 		return;
 
@@ -1063,25 +1066,22 @@ void Scene1200::Area1::process(Event &event) {
 
 	if (_actor2._bounds.contains(event.mousePos.x + g_globals->gfxManager()._bounds.left , event.mousePos.y)) {
 		if (cursor == _cursorNum) {
-			warning("TODO: _cursorState = ???");
-			R2_GLOBALS._events.setCursor(_savedCursorNum); //, _cursorState);
+			R2_GLOBALS._events.setCursor(_savedCursorNum);
 		}
 	} else if (event.mousePos.y < 168) {
 		if (cursor != _cursorNum) {
 			_savedCursorNum = cursor;
-			warning("TODO: _cursorState = ???");
 			R2_GLOBALS._events.setCursor(CURSOR_INVALID);
 		}
 		if (event.eventType == EVENT_BUTTON_DOWN) {
 			event.handled = true;
-			warning("TODO: _cursorState = ???");
-			R2_GLOBALS._events.setCursor(_savedCursorNum); //, _cursorState);
+			R2_GLOBALS._events.setCursor(_savedCursorNum);
 			remove();
 		}
 	}
 }
 
-void Scene1200::Area1::proc12(int visage, int stripFrameNum, int frameNum, int posX, int posY) {
+void Scene1200::LaserPanel::proc12(int visage, int stripFrameNum, int frameNum, int posX, int posY) {
 	Scene1200 *scene = (Scene1200 *)R2_GLOBALS._sceneManager._scene;
 
 	_actor2.postInit();
@@ -1094,13 +1094,11 @@ void Scene1200::Area1::proc12(int visage, int stripFrameNum, int frameNum, int p
 	_field20 = R2_GLOBALS._insetUp;
 }
 
-void Scene1200::Area1::proc13(int resNum, int lookLineNum, int talkLineNum, int useLineNum) {
+void Scene1200::LaserPanel::proc13(int resNum, int lookLineNum, int talkLineNum, int useLineNum) {
 	_actor2.setDetails(resNum, lookLineNum, talkLineNum, useLineNum, 2, (SceneItem *) NULL);
 }
 
 void Scene1200::postInit(SceneObjectList *OwnerList) {
-	Rect tmpRect;
-
 	loadScene(1200);
 	SceneExt::postInit();
 
@@ -1112,7 +1110,6 @@ void Scene1200::postInit(SceneObjectList *OwnerList) {
 	_field416 = 0;
 	_field418 = 0;
 	_field41A = 0;
-	_field41C = 0;
 
 	if ((R2_GLOBALS._v56AA6 == 1) && (R2_GLOBALS._v56AA7 == 1) && (R2_GLOBALS._v56AA8 == 1))
 		_field418 = 1;
@@ -1133,14 +1130,10 @@ void Scene1200::postInit(SceneObjectList *OwnerList) {
 	_actor1.postInit();
 	_actor1.hide();
 
-	tmpRect.set(110, 20, 210, 120);
-	_object1.sub9EDE8(tmpRect);
+	_mazeUI.setDisplayBounds(Rect(110, 20, 210, 120));
 
-	_object1.sub51AE9(1);
-	_object1.sub51AFD(Common::Point(R2_GLOBALS._v56AA2, R2_GLOBALS._v56AA4));
-	warning("int unk = set_pane_p(_paneNumber);");
-	_object1.sub51B02();
-	warning("set_pane_p(unk);");
+	_mazeUI.load(1);
+	_mazeUI.setMazePosition(Common::Point(R2_GLOBALS._v56AA2, R2_GLOBALS._v56AA4));
 
 	R2_GLOBALS._player.enableControl();
 	_item1.setDetails(Rect(0, 0, 320, 200), 1200, 0, 1, 2, 1, NULL);
@@ -1337,7 +1330,7 @@ void Scene1200::signal() {
 	case 111:
 	// No break on purpose
 	case 116:
-		R2_GLOBALS._player.setup(3157, 3, 1);
+		R2_GLOBALS._player.setup(3157, 4, 1);
 		R2_GLOBALS._player.animate(ANIM_MODE_5, this);
 		break;
 	case 78:
@@ -1396,50 +1389,52 @@ void Scene1200::process(Event &event) {
 		return;
 
 	if (event.eventType == EVENT_BUTTON_DOWN) {
-		_object1.sub9EE22(R2_GLOBALS._v56AA2, R2_GLOBALS._v56AA4);
-		int unk = _object1.sub51AF8(event.mousePos);
+		Common::Point cellPos(R2_GLOBALS._v56AA2, R2_GLOBALS._v56AA4);
+		_mazeUI.pixelToCellXY(cellPos);
+
+		int cellId = _mazeUI.getCellFromPixelXY(event.mousePos);
 		switch (R2_GLOBALS._events.getCursor()) {
-		case CURSOR_ARROW:
+		case CURSOR_WALK:
 			event.handled = true;
 			if ((event.mousePos.x > 179) && (event.mousePos.x < 210) && (event.mousePos.y > 50) && (event.mousePos.y < 89))
-				sub9DAD6(1);
+				startCrawling(CRAWL_EAST);
 
 			if ((event.mousePos.x > 109) && (event.mousePos.x < 140) && (event.mousePos.y > 50) && (event.mousePos.y < 89))
-				sub9DAD6(2);
+				startCrawling(CRAWL_WEST);
 
 			if ((event.mousePos.x > 140) && (event.mousePos.x < 179) && (event.mousePos.y > 89) && (event.mousePos.y < 120))
-				sub9DAD6(3);
+				startCrawling(CRAWL_SOUTH);
 
 			if ((event.mousePos.x > 140) && (event.mousePos.x < 179) && (event.mousePos.y > 19) && (event.mousePos.y < 50))
-				sub9DAD6(4);
+				startCrawling(CRAWL_NORTH);
 			break;
 		case CURSOR_USE:
-			if (unk > 36) {
-				if ( ((R2_GLOBALS._v56AA2 == 3)  && (R2_GLOBALS._v56AA4 == 33))
-					|| ((R2_GLOBALS._v56AA2 == 7)  && (R2_GLOBALS._v56AA4 == 33))
-					|| ((R2_GLOBALS._v56AA2 == 33) && (R2_GLOBALS._v56AA4 == 41))
-					|| ((R2_GLOBALS._v56AA2 == 5)  && (R2_GLOBALS._v56AA4 == 5))
-					|| ((R2_GLOBALS._v56AA2 == 13) && (R2_GLOBALS._v56AA4 == 21))
-					|| ((R2_GLOBALS._v56AA2 == 17) && (R2_GLOBALS._v56AA4 == 21))
-					|| ((R2_GLOBALS._v56AA2 == 17) && (R2_GLOBALS._v56AA4 == 5))
-					|| ((R2_GLOBALS._v56AA2 == 17) && (R2_GLOBALS._v56AA4 == 9))
-					|| ((R2_GLOBALS._v56AA2 == 29) && (R2_GLOBALS._v56AA4 == 17))
-					|| ((R2_GLOBALS._v56AA2 == 33) && (R2_GLOBALS._v56AA4 == 17))
-					|| ((R2_GLOBALS._v56AA2 == 35) && (R2_GLOBALS._v56AA4 == 17))
-					|| ((R2_GLOBALS._v56AA2 == 41) && (R2_GLOBALS._v56AA4 == 21)) ) {
-					_area1.postInit();
+			if (cellId > 36) {
+				if ( ((cellPos.x == 3)  && (cellPos.y == 33))
+					|| ((cellPos.x == 7)  && (cellPos.y == 33))
+					|| ((cellPos.x == 33) && (cellPos.y == 41))
+					|| ((cellPos.x == 5)  && (cellPos.y == 5))
+					|| ((cellPos.x == 13) && (cellPos.y == 21))
+					|| ((cellPos.x == 17) && (cellPos.y == 21))
+					|| ((cellPos.x == 17) && (cellPos.y == 5))
+					|| ((cellPos.x == 17) && (cellPos.y == 9))
+					|| ((cellPos.x == 29) && (cellPos.y == 17))
+					|| ((cellPos.x == 33) && (cellPos.y == 17))
+					|| ((cellPos.x == 35) && (cellPos.y == 17))
+					|| ((cellPos.x == 41) && (cellPos.y == 21)) ) {
+					_laserPanel.postInit();
 					event.handled = true;
 				}
 			}
 
-			if ((unk == 1) || (unk == 4) || (unk == 11) || (unk == 14)) {
-				if ( ((R2_GLOBALS._v56AA2 == 3)  && (R2_GLOBALS._v56AA4 == 9))
-				  || ((R2_GLOBALS._v56AA2 == 11)  && (R2_GLOBALS._v56AA4 == 27))
-				  || ((R2_GLOBALS._v56AA2 == 17)  && (R2_GLOBALS._v56AA4 == 7))
-				  || ((R2_GLOBALS._v56AA2 == 17)  && (R2_GLOBALS._v56AA4 == 27))
-				  || ((R2_GLOBALS._v56AA2 == 17)  && (R2_GLOBALS._v56AA4 == 33))
-				  || (R2_GLOBALS._v56AA2 == 33) ) {
-					switch (R2_GLOBALS._v56AA2) {
+			if ((cellId == 1) || (cellId == 4) || (cellId == 11) || (cellId == 14)) {
+				if ( ((cellPos.x == 3)  && (cellPos.y == 9))
+				  || ((cellPos.x == 11)  && (cellPos.y == 27))
+				  || ((cellPos.x == 17)  && (cellPos.y == 7))
+				  || ((cellPos.x == 17)  && (cellPos.y == 27))
+				  || ((cellPos.x == 17)  && (cellPos.y == 33))
+				  || (cellPos.x == 33) ) {
+					switch (cellPos.x) {
 					case 3:
 						R2_GLOBALS._sceneManager.changeScene(3150);
 						break;
@@ -1458,23 +1453,25 @@ void Scene1200::process(Event &event) {
 			}
 			break;
 		case CURSOR_LOOK:
-			if ((unk == 1) || (unk == 4) || (unk == 11) || (unk == 14)) {
+			if ((cellId == 1) || (cellId == 4) || (cellId == 11) || (cellId == 14)) {
 				event.handled = true;
-				switch (R2_GLOBALS._v56AA2) {
+				switch (cellPos.x) {
 				case 3:
+					// It was your cell.
 					SceneItem::display(1200, 8, 0, 280, 1, 160, 9, 1, 2, 20, 7, 7, -999);
 						break;
 				case 9:
 						R2_GLOBALS._sceneManager.changeScene(3240);
 						break;
 				case 11:
-					if (R2_GLOBALS._v56AA4 == 27)
+					if (cellPos.y == 27)
 						R2_GLOBALS._sceneManager.changeScene(3210);
 					else
+						// A vent grill
 						SceneItem::display(1200, 10, 0, 280, 1, 160, 9, 1, 2, 20, 7, 7, -999);
 					break;
 				case 17:
-					switch (R2_GLOBALS._v56AA4) {
+					switch (cellPos.y) {
 					case 5:
 						R2_GLOBALS._sceneManager.changeScene(3230);
 						break;
@@ -1485,6 +1482,7 @@ void Scene1200::process(Event &event) {
 						R2_GLOBALS._sceneManager.changeScene(3200);
 						break;
 					default:
+						// A vent grill
 						SceneItem::display(1200, 10, 0, 280, 1, 160, 9, 1, 2, 20, 7, 7, -999);
 						break;
 					}
@@ -1496,7 +1494,8 @@ void Scene1200::process(Event &event) {
 					break;
 				}
 			}
-			if (unk > 36) {
+			if (cellId > 36) {
+				// "An anti-pest laser"
 				event.handled = true;
 				SceneItem::display(1200, 9, 0, 280, 1, 160, 9, 1, 2, 20, 7, 7, -999);
 			}
@@ -1516,19 +1515,19 @@ void Scene1200::process(Event &event) {
 		switch (event.kbd.keycode) {
 		case Common::KEYCODE_1:
 			warning("FIXME: keycode = 0x4800");
-			sub9DAD6(4);
+			startCrawling(CRAWL_NORTH);
 			break;
 		case Common::KEYCODE_2:
 			warning("FIXME: keycode = 0x4B00");
-			sub9DAD6(2);
+			startCrawling(CRAWL_WEST);
 			break;
 		case Common::KEYCODE_3:
 			warning("FIXME: keycode = 0x4D00");
-			sub9DAD6(1);
+			startCrawling(CRAWL_EAST);
 			break;
 		case Common::KEYCODE_4:
 			warning("FIXME: keycode = 0x5000");
-			sub9DAD6(3);
+			startCrawling(CRAWL_SOUTH);
 			break;
 		default:
 			event.handled = false;
@@ -1543,13 +1542,13 @@ void Scene1200::process(Event &event) {
 void Scene1200::dispatch() {
 	Rect tmpRect;
 	Scene::dispatch();
-	if (_field41C != 0) {
-		_object1.sub51AFD(Common::Point(R2_GLOBALS._v56AA2, R2_GLOBALS._v56AA4));
-		warning("int unk = set_pane_p(_paneNumber);");
-		_object1.sub51B02();
+
+	if (_fixupMaze) {
+		_mazeUI.setMazePosition(Common::Point(R2_GLOBALS._v56AA2, R2_GLOBALS._v56AA4));
+
 		warning("_gfxManager.sub294AC(unk);");
 		warning("tmpRect.sub14DF3();");
-		_field41C = 0;
+		_fixupMaze = false;
 	}
 
 	if (_field414 != 0) {
@@ -1571,11 +1570,10 @@ void Scene1200::dispatch() {
 		default:
 			break;
 		}
-		_object1.sub51AFD(Common::Point(R2_GLOBALS._v56AA2, R2_GLOBALS._v56AA4));
-		warning("int unk = set_pane_p(_paneNumber);");
-		_object1.sub51B02();
-		warning("_gfxManager.sub294AC(unk);");
-		warning("tmpRect.sub14DF3();");
+		_mazeUI.setMazePosition(Common::Point(R2_GLOBALS._v56AA2, R2_GLOBALS._v56AA4));
+
+		debug("_gfxManager.sub294AC(unk);");
+		debug("tmpRect.sub14DF3();");
 
 		if (_field416 != 0) {
 			switch(_field412 - 1) {
@@ -1606,6 +1604,190 @@ void Scene1200::dispatch() {
 void Scene1200::saveCharacter(int characterIndex) {
 	R2_GLOBALS._sound1.fadeOut2(NULL);
 	SceneExt::saveCharacter(characterIndex);
+}
+
+void Scene1200::startCrawling(CrawlDirection dir) {
+	Common::Point cellPos = Common::Point(R2_GLOBALS._v56AA2, R2_GLOBALS._v56AA4);
+	_mazeUI.pixelToCellXY(cellPos);
+
+	switch (dir) {
+	case CRAWL_EAST:
+		if ( ((_mazeUI.getCellFromPixelXY(Common::Point(200, 50)) > 36) || (_mazeUI.getCellFromPixelXY(Common::Point(200, 88)) > 36))
+			&& ( ((cellPos.x == 3) && (cellPos.y == 33) && (_field418 != 4))
+				|| ((cellPos.x == 13) && (cellPos.y == 21) && (_field418 != 2))
+				|| ((cellPos.x == 29) && (cellPos.y == 17) && (_field418 != 1))
+				|| ((cellPos.x == 33) && (cellPos.y == 41)) )
+				)	{
+			R2_GLOBALS._player.disableControl();
+			_sceneMode = 1200;
+			setAction(&_sequenceManager, this, 1200, &_actor1, NULL);
+		} else if (_mazeUI.getCellFromPixelXY(Common::Point(200, 69)) == 36) {
+			switch (_field412 - 1) {
+			case 0:
+				if (R2_GLOBALS._player._visage == 3155)
+					_sceneMode = 15;
+				else
+					_sceneMode = 10;
+				break;
+			case 1:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 76;
+				else
+					_sceneMode = 75;
+				break;
+			case 2:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 101;
+				else
+					_sceneMode = 100;
+				break;
+			case 3:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 111;
+				else
+					_sceneMode = 110;
+				break;
+			default:
+				break;
+			}
+			R2_GLOBALS._player.disableControl();
+			_field412 = 1;
+			signal();
+		}
+		break;
+	case CRAWL_WEST:
+		if ( ((_mazeUI.getCellFromPixelXY(Common::Point(120, 50)) > 36) || (_mazeUI.getCellFromPixelXY(Common::Point(120, 88)) > 36))
+			&& ( ((cellPos.x == 7) && (cellPos.y == 33) && (_field418 != 4))
+				|| ((cellPos.x == 17) && (cellPos.y == 21) && (_field418 != 2))
+				|| ((cellPos.x == 33) && (cellPos.y == 17) && (_field418 != 1))
+				|| ((cellPos.x == 5) && (cellPos.y == 5)) )
+				)	{
+			R2_GLOBALS._player.disableControl();
+			_sceneMode = 1201;
+			setAction(&_sequenceManager, this, 1201, &_actor1, NULL);
+		} else if (_mazeUI.getCellFromPixelXY(Common::Point(120, 69)) == 36) {
+			switch (_field412 - 1) {
+			case 0:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 56;
+				else
+					_sceneMode = 55;
+				break;
+			case 1:
+				if (R2_GLOBALS._player._visage == 3155)
+					_sceneMode = 25;
+				else
+					_sceneMode = 20;
+				break;
+			case 2:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 91;
+				else
+					_sceneMode = 90;
+				break;
+			case 3:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 121;
+				else
+					_sceneMode = 120;
+				break;
+			default:
+				break;
+			}
+			R2_GLOBALS._player.disableControl();
+			_field412 = 2;
+			signal();
+		}
+		break;
+	case CRAWL_SOUTH:
+		if ( ((_mazeUI.getCellFromPixelXY(Common::Point(140, 110)) > 36) || (_mazeUI.getCellFromPixelXY(Common::Point(178, 110)) > 36))
+			&& ( ((cellPos.x == 17) && (cellPos.y == 5) && (_field418 != 3))
+				|| ((cellPos.x == 41) && (cellPos.y == 21)) )
+				)	{
+			R2_GLOBALS._player.disableControl();
+			_sceneMode = 1203;
+			setAction(&_sequenceManager, this, 1203, &_actor1, NULL);
+		} else if (_mazeUI.getCellFromPixelXY(Common::Point(160, 110)) == 36) {
+			switch (_field412 - 1) {
+			case 0:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 51;
+				else
+					_sceneMode = 50;
+				break;
+			case 1:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 81;
+				else
+					_sceneMode = 80;
+				break;
+			case 2:
+				if (R2_GLOBALS._player._visage == 3155)
+					_sceneMode = 35;
+				else
+					_sceneMode = 30;
+				break;
+			case 3:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 116;
+				else
+					_sceneMode = 115;
+				break;
+			default:
+				break;
+			}
+			R2_GLOBALS._player.disableControl();
+			_field412 = 3;
+			signal();
+		}
+		break;
+	case CRAWL_NORTH:
+		if ( ((_mazeUI.getCellFromPixelXY(Common::Point(140, 30)) > 36) || (_mazeUI.getCellFromPixelXY(Common::Point(178, 30)) > 36))
+			&& ( ((cellPos.x == 17) && (cellPos.y == 9) && (_field418 != 3))
+				|| ((cellPos.x == 35) && (cellPos.y == 17)) )
+				)	{
+			R2_GLOBALS._player.disableControl();
+			_sceneMode = 1202;
+			setAction(&_sequenceManager, this, 1202, &_actor1, NULL);
+		} else if (_mazeUI.getCellFromPixelXY(Common::Point(160, 30)) == 36) {
+			switch (_field412 - 1) {
+			case 0:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 61;
+				else
+					_sceneMode = 60;
+				break;
+			case 1:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 71;
+				else
+					_sceneMode = 70;
+				break;
+			case 2:
+				if (R2_GLOBALS._player._visage == 3156)
+					_sceneMode = 96;
+				else
+					_sceneMode = 95;
+				break;
+			case 3:
+				if (R2_GLOBALS._player._visage == 3155)
+					_sceneMode = 45;
+				else
+					_sceneMode = 40;
+				break;
+			default:
+				_sceneMode = 1;
+				R2_GLOBALS._player.setup(3156, 4, 6);
+				break;
+			}
+			R2_GLOBALS._player.disableControl();
+			_field412 = 4;
+			signal();
+		}
+		break;
+	default:
+		break;
+	}
 }
 
 /*--------------------------------------------------------------------------
@@ -6924,7 +7106,7 @@ void Scene1550::UnkArea1550::remove() {
 }
 
 void Scene1550::UnkArea1550::process(Event &event) {
-// This is a copy of Scene1200::Area1::process
+// This is a copy of Scene1200::LaserPanel::process
 	if (_field20 != R2_GLOBALS._insetUp)
 		return;
 
@@ -6988,7 +7170,7 @@ void Scene1550::UnkArea1550::proc12(int visage, int stripFrameNum, int frameNum,
 }
 
 void Scene1550::UnkArea1550::proc13(int resNum, int lookLineNum, int talkLineNum, int useLineNum) {
-	// Copy of Scene1200::Area1::proc13
+	// Copy of Scene1200::LaserPanel::proc13
 	_areaActor.setDetails(resNum, lookLineNum, talkLineNum, useLineNum, 2, (SceneItem *) NULL);
 }
 
@@ -12947,7 +13129,7 @@ void Scene1950::Area1::remove() {
 }
 
 void Scene1950::Area1::process(Event &event) {
-// This is a copy of Scene1200::Area1::process
+// This is a copy of Scene1200::LaserPanel::process
 	if (_field20 != R2_GLOBALS._insetUp)
 		return;
 
@@ -13000,7 +13182,7 @@ void Scene1950::Area1::proc12(int visage, int stripFrameNum, int frameNum, int p
 }
 
 void Scene1950::Area1::proc13(int resNum, int lookLineNum, int talkLineNum, int useLineNum) {
-	// Copy of Scene1200::Area1::proc13()
+	// Copy of Scene1200::LaserPanel::proc13()
 	_areaActor.setDetails(resNum, lookLineNum, talkLineNum, useLineNum, 2, (SceneItem *) NULL);
 }
 

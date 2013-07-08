@@ -118,22 +118,24 @@ public:
 };
 
 class Scene1200 : public SceneExt {
-	class Area1: public SceneArea {
+	enum CrawlDirection { CRAWL_EAST = 1, CRAWL_WEST = 2, CRAWL_SOUTH = 3, CRAWL_NORTH = 4 };
+
+	class LaserPanel: public SceneArea {
 	public:
-		class Actor3 : public SceneActorExt {
+		class Jumper : public SceneActorExt {
 		public:
 			void init(int state);
 			virtual bool startAction(CursorType action, Event &event);
 		};
 
 		SceneActor _actor2;
-		Actor3 _actor3;
-		Actor3 _actor4;
-		Actor3 _actor5;
+		Jumper _jumper1;
+		Jumper _jumper2;
+		Jumper _jumper3;
 
 		byte _field20;
 
-		Area1();
+		LaserPanel();
 		void synchronize(Serializer &s);
 
 		virtual void postInit(SceneObjectList *OwnerList = NULL);
@@ -146,8 +148,8 @@ class Scene1200 : public SceneExt {
 public:
 	NamedHotspot _item1;
 	SceneActor _actor1;
-	Area1 _area1;
-	UnkObject1200 _object1;
+	LaserPanel _laserPanel;
+	MazeUI _mazeUI;
 	SequenceManager _sequenceManager;
 
 	int _field412;
@@ -155,12 +157,12 @@ public:
 	int _field416;
 	int _field418;
 	int _field41A;
-	int _field41C;
+	bool _fixupMaze;
 
 	Scene1200();
 	void synchronize(Serializer &s);
 
-	void sub9DAD6(int indx);
+	void startCrawling(CrawlDirection dir);
 
 	virtual void postInit(SceneObjectList *OwnerList = NULL);
 	virtual void signal();
