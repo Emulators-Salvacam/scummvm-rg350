@@ -67,6 +67,27 @@ else ifeq ($(platform), android)
    DEFINES += -fPIC -Wno-multichar
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
+else ifneq (,$(findstring armv,$(platform)))
+   TARGET := $(TARGET_NAME)_libretro.so
+   SHARED := -shared -Wl,--no-undefined
+   DEFINES += -fPIC -Wno-multichar
+   CC = gcc
+ifneq (,$(findstring cortexa8,$(platform)))
+   DEFINES += -marm -mcpu=cortex-a8
+else ifneq (,$(findstring cortexa9,$(platform)))
+   DEFINES += -marm -mcpu=cortex-a9
+endif
+   DEFINES += -marm
+ifneq (,$(findstring neon,$(platform)))
+   DEFINES += -mfpu=neon
+   HAVE_NEON = 1
+endif
+ifneq (,$(findstring softfloat,$(platform)))
+   DEFINES += -mfloat-abi=softfp
+else ifneq (,$(findstring hardfloat,$(platform)))
+   DEFINES += -mfloat-abi=hard
+endif
+   DEFINES += -DARM
 else
    TARGET  := $(TARGET_NAME)_libretro.dll
    LDFLAGS += -shared -Wl,--version-script=../link.T
