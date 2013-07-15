@@ -374,6 +374,9 @@ void Ringworld2Globals::reset() {
 	T2_GLOBALS._uiElements.updateInventory();
 	T2_GLOBALS._uiElements._active = false;
 
+	// Set the screen to track the player
+	_scrollFollower = &_player;
+
 	// Reset fields
 	Common::fill(&_v1000[0], &_v1000[0x1000], 0);
 	_v1000Flag = false;
@@ -382,8 +385,8 @@ void Ringworld2Globals::reset() {
 	_v558C2 = 0;
 	_animationCtr = 0;
 	_v5657C = 0;
-	_v565E1 = 0;
-	_v565E3 = 0;
+	_electromagnetChangeAmount = 0;
+	_electromagnetZoom = 0;
 	_v565E5 = 0;
 	_v565E7 = 0;
 	_v565E9 = -5;
@@ -496,8 +499,8 @@ void Ringworld2Globals::synchronize(Serializer &s) {
 	s.syncAsSint16LE(_v558C2);
 	s.syncAsSint16LE(_animationCtr);
 	s.syncAsSint16LE(_v5657C);
-	s.syncAsSint16LE(_v565E1);
-	s.syncAsSint16LE(_v565E3);
+	s.syncAsSint16LE(_electromagnetChangeAmount);
+	s.syncAsSint16LE(_electromagnetZoom);
 	s.syncAsSint16LE(_v565E5);
 	s.syncAsSint16LE(_v565E7);
 	s.syncAsSint16LE(_v565E9);

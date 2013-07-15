@@ -2468,10 +2468,10 @@ void SceneObject::postInit(SceneObjectList *OwnerList) {
 	if (!OwnerList)
 		OwnerList = g_globals->_sceneObjects;
 
-	if (!OwnerList->contains(this)) {
+	if (!OwnerList->contains(this) || ((_flags & OBJFLAG_REMOVE) != 0)) {
 		_percent = 100;
 		_priority = 255;
-		_flags = 4;
+		_flags = OBJFLAG_ZOOMED;
 		_visage = 0;
 		_strip = 1;
 		_frame = 1;
@@ -3216,7 +3216,7 @@ void Visage::flipVertical(GfxSurface &gfxSurface) {
 		// Flip the lines1
 		byte *line1P = (byte *)s.getBasePtr(0, y);
 		byte *line2P = (byte *)s.getBasePtr(0, s.h - y - 1);
-		
+
 		for (int x = 0; x < s.w; ++x)
 			SWAP(line1P[x], line2P[x]);
 	}

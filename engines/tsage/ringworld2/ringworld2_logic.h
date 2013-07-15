@@ -159,6 +159,9 @@ public:
 /*--------------------------------------------------------------------------*/
 
 class Ringworld2InvObjectList : public InvObjectList {
+private:
+	static bool SelectItem(int objectNumber);
+	static void selectDefault(int obectNumber);
 public:
 	InvObject _none;
 	InvObject _inv1;
@@ -260,6 +263,7 @@ class SceneActor: public SceneObject {
 public:
 	virtual Common::String getClassName() { return "SceneActor"; }
 	virtual void postInit(SceneObjectList *OwnerList = NULL);
+	virtual void remove();
 	virtual bool startAction(CursorType action, Event &event);
 };
 
