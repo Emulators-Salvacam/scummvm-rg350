@@ -88,7 +88,7 @@ public:
 
 	SceneObject *_focusObject;
 	Visage _cursorVisage;
-	SynchronizedList<SceneArea *> _sceneAreas;
+	SynchronizedList<EventHandler *> _sceneAreas;
 
 	Rect _v51C34;
 public:
@@ -114,6 +114,7 @@ class SceneHandlerExt: public SceneHandler {
 public:
 	virtual void postInit(SceneObjectList *OwnerList = NULL);
 	virtual void process(Event &event);
+	virtual void postLoad(int priorSceneBeforeLoad, int currentSceneBeforeLoad);
 
 	void setupPaletteMaps();
 };
@@ -265,6 +266,7 @@ public:
 	virtual void postInit(SceneObjectList *OwnerList = NULL);
 	virtual void remove();
 	virtual bool startAction(CursorType action, Event &event);
+	virtual GfxSurface getFrame();
 };
 
 class SceneActorExt: public SceneActor {
@@ -442,6 +444,74 @@ public:
 	AnimationPlayerExt();
 
 	virtual void synchronize(Serializer &s);
+};
+
+class ModalDialog: public SceneArea {
+public:
+	SceneActor _object1;
+	byte _field20;
+public:
+	ModalDialog();
+
+	virtual void remove();
+	virtual void synchronize(Serializer &s);
+	virtual Common::String getClassName() { return "ModalDialog"; }
+	virtual void process(Event &event);
+	virtual void proc12(int visage, int stripFrameNum, int frameNum, int posX, int posY);
+	virtual void proc13(int resNum, int lookLineNum, int talkLineNum, int useLineNum);
+};
+
+class ScannerDialog: public ModalDialog {
+
+	class Button: public SceneActor {
+	private:
+		void reset();
+	public:
+		int _buttonId;
+		bool _buttonDown;
+	public:
+		Button();
+		void setup(int buttonId);
+
+		virtual void synchronize(Serializer &s);
+		virtual Common::String getClassName() { return "ScannerButton"; }
+		virtual void process(Event &event);
+		virtual bool startAction(CursorType action, Event &event);
+	};
+	class Slider: public SceneActor {
+	private:
+		void update();
+	public:
+		int _initial;
+		int _xStart;
+		int _yp;
+		int _width;
+		int _xInc;
+		bool _sliderDown;
+	public:
+		Slider();
+		void setup(int initial, int xStart, int yp, int width, int xInc);
+
+		virtual void synchronize(Serializer &s);
+		virtual Common::String getClassName() { return "ScannerSlider"; }
+		virtual void remove();
+		virtual void process(Event &event);
+		virtual bool startAction(CursorType action, Event &event);
+	};
+public:
+	Button _talkButton;
+	Button _scanButton;
+	Slider _slider;
+	SceneActor _obj4;
+	SceneActor _obj5;
+	SceneActor _obj6;
+	SceneActor _obj7;
+public:
+	ScannerDialog();
+
+	virtual Common::String getClassName() { return "ScannerDialog"; }
+	virtual void remove();
+	void proc12(int visage, int stripFrameNum, int frameNum, int posX, int posY);
 };
 
 } // End of namespace Ringworld2

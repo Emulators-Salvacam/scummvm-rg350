@@ -88,6 +88,7 @@ Scene *Ringworld2Game::createScene(int sceneNumber) {
 		// Cutscene - Walking in hall
 		return new Scene525();
 	case 600:
+		// Drive Room
 		return new Scene600();
 	case 700:
 		// Lander Bay 2
@@ -338,8 +339,7 @@ void SceneExt::postInit(SceneObjectList *OwnerList) {
 	int sceneNumber = R2_GLOBALS._sceneManager._sceneNumber;
 	if (((prevScene == -1) && (sceneNumber != 180) && (sceneNumber != 205) && (sceneNumber != 50))
 			|| (sceneNumber == 50)
-			|| ((prevScene == 205) && (sceneNumber == 100))
-			|| ((prevScene == 180) && (sceneNumber == 100))) {
+			|| ((sceneNumber == 100) && (prevScene == 0 || prevScene == 180 || prevScene == 205))) {
 		static_cast<SceneHandlerExt *>(R2_GLOBALS._sceneHandler)->setupPaletteMaps();
 		R2_GLOBALS._uiElements._active = true;
 		R2_GLOBALS._uiElements.show();
@@ -417,17 +417,19 @@ bool SceneExt::display(CursorType action, Event &event) {
 			SceneItem::display2(5, 0);
 		break;
 	case R2_SONIC_STUNNER:
-		if ((R2_GLOBALS._v565F1[1] == 2) || ((R2_GLOBALS._v565F1[1] == 1) &&
-				(R2_GLOBALS._v565F1[2] == 2) && (R2_GLOBALS._sceneManager._previousScene == 300))) {
+		if ((R2_GLOBALS._scannerFrequencies[R2_QUINN] == 2) 
+			|| ((R2_GLOBALS._scannerFrequencies[R2_QUINN] == 1) &&
+				(R2_GLOBALS._scannerFrequencies[R2_SEEKER] == 2) && 
+				(R2_GLOBALS._sceneManager._previousScene == 300))) {
 			R2_GLOBALS._sound4.stop();
 			R2_GLOBALS._sound3.play(46);
 			SceneItem::display2(5, 15);
+
+			R2_GLOBALS._sound4.play(45);
 		} else {
 			R2_GLOBALS._sound3.play(43, 0);
-			SceneItem::display2(2, 0);
+			SceneItem::display2(2, R2_SONIC_STUNNER);
 		}
-
-		R2_GLOBALS._sound4.play(45);
 		break;
 	case R2_COM_SCANNER:
 	case R2_COM_SCANNER_2:
@@ -583,7 +585,7 @@ void SceneHandlerExt::process(Event &event) {
 	SceneExt *scene = static_cast<SceneExt *>(R2_GLOBALS._sceneManager._scene);
 	if (scene && R2_GLOBALS._player._uiEnabled) {
 		// Handle any scene areas that have been registered
-		SynchronizedList<SceneArea *>::iterator saIter;
+		SynchronizedList<EventHandler *>::iterator saIter;
 		for (saIter = scene->_sceneAreas.begin(); saIter != scene->_sceneAreas.end() && !event.handled; ++saIter) {
 			(*saIter)->process(event);
 		}
@@ -593,11 +595,32 @@ void SceneHandlerExt::process(Event &event) {
 		SceneHandler::process(event);
 }
 
+void SceneHandlerExt::postLoad(int priorSceneBeforeLoad, int currentSceneBeforeLoad) {
+	if (priorSceneBeforeLoad == -1 || priorSceneBeforeLoad == 50
+			|| priorSceneBeforeLoad == 180 || priorSceneBeforeLoad == 205)
+		setupPaletteMaps();
+
+	if (currentSceneBeforeLoad == 2900) {
+		R2_GLOBALS._gfxFontNumber = 50;
+		R2_GLOBALS._gfxColors.background = 0;
+		R2_GLOBALS._gfxColors.foreground = 59;
+		R2_GLOBALS._fontColors.background = 4;
+		R2_GLOBALS._fontColors.foreground = 15;
+		R2_GLOBALS._frameEdgeColour = 2;
+
+		R2_GLOBALS._scenePalette.loadPalette(0);
+		R2_GLOBALS._scenePalette.setEntry(255, 0xff, 0xff, 0xff);
+		R2_GLOBALS._fadePaletteFlag = false;
+		setupPaletteMaps();
+	}
+}
+
 void SceneHandlerExt::setupPaletteMaps() {
 	byte *palP = &R2_GLOBALS._scenePalette._palette[0];
 
-	if (!R2_GLOBALS._v1000Flag) {
-		R2_GLOBALS._v1000Flag = true;
+	// Set up the mapping table for giving faded versions of pixels at different fade percentages
+	if (!R2_GLOBALS._fadePaletteFlag) {
+		R2_GLOBALS._fadePaletteFlag = true;
 
 		for (int idx = 0; idx < 10; ++idx) {
 			for (int palIndex = 0; palIndex < 224; ++palIndex) {
@@ -647,18 +670,19 @@ void SceneHandlerExt::setupPaletteMaps() {
 					foundIndex = pIndex2;
 				}
 
-				R2_GLOBALS._palIndexList[idx][palIndex] = foundIndex;
+				R2_GLOBALS._fadePaletteMap[idx][palIndex] = foundIndex;
 			}
 		}
 	}
 
 	for (int palIndex = 0; palIndex < 224; ++palIndex) {
-		int r = palP[palIndex * 3] >> 2;
-		int g = palP[palIndex * 3 + 1] >> 2;
-		int b = palP[palIndex * 3 + 2] >> 2;
+		int r = palP[palIndex * 3] >> 4;
+		int g = palP[palIndex * 3 + 1] >> 4;
+		int b = palP[palIndex * 3 + 2] >> 4;
 
-		int idx = (((r << 4) | g) << 4) | b;
-		R2_GLOBALS._v1000[idx] = palIndex;
+		int v = (r << 8) | (g << 4) | b;
+		assert(v < 0x1000);
+		R2_GLOBALS._paletteMap[v] = palIndex;
 	}
 
 	int vdx = 0;
@@ -666,9 +690,9 @@ void SceneHandlerExt::setupPaletteMaps() {
 	int palIndex = 224;
 
 	for (int vIndex = 0; vIndex < 4096; ++vIndex) {
-		int v = R2_GLOBALS._v1000[vIndex];
+		int v = R2_GLOBALS._paletteMap[vIndex];
 		if (!v) {
-			R2_GLOBALS._v1000[vIndex] = idx;
+			R2_GLOBALS._paletteMap[vIndex] = idx;
 		} else {
 			idx = v;
 		}
@@ -950,8 +974,8 @@ bool Ringworld2InvObjectList::SelectItem(int objectNumber) {
 		case R2_SENSOR_PROBE:
 			if (R2_GLOBALS.getFlag(1))
 				SceneItem::display2(5, 1);
-			else if (R2_INVENTORY.getObjectScene(R2_SPENT_POWER_CAPSULE) == 100)
-				SceneItem::display(5, 3);
+			else if (R2_INVENTORY.getObjectScene(R2_SPENT_POWER_CAPSULE) != 100)
+				SceneItem::display2(5, 3);
 			else {
 				R2_GLOBALS._sound3.play(48);
 				SceneItem::display2(5, 2);
@@ -966,6 +990,8 @@ bool Ringworld2InvObjectList::SelectItem(int objectNumber) {
 				SceneItem::display2(5, 8);
 			else
 				SceneItem::display2(5, 10);
+
+			R2_GLOBALS._sound3.stop();
 			break;
 		case R2_CHARGED_POWER_CAPSULE:
 			if (R2_INVENTORY.getObjectScene(R2_SPENT_POWER_CAPSULE) == 1) {
@@ -1254,6 +1280,32 @@ bool SceneActor::startAction(CursorType action, Event &event) {
 	if (!handled)
 		handled = ((SceneExt *)R2_GLOBALS._sceneManager._scene)->display(action, event);
 	return handled;
+}
+
+GfxSurface SceneActor::getFrame() {
+	GfxSurface frame = SceneObject::getFrame();
+
+	// TODO: Proper effects handling
+	switch (_effect) {
+	case 0:
+	case 5:
+		// TODO: Figure out purpose of setting image flags to 64, and getting
+		// scene priorities -1 or _shade
+		break;
+	case 1:
+		// TODO: Transposing using R2_GLOBALS._pixelArrayMap
+		break;
+	case 2:
+		// No effect
+		break;
+	case 4:
+		break;
+	default:
+		// TODO: Default effect
+		break;
+	}
+
+	return frame;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -2059,6 +2111,347 @@ AnimationPlayerExt::AnimationPlayerExt(): AnimationPlayer() {
 void AnimationPlayerExt::synchronize(Serializer &s) {
 	AnimationPlayer::synchronize(s);
 	s.syncAsSint16LE(_v);
+}
+
+/*--------------------------------------------------------------------------*/
+
+ModalDialog::ModalDialog() {
+	_field20 = 0;
+}
+
+void ModalDialog::remove() {
+	R2_GLOBALS._sceneItems.remove(&_object1);
+	_object1.remove();
+
+	SceneArea::remove();
+
+	--R2_GLOBALS._insetUp;
+}
+
+void ModalDialog::synchronize(Serializer &s) {
+	SceneArea::synchronize(s);
+
+	s.syncAsByte(_field20);
+}
+
+void ModalDialog::process(Event &event) {
+	if (_field20 != R2_GLOBALS._insetUp)
+		return;
+
+	CursorType cursor = R2_GLOBALS._events.getCursor();
+
+	if (_object1._bounds.contains(event.mousePos.x + g_globals->gfxManager()._bounds.left , event.mousePos.y)) {
+		if (cursor == _cursorNum) {
+			R2_GLOBALS._events.setCursor(_savedCursorNum);
+		}
+	} else if (event.mousePos.y < 168) {
+		if (cursor != _cursorNum) {
+			_savedCursorNum = cursor;
+			R2_GLOBALS._events.setCursor(CURSOR_INVALID);
+		}
+		if (event.eventType == EVENT_BUTTON_DOWN) {
+			event.handled = true;
+			R2_GLOBALS._events.setCursor(_savedCursorNum);
+			remove();
+		}
+	}
+}
+
+void ModalDialog::proc12(int visage, int stripFrameNum, int frameNum, int posX, int posY) {
+	Scene1200 *scene = (Scene1200 *)R2_GLOBALS._sceneManager._scene;
+
+	_object1.postInit();
+	_object1.setup(visage, stripFrameNum, frameNum);
+	_object1.setPosition(Common::Point(posX, posY));
+	_object1.fixPriority(250);
+	_cursorNum = CURSOR_INVALID;
+	scene->_sceneAreas.push_front(this);
+	++R2_GLOBALS._insetUp;
+	_field20 = R2_GLOBALS._insetUp;
+}
+
+void ModalDialog::proc13(int resNum, int lookLineNum, int talkLineNum, int useLineNum) {
+	_object1.setDetails(resNum, lookLineNum, talkLineNum, useLineNum, 2, (SceneItem *) NULL);
+}
+
+/*--------------------------------------------------------------------------*/
+
+ScannerDialog::Button::Button() {
+	_buttonId = 0;
+	_buttonDown = false;
+}
+
+void ScannerDialog::Button::setup(int buttonId) {
+	_buttonId = buttonId;
+	_buttonDown = false;
+	SceneActor::postInit();
+
+	SceneObject::setup(4, 2, 2);
+	fixPriority(255);
+
+	if (_buttonId == 1)
+		setPosition(Common::Point(141, 99));
+	else if (_buttonId == 2)
+		setPosition(Common::Point(141, 108));
+
+	static_cast<SceneExt *>(R2_GLOBALS._sceneManager._scene)->_sceneAreas.push_front(this);
+}
+
+void ScannerDialog::Button::synchronize(Serializer &s) {
+	SceneActor::synchronize(s);
+	s.syncAsSint16LE(_buttonId);
+}
+
+void ScannerDialog::Button::process(Event &event) {
+	if (event.eventType == EVENT_BUTTON_DOWN && R2_GLOBALS._events.getCursor() == CURSOR_USE
+			&& _bounds.contains(event.mousePos) && !_buttonDown) {
+		setFrame(3);
+		_buttonDown = true;
+		event.handled = true;
+	}
+
+	if (event.eventType == EVENT_BUTTON_UP && _buttonDown) {
+		setFrame(2);
+		_buttonDown = false;
+		event.handled = true;
+		
+		reset();
+	}
+}
+
+bool ScannerDialog::Button::startAction(CursorType action, Event &event) {
+	if (action == CURSOR_USE)
+		return false;
+
+	return startAction(action, event);
+}
+
+void ScannerDialog::Button::reset() {
+	Scene *scene = R2_GLOBALS._sceneManager._scene;
+	ScannerDialog &scanner = *R2_GLOBALS._scannerDialog;
+
+	switch (_buttonId) {
+	case 1:
+		// Talk button
+		switch (R2_GLOBALS._sceneManager._sceneNumber) {
+		case 1550:
+			scene->_sceneMode = 80;
+			scene->signal();
+			break;
+		case 1700:
+			scene->_sceneMode = 30;
+			scene->signal();
+			remove();
+			break;
+		default:
+			break;
+		}
+		break;
+	case 2:
+		// Scan button
+		switch (R2_GLOBALS._sceneManager._sceneNumber) {
+		case 1550:
+			scanner._obj4.setup(4, 3, 1);
+
+			scanner._obj5.postInit();
+			scanner._obj5.setup(4, 4, 1);
+			scanner._obj5.setPosition(Common::Point(R2_GLOBALS._v565EC[1] + 145,
+				R2_GLOBALS._v565EC[3] + 59));
+			scanner._obj5.fixPriority(257);
+
+			scanner._obj6.postInit();
+			scanner._obj6.setup(4, 4, 2);
+			scanner._obj6.setPosition(Common::Point(R2_GLOBALS._v565EC[2] + 145,
+				R2_GLOBALS._v565EC[4] + 59));
+			scanner._obj6.fixPriority(257);
+			break;
+		case 1700:
+		case 1800:
+			if (R2_GLOBALS._v565F8 < 0 || (R2_GLOBALS._v565F8 == 0 && R2_GLOBALS._v565F6 < 1201))
+				scanner._obj4.setup(4, 3, 3);
+			else if (R2_GLOBALS._v565F8 > 0 || (R2_GLOBALS._v565F8 == 0 && R2_GLOBALS._v565F6 < 1201))
+				scanner._obj4.setup(4, 3, 4);
+			else
+				scanner._obj4.setup(4, 3, 5);
+			break;
+		case 3800:
+		case 3900:
+			if ((R2_GLOBALS._v56A93 + 1) == 0 && R2_GLOBALS._v566A9 == 0) {
+				do {
+					R2_GLOBALS._v566A9 = R2_GLOBALS._randomSource.getRandomNumber(3);
+				} while (R2_GLOBALS._v566A9 == R2_GLOBALS._v566AA);
+			}
+
+			scanner._obj4.setup(4, 7, R2_GLOBALS._v566A9);
+			if (!R2_GLOBALS.getFlag(46))
+				R2_GLOBALS.setFlag(46);
+			break;
+		default:
+			scanner._obj4.setup(4, 3, 2);
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+}
+
+/*--------------------------------------------------------------------------*/
+
+ScannerDialog::Slider::Slider() {
+	_initial = _xStart = _yp = 0;
+	_width = _xInc = 0;
+	_sliderDown = false;
+}
+
+void ScannerDialog::Slider::synchronize(Serializer &s) {
+	SceneActor::synchronize(s);
+
+	s.syncAsSint16LE(_initial);
+	s.syncAsSint16LE(_xStart);
+	s.syncAsSint16LE(_yp);
+	s.syncAsSint16LE(_width);
+	s.syncAsSint16LE(_xInc);
+}
+
+void ScannerDialog::Slider::remove() {
+	static_cast<SceneExt *>(R2_GLOBALS._sceneManager._scene)->_sceneAreas.remove(this);
+	SceneActor::remove();
+}
+
+void ScannerDialog::Slider::process(Event &event) {
+	if (event.eventType == EVENT_BUTTON_DOWN && R2_GLOBALS._events.getCursor() == CURSOR_USE
+			&& _bounds.contains(event.mousePos)) {
+		_sliderDown = true;
+	}
+
+	if (event.eventType == EVENT_BUTTON_UP && _sliderDown) {
+		_sliderDown = false;
+		event.handled = true;
+		update();
+	}
+
+	if (_sliderDown) {
+		event.handled = true;
+		if (event.mousePos.x < _xStart) {
+			setPosition(Common::Point(_xStart, _yp));
+		} else if (event.mousePos.x >= (_xStart + _width)) {
+			setPosition(Common::Point(_xStart + _width, _yp));
+		} else {
+			setPosition(Common::Point(event.mousePos.x, _yp));
+		}
+	}
+}
+
+bool ScannerDialog::Slider::startAction(CursorType action, Event &event) {
+	if (action == CURSOR_USE)
+		return false;
+
+	return startAction(action, event);
+}
+
+void ScannerDialog::Slider::update() {
+	int incHalf = (_width / (_xInc - 1)) / 2;
+	int newFrequency = ((_position.x - _xStart + incHalf) * _xInc) / (_width + incHalf * 2);
+	setPosition(Common::Point(_xStart + ((_width * newFrequency) / (_xInc - 1)), _yp));
+
+	R2_GLOBALS._scannerFrequencies[R2_GLOBALS._player._characterIndex] = newFrequency + 1;
+
+	switch (newFrequency) {
+	case 0:
+		R2_GLOBALS._sound4.stop();
+		break;
+	case 1:
+		R2_GLOBALS._sound4.play(45);
+		break;
+	case 2:
+		R2_GLOBALS._sound4.play(4);
+		break;
+	case 3:
+		R2_GLOBALS._sound4.play(5);
+		break;
+	case 4:
+		R2_GLOBALS._sound4.play(6);
+		break;
+	default:
+		break;
+	}
+}
+
+void ScannerDialog::Slider::setup(int initial, int xStart, int yp, int width, int xInc) {
+	_initial = initial;
+	_xStart = xStart;
+	_yp = yp;
+	_width = width;
+	_xInc = xInc;
+	_sliderDown = false;
+	SceneActor::postInit();
+	SceneObject::setup(4, 2, 1);
+	fixPriority(255);
+	setPosition(Common::Point(_width * (_initial - 1) / (_xInc - 1) + _xStart, yp));
+
+	static_cast<SceneExt *>(R2_GLOBALS._sceneManager._scene)->_sceneAreas.push_front(this);
+}
+
+/*--------------------------------------------------------------------------*/
+
+ScannerDialog::ScannerDialog() {
+}
+
+void ScannerDialog::remove() {
+	switch (R2_GLOBALS._sceneManager._sceneNumber) {
+	case 1550:
+	case 1700:
+		R2_GLOBALS._events.setCursor(R2_GLOBALS._player._canWalk ? CURSOR_ARROW : CURSOR_USE);
+		break;
+	case 3800:
+	case 3900: {
+		Scene *scene = R2_GLOBALS._sceneManager._scene;
+		scene->_sceneMode = 3806;
+		scene->signal();
+		break;
+		}
+	default:
+		break;
+	}
+
+	SceneExt *scene = static_cast<SceneExt *>(R2_GLOBALS._sceneManager._scene);
+	scene->_sceneAreas.remove(&_talkButton);
+	scene->_sceneAreas.remove(&_scanButton);
+	_talkButton.remove();
+	_scanButton.remove();
+	_slider.remove();
+	_obj4.remove();
+	_obj5.remove();
+	_obj6.remove();
+	_obj7.remove();
+
+	ModalDialog::remove();
+}
+
+void ScannerDialog::proc12(int visage, int stripFrameNum, int frameNum, int posX, int posY) {
+	// Stop player moving if currently doing so
+	if (R2_GLOBALS._player._mover)
+		R2_GLOBALS._player.addMover(NULL);
+
+	R2_GLOBALS._events.setCursor(CURSOR_USE);
+	ModalDialog::proc12(visage, stripFrameNum, frameNum, posX, posY);
+
+	proc13(100, -1, -1, -1);
+	_talkButton.setup(1);
+	_scanButton.setup(2);
+	_slider.setup(R2_GLOBALS._scannerFrequencies[R2_GLOBALS._player._characterIndex], 142, 124, 35, 5);
+
+	_obj4.postInit();
+	_obj4.setup(4, 3, 2);
+	_obj4.setPosition(Common::Point(160, 83));
+	_obj4.fixPriority(256);
+
+	if (R2_GLOBALS._sceneManager._sceneNumber == 3800 || R2_GLOBALS._sceneManager._sceneNumber == 3900) {
+		Scene *scene = R2_GLOBALS._sceneManager._scene;
+		scene->_sceneMode = 3805;
+		scene->signal();
+	}
 }
 
 } // End of namespace Ringworld2
