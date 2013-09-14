@@ -445,7 +445,7 @@ public:
         return false;
 	}
 
-	virtual uint32 getMillis()
+	virtual uint32 getMillis(bool skipRecord = false)
 	{
 #if defined(GEKKO)
    return (ticks_to_microsecs(gettime()) / 1000.0) - _startTime;
