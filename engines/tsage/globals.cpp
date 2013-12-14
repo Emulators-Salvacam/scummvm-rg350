@@ -443,7 +443,7 @@ Ringworld2Globals::Ringworld2Globals() {
 	_scene180Mode = -1;
 	_v57709 = 0;
 	_v5780C = 0;
-	_v5780E = 0;
+	_mouseCursorId = 0;
 	_v57810 = 0;
 
 	_fadePaletteFlag = false;
@@ -457,6 +457,8 @@ Ringworld2Globals::Ringworld2Globals() {
 	_foodCount = 0;
 	_rimLocation = 0;
 	_rimTransportLocation = 0;
+
+	_debugCardGame = false;
 }
 
 Ringworld2Globals::~Ringworld2Globals() {
@@ -555,7 +557,7 @@ void Ringworld2Globals::reset() {
 	_scene180Mode = -1;
 	_v57709 = 0;
 	_v5780C = 0;
-	_v5780E = 0;
+	_mouseCursorId = 0;
 	_v57810 = 0;
 	_s1550PlayerArea[R2_QUINN] = Common::Point(27, 4);
 	_s1550PlayerArea[R2_SEEKER] = Common::Point(27, 4);
@@ -583,6 +585,8 @@ void Ringworld2Globals::reset() {
 	_player._characterScene[R2_QUINN] = 100;
 	_player._characterScene[R2_SEEKER] = 300;
 	_player._characterScene[R2_MIRANDA] = 300;
+
+	_debugCardGame = false;
 }
 
 void Ringworld2Globals::synchronize(Serializer &s) {
@@ -607,7 +611,7 @@ void Ringworld2Globals::synchronize(Serializer &s) {
 	s.syncAsSint16LE(_scene180Mode);
 	s.syncAsSint16LE(_v57709);
 	s.syncAsSint16LE(_v5780C);
-	s.syncAsSint16LE(_v5780E);
+	s.syncAsSint16LE(_mouseCursorId);
 	s.syncAsSint16LE(_v57810);
 
 	s.syncAsByte(_s1550PlayerArea[R2_QUINN].x);

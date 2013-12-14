@@ -183,31 +183,32 @@ public:
 };
 
 class Scene1337 : public SceneExt {
-	class unkObj1337sub1: public SceneHotspot {
+	class Card: public SceneHotspot {
 	public:
-		SceneObject _object1;
+		SceneObject _card;
 
-		int _field34;
-		Common::Point _field36;
+		int _cardId;
+		Common::Point _stationPos;
 
-		unkObj1337sub1();
+		Card();
 		void synchronize(Serializer &s);
+		bool isIn(Common::Point pt);
 	};
 
-	class unkObj1337_1: public SceneHotspot {
+	class GameBoardSide: public SceneHotspot {
 	public:
-		unkObj1337sub1 _arr1[4];
-		unkObj1337sub1 _arr2[8];
-		unkObj1337sub1 _arr3[1];
-		unkObj1337sub1 _arr4[1];
+		Card _handCard[4];
+		Card _outpostStation[8];
+		Card _delayCard;
+		Card _emptyStationPos;
 
-		Common::Point _fieldB94;
-		Common::Point _fieldB98;
-		Common::Point _fieldB9C;
-		Common::Point _fieldBA0;
-		int _fieldBA4;
+		Common::Point _card1Pos;
+		Common::Point _card2Pos;
+		Common::Point _card3Pos;
+		Common::Point _card4Pos;
+		int _frameNum;
 
-		unkObj1337_1();
+		GameBoardSide();
 		void synchronize(Serializer &s);
 	};
 
@@ -270,15 +271,15 @@ class Scene1337 : public SceneExt {
 	};
 public:
 	typedef void (Scene1337::*FunctionPtrType)();
-	FunctionPtrType _unkFctPtr412;
+	FunctionPtrType _delayedFunction;
 
 	ASound _aSound1;
 	ASound _aSound2;
-	BackgroundSceneObject _background1;
+	SceneActor _helpIcon;
 	bool _autoplay;
-	unkObj1337_1 _arrunkObj1337[4];
+	GameBoardSide _gameBoardSide[4];
 	SceneItem _item1;
-	SceneObject _object1;
+	SceneObject _currentPlayerArrow;
 	Action1 _action1;
 	Action2 _action2;
 	Action3 _action3;
@@ -292,90 +293,90 @@ public:
 	Action11 _action11;
 	Action12 _action12;
 	Action13 _action13;
-	unkObj1337sub1 _item2;
-	unkObj1337sub1 _item3;
-	unkObj1337sub1 _item4;
-	BackgroundSceneObject _background2;
-	int _field3E24;
-	int _field3E26;
-	int _field3E28[100];
-	unkObj1337sub1 *_field3EF0;
-	unkObj1337sub1 *_field3EF4;
-	unkObj1337sub1 *_field3EF8;
-	unkObj1337sub1 _item5;
-	unkObj1337sub1 _item6;
-	unkObj1337sub1 _item7;
-	unkObj1337sub1 _item8;
-	int _field423C;
-	int _field423E;
-	int _field4240;
-	int _field4242;
-	int _field4244;
-	int _field4246;
-	int _field4248;
-	int _field424A;
-	int _field424C;
-	int _field424E;
+	Card _animatedCard;
+	Card _shuffleAnimation;
+	Card _item4;
+	SceneActor _stockPile;
+	int _cardsAvailableNumb;
 
-	SceneObject _arrObject1[8];
-	SceneObject _arrObject2[8];
+	// Discarded cards are put in the available cards pile, with an higher index so there no conflict
+	int _currentDiscardIndex;
+	int _availableCardsPile[100];
+	Card *_actionCard1;
+	Card *_actionCard2;
+	Card *_actionCard3;
+	Card _item5;
+	Card _selectedCard;
+	Card _discardPile;
+	Card _stockCard;
+	bool _shuffleEndedFl;
+	int _currentPlayerNumb;
+	int _actionIdx1;
+	int _actionIdx2;
+	bool _showPlayerTurn;
+	bool _displayHelpFl;
+	int _winnerId;
+	bool _instructionsDisplayedFl;
+	int _instructionsWaitCount;
+	int _cursorCurRes;
+	int _cursorCurStrip;
+	int _cursorCurFrame;
+
+	SceneObject _upperDisplayCard[8];
+	SceneObject _lowerDisplayCard[8];
 
 	Scene1337();
 	virtual void synchronize(Serializer &s);
 
-	void actionDisplay(int resNum, int lineNum, int x, int y, int arg5, int width, int textMode, int fontNum, int colFG, int colBGExt, int colFGExt);
-	void setAnimationInfo(unkObj1337sub1 *subObj);
+	void actionDisplay(int resNum, int lineNum, int x, int y, int keepOnScreen, int width, int textMode, int fontNum, int colFG, int colBGExt, int colFGExt);
+	void setAnimationInfo(Card *card);
 	void subC20E5();
-	void subC20F9();
+	void handleNextTurn();
 	void subC2586();
-	bool subC264B(int arg1);
-	bool subC2687(int arg1);
-	int  subC26CB(int arg1, int arg2);
-	int  subC2719(int arg1);
+	bool subC264B(int cardId);
+	bool subC2687(int cardId);
+	int  subC26CB(int playerId, int handCardId);
+	int  findNormalCardInHand(int playerId);
 	int  subC274D(int arg1);
 	int  subC2781(int arg1);
 	int  subC27B5(int arg1);
-	int  subC27F9(int arg1);
+	int  isSlowCard(int cardId);
 	void subC2835(int arg1);
-	bool subC2BF8(unkObj1337sub1 *subObj1, Common::Point pt);
-	void subC2C2F();
-	void subC318B(int arg1, unkObj1337sub1 *subObj2, int arg3);
+	void playThieftCard(int playerId, Card *card, int victimId);
 	int  subC3257(int arg1);
 	bool subC32B1(int arg1, int arg2);
 	int  subC331B(int arg1);
-	bool subC3386(int arg1, int arg2);
-	void subC33C0(unkObj1337sub1 *subObj1, unkObj1337sub1 *subObj2);
-	void subC3456(unkObj1337sub1 *subObj1, unkObj1337sub1 *subObj2);
-	void subC340B(unkObj1337sub1 *subObj1, unkObj1337sub1 *subObj2);
-	void subC34A1(unkObj1337sub1 *subObj1, unkObj1337sub1 *subObj2);
-	unkObj1337sub1 *subC34EC(int arg1);
-	void subC358E(unkObj1337sub1 *subObj1, int arg2);
-	int  subC3E92(int arg1);
-	void subC4A39(unkObj1337sub1 *subObj);
+	bool checkAntiDelayCard(int delayCardId, int cardId);
+	void subC33C0(Card *subObj1, Card *subObj2);
+	void playDelayCard(Card *card, Card *dest);
+	void playCard(Card *card, Card *dest);
+	void playAntiDelayCard(Card *card, Card *dest);
+	Card *subC34EC(int arg1);
+	void playCounterTrickCard(Card *card, int playerId);
+	int  getFreeHandCard(int playerId);
+	void discardCard(Card *card);
 	void subC4CD2();
 	void subC4CEC();
-	void subC51A0(unkObj1337sub1 *subObj1, unkObj1337sub1 *subObj2);
+	void subC51A0(Card *subObj1, Card *subObj2);
 	void displayDialog(int dialogNumb);
 	void subPostInit();
 	void displayInstructions();
 	void suggestInstructions();
 	void shuffleCards();
-	void subCCF26();
+	void dealCards();
 	void subCD193();
-	void subCDB90(int arg1, Common::Point pt);
-	void subCF31D();
-	void subCF979();
-	void subD026D();
-	void subD0281();
+	void handleClick(int arg1, Common::Point pt);
+	void handlePlayer0();
+	void handlePlayer1();
+	void handlePlayer2();
+	void handlePlayer3();
 	void subD02CA();
-	void subD183F(int arg1, int arg2);
+	void updateCursorId(int arg1, bool arg2);
 	void setCursorData(int resNum, int rlbNum, int frameNum);
-	int  subD18F5();
-	int  subD1917();
-	int  subD1940(bool flag);
-	void subD195F(int arg1, int arg2);
+	void subD18F5();
+	void subD1917();
+	void subD1940(bool flag);
 	void subD1975(int arg1, int arg2);
-	void subD1A48(int arg1);
 
 	virtual void postInit(SceneObjectList *OwnerList = NULL);
 	virtual void remove();

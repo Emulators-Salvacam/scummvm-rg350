@@ -36,6 +36,9 @@
 
 #include "engines/engine.h"
 
+#include "gui/debugger.h"
+#include "fullpipe/console.h"
+
 struct ADGameDescription;
 
 namespace Fullpipe {
@@ -58,6 +61,7 @@ class GameObject;
 class GlobalMessageQueueList;
 struct MessageHandler;
 struct MovTable;
+class MGM;
 class NGIArchive;
 class Scene;
 class SoundList;
@@ -79,6 +83,9 @@ protected:
 public:
 	FullpipeEngine(OSystem *syst, const ADGameDescription *gameDesc);
 	virtual ~FullpipeEngine();
+
+	Console *_console;
+	GUI::Debugger *getDebugger() { return _console; }
 
 	void initialize();
 
@@ -142,6 +149,8 @@ public:
 	void toggleMute();
 	void playSound(int id, int flag);
 	void startSceneTrack();
+	void stopSoundStream2();
+	void stopAllSoundStreams();
 
 	int _sfxVolume;
 
@@ -165,6 +174,9 @@ public:
 	MovTable *_movTable;
 
 	Floaters *_floaters;
+	MGM *_mgm;
+
+	Common::Array<Common::Point *> _arcadeKeys;
 
 	void initMap();
 	void updateMapPiece(int mapId, int update);
@@ -231,7 +243,9 @@ public:
 	void openMainMenu();
 
 	void initArcadeKeys(const char *varname);
+	void processArcade(ExCommand *ex);
 	void winArcade();
+
 	void getAllInventory();
 
 	int lift_getButtonIdP(int objid);

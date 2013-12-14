@@ -35,6 +35,8 @@
 #include "fullpipe/input.h"
 #include "fullpipe/scenes.h"
 #include "fullpipe/floaters.h"
+#include "fullpipe/motion.h"
+#include "fullpipe/console.h"
 
 namespace Fullpipe {
 
@@ -51,6 +53,7 @@ FullpipeEngine::FullpipeEngine(OSystem *syst, const ADGameDescription *gameDesc)
 	_mixer->setVolumeForSoundType(Audio::Mixer::kMusicSoundType, ConfMan.getInt("music_volume"));
 
 	_rnd = new Common::RandomSource("fullpipe");
+	_console = 0;
 
 	_gameProjectVersion = 0;
 	_pictureScale = 8;
@@ -98,6 +101,7 @@ FullpipeEngine::FullpipeEngine(OSystem *syst, const ADGameDescription *gameDesc)
 	_scene2 = 0;
 	_movTable = 0;
 	_floaters = 0;
+	_mgm = 0;
 
 	_globalMessageQueueList = 0;
 	_messageHandlers = 0;
@@ -152,6 +156,7 @@ FullpipeEngine::FullpipeEngine(OSystem *syst, const ADGameDescription *gameDesc)
 
 FullpipeEngine::~FullpipeEngine() {
 	delete _rnd;
+	delete _console;
 	delete _globalMessageQueueList;
 }
 
@@ -165,6 +170,7 @@ void FullpipeEngine::initialize() {
 	_sceneRect.bottom = 599;
 
 	_floaters = new Floaters;
+	_mgm = new MGM;
 }
 
 Common::Error FullpipeEngine::run() {
@@ -173,6 +179,8 @@ Common::Error FullpipeEngine::run() {
 	initGraphics(800, 600, true, &format);
 
 	_backgroundSurface.create(800, 600, format);
+
+	_console = new Console(this);
 
 	initialize();
 
@@ -272,6 +280,11 @@ void FullpipeEngine::updateEvents() {
 				return;
 				break;
 			default:
+				if (event.kbd.keycode == Common::KEYCODE_d && event.kbd.hasFlags(Common::KBD_CTRL)) {
+					// Start the debugger
+					getDebugger()->attach();
+					getDebugger()->onFrame();
+				}
 				ex = new ExCommand(0, 17, 36, 0, 0, 0, 1, 0, 0, 0);
 				ex->_keyCode = event.kbd.keycode;
 				ex->_excFlags |= 3;

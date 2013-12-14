@@ -464,6 +464,8 @@ Picture::~Picture() {
 }
 
 void Picture::freePicture() {
+	debug(5, "Picture::freePicture(): file: %s", _memfilename);
+
 	if (_bitmap) {
 		if (testFlags() && !_field_54) {
 			freeData();
@@ -519,7 +521,7 @@ bool Picture::load(MfcArchive &file) {
 
 	getData();
 
-	debug(5, "Picture::load: <%s>", _memfilename);
+	debug(5, "Picture::load: loaded <%s>", _memfilename);
 
 	return true;
 }
@@ -539,6 +541,10 @@ void Picture::setAOIDs() {
 }
 
 void Picture::init() {
+	debug(5, "Picture::init(), %s", _memfilename);
+
+	MemoryObject::getData();
+
 	_bitmap = new Bitmap();
 
 	getDibInfo();
@@ -567,6 +573,12 @@ void Picture::getDibInfo() {
 		warning("Uneven data size: 0x%x", _dataSize);
 	}
 
+	if (!_data) {
+		warning("Picture::getDibInfo: data is empty <%s>", _memfilename);
+
+		MemoryObject::load();
+	}
+
 	Common::MemoryReadStream *s = new Common::MemoryReadStream(_data + off - 32, 32);
 
 	_bitmap->load(s);
@@ -584,7 +596,7 @@ void Picture::draw(int x, int y, int style, int angle) {
 	int x1 = x;
 	int y1 = y;
 
-	debug(0, "Picture::draw(%d, %d, %d, %d) (%s)", x, y, style, angle, _memfilename);
+	debug(7, "Picture::draw(%d, %d, %d, %d) (%s)", x, y, style, angle, _memfilename);
 
 	if (x != -1)
 		x1 = x;
@@ -599,7 +611,7 @@ void Picture::draw(int x, int y, int style, int angle) {
 		return;
 
 	if ((_alpha & 0xff) < 0xff) {
-		debug(0, "Picture:draw: alpha = %0x", _alpha);
+		debug(7, "Picture:draw: alpha = %0x", _alpha);
 	}
 
 	byte *pal = _paletteData;
@@ -647,8 +659,8 @@ void Picture::displayPicture() {
 	if (!_dataSize)
 		return;
 
-	g_fullpipe->_backgroundSurface.fillRect(Common::Rect(0, 0, 799, 599), 0);
-	g_fullpipe->_system->copyRectToScreen(g_fullpipe->_backgroundSurface.getBasePtr(0, 0), g_fullpipe->_backgroundSurface.pitch, 0, 0, 799, 599);
+	g_fullpipe->_backgroundSurface.fillRect(Common::Rect(0, 0, 800, 600), 0);
+	g_fullpipe->_system->copyRectToScreen(g_fullpipe->_backgroundSurface.getBasePtr(0, 0), g_fullpipe->_backgroundSurface.pitch, 0, 0, 800, 600);
 
 	draw(0, 0, 0, 0);
 
@@ -771,7 +783,7 @@ bool Bitmap::isPixelAtHitPosRB(int x, int y) {
 }
 
 void Bitmap::putDib(int x, int y, int32 *palette) {
-	debug(0, "Bitmap::putDib(%d, %d)", x, y);
+	debug(7, "Bitmap::putDib(%d, %d)", x, y);
 
 	_x = x - g_fullpipe->_sceneRect.left;
 	_y = y - g_fullpipe->_sceneRect.top;

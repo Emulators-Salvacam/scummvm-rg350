@@ -28,9 +28,9 @@
 
 #include "fullpipe/objects.h"
 #include "fullpipe/statics.h"
+#include "fullpipe/gameloader.h"
 #include "fullpipe/motion.h"
 #include "fullpipe/messages.h"
-#include "fullpipe/gameloader.h"
 
 namespace Fullpipe {
 
@@ -170,7 +170,7 @@ MessageQueue *MctlCompound::doWalkTo(StaticANIObject *subj, int xpos, int ypos, 
 		for (uint i = 0; i < closestP->_messageQueueObj->getCount(); i++) {
 			ex = new ExCommand(closestP->_messageQueueObj->getExCommandByIndex(i));
 			ex->_excFlags |= 2;
-			mq->_exCommands.push_back(ex);
+			mq->addExCommandToEnd(ex);
 		}
 
 		ex = new ExCommand(subj->_id, 51, 0, xpos, ypos, 0, 1, 0, 0, 0);
@@ -179,10 +179,134 @@ MessageQueue *MctlCompound::doWalkTo(StaticANIObject *subj, int xpos, int ypos, 
 		ex->_keyCode = subj->_okeyCode;
 		ex->_excFlags |= 2;
 
-		mq->_exCommands.push_back(ex);
+		mq->addExCommandToEnd(ex);
 	}
 
 	return mq;
+}
+
+MctlLadder::MctlLadder() {
+	_ladder_field_18 = 0;
+	_objId = 0;
+	_height = 0;
+	_ladderY = 0;
+	_ladder_field_14 = 0;
+
+	_ladder_field_20 = 0;
+	_ladder_field_24 = 0;
+}
+
+MctlLadder::~MctlLadder() {
+	freeItems();
+}
+
+int MctlLadder::collisionDetection(StaticANIObject *man) {
+	if (findObjectPos(man) < 0)
+		return 0;
+
+	double delta;
+
+	if ((double)(man->_oy - _ladderY) / (double)_height < 0.0)
+		delta = -0.5;
+	else 
+		delta = 0.5;
+
+	int res = (int)((double)(man->_oy - _ladderY) / (double)_height + delta);
+
+	if (res < 0)
+		return 0;
+
+	return res;
+}
+
+void MctlLadder::addObject(StaticANIObject *obj) {
+	if (findObjectPos(obj) < 0) {
+		MctlLadderMovement *movement = new MctlLadderMovement;
+		
+		if (initMovement(obj, movement)) {
+			_mgm.addItem(obj->_id);
+			_movements.push_back(movement);
+		} else {
+			delete movement;
+		}
+	}
+}
+
+int MctlLadder::findObjectPos(StaticANIObject *obj) {
+	int res = -1;
+
+	for (Common::List<MctlLadderMovement *>::iterator it = _movements.begin(); it != _movements.end(); ++it, ++res)
+		if ((*it)->objId == obj->_id)
+			break;
+
+	return res;
+}
+
+bool MctlLadder::initMovement(StaticANIObject *ani, MctlLadderMovement *movement) {
+	GameVar *v = g_fullpipe->getGameLoaderGameVar()->getSubVarByName(ani->getName());
+
+	if (!v)
+		return false;
+
+	v = v->getSubVarByName("Test_Ladder");
+
+	if (!v)
+		return false;
+
+	movement->staticIdsSize = 6;
+	movement->movVars = new MctlLadderMovementVars;
+	movement->staticIds = new int[movement->staticIdsSize];
+
+	v = v->getSubVarByName("Up");
+
+	if (!v)
+		return false;
+
+	movement->movVars->varUpStart = v->getSubVarAsInt("Start");
+	movement->movVars->varUpGo = v->getSubVarAsInt("Go");
+	movement->movVars->varUpStop = v->getSubVarAsInt("Stop");
+
+	movement->staticIds[0] = ani->getMovementById(movement->movVars->varUpStart)->_staticsObj1->_staticsId;
+	movement->staticIds[2] = ani->getMovementById(movement->movVars->varUpGo)->_staticsObj1->_staticsId;
+
+	v = v->getSubVarByName("Down");
+
+	if (!v)
+		return false;
+
+	movement->movVars->varDownStart = v->getSubVarAsInt("Start");
+	movement->movVars->varDownGo = v->getSubVarAsInt("Go");
+	movement->movVars->varDownStop = v->getSubVarAsInt("Stop");
+
+	movement->staticIds[1] = ani->getMovementById(movement->movVars->varDownStart)->_staticsObj1->_staticsId;
+	movement->staticIds[3] = ani->getMovementById(movement->movVars->varDownGo)->_staticsObj1->_staticsId;
+
+	movement->objId = ani->_id;
+
+	return true;
+}
+
+void MctlLadder::freeItems() {
+	_mgm.clear();
+
+	for (Common::List<MctlLadderMovement *>::iterator it = _movements.begin(); it != _movements.end(); ++it) {
+		delete (*it)->movVars;
+		delete [] (*it)->staticIds;
+	}
+
+	_movements.clear();
+}
+
+MessageQueue *MctlLadder::method34(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId) {
+	warning("STUB: MctlLadder::method34()");
+
+	return 0;
+}
+
+MessageQueue *MctlLadder::doWalkTo(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId) {
+	warning("STUB: MctlLadder::doWalkTo()");
+
+	return 0;
 }
 
 MctlConnectionPoint *MctlCompound::findClosestConnectionPoint(int ox, int oy, int destIndex, int connectionX, int connectionY, int sourceIndex, int *minDistancePtr) {
@@ -693,7 +817,7 @@ MessageQueue *MovGraph2::buildMovInfo1MessageQueue(MovInfo1 *movInfo) {
 				ex->_keyCode = _items2[movInfo->field_0]->_obj->_okeyCode;
 				ex->_field_24 = 1;
 				ex->_field_14 = -1;
-				mq->_exCommands.push_back(ex);
+				mq->addExCommandToEnd(ex);
 
 				curX += mg2i->_mx;
 				curY += mg2i->_my;
@@ -765,7 +889,7 @@ MessageQueue *MovGraph2::buildMovInfo1MessageQueue(MovInfo1 *movInfo) {
 
 			MessageQueue *mq2 = genMovement(&movinfo);
 
-			if (mq2) {
+			if (!mq2) {
 				delete mq;
 				return 0;
 			}
@@ -922,20 +1046,20 @@ MessageQueue *MovGraph2::doWalkTo(StaticANIObject *obj, int xpos, int ypos, int 
 			ex->_keyCode = picAniInfo.field_8;
 			ex->_excFlags |= 2;
 
-			mq->_exCommands.push_back(ex);
+			mq->addExCommandToEnd(ex);
 		} else {
 			ExCommand *ex = new ExCommand(picAniInfo.objectId, 22, obj->_statics->_staticsId, 0, 0, 0, 1, 0, 0, 0);
 
 			ex->_keyCode = picAniInfo.field_8;
 			ex->_excFlags |= 3;
-			mq->_exCommands.push_back(ex);
+			mq->addExCommandToEnd(ex);
 
 			ex = new ExCommand(picAniInfo.objectId, 5, -1, obj->_ox, obj->_oy, 0, 1, 0, 0, 0);
 
 			ex->_field_14 = -1;
 			ex->_keyCode = picAniInfo.field_8;
 			ex->_excFlags |= 3;
-			mq->_exCommands.push_back(ex);
+			mq->addExCommandToEnd(ex);
 		}
 
 		obj->setPicAniInfo(&picAniInfo);
@@ -1036,6 +1160,7 @@ MessageQueue *MovGraph2::doWalkTo(StaticANIObject *obj, int xpos, int ypos, int 
 	if (_items2[idx]->_subItems[idxsub]._staticsId1 != obj->_statics->_staticsId)
 		movInfo1.flags |= 2;
 
+	// FIXME: This somehow corrupts the heap (reported by MSVC)
 	buildMovInfo1SubItems(&movInfo1, &tempLinkList, &linkInfoSource, &linkInfoDest);
 
 	MessageQueue *mq = buildMovInfo1MessageQueue(&movInfo1);
@@ -1393,6 +1518,36 @@ MessageQueue *MGM::genMovement(MGMInfo *mgminfo) {
 	warning("STUB: MGM::genMovement()");
 
 	return 0;
+}
+
+void MGM::updateAnimStatics(StaticANIObject *ani, int staticsId) {
+	if (getItemIndexById(ani->_id) == -1)
+		return;
+
+	if (ani->_movement) {
+		ani->queueMessageQueue(0);
+		ani->_movement->gotoLastFrame();
+		ani->_statics = ani->_movement->_staticsObj2;
+		ani->_movement = 0;
+
+		ani->setOXY(ani->_movement->_ox, ani->_movement->_oy);
+	}
+
+	if (ani->_statics) {
+		Common::Point point;
+
+		getPoint(&point, ani->_id, ani->_statics->_staticsId, staticsId);
+
+		ani->setOXY(ani->_ox + point.x, ani->_oy + point.y);
+
+		ani->_statics = ani->getStaticsById(staticsId);
+	}
+}
+
+Common::Point *MGM::getPoint(Common::Point *point, int aniId, int staticsId1, int staticsId2) {
+	warning("STUB: MGM::getPoint()");
+
+	return point;
 }
 
 MovGraphLink::MovGraphLink() {

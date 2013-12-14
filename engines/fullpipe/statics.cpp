@@ -27,6 +27,7 @@
 #include "fullpipe/statics.h"
 #include "fullpipe/messages.h"
 #include "fullpipe/interaction.h"
+#include "fullpipe/motion.h"
 
 #include "fullpipe/constants.h"
 #include "fullpipe/objectnames.h"
@@ -152,15 +153,19 @@ StaticANIObject::StaticANIObject(StaticANIObject *src) : GameObject(src) {
 	_statics = 0;
 
 	for (uint i = 0; i < src->_movements.size(); i++) {
-		Movement *mov;
-		if (((Movement *)src->_movements[i])->_currMovement) {
-			mov = new Movement(getMovementById(src->getMovementIdById(((Movement *)src->_movements[i])->_id)), this);
-			mov->_id = ((Movement *)src->_movements[i])->_id;
+		Movement *newmov;
+		Movement *mov = (Movement *)src->_movements[i];
+
+		if (mov->_currMovement) {
+			// WORKAROUND: Original uses weird construction here:
+			//    new Movement(getMovementById(src->getMovementIdById(mov->_id)), this);
+			newmov = new Movement(src->getMovementById(src->getMovementIdById(mov->_id)), this);
+			newmov->_id = mov->_id;
 		} else {
-			mov = new Movement(((Movement *)src->_movements[i]), 0, -1, this);
+			newmov = new Movement(mov, 0, -1, this);
 		}
 
-		_movements.push_back(mov);
+		_movements.push_back(newmov);
 	}
 }
 
@@ -492,7 +497,7 @@ void StaticANIObject::draw() {
 	Common::Point point;
 	Common::Rect rect;
 
-	debug(0, "StaticANIObject::draw() (%s) [%d] [%d, %d]", transCyrillic((byte *)_objectName), _id, _ox, _oy);
+	debug(6, "StaticANIObject::draw() (%s) [%d] [%d, %d]", transCyrillic((byte *)_objectName), _id, _ox, _oy);
 
 	if (_shadowsOn && g_fullpipe->_currentScene && g_fullpipe->_currentScene->_shadows
 		&& (getCurrDimensions(point)->x != 1 || getCurrDimensions(point)->y != 1)) {
@@ -552,7 +557,7 @@ void StaticANIObject::draw() {
 }
 
 void StaticANIObject::draw2() {
-	debug(0, "StatciANIObject::draw2(): id: (%s) %d [%d, %d]", transCyrillic((byte *)_objectName), _id, _ox, _oy);
+	debug(6, "StatciANIObject::draw2(): id: (%s) %d [%d, %d]", transCyrillic((byte *)_objectName), _id, _ox, _oy);
 
 	if ((_flags & 4) && (_flags & 0x10)) {
 		if (_movement) {
@@ -876,7 +881,23 @@ MessageQueue *StaticANIObject::changeStatics1(int msgNum) {
 }
 
 void StaticANIObject::changeStatics2(int objId) {
-	warning("STUB: StaticANIObject::changeStatics2(%d)", objId);
+	_animExFlag = 0;
+
+	deleteFromGlobalMessageQueue();
+
+	if (_movement || _statics) {
+		g_fullpipe->_mgm->addItem(_id);
+		g_fullpipe->_mgm->updateAnimStatics(this, objId);
+	} else {
+		_statics = getStaticsById(objId);
+	}
+
+	if (_messageQueueId) {
+		if (g_fullpipe->_globalMessageQueueList->getMessageQueueById(_messageQueueId))
+			g_fullpipe->_globalMessageQueueList->deleteQueueById(_messageQueueId);
+
+		_messageQueueId = 0;
+	}
 }
 
 void StaticANIObject::hide() {
@@ -887,7 +908,7 @@ void StaticANIObject::hide() {
 }
 
 void StaticANIObject::show1(int x, int y, int movId, int mqId) {
-	debug(0, "StaticANIObject::show1(%d, %d, %d, %d)", x, y, movId, mqId);
+	debug(6, "StaticANIObject::show1(%d, %d, %d, %d)", x, y, movId, mqId);
 
 	if (_messageQueueId)
 		return;
@@ -994,20 +1015,17 @@ bool StaticANIObject::startAnim(int movementId, int messageQueueId, int dynPhase
 	int newy = _oy;
 	Common::Point point;
 
-	debug(0, "0 %d %d", newx, newy);
 	if (_movement) {
 		_movement->getCurrDynamicPhaseXY(point);
 
 		newx -= point.x;
 		newy -= point.y;
 
-		debug(0, "1 %d %d", newx, newy);
 	} else if (_statics) {
 		_statics->getSomeXY(point);
 
 		newx -= point.x;
 		newy -= point.y;
-		debug(0, "2 %d %d - %d %d assa", newx, newy, point.x, point.y);
 	}
 
 	_movement = mov;
@@ -1025,7 +1043,6 @@ bool StaticANIObject::startAnim(int movementId, int messageQueueId, int dynPhase
 			newx += point.x + _movement->_mx;
 			newy += point.y + _movement->_my;
 
-			debug(0, "3 %d %d", newx, newy);
 			_stepArray.gotoNextPoint();
 
 			ExCommand *ex = _movement->_currDynamicPhase->getExCommand();
@@ -1231,7 +1248,7 @@ Movement::Movement(Movement *src, int *oldIdxs, int newSize, StaticANIObject *an
 	_m2y = src->_m2y;
 
 	if (newSize != -1) {
-		if (newSize >= src->_dynamicPhases.size() + 1)
+		if (newSize >= (int)src->_dynamicPhases.size() + 1)
 			newSize = src->_dynamicPhases.size() + 1;
 	} else {
 		newSize = src->_dynamicPhases.size();
@@ -1570,7 +1587,7 @@ void Movement::removeFirstPhase() {
 	_updateFlag1 = 0;
 }
 
-bool Movement::gotoNextFrame(int callback1, void (*callback2)(int *)) {
+bool Movement::gotoNextFrame(void (*callback1)(int, Common::Point *point, int, int), void (*callback2)(int *)) {
 	debug(8, "Movement::gotoNextFrame()");
 
 	if (!callback2) {
@@ -1622,7 +1639,7 @@ bool Movement::gotoNextFrame(int callback1, void (*callback2)(int *)) {
 		if (_currMovement->_framePosOffsets) {
 			if (callback1) {
 				point = *_currMovement->_framePosOffsets[_currDynamicPhaseIndex];
-				//callback1(_currDynamicPhaseIndex, &point, _ox, _oy);
+				callback1(_currDynamicPhaseIndex, &point, _ox, _oy);
 
 				_ox += deltax - point.x;
 				_oy += point.y;
@@ -1664,7 +1681,7 @@ bool Movement::gotoNextFrame(int callback1, void (*callback2)(int *)) {
 				point.x = _framePosOffsets[_currDynamicPhaseIndex]->x;
 				point.y = _framePosOffsets[_currDynamicPhaseIndex]->y;
 
-				//callback1(_currDynamicPhaseIndex, &point, _ox, _oy);
+				callback1(_currDynamicPhaseIndex, &point, _ox, _oy);
 				_ox += point.x;
 				_oy += point.y;
 			} else if (oldDynIndex >= _currDynamicPhaseIndex) {
@@ -1790,7 +1807,7 @@ DynamicPhase::DynamicPhase(DynamicPhase *src, bool reverse) {
 	_field_7E = 0;
 	_rect = new Common::Rect();
 
-	debug(0, "DynamicPhase::DynamicPhase(src, %d)", reverse);
+	debug(1, "DynamicPhase::DynamicPhase(src, %d)", reverse);
 
 	if (reverse) {
 		if (!src->_bitmap)

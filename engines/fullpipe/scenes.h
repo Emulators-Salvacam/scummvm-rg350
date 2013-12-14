@@ -26,6 +26,7 @@
 namespace Fullpipe {
 
 class StaticANIObject;
+ class MctlLadder;
 
 int defaultUpdateCursor();
 
@@ -89,24 +90,32 @@ public:
 	Common::Point scene04_jumpingKozyawki[20];
 	Common::Point scene04_jumpRotateKozyawki[20];
 
-	Common::Array<StaticANIObject *> scene04_kozyawkiObjList;
-	Common::Array<GameObject *> scene04_bottleObjList;
-	Common::Array<StaticANIObject *> scene04_kozyawkiAni;
+	Common::List<StaticANIObject *> scene04_kozyawkiObjList;
+	Common::List<GameObject *> scene04_bottleObjList;
+	Common::List<StaticANIObject *> scene04_kozyawkiAni;
 
-	int scene04_ladder;
+	MctlLadder *scene04_ladder;
+	int scene04_ladderOffset;
+
 	bool scene04_coinPut;
 	bool scene04_soundPlaying;
+	bool scene04_dudeOnLadder;
+
 	int scene04_dynamicPhaseIndex;
 	int scene04_sceneClickX;
 	int scene04_sceneClickY;
 	int scene04_dudePosX;
 	int scene04_dudePosY;
+	int scene04_bottleY;
 
-	int scene04_var01;
+	StaticANIObject *scene04_walkingKozyawka;
+
+	int scene04_speakerVariant;
+	int scene04_speakerPhase;
+
 	int scene04_var02;
 	int scene04_var04;
-	StaticANIObject *scene04_var05;
-	int scene04_var06;
+	int scene04_bottleWeight;
 	int scene04_var07;
 	int scene04_var08;
 	int scene04_var09;
@@ -116,12 +125,11 @@ public:
 	int scene04_var13;
 	int scene04_var14;
 	int scene04_var15;
-	int scene04_var16;
-	int scene04_var17;
 	int scene04_var18;
 	int scene04_var19;
 	int scene04_var20;
 	StaticANIObject *scene04_var24;
+	int scene04_var25;
 
 	PictureObject *selector;
 };
