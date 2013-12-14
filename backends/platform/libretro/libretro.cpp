@@ -2,7 +2,7 @@
 
 #include "base/main.h"
 #include "common/scummsys.h"
-#include "graphics/surface.h"
+#include "graphics/surface.libretro.h"
 #include "audio/mixer_intern.h"
 
 #include "os.h"

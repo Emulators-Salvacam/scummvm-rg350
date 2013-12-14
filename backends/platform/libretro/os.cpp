@@ -26,7 +26,7 @@
 #include <sys/time.h>
 #include <list>
 
-#include "graphics/surface.h"
+#include "graphics/surface.libretro.h"
 #include "backends/base-backend.h"
 #include "common/events.h"
 #include "audio/mixer_intern.h"
