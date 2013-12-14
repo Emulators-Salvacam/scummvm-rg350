@@ -63,7 +63,7 @@
 
 struct RetroPalette
 {
-    byte _colors[256 * 3];
+    unsigned char _colors[256 * 3];
 
     RetroPalette()
     {
@@ -80,14 +80,9 @@ struct RetroPalette
         memcpy(colors, _colors + start * 3, num * 3);
     }
 
-    void getColor(uint aIndex, byte& aR, byte& aG, byte& aB) const
+    unsigned char *getColor(uint aIndex) const
     {
-        if(aIndex < 256)
-        {
-            aR = _colors[aIndex * 3 + 0];
-            aG = _colors[aIndex * 3 + 1];
-            aB = _colors[aIndex * 3 + 2];
-        }
+       return (unsigned char*)&_colors[aIndex * 3];
     }
 };
 
@@ -112,7 +107,12 @@ static inline void blit_uint8_uint16_fast(Graphics::Surface& aOut, const Graphic
             if(val != 0xFFFFFFFF)
             {
                 if(aIn.format.bytesPerPixel == 1)
-                    aColors.getColor(val, r, g, b);
+                {
+                    unsigned char *col = aColors.getColor(val);
+                    r = *col++;
+                    g = *col++;
+                    b = *col++;
+                }
                 else
                     aIn.format.colorToRGB(in[j], r, g, b);
 
@@ -197,7 +197,12 @@ static void blit_uint8_uint16(Graphics::Surface& aOut, const Graphics::Surface& 
             if(val != aKeyColor)
             {
                 if(aIn.format.bytesPerPixel == 1)
-                    aColors.getColor(val, r, g, b);
+                {
+                    unsigned char *col = aColors.getColor(val);
+                    r = *col++;
+                    g = *col++;
+                    b = *col++;
+                }
                 else
                     aIn.format.colorToRGB(in[j], r, g, b);
 
@@ -207,17 +212,16 @@ static void blit_uint8_uint16(Graphics::Surface& aOut, const Graphics::Surface& 
     }
 }
 
-static void copyRectToSurface(Graphics::Surface& out, const void *buf, int pitch, int x, int y, int w, int h)
+static inline void copyRectToSurface(uint8_t *pixels, int out_pitch, const uint8_t *src, int pitch, int x, int y, int w, int h, int out_bpp)
 {
-    const uint8_t *src = (const uint8_t*)buf;
-    uint8_t *dst = (uint8_t*)out.pixels + y * out.pitch + x * out.format.bytesPerPixel;
+    uint8_t *dst = pixels + y * out_pitch + x * out_bpp;
 
-    for (int i = 0; i < h; i++)
+    do
     {
-        memcpy(dst, src, w * out.format.bytesPerPixel);
-        src += pitch;
-        dst += out.pitch;
-    }
+       memcpy(dst, src, w * out_bpp);
+       src += pitch;
+       dst += out_pitch;
+    }while(--h);
 }
 
 static Common::String s_systemDir;
@@ -416,11 +420,12 @@ protected:
 	}
 
 
-
 public:
 	virtual void copyRectToScreen(const void *buf, int pitch, int x, int y, int w, int h)
 	{
-	    copyRectToSurface(_gameScreen, buf, pitch, x, y, w, h);
+      const uint8_t *src = (const uint8_t*)buf;
+      uint8_t *pix = (uint8_t*)_gameScreen.pixels;
+      copyRectToSurface(pix, _gameScreen.pitch, src, pitch, x, y, w, h, _gameScreen.format.bytesPerPixel);
 	}
 
 	virtual void updateScreen()
@@ -473,7 +478,9 @@ public:
 
 	virtual void copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h)
 	{
-	    copyRectToSurface(_overlay, buf, pitch, x, y, w, h);
+      const uint8_t *src = (const uint8_t*)buf;
+      uint8_t *pix = (uint8_t*)_overlay.pixels;
+      copyRectToSurface(pix, _overlay.pitch, src, pitch, x, y, w, h, _overlay.format.bytesPerPixel);
 	}
 
 	virtual int16 getOverlayHeight()
