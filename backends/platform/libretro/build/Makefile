@@ -163,6 +163,7 @@ ifeq ($(LIBCOARM),1)
 OBJS += $(retrodir)libco/armeabi_asm.o
 endif
 
+DEFINES += -Dprotected=public
 
 MODULE_DIRS += $(retrodir) $(retrodir)libco
 
