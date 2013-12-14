@@ -33,3 +33,6 @@
 /* newlib ctype.h defines _X for hex digit flag.
    This conflicts with the use of _X as a variable name. */
 #undef _X
+
+#define RES_W 640
+#define RES_H 480

@@ -91,19 +91,100 @@ struct RetroPalette
     }
 };
 
-
-template<typename INPUT, typename OUTPUT>
-static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
+static inline void blit_uint8_uint16_fast(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
 {
-    assert(sizeof(OUTPUT) == aOut.format.bytesPerPixel && sizeof(INPUT) == aIn.format.bytesPerPixel);
+    for(int i = 0; i < aIn.h; i ++)
+    {
+        if(i >= aOut.h)
+           continue;
 
+        uint8_t * const in  = (uint8_t*)aIn.pixels + (i * aIn.w);
+        uint16_t* const out = (uint16_t*)aOut.pixels + (i * aOut.w);
+
+        for(int j = 0; j < aIn.w; j ++)
+        {
+            if (j >= aOut.w)
+               continue;
+
+            uint8 r, g, b;
+
+            const uint8_t val = in[j];
+            if(val != 0xFFFFFFFF)
+            {
+                if(aIn.format.bytesPerPixel == 1)
+                    aColors.getColor(val, r, g, b);
+                else
+                    aIn.format.colorToRGB(in[j], r, g, b);
+
+                out[j] = aOut.format.RGBToColor(r, g, b);
+            }
+        }
+    }
+}
+
+static inline void blit_uint32_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
+{
+    for(int i = 0; i < aIn.h; i ++)
+    {
+        if(i >= aOut.h)
+           continue;
+
+        uint32_t* const in = (uint32_t*)aIn.pixels + (i * aIn.w);
+        uint16_t* const out = (uint16_t*)aOut.pixels + (i * aOut.w);
+
+        for(int j = 0; j < aIn.w; j ++)
+        {
+            if(j >= aOut.w)
+               continue;
+
+            uint8 r, g, b;
+
+            const uint32_t val = in[j];
+            if(val != 0xFFFFFFFF)
+            {
+               aIn.format.colorToRGB(in[j], r, g, b);
+               out[j] = aOut.format.RGBToColor(r, g, b);
+            }
+        }
+    }
+}
+
+static inline void blit_uint16_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
+{
+    for(int i = 0; i < aIn.h; i ++)
+    {
+        if(i >= aOut.h)
+           continue;
+
+        uint16_t* const in = (uint16_t*)aIn.pixels + (i * aIn.w);
+        uint16_t* const out = (uint16_t*)aOut.pixels + (i * aOut.w);
+
+        for(int j = 0; j < aIn.w; j ++)
+        {
+            if(j >= aOut.w)
+               continue;
+
+            uint8 r, g, b;
+
+            const uint16_t val = in[j];
+            if(val != 0xFFFFFFFF)
+            {
+               aIn.format.colorToRGB(in[j], r, g, b);
+               out[j] = aOut.format.RGBToColor(r, g, b);
+            }
+        }
+    }
+}
+
+static void blit_uint8_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
+{
     for(int i = 0; i < aIn.h; i ++)
     {
         if((i + aY) < 0 || (i + aY) >= aOut.h)
            continue;
 
-        INPUT* const in = (INPUT*)aIn.pixels + (i * aIn.w);
-        OUTPUT* const out = (OUTPUT*)aOut.pixels + ((i + aY) * aOut.w);
+        uint8_t* const in = (uint8_t*)aIn.pixels + (i * aIn.w);
+        uint16_t* const out = (uint16_t*)aOut.pixels + ((i + aY) * aOut.w);
 
         for(int j = 0; j < aIn.w; j ++)
         {
@@ -112,7 +193,7 @@ static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, 
 
             uint8 r, g, b;
 
-            const INPUT val = in[j];
+            const uint8_t val = in[j];
             if(val != aKeyColor)
             {
                 if(aIn.format.bytesPerPixel == 1)
@@ -128,8 +209,8 @@ static void blit(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, 
 
 static void copyRectToSurface(Graphics::Surface& out, const void *buf, int pitch, int x, int y, int w, int h)
 {
-    const byte *src = (const byte *)buf;
-    byte *dst = (byte *)out.pixels + y * out.pitch + x * out.format.bytesPerPixel;
+    const uint8_t *src = (const uint8_t*)buf;
+    uint8_t *dst = (uint8_t*)out.pixels + y * out.pitch + x * out.format.bytesPerPixel;
 
     for (int i = 0; i < h; i++)
     {
@@ -140,6 +221,18 @@ static void copyRectToSurface(Graphics::Surface& out, const void *buf, int pitch
 }
 
 static Common::String s_systemDir;
+
+#ifdef FRONTEND_SUPPORTS_RGB565
+#define SURF_BPP 2
+#define SURF_RBITS 2
+#define SURF_GBITS 5
+#define SURF_BBITS 6
+#define SURF_ABITS 5
+#define SURF_RSHIFT 0
+#define SURF_GSHIFT 11
+#define SURF_BSHIFT 5
+#define SURF_ASHIFT 0
+#endif
 
 class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 public:
@@ -201,9 +294,9 @@ public:
 	{
 	    _savefileManager = new DefaultSaveFileManager();
 #ifdef FRONTEND_SUPPORTS_RGB565
-       _overlay.create(640, 480, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
+       _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
 #else
-       _overlay.create(640, 480, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+       _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
 #endif
         _mixer = new Audio::MixerImpl(this, 44100);
         _timerManager = new DefaultTimerManager();
@@ -349,11 +442,15 @@ public:
 
 	virtual void grabOverlay(void *buf, int pitch)
 	{
-        const byte *src = (byte *)_overlay.pixels;
-        byte *dst = (byte *)buf;
+        const unsigned char *src = (unsigned char*)_overlay.pixels;
+        unsigned char *dst = (byte *)buf;
+        unsigned i = RES_H;
 
-        for (int i = 0; i < 480; i++, dst += pitch, src += 640 * 2)
-           memcpy(dst, src, 640 * 2);
+        do{
+           memcpy(dst, src, RES_W << 1);
+           dst += pitch;
+           src += RES_W << 1;
+        }while(--i);
 	}
 
 	virtual void copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h)
@@ -552,10 +649,16 @@ public:
         {
             switch(srcSurface.format.bytesPerPixel)
             {
-                case 1: blit<uint8, uint16>(_screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-                case 2: blit<uint16, uint16>(_screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-                case 3: blit<uint8, uint16>(_screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
-                case 4: blit<uint32, uint16>(_screen, srcSurface, 0, 0, _gamePalette, 0xFFFFFFFF); break;
+                case 1:
+                case 3:
+                   blit_uint8_uint16_fast(_screen, srcSurface, _gamePalette);
+                   break;
+                case 2:
+                   blit_uint16_uint16(_screen, srcSurface, _gamePalette);
+                   break;
+                case 4:
+                   blit_uint32_uint16(_screen, srcSurface, _gamePalette);
+                   break;
             }
         }
 
@@ -565,7 +668,7 @@ public:
             const int x = _mouseX - _mouseHotspotX;
             const int y = _mouseY - _mouseHotspotY;
 
-            blit<uint8, uint16>(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
+            blit_uint8_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
         }
 
         return _screen;
