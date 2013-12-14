@@ -80,28 +80,35 @@ Vars::Vars() {
 	scene04_dudePosX = 0;
 	scene04_dudePosY = 0;
 
-	scene04_var02 = 0;
-	scene04_var04 = 0;
+	scene04_bottleIsTaken = false;
+	scene04_kozyawkaOnLadder = false;
 	scene04_walkingKozyawka = 0;
 	scene04_bottleWeight = 0;
-	scene04_var07 = 0;
-	scene04_var08 = 0;
-	scene04_var09 = 0;
-	scene04_var10 = 0;
-	scene04_var11 = 0;
-	scene04_var12 = 0;
-	scene04_var13 = 0;
-	scene04_var14 = 0;
-	scene04_var15 = 0;
+	scene04_var07 = false;
+	scene04_ladderClickable = false;
+	scene04_handIsDown = false;
+	scene04_dudeInBottle = false;
+	scene04_kozHeadRaised = false;
+	scene04_bottleIsDropped = false;
+	scene04_bigBallIn = false;
+	scene04_bigBallCounter = 0;
+	scene04_bigBallFromLeft = false;
 	scene04_speakerVariant = 0;
 	scene04_speakerPhase = 0;
-	scene04_var18 = 0;
-	scene04_var19 = 0;
-	scene04_var20 = 0;
-	scene04_var24 = 0;
-	scene04_var25 = 0;
+	scene04_clockCanGo = false;
+	scene04_objectIsTaken = false;
+	scene04_springOffset = 0;
+	scene04_lastKozyawka = 0;
+	scene04_springDelay = 0;
 	scene04_bottleY = 0;
 	scene04_ladderOffset = 0;
+
+	scene05_handle = 0;
+	scene05_wacko = 0;
+	scene05_bigHatch = 0;
+	scene05_var01 = 0;
+	scene05_var02 = 0;
+	scene05_var03 = 0;
 
 	selector = 0;
 }
@@ -265,7 +272,6 @@ bool FullpipeEngine::sceneSwitcher(EntranceInfo *entrance) {
 		_updateCursorCallback = scene04_updateCursor;
 		break;
 
-#if 0
 	case SC_5:
 		sceneVar = _gameLoader->_gameVar->getSubVarByName("SC_5");
 		scene->preloadMovements(sceneVar);
@@ -277,6 +283,7 @@ bool FullpipeEngine::sceneSwitcher(EntranceInfo *entrance) {
 		_updateCursorCallback = defaultUpdateCursor;
 		break;
 
+#if 0
 	case SC_6:
 		sceneVar = _gameLoader->_gameVar->getSubVarByName("SC_6");
 		scene->preloadMovements(sceneVar);

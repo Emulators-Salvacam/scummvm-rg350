@@ -76,9 +76,7 @@ public:
 };
 
 class MctlCompoundArrayItem : public CObject {
-	friend class MctlCompound;
-
-protected:
+public:
 	MotionController *_motionControllerObj;
 	MovGraphReact *_movGraphReactObj;
 	Common::Array<MctlConnectionPoint *> _connectionPoints;
@@ -96,9 +94,9 @@ class MctlCompoundArray : public Common::Array<MctlCompoundArrayItem *>, public 
 };
 
 class MctlCompound : public MotionController {
+public:
 	MctlCompoundArray _motionControllers;
 
- public:
 	MctlCompound() { _objtype = kObjTypeMctlCompound; }
 
 	virtual bool load(MfcArchive &file);
@@ -146,6 +144,8 @@ struct MGMInfo {
 	int x2;
 	int y2;
 	int flags;
+
+	MGMInfo() { memset(this, 0, sizeof(MGMInfo)); }
 };
 
 class MGM : public CObject {
@@ -181,10 +181,10 @@ struct MctlLadderMovement {
 
 class MctlLadder : public MotionController {
 public:
-	int _objId;
+	int _ladderX;
 	int _ladderY;
 	int _ladder_field_14;
-	int _ladder_field_18;
+	int _width;
 	int _height;
 	int _ladder_field_20;
 	int _ladder_field_24;
@@ -201,6 +201,8 @@ public:
 	virtual void freeItems();
 	virtual MessageQueue *method34(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId);
 	virtual MessageQueue *doWalkTo(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId);
+
+	MessageQueue *controllerWalkTo(StaticANIObject *ani, int off);
 
 private:
 	int findObjectPos(StaticANIObject *obj);

@@ -50,6 +50,9 @@ int scene04_updateCursor();
 void scene04_initScene(Scene *sc);
 int sceneHandler04(ExCommand *cmd);
 
+void scene05_initScene(Scene *sc);
+int sceneHandler05(ExCommand *cmd);
+
 void sceneDbgMenu_initScene(Scene *sc);
 int sceneHandlerDbgMenu(ExCommand *cmd);
 
@@ -113,23 +116,30 @@ public:
 	int scene04_speakerVariant;
 	int scene04_speakerPhase;
 
-	int scene04_var02;
-	int scene04_var04;
+	bool scene04_bottleIsTaken;
+	bool scene04_kozyawkaOnLadder;
 	int scene04_bottleWeight;
-	int scene04_var07;
-	int scene04_var08;
-	int scene04_var09;
-	int scene04_var10;
-	int scene04_var11;
-	int scene04_var12;
-	int scene04_var13;
-	int scene04_var14;
-	int scene04_var15;
-	int scene04_var18;
-	int scene04_var19;
-	int scene04_var20;
-	StaticANIObject *scene04_var24;
-	int scene04_var25;
+	bool scene04_var07;
+	bool scene04_ladderClickable;
+	bool scene04_handIsDown;
+	bool scene04_dudeInBottle;
+	bool scene04_kozHeadRaised;
+	bool scene04_bottleIsDropped;
+	bool scene04_bigBallIn;
+	int scene04_bigBallCounter;
+	bool scene04_bigBallFromLeft;
+	bool scene04_clockCanGo;
+	bool scene04_objectIsTaken;
+	int scene04_springOffset;
+	StaticANIObject *scene04_lastKozyawka;
+	int scene04_springDelay;
+
+	StaticANIObject *scene05_handle;
+	StaticANIObject *scene05_wacko;
+	StaticANIObject *scene05_bigHatch;
+	int scene05_var01;
+	int scene05_var02;
+	int scene05_var03;
 
 	PictureObject *selector;
 };
