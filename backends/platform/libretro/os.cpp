@@ -228,10 +228,28 @@ static Common::String s_systemDir;
 #define SURF_GBITS 5
 #define SURF_BBITS 6
 #define SURF_ABITS 5
+#define SURF_ALOSS (8-SURF_ABITS)
+#define SURF_RLOSS (8-SURF_RBITS)
+#define SURF_GLOSS (8-SURF_GBITS)
+#define SURF_BLOSS (8-SURF_BBITS)
 #define SURF_RSHIFT 0
 #define SURF_GSHIFT 11
 #define SURF_BSHIFT 5
 #define SURF_ASHIFT 0
+#else
+#define SURF_BPP 2
+#define SURF_RBITS 5
+#define SURF_GBITS 5
+#define SURF_BBITS 5
+#define SURF_ABITS 1
+#define SURF_ALOSS (8-SURF_ABITS)
+#define SURF_RLOSS (8-SURF_RBITS)
+#define SURF_GLOSS (8-SURF_GBITS)
+#define SURF_BLOSS (8-SURF_BBITS)
+#define SURF_RSHIFT 10
+#define SURF_GSHIFT 5
+#define SURF_BSHIFT 0
+#define SURF_ASHIFT 15
 #endif
 
 class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
