@@ -169,4 +169,4 @@ MODULE_DIRS += $(retrodir) $(retrodir)libco
 
 BACKEND := libretro
 
-include $(srcdir)/Makefile.common
+include $(srcdir)/Makefile.common.libretro
