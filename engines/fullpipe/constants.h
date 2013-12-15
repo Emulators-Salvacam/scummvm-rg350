@@ -154,6 +154,10 @@ namespace Fullpipe {
 #define MV_MAN_TURN_SUD 1089
 #define MV_MANHDL_HANDLEDOWN 630
 #define MV_MANHDL_HANDLEUP 631
+#define MV_OTM_BOXHANDLEDOWN 626
+#define MV_OTM_BOXHANDLEUP 627
+#define MV_OTM_HANDLEDOWN 620
+#define MV_OTM_HANDLEUP 621
 #define MV_PNK_WEIGHTLEFT 541
 #define MV_PNK_WEIGHTRIGHT 502
 #define MV_SC4_COIN_default 1029
@@ -234,6 +238,8 @@ namespace Fullpipe {
 #define QU_SC4_GOCLOCK 595
 #define QU_SC4_MANFROMBOTTLE 2851
 #define QU_SC4_MANTOBOTTLE 2850
+#define QU_SC5_MANBUMP 1167
+#define QU_SC5_MANFLY 1168
 #define SC_1 301
 #define SC_10 653
 #define SC_11 654
@@ -294,6 +300,7 @@ namespace Fullpipe {
 #define SND_CMN_070 5199
 #define SND_INTR_019 5220
 #define ST_BLK_CLOSED 912
+#define ST_BLK_OPEN 913
 #define ST_CLK_CLOSED 590
 #define ST_DYAS_LIES 318
 #define ST_EGTR_MID1 2863
