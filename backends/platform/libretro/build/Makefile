@@ -159,6 +159,10 @@ OBJS += $(retrodir)ps3-fs.o \
 DEFINES += -DFS_TYPE_PS3
 endif
 
+ifeq ($(platform), win)
+OBJS += $(retrodir)dirent_win32.o
+endif
+
 ifeq ($(LIBCOARM),1)
 OBJS += $(retrodir)libco/armeabi_asm.o
 endif

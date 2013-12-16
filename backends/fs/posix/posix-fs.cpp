@@ -35,7 +35,11 @@
 
 #include <sys/param.h>
 #include <sys/stat.h>
+#ifdef _WIN32
+#include "dirent_win32.h"
+#else
 #include <dirent.h>
+#endif
 #include <stdio.h>
 
 #ifdef __OS2__
