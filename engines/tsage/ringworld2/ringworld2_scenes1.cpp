@@ -3538,7 +3538,7 @@ void Scene1337::Action4::signal() {
 			scene->handlePlayer1();
 			break;
 		case 2:
-			scene->handlePlayer2();
+			scene->handleAutoplayPlayer2();
 			break;
 		case 3:
 			scene->handlePlayer3();
@@ -4490,12 +4490,13 @@ void Scene1337::remove() {
 	}
 
 	R2_GLOBALS._uiElements._active = true;
+	R2_GLOBALS._uiElements._visible = true;
 	SceneExt::remove();
 }
 
 void Scene1337::process(Event &event) {
 	if (event.eventType == EVENT_BUTTON_DOWN) {
-		if (event.btnState != BTNSHIFT_RIGHT) {
+		if (event.btnState == BTNSHIFT_RIGHT) {
 			updateCursorId(R2_GLOBALS._mouseCursorId, true);
 			event.handled = true;
 		} else if (_delayedFunction) {
@@ -4568,10 +4569,6 @@ void Scene1337::setAnimationInfo(Card *card) {
 	R2_GLOBALS._sceneObjects->draw();
 }
 
-void Scene1337::subC20E5() {
-	subC2586();
-}
-
 void Scene1337::handleNextTurn() {
 	switch (_winnerId) {
 	case -1:
@@ -4601,11 +4598,11 @@ void Scene1337::handleNextTurn() {
 			}
 
 			if (!_autoplay)
-				_delayedFunction = &Scene1337::subC20E5;
+				_delayedFunction = &Scene1337::handlePlayerTurn;
 			else
-				subC20E5();
+				handlePlayerTurn();
 		} else {
-			subC20E5();
+			handlePlayerTurn();
 		}
 		break;
 	case 0:
@@ -4649,7 +4646,7 @@ void Scene1337::handleNextTurn() {
 
 }
 
-void Scene1337::subC2586() {
+void Scene1337::handlePlayerTurn() {
 	if (_showPlayerTurn)
 		_currentPlayerArrow.hide();
 
@@ -4712,7 +4709,7 @@ bool Scene1337::isStopConstructionCard(int cardId) {
 	}
 }
 
-int Scene1337::subC26CB(int playerId, int handCardId) {
+int Scene1337::getStationId(int playerId, int handCardId) {
 	if ((_gameBoardSide[playerId]._handCard[handCardId]._cardId > 1) && (_gameBoardSide[playerId]._handCard[handCardId]._cardId <= 9))
 		return handCardId;
 
@@ -4763,7 +4760,7 @@ int Scene1337::isDelayCard(int cardId) {
 	}
 }
 
-int Scene1337::isSlowCard(int cardId) {
+int Scene1337::getStationCardId(int cardId) {
 	switch (cardId) {
 	case 10:
 	// No break on purpose
@@ -4790,7 +4787,7 @@ void Scene1337::handlePlayer01Discard(int playerId) {
 	switch (playerId) {
 	case 0:
 		for (int i = 0; i <= 3; i++) {
-			if (isSlowCard(_gameBoardSide[playerId]._handCard[i]._cardId) != -1) {
+			if (getStationCardId(_gameBoardSide[playerId]._handCard[i]._cardId) != -1) {
 				discardCard(&_gameBoardSide[playerId]._handCard[i]);
 				return;
 			}
@@ -4861,7 +4858,7 @@ void Scene1337::handlePlayer01Discard(int playerId) {
 		}
 
 		for (int i = 0; i <= 3; i++) {
-			if (isSlowCard(_gameBoardSide[playerId]._handCard[i]._cardId) != -1) {
+			if (getStationCardId(_gameBoardSide[playerId]._handCard[i]._cardId) != -1) {
 				discardCard(&_gameBoardSide[playerId]._handCard[i]);
 				return;
 			}
@@ -5043,10 +5040,11 @@ void Scene1337::playAntiDelayCard(Card *card, Card *dest) {
 	_item1.setAction(&_action8);
 }
 
-Scene1337::Card *Scene1337::subC34EC(int arg1) {
+
+Scene1337::Card *Scene1337::getStationCard(int playerId) {
 	for (int i = 0; i <= 7; i++) {
-		if ((_gameBoardSide[arg1]._outpostStation[i]._cardId > 0) && (_gameBoardSide[arg1]._outpostStation[i]._cardId < 10))
-			return &_gameBoardSide[arg1]._outpostStation[i];
+		if ((_gameBoardSide[playerId]._outpostStation[i]._cardId >= 1) && (_gameBoardSide[playerId]._outpostStation[i]._cardId <= 9))
+			return &_gameBoardSide[playerId]._outpostStation[i];
 	}
 
 	return nullptr;
@@ -5054,7 +5052,7 @@ Scene1337::Card *Scene1337::subC34EC(int arg1) {
 
 void Scene1337::playCounterTrickCard(Card *card, int playerId) {
 	_actionCard1 = card;
-	_actionCard2 = subC34EC(playerId);
+	_actionCard2 = getStationCard(playerId);
 	_actionCard3 = &_gameBoardSide[playerId]._emptyStationPos;
 	_actionIdx1 = playerId;
 	_item1.setAction(&_action10);
@@ -5418,9 +5416,10 @@ void Scene1337::dealCards() {
 	// Deal cards
 	_item1.setAction(&_action3);
 }
-void Scene1337::subCD193() {
+
+void Scene1337::showOptionsDialog() {
 	// Display menu with "Auto Play", "New Game", "Quit" and "Continue"
-	warning("STUBBED: subCD193()");
+	OptionsDialog::show();
 }
 
 void Scene1337::handleClick(int arg1, Common::Point pt) {
@@ -5674,7 +5673,7 @@ void Scene1337::handleClick(int arg1, Common::Point pt) {
 		return;
 
 	if (_helpIcon._bounds.contains(pt)) {
-		subCD193();
+		showOptionsDialog();
 		return;
 	}
 
@@ -5761,7 +5760,7 @@ void Scene1337::handlePlayer0() {
 
 	int tmpVal;
 	for (int i = 0; i <= 3; i++) {
-		tmpVal = subC26CB(0, i);
+		tmpVal = getStationId(0, i);
 
 		if (tmpVal != -1) {
 			bool flag = false;
@@ -5826,26 +5825,19 @@ void Scene1337::handlePlayer0() {
 	}
 
 	for (int i = 0; i <= 3; i++) {
-		if (isDelayCard(_gameBoardSide[0]._handCard[i]._cardId) != -1) {
-			// The variable 'j' is not used in the inner code of the loop. It's suspect
-			for (int j = 0; j <= 7; j++) {
-				if ((_gameBoardSide[2]._delayCard._cardId == 0) && isAttackPossible(2, _gameBoardSide[0]._handCard[i]._cardId)) {
-					playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[2]._delayCard);
-					return;
-				}
-			}
+		if ((isDelayCard(_gameBoardSide[0]._handCard[i]._cardId) != -1)
+		&&  (_gameBoardSide[2]._delayCard._cardId == 0)
+		&&  isAttackPossible(2, _gameBoardSide[0]._handCard[i]._cardId)) {
+			playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[2]._delayCard);
+			return;
 		}
 	}
 
 	for (int i = 0; i <= 3; i++) {
-		if (isSlowCard(_gameBoardSide[0]._handCard[i]._cardId) != -1) {
-			// The variable 'j' is not used in the inner code of the loop. It's suspect
-			for (int j = 0; j <= 7; j++) {
-				if ((_gameBoardSide[2]._delayCard._cardId == 0) && isAttackPossible(2, _gameBoardSide[0]._handCard[i]._cardId)) {
-					playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[2]._delayCard);
-					return;
-				}
-			}
+		if ((getStationCardId(_gameBoardSide[0]._handCard[i]._cardId) != -1)
+		&&  (_gameBoardSide[2]._delayCard._cardId == 0) && isAttackPossible(2, _gameBoardSide[0]._handCard[i]._cardId)) {
+			playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[2]._delayCard);
+			return;
 		}
 	}
 
@@ -5869,22 +5861,16 @@ void Scene1337::handlePlayer0() {
 	}
 
 	for (int i = 0; i <= 3; i++) {
-		tmpVal = isSlowCard(_gameBoardSide[0]._handCard[i]._cardId);
+		tmpVal = getStationCardId(_gameBoardSide[0]._handCard[i]._cardId);
 		if (tmpVal != -1) {
-			// The variable 'j' is not used in the inner code of the loop. It's suspect.
-			for (int j = 0; j <= 7; j++) {
-				if ((_gameBoardSide[1]._delayCard._cardId == 0) && isAttackPossible(1, _gameBoardSide[0]._handCard[i]._cardId)) {
-					playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[1]._delayCard);
-					return;
-				}
+			if ((_gameBoardSide[1]._delayCard._cardId == 0) && isAttackPossible(1, _gameBoardSide[0]._handCard[i]._cardId)) {
+				playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[1]._delayCard);
+				return;
 			}
 
-			// The variable 'j' is not used in the inner code of the loop. It's suspect.
-			for (int j = 0; j <= 7; j++) {
-				if ((_gameBoardSide[3]._delayCard._cardId == 0) && isAttackPossible(3, _gameBoardSide[0]._handCard[i]._cardId)) {
-					playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[3]._delayCard);
-					return;
-				}
+			if ((_gameBoardSide[3]._delayCard._cardId == 0) && isAttackPossible(3, _gameBoardSide[0]._handCard[i]._cardId)) {
+				playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[3]._delayCard);
+				return;
 			}
 		}
 	}
@@ -5892,20 +5878,14 @@ void Scene1337::handlePlayer0() {
 	for (int i = 0; i <= 3; i++) {
 		tmpVal = isDelayCard(_gameBoardSide[0]._handCard[i]._cardId);
 		if (tmpVal != -1) {
-			// The variable 'j' is not used in the inner code of the loop. It's suspect.
-			for (int j = 0; j <= 7; j++) {
-				if ((_gameBoardSide[1]._delayCard._cardId == 0) && isAttackPossible(1, _gameBoardSide[0]._handCard[i]._cardId)) {
-					playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[1]._delayCard);
-					return;
-				}
+			if ((_gameBoardSide[1]._delayCard._cardId == 0) && isAttackPossible(1, _gameBoardSide[0]._handCard[i]._cardId)) {
+				playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[1]._delayCard);
+				return;
 			}
 
-			// The variable 'j' is not used in the inner code of the loop. It's suspect.
-			for (int j = 0; j <= 7; j++) {
-				if ((_gameBoardSide[3]._delayCard._cardId == 0) && isAttackPossible(3, _gameBoardSide[0]._handCard[i]._cardId)) {
-					playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[3]._delayCard);
-					return;
-				}
+			if ((_gameBoardSide[3]._delayCard._cardId == 0) && isAttackPossible(3, _gameBoardSide[0]._handCard[i]._cardId)) {
+				playDelayCard(&_gameBoardSide[0]._handCard[i], &_gameBoardSide[3]._delayCard);
+				return;
 			}
 		}
 	}
@@ -5945,7 +5925,7 @@ void Scene1337::handlePlayer1() {
 	}
 
 	for (int i = 0; i <= 3; i++) {
-		int tmpIndx = subC26CB(1, i);
+		int tmpIndx = getStationId(1, i);
 		if (tmpIndx == -1)
 			break;
 
@@ -6008,11 +5988,12 @@ void Scene1337::handlePlayer1() {
 						playerIdFound = rndVal;
 						break;
 				}
-				// CHECKME: inside the check on rndVal?
-				rndVal--;
-				if (rndVal < 0)
-					rndVal = 3;
 			}
+			// The original was only updating in the rndVal block, 
+			// which was a bug as the checks were stopping at this point
+			rndVal--;
+			if (rndVal < 0)
+				rndVal = 3;
 		}
 
 		if (playerIdFound != -1) {
@@ -6031,14 +6012,8 @@ void Scene1337::handlePlayer1() {
 			for (int j = 0; j <= 3; j++) {
 				//CHECKME: tmpVal or rndVal?
 				if (tmpVal != 1) {
-					for (int k = 0; k <= 7; k++) {
-						// CHECKME: 'k' is not used in that loop.
-						// It looks suspicious.
-						if ((_gameBoardSide[tmpVal]._delayCard._cardId == 0) && isAttackPossible(tmpVal, _gameBoardSide[1]._handCard[i]._cardId)) {
-							count = tmpVal;
-							break;
-						}
-					}
+					if ((_gameBoardSide[tmpVal]._delayCard._cardId == 0) && isAttackPossible(tmpVal, _gameBoardSide[1]._handCard[i]._cardId))
+						count = tmpVal;
 				}
 
 				if (count != -1) {
@@ -6055,18 +6030,13 @@ void Scene1337::handlePlayer1() {
 
 	int j;
 	for (j = 0; j <= 3; j++) {
-		if (isSlowCard(_gameBoardSide[1]._handCard[j]._cardId) != -1) {
+		if (getStationCardId(_gameBoardSide[1]._handCard[j]._cardId) != -1) {
 			count = -1;
 			int rndVal = R2_GLOBALS._randomSource.getRandomNumber(3);
 			for (int l = 0; l <= 3; l++) {
 				if (rndVal != 1) {
-					for (int m = 0; m <= 7; m++) {
-						// 'm' is not used in that loop. It looks suspicious.
-						if ((_gameBoardSide[rndVal]._delayCard._cardId == 0) && (_gameBoardSide[1]._handCard[j]._cardId == 1)) {
-							count = rndVal;
-							break;
-						}
-					}
+					if ((_gameBoardSide[rndVal]._delayCard._cardId == 0) && (_gameBoardSide[1]._handCard[j]._cardId == 1))
+						count = rndVal;
 				}
 				if (count != -1) {
 					playDelayCard(&_gameBoardSide[1]._handCard[j], &_gameBoardSide[count]._delayCard);
@@ -6207,12 +6177,9 @@ void Scene1337::handlePlayer3() {
 
 			for (int i = 0; i <= 3; i++) {
 				if (tmpRandIndx != 3) {
-					// The variable 'j' is not used in the inner code of the loop, which is suspicious.
-					// 'i' is used indirectly to increment tmpRandIndx.
-					for (int j = 0; j <= 7; j++) {
-						if ((_gameBoardSide[tmpRandIndx]._delayCard._cardId == 0) && isAttackPossible(tmpRandIndx, _gameBoardSide[3]._handCard[randIndx]._cardId))
-							victimId = tmpRandIndx;
-					}
+					if ((_gameBoardSide[tmpRandIndx]._delayCard._cardId == 0)
+					&&  isAttackPossible(tmpRandIndx, _gameBoardSide[3]._handCard[randIndx]._cardId))
+						victimId = tmpRandIndx;
 				}
 
 				++tmpRandIndx;
@@ -6237,14 +6204,14 @@ void Scene1337::handlePlayer3() {
 	discardCard(&_gameBoardSide[3]._handCard[randIndx]);
 }
 
-void Scene1337::handlePlayer2() {
-	if (isSlowCard(this->_gameBoardSide[2]._delayCard._cardId) == -1)
-		_delayedFunction = &Scene1337::subD02CA;
+void Scene1337::handleAutoplayPlayer2() {
+	if (getStationCardId(this->_gameBoardSide[2]._delayCard._cardId) == -1)
+		_delayedFunction = &Scene1337::handlePlayer2;
 	else
 		discardCard(&_gameBoardSide[2]._delayCard);
 }
 
-void Scene1337::subD02CA() {
+void Scene1337::handlePlayer2() {
 	_selectedCard._stationPos = g_globals->_events._mousePos;
 
 	if (R2_GLOBALS._v57810 == 200) {
@@ -6315,7 +6282,7 @@ void Scene1337::subD02CA() {
 
 		if (i == 4) {
 			handleClick(1, _selectedCard._stationPos);
-			handlePlayer2();
+			handleAutoplayPlayer2();
 			return;
 		} else {
 			setCursorData(1332, _selectedCard._card._strip, _selectedCard._card._frame);
@@ -6324,14 +6291,14 @@ void Scene1337::subD02CA() {
 	} else if (R2_GLOBALS._v57810 == 300) {
 		// Eye
 		handleClick(3, _selectedCard._stationPos);
-		handlePlayer2();
+		handleAutoplayPlayer2();
 		return;
 	} else {
 		// The original code is calling a function full of dead code.
 		// Only this message remains after a cleanup. 
 		MessageDialog::show(WRONG_ANSWER_MSG, OK_BTN_STRING);
 		//
-		handlePlayer2();
+		handleAutoplayPlayer2();
 		return;
 	}
 
@@ -6432,6 +6399,7 @@ void Scene1337::subD02CA() {
 							actionDisplay(1330, 37, 159, 10, 1, 200, 0, 7, 0, 154, 154);
 						}
 					} else {
+						// Check anti-delay card
 						if ((_selectedCard._cardId == 26) || (_selectedCard._cardId == 30) ||(_selectedCard._cardId == 32) || (_selectedCard._cardId == 28)) {
 							if (_gameBoardSide[2]._delayCard.isIn(Common::Point(_selectedCard._stationPos.x + 12, _selectedCard._stationPos.y + 12))) {
 								actionDisplay(1330, 42, 159, 10, 1, 200, 0, 7, 0, 154, 154);
@@ -6461,7 +6429,7 @@ void Scene1337::subD02CA() {
 								return;
 							}
 						} else {
-							if ((isSlowCard(_selectedCard._cardId) == -1) && (isDelayCard(_selectedCard._cardId) == -1)) {
+							if ((getStationCardId(_selectedCard._cardId) == -1) && (isDelayCard(_selectedCard._cardId) == -1)) {
 								if (_selectedCard._cardId == 13) {
 									if (_gameBoardSide[0]._emptyStationPos.isIn(Common::Point(_selectedCard._stationPos.x + 12, _selectedCard._stationPos.y + 12))) {
 										for (int k = 0; k <= 7; k++) {
@@ -6762,6 +6730,94 @@ void Scene1337::subD1940(bool flag) {
 
 void Scene1337::subD1975(int arg1, int arg2) {
 	warning("STUBBED lvl2 Scene1337::subD1975()");
+}
+
+void Scene1337::OptionsDialog::show() {
+	OptionsDialog *dlg = new OptionsDialog();
+	dlg->draw();
+
+	// Show the dialog
+	GfxButton *btn = dlg->execute(NULL);
+
+	// Figure out the new selected character
+	if (btn == &dlg->_quitGame)
+		R2_GLOBALS._sceneManager.changeScene(125);
+	else if (btn == &dlg->_restartGame)
+		R2_GLOBALS._sceneManager.changeScene(1330);
+	
+	// Remove the dialog
+	dlg->remove();
+	delete dlg;
+}
+
+Scene1337::OptionsDialog::OptionsDialog() {
+	// Set the elements text
+	Scene1337 *scene = (Scene1337 *)R2_GLOBALS._sceneManager._scene;
+	_autoplay.setText(scene->_autoplay ? AUTO_PLAY_ON : AUTO_PLAY_OFF);
+	_restartGame.setText(START_NEW_CARD_GAME);
+	_quitGame.setText(QUIT_CARD_GAME);
+	_continueGame.setText(CONTINUE_CARD_GAME);
+
+	// Set position of the elements
+	_autoplay._bounds.moveTo(5, 2);
+	_restartGame._bounds.moveTo(5, _autoplay._bounds.bottom + 2);
+	_quitGame._bounds.moveTo(5, _restartGame._bounds.bottom + 2);
+	_continueGame._bounds.moveTo(5, _quitGame._bounds.bottom + 2);
+
+	// Add the items to the dialog
+	addElements(&_autoplay, &_restartGame, &_quitGame, &_continueGame, NULL);
+
+	// Set the dialog size and position
+	frame();
+	_bounds.collapse(-6, -6);
+	setCenter(160, 100);
+}
+
+GfxButton *Scene1337::OptionsDialog::execute(GfxButton *defaultButton) {
+	_gfxManager.activate();
+
+	// Event loop
+	GfxButton *selectedButton = NULL;
+
+	bool breakFlag = false;
+	while (!g_vm->shouldQuit() && !breakFlag) {
+		Event event;
+		while (g_globals->_events.getEvent(event) && !breakFlag) {
+			// Adjust mouse positions to be relative within the dialog
+			event.mousePos.x -= _gfxManager._bounds.left;
+			event.mousePos.y -= _gfxManager._bounds.top;
+
+			for (GfxElementList::iterator i = _elements.begin(); i != _elements.end(); ++i) {
+				if ((*i)->process(event))
+					selectedButton = static_cast<GfxButton *>(*i);
+			}
+
+			if (selectedButton == &_autoplay) {
+				// Toggle Autoplay
+				selectedButton = NULL;
+				Scene1337 *scene = (Scene1337 *)R2_GLOBALS._sceneManager._scene;
+				scene->_autoplay = !scene->_autoplay;
+
+				_autoplay.setText(scene->_autoplay ? AUTO_PLAY_ON : AUTO_PLAY_OFF);
+				_autoplay.draw();
+			} else if (selectedButton) {
+				breakFlag = true;
+				break;
+			} else if (!event.handled) {
+				if ((event.eventType == EVENT_KEYPRESS) && (event.kbd.keycode == Common::KEYCODE_ESCAPE)) {
+					selectedButton = NULL;
+					breakFlag = true;
+					break;
+				}
+			}
+		}
+
+		g_system->delayMillis(10);
+		GLOBALS._screenSurface.updateScreen();
+	}
+
+	_gfxManager.deactivate();
+	return selectedButton;
 }
 
 /*--------------------------------------------------------------------------

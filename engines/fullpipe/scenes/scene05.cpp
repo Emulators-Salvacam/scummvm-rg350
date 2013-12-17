@@ -40,9 +40,9 @@ void scene05_initScene(Scene *sc) {
 	g_vars->scene05_bigHatch = sc->getStaticANIObject1ById(ANI_BIGLUK, -1);
 
 
-	g_vars->scene05_var01 = 0;
-	g_vars->scene05_var02 = 1;
-	g_vars->scene05_var03 = 1000;
+	g_vars->scene05_wackoTicker = 0;
+	g_vars->scene05_handleFlipper = 1;
+	g_vars->scene05_floatersTicker = 1000;
 
 	Scene *oldscene = g_fullpipe->_currentScene;
 
@@ -121,12 +121,47 @@ void sceneHandler05_makeWackoFeedback() {
 	}
 }
 
+void sceneHandler05_resetTicks() {
+	if (g_fullpipe->_aniMan->_movement && (g_fullpipe->_aniMan->_movement->_id == MV_MANHDL_HANDLEUP 
+										   || g_fullpipe->_aniMan->_movement->_id == MV_MANHDL_HANDLEDOWN))
+		g_vars->scene05_wackoTicker = g_fullpipe->_updateTicks;
+	else
+		g_vars->scene05_wackoTicker = 0;
+}
+
+void sceneHandler05_genFlies() {
+	if (g_vars->scene05_floatersTicker <= 1000)
+		return;
+
+	if (g_fullpipe->_rnd->getRandomNumber(1)) {
+		int numFlies = g_fullpipe->_rnd->getRandomNumber(3) + 1;
+
+		for (int i = 0; i < numFlies; i++) {
+			int x = g_fullpipe->_rnd->getRandomNumber(55) + 538;
+			int y = g_fullpipe->_rnd->getRandomNumber(60) + i * 30 + 520;
+
+			g_fullpipe->_floaters->genFlies(g_fullpipe->_currentScene, x, y, 5, 1);
+			g_fullpipe->_floaters->_array2.back()->val2 = 585;
+			g_fullpipe->_floaters->_array2.back()->val3 = -70;
+			g_fullpipe->_floaters->_array2.back()->val11 = 8.0;
+		}
+	}
+
+	g_vars->scene05_floatersTicker = 0;
+}
+
 void sceneHandler05_showHandle() {
 	g_fullpipe->_currentScene->getStaticANIObject1ById(ANI_HANDLE, -1)->show1(-1, -1, -1, 0);
 }
 
 void sceneHandler05_handleDown() {
-	warning("STUB: sceneHandler05_handleDown()");
+	StaticANIObject *hatch = g_fullpipe->_currentScene->getStaticANIObject1ById(ANI_BIGLUK, -1);
+
+	hatch->changeStatics2(ST_BLK_CLOSED);
+	hatch->startAnim(MV_BLK_OPEN, 0, -1);
+
+	sceneHandler05_resetTicks();
+	sceneHandler05_genFlies();
 }
 
 void sceneHandler05_hideHandle() {
@@ -134,11 +169,127 @@ void sceneHandler05_hideHandle() {
 }
 
 void sceneHandler05_handleUp() {
-	warning("STUB: sceneHandler05_handleUp()");
+	StaticANIObject *hatch = g_fullpipe->_currentScene->getStaticANIObject1ById(ANI_BIGLUK, -1);
+
+	hatch->changeStatics2(ST_BLK_OPEN);
+	hatch->startAnim(MV_BLK_CLOSE, 0, -1);
+
+	sceneHandler05_resetTicks();
 }
 
-void sceneHandler05_testHatch(ExCommand *ex) {
-	warning("STUB: sceneHandler05_testHatch()");
+void sceneHandler05_testHatch(ExCommand *inex) {
+	ExCommand *ex;
+
+	if (g_fullpipe->_currentScene->getStaticANIObject1ById(ANI_BIGLUK, -1)->_statics->_staticsId == ST_BLK_CLOSED) {
+		ex = new ExCommand(SC_5, 17, 61, 0, 0, 0, 1, 0, 0, 0);
+		ex->_keyCode = TrubaLeft;
+		ex->_excFlags |= 2;
+		ex->postMessage();
+
+		return;
+	}
+
+	StaticANIObject *wacko = g_fullpipe->_currentScene->getStaticANIObject1ById(ANI_OTMOROZ, -1);
+
+	if (wacko->_movement)
+		wacko->changeStatics2(wacko->_movement->_staticsObj2->_staticsId);
+
+	if (g_fullpipe->getObjectState(sO_WeirdWacko) == g_fullpipe->getObjectEnumState(sO_WeirdWacko, sO_InGlasses)) {
+		MessageQueue *mq = g_fullpipe->_globalMessageQueueList->getMessageQueueById(inex->_parId);
+
+		if (mq)
+			mq->deleteExCommandByIndex(mq->getCount() - 1, 1);
+
+		if (wacko->_statics->_staticsId != ST_OTM_GLS_LEFT) {
+			mq = wacko->changeStatics1(ST_OTM_GLS_LEFT);
+
+			if (!mq) {
+				wacko->changeStatics2(ST_OTM_GLS_LEFT);
+				mq = new MessageQueue(g_fullpipe->_globalMessageQueueList->compact());
+			}
+
+			mq->setFlags(mq->getFlags() | 1);
+
+			ex = new ExCommand(ANI_OTMOROZ, 1, MV_OTM_HANDLEUP, 0, 0, 0, 1, 0, 0, 0);
+			ex->_excFlags |= 2u;
+			mq->addExCommandToEnd(ex);
+
+			ex = new ExCommand(SC_5, 17, 61, 0, 0, 0, 1, 0, 0, 0);
+			ex->_keyCode = TrubaLeft;
+			ex->_excFlags |= 2;
+			mq->addExCommandToEnd(ex);
+
+			mq->_isFinished = 0;
+			return;
+		}
+
+		mq = new MessageQueue(g_fullpipe->_globalMessageQueueList->compact());
+		mq->setFlags(mq->getFlags() | 1);
+
+		ex = new ExCommand(ANI_OTMOROZ, 1, MV_OTM_HANDLEUP, 0, 0, 0, 1, 0, 0, 0);
+		ex->_excFlags |= 2;
+		mq->addExCommandToEnd(ex);
+
+		ex = new ExCommand(SC_5, 17, 61, 0, 0, 0, 1, 0, 0, 0);
+		ex->_keyCode = TrubaLeft;
+		ex->_excFlags |= 2;
+		mq->addExCommandToEnd(ex);
+
+		if (!mq->chain(wacko))
+			delete mq;
+	} else if (g_fullpipe->getObjectState(sO_WeirdWacko) == g_fullpipe->getObjectEnumState(sO_WeirdWacko, sO_WithDrawer)) {
+		MessageQueue *mq = g_fullpipe->_globalMessageQueueList->getMessageQueueById(inex->_parId);
+
+		if (mq)
+			mq->deleteExCommandByIndex(mq->getCount() - 1, 1);
+
+		if (wacko->_statics->_staticsId != ST_OTM_BOX_LEFT) {
+			mq = wacko->changeStatics1(ST_OTM_BOX_LEFT);
+			if (!mq) {
+				wacko->changeStatics2(ST_OTM_BOX_LEFT);
+				mq = new MessageQueue(g_fullpipe->_globalMessageQueueList->compact());
+			}
+
+			mq->setFlags(mq->getFlags() | 1);
+
+			ex = new ExCommand(ANI_OTMOROZ, 1, MV_OTM_BOXHANDLEUP, 0, 0, 0, 1, 0, 0, 0);
+			ex->_excFlags |= 2;
+			mq->addExCommandToEnd(ex);
+
+			ex = new ExCommand(SC_5, 17, 61, 0, 0, 0, 1, 0, 0, 0);
+			ex->_keyCode = TrubaLeft;
+			ex->_excFlags |= 2;
+			mq->addExCommandToEnd(ex);
+
+			mq->_isFinished = 0;
+
+			return;
+		}
+
+		mq = new MessageQueue(g_fullpipe->_globalMessageQueueList->compact());
+		mq->setFlags(mq->getFlags() | 1);
+
+		ex = new ExCommand(ANI_OTMOROZ, 1, MV_OTM_BOXHANDLEUP, 0, 0, 0, 1, 0, 0, 0);
+		ex->_excFlags |= 2;
+		mq->addExCommandToEnd(ex);
+
+		ex = new ExCommand(SC_5, 17, 61, 0, 0, 0, 1, 0, 0, 0);
+		ex->_keyCode = TrubaLeft;
+		ex->_excFlags |= 2;
+		mq->addExCommandToEnd(ex);
+
+		if (!mq->chain(wacko))
+			delete mq;
+
+		return;
+	} else {
+		ex = new ExCommand(SC_5, 17, 61, 0, 0, 0, 1, 0, 0, 0);
+		ex->_keyCode = TrubaLeft;
+		ex->_excFlags |= 2;
+		ex->postMessage();
+
+		return;
+	}
 }
 
 
@@ -148,23 +299,23 @@ int sceneHandler05(ExCommand *ex) {
 
 	switch (ex->_messageNum) {
 	case MSG_SC5_BGRSOUNDOFF:
-        g_fullpipe->stopAllSoundInstances(SND_5_026);
+		g_fullpipe->stopAllSoundInstances(SND_5_026);
 		break;
 
 	case MSG_SC5_BGRSOUNDON:
-        g_fullpipe->playSound(SND_5_026, 1);
+		g_fullpipe->playSound(SND_5_026, 1);
 		break;
 
 	case MSG_SC5_MAKEMANFLIGHT:
-        sceneHandler05_makeManFlight();
+		sceneHandler05_makeManFlight();
 		break;
 
 	case MSG_SC5_MAKEOTMFEEDBACK:
-        if (!g_fullpipe->_aniMan->_movement || (g_fullpipe->_aniMan->_movement->_id != MV_MANHDL_HANDLEUP 
+		if (!g_fullpipe->_aniMan->_movement || (g_fullpipe->_aniMan->_movement->_id != MV_MANHDL_HANDLEUP 
 												&& g_fullpipe->_aniMan->_movement->_id != MV_MANHDL_HANDLEDOWN)) {
 			sceneHandler05_makeWackoFeedback();
-			g_vars->scene05_var01 = 0;
-        }
+			g_vars->scene05_wackoTicker = 0;
+		}
 		break;
 
 	case MSG_SC5_SHOWHANDLE:
@@ -202,21 +353,22 @@ int sceneHandler05(ExCommand *ex) {
 				res = 1;
 			}
 
-			if (g_vars->scene05_var01) {
-				if ((g_fullpipe->_updateTicks - g_vars->scene05_var01) > 62 ) {
+			if (g_vars->scene05_wackoTicker) {
+				if ((g_fullpipe->_updateTicks - g_vars->scene05_wackoTicker) > 62) {
 					if (!g_fullpipe->_aniMan->_movement || (g_fullpipe->_aniMan->_movement->_id != MV_MANHDL_HANDLEUP 
 															&& g_fullpipe->_aniMan->_movement->_id != MV_MANHDL_HANDLEDOWN)) {
-						if (g_vars->scene05_var02 % 2)
+						if (g_vars->scene05_handleFlipper % 2)
 							sceneHandler05_makeWackoFeedback();
 
-						g_vars->scene05_var01 = 0;
+						g_vars->scene05_wackoTicker = 0;
 
-						++g_vars->scene05_var02;
+						++g_vars->scene05_handleFlipper;
 					}
 				}
 			}
 
-			++g_vars->scene05_var03;
+			++g_vars->scene05_floatersTicker;
+
 			g_fullpipe->_floaters->update();
 
 			g_fullpipe->_behaviorManager->updateBehaviors();

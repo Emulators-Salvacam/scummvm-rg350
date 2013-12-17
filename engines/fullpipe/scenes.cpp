@@ -106,9 +106,38 @@ Vars::Vars() {
 	scene05_handle = 0;
 	scene05_wacko = 0;
 	scene05_bigHatch = 0;
-	scene05_var01 = 0;
-	scene05_var02 = 0;
-	scene05_var03 = 0;
+	scene05_wackoTicker = 0;
+	scene05_handleFlipper = 0;
+	scene05_floatersTicker = 0;
+
+	scene06_var01 = 0;
+	scene06_var02 = 0;
+	scene06_var03 = 0;
+	scene06_var04 = 0;
+	scene06_mumsy = 0;
+	scene06_var06 = 0;
+	scene06_invHandle = 0;
+	scene06_liftButton = 0;
+	scene06_ballDrop = 0;
+	scene06_var07 = 0;
+	scene06_var08 = 0;
+	scene06_var09 = 0;
+	scene06_var10 = 0;
+	scene06_var11 = 0;
+	scene06_var12 = 0;
+	scene06_var13 = 0;
+	scene06_var14 = 0;
+	scene06_var15 = 1;
+	scene06_var16 = 0;
+	scene06_var17 = 0;
+	scene06_var18 = 0;
+	scene06_sceneClickX = 0;
+	scene06_sceneClickY = 0;
+	scene06_mumsyPos = 0;
+	scene06_mumsyJumpBk = 0;
+	scene06_mumsyJumpFw = 0;
+	scene06_mumsyJumpBkPercent = 0;
+	scene06_mumsyJumpFwPercent = 0;
 
 	selector = 0;
 }
@@ -283,7 +312,6 @@ bool FullpipeEngine::sceneSwitcher(EntranceInfo *entrance) {
 		_updateCursorCallback = defaultUpdateCursor;
 		break;
 
-#if 0
 	case SC_6:
 		sceneVar = _gameLoader->_gameVar->getSubVarByName("SC_6");
 		scene->preloadMovements(sceneVar);
@@ -291,11 +319,12 @@ bool FullpipeEngine::sceneSwitcher(EntranceInfo *entrance) {
 		_behaviorManager->initBehavior(scene, sceneVar);
 		scene->initObjectCursors("SC_6");
 		setSceneMusicParameters(sceneVar);
-		sub_415300();
+		scene06_initMumsy();
 		insertMessageHandler(sceneHandler06, 2, 2);
 		_updateCursorCallback = scene06_updateCursor;
 		break;
 
+#if 0
 	case SC_7:
 		sceneVar = _gameLoader->_gameVar->getSubVarByName("SC_7");
 		scene->preloadMovements(sceneVar);
@@ -712,26 +741,6 @@ int defaultUpdateCursor() {
 	g_fullpipe->updateCursorCommon();
 
 	return g_fullpipe->_cursorId;
-}
-
-void FullpipeEngine::initArcadeKeys(const char *varname) {
-	GameVar *var = getGameLoaderGameVar()->getSubVarByName(varname)->getSubVarByName("KEYPOS");
-
-	if (!var)
-		return;
-
-	int cnt = var->getSubVarsCount();
-
-	for (int i = 0; i < cnt; i++) {
-		Common::Point *point = new Common::Point;
-
-		GameVar *sub = var->getSubVarByIndex(i);
-
-		point->x = sub->getSubVarAsInt("X");
-		point->y = sub->getSubVarAsInt("Y");
-
-		_arcadeKeys.push_back(point);
-	}
 }
 
 void FullpipeEngine::processArcade(ExCommand *ex) {
