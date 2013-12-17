@@ -61,6 +61,8 @@
 
 #include "libretro.h"
 
+extern retro_log_printf_t log_cb;
+
 struct RetroPalette
 {
     unsigned char _colors[256 * 3];
@@ -651,7 +653,8 @@ public:
 
 	virtual void logMessage(LogMessageType::Type type, const char *message)
 	{
-	    printf("%s\n", message);
+      if (log_cb)
+         log_cb(RETRO_LOG_INFO, "%s\n", message);
 	}
 
 
