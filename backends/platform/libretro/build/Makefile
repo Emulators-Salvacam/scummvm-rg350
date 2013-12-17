@@ -36,10 +36,9 @@ else ifeq ($(platform), osx)
    LDFLAGS += -dynamiclib -fPIC
 else ifeq ($(platform), ios)
    TARGET  := $(TARGET_NAME)_libretro_ios.dylib
-   DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN
+   DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1
    LDFLAGS += -dynamiclib -fPIC
-   CXX      = clang++ -arch armv7 -isysroot $(IOSSDK)
-   LIBCOARM = 1
+   CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
 else ifeq ($(platform), qnx)
    TARGET  := $(TARGET_NAME)_libretro.so
    DEFINES += -fPIC -DSYSTEM_NOT_SUPPORTING_D_TYPE
@@ -49,7 +48,6 @@ else ifeq ($(platform), qnx)
    LD = QCC -Vgcc_ntoarmv7le
    AR = qcc -Vgcc_ntoarmv7le -A
    RANLIB="${QNX_HOST}/usr/bin/ntoarmv7-ranlib"
-   LIBCOARM = 1
 else ifeq ($(platform), ps3)
    TARGET  := $(TARGET_NAME)_libretro_ps3.a
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
@@ -69,13 +67,11 @@ else ifeq ($(platform), android)
    DEFINES += -fPIC -Wno-multichar
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
-   LIBCOARM = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    SHARED := -shared -Wl,--no-undefined
    DEFINES += -fPIC -Wno-multichar
    CC = gcc
-   LIBCOARM = 1
 ifneq (,$(findstring cortexa8,$(platform)))
    DEFINES += -marm -mcpu=cortex-a8
 else ifneq (,$(findstring cortexa9,$(platform)))
@@ -161,10 +157,6 @@ endif
 
 ifeq ($(platform), win)
 OBJS += $(retrodir)dirent_win32.o
-endif
-
-ifeq ($(LIBCOARM),1)
-OBJS += $(retrodir)libco/armeabi_asm.o
 endif
 
 MODULE_DIRS += $(retrodir) $(retrodir)libco
