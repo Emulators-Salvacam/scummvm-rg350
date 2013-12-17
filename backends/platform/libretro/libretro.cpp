@@ -11,16 +11,9 @@
 #include "libco/libco.h"
 #include "libretro.h"
 
-#if 0
-# define LOG(msg) fprintf(stderr, "%s\n", msg)
-#else
-# define LOG(msg)
-#endif
-
 #include <unistd.h>
 
-//
-
+static retro_log_printf_t log_cb = NULL;
 static retro_video_refresh_t video_cb = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
 static retro_environment_t environ_cb = NULL;
@@ -61,7 +54,8 @@ static void retro_start_emulator()
     scummvm_main(1, argv);
     EMULATORexited = true;
 
-    LOG("Emulator loop has ended.");
+    if (log_cb)
+       log_cb(RETRO_LOG_INFO, "Emulator loop has ended.\n");
 
     // NOTE: Deleting g_system here will crash...
 }
@@ -81,7 +75,8 @@ static void retro_wrap_emulator()
     // Dead emulator, but libco says not to return
     while(true)
     {
-        LOG("Running a dead emulator.");
+        if (log_cb)
+           log_cb(RETRO_LOG_ERROR, "Running a dead emulator.\n");
         co_switch(mainThread);
     }
 }
@@ -116,6 +111,10 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 
 void retro_init (void)
 {
+   struct retro_log_callback log;
+   environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log);
+   if (log.log)
+      log_cb = log.log;
     // Get color mode: 32 first as VGA has 6 bits per pixel
 /*    RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_XRGB8888;
     if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
@@ -128,8 +127,8 @@ void retro_init (void)
     }*/
 #ifdef FRONTEND_SUPPORTS_RGB565
    enum retro_pixel_format rgb565 = RETRO_PIXEL_FORMAT_RGB565;
-   if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565))
-      LOG("Frontend supports RGB565 -will use that instead of XRGB1555.\n");
+   if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565) && log_cb)
+      log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 -will use that instead of XRGB1555.\n");
 #endif
 
     retro_keyboard_callback cb = {retroKeyEvent};
@@ -142,7 +141,8 @@ void retro_init (void)
     }
     else
     {
-        LOG("retro_init called more than once.");
+       if (log_cb)
+          log_cb(RETRO_LOG_WARN, "retro_init called more than once.\n");
     }
 
 }
@@ -161,10 +161,6 @@ void retro_deinit(void)
         co_delete(emuThread);
         emuThread = 0;
     }
-    else
-    {
-        LOG("retro_deinit called when there is no emulator thread.");
-    }
 }
 
 bool retro_load_game(const struct retro_game_info *game)
@@ -176,19 +172,15 @@ bool retro_load_game(const struct retro_game_info *game)
     }
     else
     {
-        LOG("No System directory specified, using current directory.");
+       if (log_cb)
+          log_cb(RETRO_LOG_WARN, "No System directory specified, using current directory.\n");
         retroSetSystemDir(".");
     }
 
-    if(emuThread)
-    {
-        return true;
-    }
-    else
-    {
-        LOG("retro_load_game called when there is no emulator thread.");
-        return false;
-    }
+    if(!emuThread)
+       return false;
+
+    return true;
 }
 
 bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info)
@@ -198,34 +190,30 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *i
 
 void retro_run (void)
 {
-    if(emuThread)
-    {
-        // Mouse
-        if(g_system)
-        {
-            poll_cb();
-            retroProcessMouse(input_cb);
-        }
+   if(!emuThread)
+      return;
 
-        // Run emu
-        co_switch(emuThread);
+   // Mouse
+   if(g_system)
+   {
+      poll_cb();
+      retroProcessMouse(input_cb);
+   }
 
-        if(g_system)
-        {
-            // Upload video: TODO: Check the CANDUPE env value
-            const Graphics::Surface& screen = getScreen();
-            video_cb(screen.pixels, screen.w, screen.h, screen.pitch);
+   // Run emu
+   co_switch(emuThread);
 
-            // Upload audio
-            static uint32 buf[735];
-            int count = ((Audio::MixerImpl*)g_system->getMixer())->mixCallback((byte*)buf, 735*4);
-            audio_batch_cb((int16_t*)buf, count);
-        }
-    }
-    else
-    {
-        LOG("retro_run called when there is no emulator thread.");
-    }
+   if(g_system)
+   {
+      // Upload video: TODO: Check the CANDUPE env value
+      const Graphics::Surface& screen = getScreen();
+      video_cb(screen.pixels, screen.w, screen.h, screen.pitch);
+
+      // Upload audio
+      static uint32 buf[735];
+      int count = ((Audio::MixerImpl*)g_system->getMixer())->mixCallback((byte*)buf, 735*4);
+      audio_batch_cb((int16_t*)buf, count);
+   }
 }
 
 // Stubs
