@@ -256,6 +256,8 @@ static Common::String s_systemDir;
 #define SURF_ASHIFT 15
 #endif
 
+std::list<Common::Event> _events;
+
 class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 public:
     Graphics::Surface _screen;
@@ -282,15 +284,13 @@ public:
     uint32 _startTime;
     uint32 _threadExitTime;
 
-    std::list<Common::Event> _events;
 
     Audio::MixerImpl* _mixer;
 
-    int _keyflags;
 
 	OSystem_RETRO() :
 	    _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
-	    _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _startTime(0), _threadExitTime(10), _keyflags(0)
+	    _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _startTime(0), _threadExitTime(10)
 	{
         _fsFactory = new FS_SYSTEM_FACTORY();
         memset(_mouseButtons, 0, sizeof(_mouseButtons));
@@ -864,7 +864,7 @@ public:
 
     void processKeyEvent(bool down, unsigned keycode, uint32_t character, uint16_t key_modifiers)
     {
-        _keyflags = 0;
+        int _keyflags = 0;
         _keyflags |= (key_modifiers & RETROKMOD_CTRL) ? Common::KBD_CTRL : 0;
         _keyflags |= (key_modifiers & RETROKMOD_ALT) ? Common::KBD_ALT : 0;
         _keyflags |= (key_modifiers & RETROKMOD_SHIFT) ? Common::KBD_SHIFT : 0;
@@ -916,5 +916,5 @@ void retroSetSystemDir(const char* aPath)
 
 void retroKeyEvent(bool down, unsigned keycode, uint32_t character, uint16_t key_modifiers)
 {
-    ((OSystem_RETRO*)g_system)->processKeyEvent(down, keycode, character, key_modifiers);
+   ((OSystem_RETRO*)g_system)->processKeyEvent(down, keycode, character, key_modifiers);
 }
