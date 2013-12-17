@@ -876,6 +876,9 @@ public:
         _keyflags |= (key_modifiers & RETROKMOD_NUMLOCK) ? Common::KBD_NUM : 0;
         _keyflags |= (key_modifiers & RETROKMOD_SCROLLOCK) ? Common::KBD_SCRL : 0;
 
+        if (keycode == RETROK_SPACE)
+           keycode &= ~(RETROK_SPACE);
+
         Common::Event ev;
         ev.type = down ? Common::EVENT_KEYDOWN : Common::EVENT_KEYUP;
         ev.kbd.keycode = (Common::KeyCode)keycode;
