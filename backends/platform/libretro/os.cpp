@@ -431,9 +431,34 @@ public:
 	}
 
 	virtual void updateScreen()
-	{
-	    /* EMPTY */
-	}
+   {
+      const Graphics::Surface& srcSurface = (_overlayVisible) ? _overlay : _gameScreen;
+      if(srcSurface.w && srcSurface.h)
+      {
+         switch(srcSurface.format.bytesPerPixel)
+         {
+            case 1:
+            case 3:
+               blit_uint8_uint16_fast(_screen, srcSurface, _gamePalette);
+               break;
+            case 2:
+               blit_uint16_uint16(_screen, srcSurface, _gamePalette);
+               break;
+            case 4:
+               blit_uint32_uint16(_screen, srcSurface, _gamePalette);
+               break;
+         }
+      }
+
+      // Draw Mouse
+      if(_mouseVisible && _mouseImage.w && _mouseImage.h)
+      {
+         const int x = _mouseX - _mouseHotspotX;
+         const int y = _mouseY - _mouseHotspotY;
+
+         blit_uint8_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
+      }
+   }
 
 	virtual Graphics::Surface *lockScreen()
 	{
@@ -673,31 +698,6 @@ public:
 #endif
         }
 
-        if(srcSurface.w && srcSurface.h)
-        {
-            switch(srcSurface.format.bytesPerPixel)
-            {
-                case 1:
-                case 3:
-                   blit_uint8_uint16_fast(_screen, srcSurface, _gamePalette);
-                   break;
-                case 2:
-                   blit_uint16_uint16(_screen, srcSurface, _gamePalette);
-                   break;
-                case 4:
-                   blit_uint32_uint16(_screen, srcSurface, _gamePalette);
-                   break;
-            }
-        }
-
-        // Draw Mouse
-        if(_mouseVisible && _mouseImage.w && _mouseImage.h)
-        {
-            const int x = _mouseX - _mouseHotspotX;
-            const int y = _mouseY - _mouseHotspotY;
-
-            blit_uint8_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
-        }
 
         return _screen;
 	}
