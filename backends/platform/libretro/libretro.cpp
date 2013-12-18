@@ -41,12 +41,12 @@ bool EMULATORexited;
 cothread_t mainThread;
 cothread_t emuThread;
 
-void retro_leave_thread()
+void retro_leave_thread(void)
 {
     co_switch(mainThread);
 }
 
-static void retro_start_emulator()
+static void retro_start_emulator(void)
 {
     g_system = retroBuildOS();
 
@@ -65,9 +65,7 @@ static void retro_wrap_emulator()
     retro_start_emulator();
 
     if(!FRONTENDwantsExit)
-    {
-        environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
-    }
+       environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
 
     // Were done here
     co_switch(mainThread);
@@ -133,43 +131,29 @@ void retro_init (void)
 
     retro_keyboard_callback cb = {retroKeyEvent};
     environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
-
-    if(!emuThread && !mainThread)
-    {
-        mainThread = co_active();
-        emuThread = co_create(65536*sizeof(void*), retro_wrap_emulator);
-    }
-    else
-    {
-       if (log_cb)
-          log_cb(RETRO_LOG_WARN, "retro_init called more than once.\n");
-    }
-
 }
 
 void retro_deinit(void)
 {
-    if(emuThread)
-    {
-        FRONTENDwantsExit = true;
-        while(!EMULATORexited)
-        {
-            retroPostQuit();
-            co_switch(emuThread);
-        }
+    if(!emuThread)
+       return;
 
-        co_delete(emuThread);
-        emuThread = 0;
+    FRONTENDwantsExit = true;
+    while(!EMULATORexited)
+    {
+       retroPostQuit();
+       co_switch(emuThread);
     }
+
+    co_delete(emuThread);
+    emuThread = 0;
 }
 
 bool retro_load_game(const struct retro_game_info *game)
 {
     const char* sysdir;
     if(environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &sysdir))
-    {
         retroSetSystemDir(sysdir);
-    }
     else
     {
        if (log_cb)
@@ -177,8 +161,11 @@ bool retro_load_game(const struct retro_game_info *game)
         retroSetSystemDir(".");
     }
 
-    if(!emuThread)
-       return false;
+    if(!emuThread && !mainThread)
+    {
+        mainThread = co_active();
+        emuThread = co_create(65536*sizeof(void*), retro_wrap_emulator);
+    }
 
     return true;
 }
