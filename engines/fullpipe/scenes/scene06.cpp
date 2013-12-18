@@ -59,7 +59,7 @@ int scene06_updateCursor() {
 
 				return PIC_CSR_ITN;
 			}
-		} else if (g_fullpipe->_objectAtCursor && (StaticANIObject *)g_fullpipe->_objectAtCursor == g_vars->scene06_var09
+		} else if (g_fullpipe->_objectAtCursor && (StaticANIObject *)g_fullpipe->_objectAtCursor == g_vars->scene06_currentBall
 				   && g_fullpipe->_cursorId == PIC_CSR_DEFAULT) {
 			g_fullpipe->_cursorId = PIC_CSR_ITN;
 		}
@@ -77,7 +77,20 @@ void sceneHandler06_winArcade() {
 }
 
 void sceneHandler06_enableDrops() {
-	warning("STUB: sceneHandler06_enableDrops()");
+	chainQueue(QU_SC6_DROPS, 0);
+
+	g_vars->scene06_mumsy->changeStatics2(ST_MOM_SITS);
+	g_fullpipe->setObjectState(sO_BigMumsy, g_fullpipe->getObjectEnumState(sO_BigMumsy, sO_IsPlaying));
+
+	chainQueue(QU_MOM_STANDUP, 1);
+
+	g_vars->scene06_var07 = 1;
+	g_vars->scene06_numBallsGiven = 0;
+	g_vars->scene06_mumsyPos = 0;
+	g_vars->scene06_var13 = 0;
+	g_vars->scene06_var16 = 0;
+
+	sceneHandler06_setExits(g_fullpipe->_currentScene);
 }
 
 void sceneHandler06_sub01() {
@@ -85,63 +98,159 @@ void sceneHandler06_sub01() {
 }
 
 void sceneHandler06_spinHandle() {
-	warning("STUB: sceneHandler06_spinHandle()");
+	int tummy = g_fullpipe->getObjectState(sO_TummyTrampie);
+
+	if (tummy == g_fullpipe->getObjectEnumState(sO_TummyTrampie, sO_IsEating))
+		g_fullpipe->setObjectState(sO_TummyTrampie, g_fullpipe->getObjectEnumState(sO_TummyTrampie, sO_IsSleeping));
+	else if (tummy == g_fullpipe->getObjectEnumState(sO_TummyTrampie, sO_IsSleeping))
+		g_fullpipe->setObjectState(sO_TummyTrampie, g_fullpipe->getObjectEnumState(sO_TummyTrampie, sO_IsDrinking));
+	else if (tummy == g_fullpipe->getObjectEnumState(sO_TummyTrampie, sO_IsDrinking))
+		g_fullpipe->setObjectState(sO_TummyTrampie, g_fullpipe->getObjectEnumState(sO_TummyTrampie, sO_IsScratchingBelly));
+	else if (tummy == g_fullpipe->getObjectEnumState(sO_TummyTrampie, sO_IsScratchingBelly))
+		g_fullpipe->setObjectState(sO_TummyTrampie, g_fullpipe->getObjectEnumState(sO_TummyTrampie, sO_IsEating));
 }
 
 void sceneHandler06_uPipeClick() {
-	warning("STUB: sceneHandler06_uPipeClick()");
+	if (getGameLoaderInteractionController()->_flag24)
+		handleObjectInteraction(g_fullpipe->_aniMan2, g_fullpipe->_currentScene->getPictureObjectById(PIC_SC6_LADDER, 0), 0);
 }
 
 void sceneHandler06_buttonPush() {
-	warning("STUB: sceneHandler06_buttonPush()");
+	g_vars->scene06_invHandle = g_fullpipe->_currentScene->getStaticANIObject1ById(ANI_INV_HANDLE, -1);
+
+	if (g_vars->scene06_invHandle)
+		if (g_vars->scene06_invHandle->_flags & 4)
+			if (g_vars->scene06_invHandle->_statics)
+				if (g_vars->scene06_invHandle->_statics->_staticsId == ST_HDL_PLUGGED)
+					chainQueue(QU_SC6_FALLHANDLE, 1);
 }
 
 void sceneHandler06_showNextBall() {
-	warning("STUB: sceneHandler06_showNextBall()");
+	if (g_vars->scene06_balls.size()) {
+		g_vars->scene06_currentBall = new StaticANIObject(g_vars->scene06_balls.front());
+		g_vars->scene06_balls.remove_at(0);
+
+		MessageQueue *mq = new MessageQueue(g_fullpipe->_currentScene->getMessageQueueById(QU_SC6_SHOWNEXTBALL), 0, 1);
+
+		mq->replaceKeyCode(-1, g_vars->scene06_currentBall->_okeyCode);
+		mq->chain(0);
+
+		++g_vars->scene06_numBallsGiven;
+	}
 }
 
 void sceneHandler06_installHandle() {
-	warning("STUB: sceneHandler06_installHandle()");
-}
-
-void sceneHandler06_takeBall() {
-	warning("STUB: sceneHandler06_takeBall()");
-}
-
-void sceneHandler06_sub02() {
-	warning("STUB: sceneHandler06_sub02()");
-}
-
-void sceneHandler06_throwBall() {
-	warning("STUB: sceneHandler06_throwBall()");
-}
-
-void sceneHandler06_sub03() {
-	warning("STUB: sceneHandler06_sub03()");
-}
-
-void sceneHandler06_sub04(int par) {
-	warning("STUB: sceneHandler06_sub04()");
-}
-
-void sceneHandler06_sub05() {
-	warning("STUB: sceneHandler06_sub05()");
-}
-
-void sceneHandler06_sub06() {
-	warning("STUB: sceneHandler06_sub06()");
-}
-
-void sceneHandler06_sub07() {
-	warning("STUB: sceneHandler06_sub07()");
+	chainQueue(QU_SC6_SHOWHANDLE, 0);
 }
 
 void sceneHandler06_sub08() {
 	warning("STUB: sceneHandler06_sub08()");
 }
 
+void sceneHandler06_takeBall() {
+	if (g_vars->scene06_currentBall && !g_vars->scene06_currentBall->_movement && g_vars->scene06_currentBall->_statics->_staticsId == ST_NBL_NORM) {
+		if (abs(1158 - g_fullpipe->_aniMan->_ox) > 1
+			|| abs(452 - g_fullpipe->_aniMan->_oy) > 1
+			|| g_fullpipe->_aniMan->_movement
+			|| g_fullpipe->_aniMan->_statics->_staticsId != (0x4000 | ST_MAN_RIGHT)) {
+			MessageQueue *mq = getCurrSceneSc2MotionController()->method34(g_fullpipe->_aniMan, 1158, 452, 1, (0x4000 | ST_MAN_RIGHT));
+
+			if (mq) {
+				ExCommand *ex = new ExCommand(0, 17, MSG_SC6_TAKEBALL, 0, 0, 0, 1, 0, 0, 0);
+				ex->_excFlags |= 3;
+				mq->addExCommandToEnd(ex);
+
+				postExCommand(g_fullpipe->_aniMan->_id, 2, 1158, 452, 0, -1);
+			}
+		} else {
+			sceneHandler06_sub08();
+		}
+	}
+}
+
+void sceneHandler06_sub02() {
+	if (g_vars->scene06_var10) {
+		g_vars->scene06_var17 = 4 * g_fullpipe->_aniMan->_movement->_currDynamicPhaseIndex + 16;
+		g_vars->scene06_var18 = 5 * (g_fullpipe->_aniMan->_movement->_currDynamicPhaseIndex + 4);
+
+		if (g_fullpipe->_aniMan->_movement->_currDynamicPhaseIndex < 4) {
+			g_fullpipe->_aniMan->_movement->setDynamicPhaseIndex(11);
+
+			g_vars->scene06_var08 = 0;
+
+			return;
+		}
+
+		g_fullpipe->_aniMan->_movement->setDynamicPhaseIndex(9);
+	}
+
+	g_vars->scene06_var08 = 0;
+}
+
+void sceneHandler06_sub07() {
+	if (g_vars->scene06_var10) {
+		g_vars->scene06_var11 = g_vars->scene06_var10;
+		g_vars->scene06_var10 = 0;
+		g_vars->scene06_var11->show1(g_fullpipe->_aniMan->_ox - 60, g_fullpipe->_aniMan->_oy - 60, -1, 0);
+
+		g_vars->scene06_var11->_priority = 27;
+	}
+}
+
+void sceneHandler06_throwCallback(int *arg) {
+	if (g_vars->scene06_var08) {
+		int dist = (g_fullpipe->_mouseVirtY - g_vars->scene06_sceneClickY)
+			* (g_fullpipe->_mouseVirtY - g_vars->scene06_sceneClickY)
+            + (g_fullpipe->_mouseVirtX - g_vars->scene06_sceneClickX)
+			* (g_fullpipe->_mouseVirtX - g_vars->scene06_sceneClickX);
+
+		*arg = sqrt(dist) * 0.1;
+
+		if (*arg > 8)
+			*arg = 8;
+	} else {
+		*arg = *arg + 1;
+		if (*arg == 12)
+			sceneHandler06_sub07();
+	}
+}
+
+void sceneHandler06_throwBall() {
+	g_fullpipe->_aniMan->_callback2 = sceneHandler06_throwCallback;
+	g_fullpipe->_aniMan->startAnim(MV_MAN6_THROWBALL, 0, -1);
+
+	g_vars->scene06_var08 = 1;
+}
+
+void sceneHandler06_sub03() {
+	warning("STUB: sceneHandler06_sub03()");
+}
+
+void sceneHandler06_sub05() {
+	warning("STUB: sceneHandler06_sub05()");
+}
+
 void sceneHandler06_sub09() {
 	warning("STUB: sceneHandler06_sub09()");
+}
+
+void sceneHandler06_sub04(int par) {
+	int pixel;
+
+	if (g_vars->scene06_var04 <= 475) {
+		if (g_vars->scene06_mumsy->getPixelAtPos(g_vars->scene06_var03, g_vars->scene06_var04, &pixel)) {
+			if (pixel) {
+				chainObjQueue(g_vars->scene06_mumsy, QU_MOM_JUMPBK, 0);
+				sceneHandler06_sub09();
+			}
+		}
+	} else {
+		sceneHandler06_sub05();
+	}
+}
+
+void sceneHandler06_sub06() {
+	warning("STUB: sceneHandler06_sub06()");
 }
 
 void sceneHandler06_sub10() {
@@ -157,11 +266,11 @@ void scene06_initScene(Scene *sc) {
 	g_vars->scene06_ballDrop = sc->getStaticANIObject1ById(ANI_BALLDROP, -1);
 	g_vars->scene06_var07 = 0;
 	g_vars->scene06_var08 = 0;
-	g_vars->scene06_var09 = 0;
+	g_vars->scene06_currentBall = 0;
 	g_vars->scene06_var10 = 0;
 	g_vars->scene06_var11 = 0;
 	g_vars->scene06_balls.clear();
-	g_vars->scene06_var12 = 0;
+	g_vars->scene06_numBallsGiven = 0;
 	g_vars->scene06_var13 = 0;
 	g_vars->scene06_var14 = 0;
 	g_vars->scene06_var15 = 1;
@@ -311,8 +420,8 @@ int sceneHandler06(ExCommand *ex) {
 					return 0;
 				}
 
-				if (g_vars->scene06_var09 == st) {
-					if (g_vars->scene06_var12 == 1)
+				if (g_vars->scene06_currentBall == st) {
+					if (g_vars->scene06_numBallsGiven == 1)
 						sceneHandler06_takeBall();
 
 					ex->_messageKind = 0;
@@ -407,10 +516,10 @@ int sceneHandler06(ExCommand *ex) {
 				sceneHandler06_sub04(g_vars->scene06_var17);
 			}
 			if (g_vars->scene06_var07
-				&& !g_vars->scene06_var09
+				&& !g_vars->scene06_currentBall
 				&& !g_vars->scene06_var10
 				&& !g_vars->scene06_var11
-				&& g_vars->scene06_var12 >= 15
+				&& g_vars->scene06_numBallsGiven >= 15
 				&& !g_vars->scene06_ballDrop->_movement
 				&& !g_vars->scene06_mumsy->_movement
 				&& !g_vars->scene06_var16)

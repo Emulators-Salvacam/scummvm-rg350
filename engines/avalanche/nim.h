@@ -44,7 +44,6 @@ private:
 
 	byte _old[3];
 	byte _stones[3];
-	byte _stonePic[4][23][7]; // Picture of Nimstone.
 	byte _turns;
 	bool _dogfoodsTurn;
 	byte _stonesLeft;
@@ -55,9 +54,13 @@ private:
 	int8 _mNum, _mRow;
 	byte _playedNim; // How many times you've played Nim.
 
-	void chalk(int x,int y, Common::String z);
+	// Inner variables for dogFood(), find() and findAp().
+	bool _inAp[3];
+	bool _lmo; // Let Me Out!
+	byte _r[3];
+
+	void chalk(int x, int y, Common::String text);
 	void setup();
-	void plotStone(byte x,byte y);
 	void board();
 	void startMove();
 	void showChanges();
@@ -67,8 +70,8 @@ private:
 	void takeSome();
 	void endOfGame();
 	void dogFood();
-	bool find(byte x);
-	void findAp(byte start,byte stepsize);
+	bool find(byte x); // This gives TRUE if there's a pile with x stones in.
+	void findAp(byte start, byte stepSize);
 };
 
 } // End of namespace Avalanche
