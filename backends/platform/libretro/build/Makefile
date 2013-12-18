@@ -88,6 +88,8 @@ else ifneq (,$(findstring hardfloat,$(platform)))
    DEFINES += -mfloat-abi=hard
 endif
    DEFINES += -DARM
+else ifeq ($(platform), win)
+	CC = gcc
 else
    TARGET  := $(TARGET_NAME)_libretro.dll
    LDFLAGS += -shared -Wl,--version-script=../link.T
