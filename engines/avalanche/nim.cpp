@@ -47,8 +47,6 @@ void Nim::resetVariables() {
 	_row = 0;
 	_number = 0;
 	_squeak = false;
-	_mNum = 0;
-	_mRow = 0;
 	_lmo = false;
 
 	for (int i = 0; i < 3; i++) {
@@ -86,14 +84,18 @@ void Nim::playNim() {
 	CursorMan.showMouse(false);
 	setup();
 	board();
-	CursorMan.showMouse(true);
+	//CursorMan.showMouse(true);
 
 	do {
+		
 		startMove();
 		if (_dogfoodsTurn)
 			dogFood();
-		else
+		else {
+			CursorMan.showMouse(true);
 			takeSome();
+			CursorMan.showMouse(false);
+		}
 		_stones[_row] -= _number;
 		showChanges();
 	} while (_stonesLeft != 0);
@@ -101,13 +103,10 @@ void Nim::playNim() {
 	endOfGame(); // Winning sequence is A1, B3, B1, C1, C1, btw.
 
 	_vm->fadeOut();
-	CursorMan.showMouse(false);
-
 	_vm->_graphics->restoreScreen();
 	_vm->_graphics->removeBackup();
-
-	CursorMan.showMouse(true);
 	_vm->fadeIn();
+	CursorMan.showMouse(true);
 
 	if (_dogfoodsTurn) {
 		// Dogfood won - as usual.
@@ -151,7 +150,7 @@ void Nim::chalk(int x, int y, Common::String text) {
 
 void Nim::setup() {
 	_vm->fadeIn();
-	_vm->_graphics->loadNim();
+	_vm->_graphics->nimLoad();
 
 	_vm->_graphics->drawFilledRectangle(Common::Rect(0, 0, 640, 200), kColorBlack);
 	// Upper left rectangle.
@@ -161,8 +160,8 @@ void Nim::setup() {
 	_vm->_graphics->drawRectangle(Common::Rect(394, 50, 635, 198), kColorRed);
 	_vm->_graphics->drawFilledRectangle(Common::Rect(395, 51, 634, 197), kColorBrown);
 		
-	_vm->_graphics->drawNimLogo();
-	_vm->_graphics->drawNimInitials();
+	_vm->_graphics->nimDrawLogo();
+	_vm->_graphics->nimDrawInitials();
 
 	_vm->_graphics->drawNormalText("SCOREBOARD:", _vm->_font, 8, 475, 45, kColorWhite);
 	_vm->_graphics->drawNormalText("Turn:", _vm->_font, 8, 420, 55, kColorYellow);
@@ -192,9 +191,10 @@ void Nim::setup() {
 }
 
 void Nim::board() {
+	_vm->_graphics->drawFilledRectangle(Common::Rect(57, 72, 393, 200), kColorBlack);
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < _stones[i]; j++)
-			_vm->_graphics->drawNimStone(64 + j * 7 * 8 + j * 8, 75 + i * 35);
+			_vm->_graphics->nimDrawStone(64 + j * 8 * 8, 75 + i * 35);
 			// It's practically the body of the Pascal function "plotstone()", reimplemented.
 			// It's the only place where we use it, so there's no reason to keep it separated as a function.
 	_vm->_graphics->refreshScreen();
@@ -212,27 +212,278 @@ void Nim::startMove() {
 }
 
 void Nim::showChanges() {
-	warning("STUB: Nim::showChanges()");
+	chalk(573, 55 + _turns * 10, Common::String('A' + _row) + Common::String('0' + _number));
+	board();
+	_stonesLeft -= _number;
 }
 
 void Nim::blip() {
-	warning("STUB: Nim::blip()");
+	_vm->_sound->playNote(1771, 3);
 }
 
-void Nim::checkMouse() {
-	warning("STUB: Nim::checkMouse()");
+void Nim::findNextUp() {
+	while (_stones[_row] == 0) {
+		_row--;
+		if (_row < 0)
+			_row = 2;
+	}
+
+	if (_number > _stones[_row])
+		_number = _stones[_row];
 }
 
-void Nim::less() {
-	warning("STUB: Nim::less()");
+void Nim::findNextDown() {
+	while (_stones[_row] == 0) {
+		_row++;
+		if (_row > 2)
+			_row = 0;
+	}
+
+	if (_number > _stones[_row])
+		_number = _stones[_row];
+}
+
+bool Nim::checkInput() {
+	while (!_vm->shouldQuit()) {
+		_vm->_graphics->refreshScreen();
+		Common::Event event;
+		while (_vm->getEvent(event)) {
+			if (event.type == Common::EVENT_LBUTTONUP) {
+				Common::Point cursorPos = _vm->getMousePos();
+
+				int8 newRow = (cursorPos.y / 2 - 38) / 35 - 1;
+				if ((newRow < 0) || (newRow > 2)) {
+					blip();
+					return false;
+				}
+
+				int8 newNum = _stones[newRow] - ((cursorPos.x - 64) / 64);
+				if ((newNum < 1) || (newNum > _stones[newRow])) {
+					blip();
+					return false;
+				}
+
+				_number = newNum;
+				_row = newRow;
+
+				return true;
+			} else if (event.type == Common::EVENT_KEYDOWN) {
+				switch (event.kbd.keycode) {
+				case Common::KEYCODE_LEFT:
+				case Common::KEYCODE_KP_PLUS:
+					if (_stones[_row] > _number)
+						_number++;
+					return false;
+				case Common::KEYCODE_RIGHT:
+				case Common::KEYCODE_KP_MINUS:
+					if (_number > 1)
+						_number--;
+					return false;
+				case Common::KEYCODE_1:
+					_number = 1;
+					return false;
+				case Common::KEYCODE_2:
+					if (_stones[_row] >= 2)
+						_number = 2;
+					return false;
+				case Common::KEYCODE_3:
+					if (_stones[_row] >= 3)
+						_number = 3;
+					else
+						_number = _stones[_row];
+					return false;
+				case Common::KEYCODE_4:
+					if (_stones[_row] >= 4)
+						_number = 4;
+					else
+						_number = _stones[_row];
+					return false;
+				case Common::KEYCODE_5:
+					if (_stones[_row] == 5)
+						_number = 5;
+					else
+						_number = _stones[_row];
+					return false;
+				case Common::KEYCODE_HOME:
+					_number = _stones[_row];
+					return false;
+				case Common::KEYCODE_END:
+					_number = 1;
+					return false;
+				case Common::KEYCODE_UP:
+					_row--;
+					if (_row < 0)
+						_row = 2;
+					findNextUp();
+					return false;
+				case Common::KEYCODE_DOWN:
+					_row++;
+					if (_row > 2)
+						_row = 0;
+					findNextDown();
+					return false;
+				case Common::KEYCODE_a:
+					if (_stones[0] != 0) {
+						_row = 0;
+						if (_number > _stones[_row])
+							_number = _stones[_row];
+					}
+					return false;
+				case Common::KEYCODE_b:
+					if (_stones[1] != 0) {
+						_row = 1;
+						if (_number > _stones[_row])
+							_number = _stones[_row];
+					}
+					return false;
+				case Common::KEYCODE_c:
+					if (_stones[2] != 0) {
+						_row = 2;
+						if (_number > _stones[_row])
+							_number = _stones[_row];
+					}
+					return false;
+				case Common::KEYCODE_PAGEUP:
+					_row = 0;
+					findNextDown();
+					return false;
+				case Common::KEYCODE_PAGEDOWN:
+					_row = 2;
+					findNextUp();
+					return false;
+				case Common::KEYCODE_RETURN:
+					return true;
+				default:
+					break;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 void Nim::takeSome() {
-	warning("STUB: Nim::takeSome()");
+	_number = 1;
+	
+	do {
+		byte sr;
+		do {
+			sr = _stones[_row];
+			if (sr == 0) {
+				if (_row == 2)
+					_row = 0;
+				else
+					_row++;
+				_number = 1;
+			}
+		} while (sr == 0);
+		
+		if (_number > sr)
+			_number = sr;
+
+		int x1 = 63 + (_stones[_row] - _number) * 64;
+		int y1 = 38 + 35 * (_row + 1);
+		int x2 = 54 + _stones[_row] * 64;
+		int y2 = 63 + 35 * (_row + 1);
+		_vm->_graphics->drawRectangle(Common::Rect(x1, y1, x2, y2), kColorBlue); // Draw the selection rectangle.
+		_vm->_graphics->refreshScreen();
+
+		bool confirm = false;
+		do {
+			confirm = checkInput();
+			
+			if (!confirm) {
+				_vm->_graphics->drawRectangle(Common::Rect(x1, y1, x2, y2), kColorBlack); // Erase the previous selection.
+				x1 = 63 + (_stones[_row] - _number) * 64;
+				y1 = 38 + 35 * (_row + 1);
+				x2 = 54 + _stones[_row] * 64;
+				y2 = 63 + 35 * (_row + 1);
+				_vm->_graphics->drawRectangle(Common::Rect(x1, y1, x2, y2), kColorBlue); // Draw the new one.
+				_vm->_graphics->refreshScreen();
+			}
+		} while (!confirm);
+		
+		return;
+
+	} while (true);
 }
 
 void Nim::endOfGame() {
-	warning("STUB: Nim::endOfGame()");
+	chalk(595, 55 + _turns * 10, "Wins!");
+	_vm->_graphics->drawNormalText("- - -   Press any key...  - - -", _vm->_font, 8, 100, 190, kColorWhite);
+
+	Common::Event event;
+	bool escape = false;
+	while (!_vm->shouldQuit() && !escape) {
+		_vm->_graphics->refreshScreen();
+		while (_vm->getEvent(event)) {
+			if ((event.type == Common::EVENT_LBUTTONUP) || (event.type == Common::EVENT_KEYDOWN)) {
+				escape = true;
+				break;
+			}
+		}
+	}
+
+	_vm->_graphics->nimFree();
+}
+
+bool Nim::find(byte x) {
+	bool ret = false;
+	for (int i = 0; i < 3; i++) {
+		if (_stones[i] == x) {
+			ret = true;
+			_inAp[i] = true;
+		}
+	}
+	return ret;
+}
+
+void Nim::findAp(byte start, byte stepSize) {
+	byte thisOne = 0;
+	byte matches = 0;
+
+	for (int i = 0; i < 3; i++)
+		_inAp[i] = 0; // Blank 'em all!
+
+	for (int i = 0; i < 3; i++) {
+		if (find(start + i * stepSize))
+			matches++;
+		else
+			thisOne = i;
+	}
+
+	// Now... Matches must be 0, 1, 2, or 3.
+	// 0 / 1 mean there are no A.P.s here, so we'll keep looking,
+	// 2 means there is a potential A.P.that we can create (ideal!), and
+	// 3 means that we're already in an A.P. (Trouble!)
+
+	byte ooo = 0; // Odd one out.
+
+	switch (matches) {
+	case 2:
+		for (int i = 0; i < 3; i++) { // Find which one didn't fit the A.P.
+			if (!_inAp[i])
+				ooo = i;
+		}
+
+		if (_stones[ooo] > (start + thisOne * stepSize)) { // Check if it's possible!
+			// Create an A.P.
+			_row = ooo; // Already calculated.
+			// Start + thisone * stepsize will give the amount we SHOULD have here.
+			_number = _stones[_row] - (start + thisOne * stepSize);
+			_lmo = true;
+			return;
+		}
+		break;
+	case 3:  // We're actually IN an A.P! Trouble! Oooh dear.
+		// Take 1 from the largest pile.
+		_row = _r[2];
+		_number = 1;
+		_lmo = true;
+		return;
+	default:
+		break;
+	}
 }
 
 void Nim::dogFood() {
@@ -247,7 +498,7 @@ void Nim::dogFood() {
 			live++;
 		}
 	}
-	
+
 	switch (live) {
 	case 1: // Only one is free - so take 'em all!
 		_row = _r[0];
@@ -257,15 +508,17 @@ void Nim::dogFood() {
 		if (sr[0] > sr[1]) { // T > b
 			_row = _r[0];
 			_number = sr[0] - sr[1];
-		} else if (sr[0] < sr[1]) { // B > t
+		}
+		else if (sr[0] < sr[1]) { // B > t
 			_row = _r[1];
 			_number = sr[1] - sr[0];
-		} else { // B = t... oh no, we've lost!
+		}
+		else { // B = t... oh no, we've lost!
 			_row = _r[0];
 			_number = 1;
 		}
 		return;
-	case 3: { 
+	case 3: {
 		// Ho hum... this'll be difficult!
 		// There are three possible courses of action when we have 3 lines left:
 		// 1) Look for 2 equal lines, then take the odd one out.
@@ -297,8 +550,8 @@ void Nim::dogFood() {
 					sorted = false;
 				}
 			}
-		} while (sorted);
-		
+		} while (!sorted);
+
 		// Now we look for A.P.s...
 		for (int i = 1; i <= 3; i++) {
 			findAp(i, 1); // There are 3 "1"s.
@@ -313,64 +566,7 @@ void Nim::dogFood() {
 		_row = _r[2];
 		_number = 1;
 		return;
-		}
-	default:
-		break;
 	}
-}
-
-bool Nim::find(byte x) {
-	bool ret = false;
-	for (int i = 0; i < 3; i++) {
-		if (_stones[i] == x) {
-			ret = true;
-			_inAp[i] = true;
-		}
-	}
-	return ret;
-}
-
-void Nim::findAp(byte start, byte stepSize) {
-	byte thisOne = 0;
-	byte matches = 0;
-	for (int i = 0; i < 3; i++)
-		_inAp[i] = 0; // Blank 'em all!
-	for (int i = 0; i < 3; i++) {
-		if (find(start + i * stepSize))
-			matches++;
-		else
-			thisOne = i;
-	}
-
-	// Now..Matches must be 0, 1, 2, or 3.
-	// 0 / 1 mean there are no A.P.s here, so we'll keep looking,
-	// 2 means there is a potential A.P.that we can create (ideal!), and
-	// 3 means that we're already in an A.P. (Trouble!)
-
-	byte ooo = 0; // Odd one out.
-
-	switch (matches) {
-	case 2:
-		for (int i = 0; i < 3; i++) { // Find which one didn't fit the A.P.
-			if (!_inAp[i])
-				ooo = i;
-		}
-
-		if (_stones[ooo] > (start + thisOne * stepSize)) { // Check if it's possible!
-			// Create an A.P.
-			_row = ooo; // Already calculated.
-			// Start + thisone * stepsize will give the amount we SHOULD have here.
-			_number = _stones[_row] - (start + thisOne * stepSize);
-			_lmo = true;
-			return;
-		}
-		break;
-	case 3:  // We're actually IN an A.P! Trouble! Oooh dear.
-		// Take 1 from the largest pile.
-		_row = _r[2];
-		_number = 1;
-		_lmo = true;
-		return;
 	default:
 		break;
 	}

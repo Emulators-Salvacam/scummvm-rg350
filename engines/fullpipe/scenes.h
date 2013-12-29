@@ -28,6 +28,7 @@ namespace Fullpipe {
 struct BehaviorEntryInfo;
 class StaticANIObject;
 class MctlLadder;
+class MGM;
 
 int defaultUpdateCursor();
 
@@ -58,6 +59,34 @@ void scene06_initScene(Scene *sc);
 void scene06_initMumsy();
 int sceneHandler06(ExCommand *cmd);
 int scene06_updateCursor();
+
+void scene07_initScene(Scene *sc);
+int sceneHandler07(ExCommand *cmd);
+
+void scene08_initScene(Scene *sc);
+void scene08_setupMusic();
+int sceneHandler08(ExCommand *cmd);
+int scene08_updateCursor();
+
+void scene10_initScene(Scene *sc);
+int sceneHandler10(ExCommand *cmd);
+int scene10_updateCursor();
+
+void scene11_initScene(Scene *sc);
+void scene11_setupMusic();
+int sceneHandler11(ExCommand *cmd);
+int scene11_updateCursor();
+
+void scene12_initScene(Scene *sc);
+int sceneHandler12(ExCommand *ex);
+
+int scene15_updateCursor();
+void scene15_initScene(Scene *sc);
+int sceneHandler15(ExCommand *cmd);
+
+void scene24_initScene(Scene *sc);
+void scene24_setPoolState();
+int sceneHandler24(ExCommand *cmd);
 
 void sceneDbgMenu_initScene(Scene *sc);
 int sceneHandlerDbgMenu(ExCommand *cmd);
@@ -148,27 +177,27 @@ public:
 	int scene05_floatersTicker;
 
 	StaticANIObject *scene06_mumsy;
-	int scene06_var01;
-	int scene06_var02;
-	int scene06_var03;
-	int scene06_var04;
-	int scene06_var06;
+	int scene06_manX;
+	int scene06_manY;
+	int scene06_ballX;
+	int scene06_ballY;
+	StaticANIObject *scene06_someBall;
 	StaticANIObject *scene06_invHandle;
 	StaticANIObject *scene06_liftButton;
 	StaticANIObject *scene06_ballDrop;
-	int scene06_var07;
-	int scene06_var08;
+	bool scene06_arcadeEnabled;
+	bool scene06_aimingBall;
 	StaticANIObject *scene06_currentBall;
-	StaticANIObject *scene06_var10;
-	StaticANIObject *scene06_var11;
+	StaticANIObject *scene06_ballInHands;
+	StaticANIObject *scene06_flyingBall;
 	Common::Array<StaticANIObject *> scene06_balls;
 	int scene06_numBallsGiven;
-	int scene06_var13;
-	int scene06_var14;
-	int scene06_var15;
-	int scene06_var16;
-	int scene06_var17;
-	int scene06_var18;
+	int scene06_mumsyNumBalls;
+	int scene06_eggieTimeout;
+	int scene06_eggieDirection;
+	int scene06_mumsyGotBall;
+	int scene06_ballDeltaX;
+	int scene06_ballDeltaY;
 	int scene06_sceneClickX;
 	int scene06_sceneClickY;
 	int scene06_mumsyPos;
@@ -176,6 +205,70 @@ public:
 	BehaviorEntryInfo *scene06_mumsyJumpFw;
 	int scene06_mumsyJumpBkPercent;
 	int scene06_mumsyJumpFwPercent;
+
+	BehaviorEntryInfo *scene07_lukeAnim;
+	int scene07_lukePercent;
+	StaticANIObject *scene07_plusMinus;
+
+	StaticANIObject *scene08_batuta;
+	StaticANIObject *scene08_vmyats;
+	StaticANIObject *scene08_clock;
+	bool scene08_inAir;
+	bool scene08_flyingUp;
+	int scene08_onBelly;
+	int scene08_stairsOffset;
+	int scene08_snoringCountdown;
+	bool scene08_inArcade;
+	bool scene08_stairsVisible;
+	int scene08_manOffsetY;
+
+	StaticANIObject *scene10_gum;
+	StaticANIObject *scene10_packet;
+	StaticANIObject *scene10_packet2;
+	StaticANIObject *scene10_inflater;
+	PictureObject *scene10_ladder;
+	int scene10_hasGum;
+
+	StaticANIObject *scene11_swingie;
+	StaticANIObject *scene11_boots;
+	StaticANIObject *scene11_dudeOnSwing;
+	PictureObject *scene11_hint;
+	MGM scene11_mgm;
+	bool scene11_arcadeIsOn;
+	bool scene11_scrollIsEnabled;
+	bool scene11_scrollIsMaximized;
+	int scene11_hintCounter;
+	int scene11_swingieScreenEdge;
+	int scene11_crySound;
+	double scene11_swingAngle;
+	double scene11_swingOldAngle;
+	double scene11_swingSpeed;
+	double scene11_swingAngleDiff;
+	double scene11_swingInertia;
+	int scene11_swingCounter;
+	int scene11_swingCounterPrevTurn;
+	int scene11_swingDirection;
+	int scene11_swingDirectionPrevTurn;
+	bool scene11_swingIsSwinging;
+	bool scene11_swingieStands;
+	int scene11_dudeX;
+	int scene11_dudeY;
+	int scene11_swingMaxAngle;
+
+	int scene12_fly;
+	int scene12_flyCountdown;
+
+	int scene15_chantingCountdown;
+	StaticANIObject *scene15_plusminus;
+	PictureObject *scene15_ladder;
+	StaticANIObject *scene15_boot;
+
+	bool scene24_jetIsOn;
+	bool scene24_flowIsLow;
+	bool scene24_waterIsOn;
+	StaticANIObject *scene24_water;
+	StaticANIObject *scene24_jet;
+	StaticANIObject *scene24_drop;
 
 	PictureObject *selector;
 };

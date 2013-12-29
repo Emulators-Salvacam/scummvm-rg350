@@ -34,7 +34,7 @@
 namespace Fullpipe {
 
 InputController::InputController() {
-	g_fullpipe->_inputController = this;
+	g_fp->_inputController = this;
 
 	_flag = 0;
 	_cursorHandle = 0;
@@ -55,16 +55,16 @@ InputController::InputController() {
 InputController::~InputController() {
 	removeMessageHandler(126, -1);
 
-	g_fullpipe->_inputController = 0;
+	g_fp->_inputController = 0;
 }
 
 void InputController::setInputDisabled(bool state) {
 	_flag = state;
-	g_fullpipe->_inputDisabled = state;
+	g_fp->_inputDisabled = state;
 }
 
 void setInputDisabled(bool state) {
-	g_fullpipe->_inputController->setInputDisabled(state);
+	g_fp->_inputController->setInputDisabled(state);
 }
 
 void InputController::addCursor(CursorInfo *cursor) {
@@ -93,8 +93,8 @@ void InputController::drawCursor(int x, int y) {
 	if (_cursorIndex == -1)
 		return;
 
-	_cursorBounds.left = g_fullpipe->_sceneRect.left + x - _cursorsArray[_cursorIndex]->hotspotX;
-	_cursorBounds.top = g_fullpipe->_sceneRect.top + y - _cursorsArray[_cursorIndex]->hotspotY;
+	_cursorBounds.left = g_fp->_sceneRect.left + x - _cursorsArray[_cursorIndex]->hotspotX;
+	_cursorBounds.top = g_fp->_sceneRect.top + y - _cursorsArray[_cursorIndex]->hotspotY;
 	_cursorBounds.right = _cursorBounds.left + _cursorsArray[_cursorIndex]->width;
 	_cursorBounds.bottom = _cursorBounds.top + _cursorsArray[_cursorIndex]->height;
 
@@ -311,5 +311,33 @@ void FullpipeEngine::setArcadeOverlay(int picId) {
 	_arcadeOverlayMidY = abs(point2.y - point.y) / 2;
 }
 
+int FullpipeEngine::drawArcadeOverlay(int adjust) {
+	_arcadeOverlayHelper->drawAt(_sceneRect.left + _arcadeOverlayX, _sceneRect.top + _arcadeOverlayY);
+	_arcadeOverlay->drawAt(_sceneRect.left + _arcadeOverlayX + _arcadeOverlayMidX, _sceneRect.top + _arcadeOverlayY + _arcadeOverlayMidY);
+
+	if (adjust) {
+		if (_arcadeOverlayX > 745) {
+			_arcadeOverlayX -= 15;
+
+			if (_arcadeOverlayX < 745)
+				_arcadeOverlayX = 745;
+		}
+
+		return 1;
+	}
+
+	if (_arcadeOverlayX >= 800) {
+		return 0;
+	} else {
+		_arcadeOverlayX += 15;
+
+		if (_arcadeOverlayX <= 800)
+			return 1;
+
+		_arcadeOverlayX = 800;
+	}
+
+	return 1;
+}
 
 } // End of namespace Fullpipe

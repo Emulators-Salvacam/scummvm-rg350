@@ -28,6 +28,7 @@ namespace Fullpipe {
 class Statics;
 class Movement;
 class MctlConnectionPoint;
+class MovGraphLink;
 
 int startWalkTo(int objId, int objKey, int x, int y, int a5);
 int doSomeAnimation(int objId, int objKey, int a3);
@@ -50,15 +51,18 @@ public:
 	virtual int removeObject(StaticANIObject *obj) { return 0; }
 	virtual void freeItems() {}
 	virtual int method28() { return 0; }
-	virtual int method2C() { return 0; }
+	virtual int method2C(StaticANIObject *obj, int x, int y) { return 0; }
 	virtual int method30() { return 0; }
 	virtual MessageQueue *method34(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId) { return 0; }
 	virtual int changeCallback() { return 0; }
-	virtual int method3C() { return 0; }
+	virtual int method3C(StaticANIObject *ani, int flag) { return 0; }
 	virtual int method40() { return 0; }
 	virtual int method44() { return 0; }
 	virtual int method48() { return -1; }
 	virtual MessageQueue *doWalkTo(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId) { return 0; }
+
+	void enableLinks(const char *linkName, bool enable);
+	MovGraphLink *getLinkByName(const char *name);
 };
 
 class MovGraphReact : public CObject {
@@ -110,6 +114,7 @@ public:
 
 	void initMovGraph2();
 	MctlConnectionPoint *findClosestConnectionPoint(int ox, int oy, int destIndex, int connectionX, int connectionY, int sourceIndex, int *minDistancePtr);
+	void replaceNodeX(int from, int to);
 };
 
 struct MGMSubItem {
@@ -315,10 +320,10 @@ public:
 	virtual int removeObject(StaticANIObject *obj);
 	virtual void freeItems();
 	virtual int method28();
-	virtual int method2C();
+	virtual int method2C(StaticANIObject *obj, int x, int y);
 	virtual MessageQueue *method34(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId);
 	virtual int changeCallback();
-	virtual int method3C();
+	virtual int method3C(StaticANIObject *ani, int flag);
 	virtual int method44();
 	virtual MessageQueue *doWalkTo(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId);
 	virtual int method50();
@@ -368,6 +373,10 @@ struct MovInfo1 {
 	Common::Array<MovInfo1Sub *> items;
 	int itemsCount;
 	int flags;
+
+	MovInfo1() { clear(); }
+	MovInfo1(MovInfo1 *src);
+	void clear();
 };
 
 struct MovGraph2Item { // 744

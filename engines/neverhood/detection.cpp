@@ -130,6 +130,9 @@ static const NeverhoodGameDescription gameDescriptions[] = {
 		0,
 	},
 
+// FIXME: Disabled for now, as it has broken resources that corrupt the heap
+// (e.g. the menu header).
+#if 0
 	{
 		// Neverhood Russian version. Fargus
 		{
@@ -146,6 +149,7 @@ static const NeverhoodGameDescription gameDescriptions[] = {
 		0,
 		0,
 	},
+#endif
 
 	{ AD_TABLE_END_MARKER, 0, 0, 0, 0 }
 };
@@ -165,6 +169,14 @@ static const ExtraGuiOption neverhoodExtraGuiOption2 = {
 	"skiphallofrecordsscenes",
 	false
 };
+
+static const ExtraGuiOption neverhoodExtraGuiOption3 = {
+	_s("Scale the making of videos to full screen"),
+	_s("Scale the making of videos, so that they use the whole screen"),
+	"scalemakingofvideos",
+	false
+};
+
 
 class NeverhoodMetaEngine : public AdvancedMetaEngine {
 public:
@@ -221,6 +233,7 @@ const ExtraGuiOptions NeverhoodMetaEngine::getExtraGuiOptions(const Common::Stri
 	ExtraGuiOptions options;
 	options.push_back(neverhoodExtraGuiOption1);
 	options.push_back(neverhoodExtraGuiOption2);
+	options.push_back(neverhoodExtraGuiOption3);
 	return options;
 }
 
