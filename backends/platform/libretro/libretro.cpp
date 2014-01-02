@@ -110,9 +110,10 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
 void retro_init (void)
 {
    struct retro_log_callback log;
-   environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log);
-   if (log.log)
+   if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
       log_cb = log.log;
+   else
+      log_cb = NULL;
     // Get color mode: 32 first as VGA has 6 bits per pixel
 /*    RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_XRGB8888;
     if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
