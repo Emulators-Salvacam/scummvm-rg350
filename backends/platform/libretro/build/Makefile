@@ -40,7 +40,7 @@ else ifeq ($(platform), ios)
    LDFLAGS += -dynamiclib -fPIC
    CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
 else ifeq ($(platform), qnx)
-   TARGET  := $(TARGET_NAME)_libretro.so
+   TARGET  := $(TARGET_NAME)_libretro_qnx.so
    DEFINES += -fPIC -DSYSTEM_NOT_SUPPORTING_D_TYPE
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    CC = qcc -Vgcc_ntoarmv7le
