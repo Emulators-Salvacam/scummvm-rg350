@@ -36,6 +36,7 @@
 // Video Codecs
 #include "video/codecs/cinepak.h"
 #include "video/codecs/indeo3.h"
+#include "video/codecs/mjpeg.h"
 #include "video/codecs/mpeg.h"
 #include "video/codecs/msvideo1.h"
 #include "video/codecs/msrle.h"
@@ -59,6 +60,8 @@ namespace Video {
 #define ID_MIDS MKTAG('m','i','d','s')
 #define ID_TXTS MKTAG('t','x','t','s')
 #define ID_JUNK MKTAG('J','U','N','K')
+#define ID_JUNQ MKTAG('J','U','N','Q')
+#define ID_DMLH MKTAG('d','m','l','h')
 #define ID_STRF MKTAG('s','t','r','f')
 #define ID_MOVI MKTAG('m','o','v','i')
 #define ID_REC  MKTAG('r','e','c',' ')
@@ -80,6 +83,7 @@ namespace Video {
 #define ID_IV32 MKTAG('i','v','3','2')
 #define ID_DUCK MKTAG('D','U','C','K')
 #define ID_MPG2 MKTAG('m','p','g','2')
+#define ID_MJPG MKTAG('m','j','p','g')
 
 // Stream Types
 enum {
@@ -155,9 +159,11 @@ bool AVIDecoder::parseNextChunk() {
 	case ID_STRD: // Extra stream info, safe to ignore
 	case ID_VEDT: // Unknown, safe to ignore
 	case ID_JUNK: // Alignment bytes, should be ignored
+	case ID_JUNQ: // Same as JUNK, safe to ignore
 	case ID_ISFT: // Metadata, safe to ignore
 	case ID_DISP: // Metadata, should be safe to ignore
 	case ID_STRN: // Metadata, safe to ignore
+	case ID_DMLH: // OpenDML extension, contains an extra total frames field, safe to ignore
 		skipChunk(size);
 		break;
 	case ID_IDX1:
@@ -437,12 +443,10 @@ bool AVIDecoder::seekIntern(const Audio::Timestamp &time) {
 	if (time > getDuration())
 		return false;
 
-	// Track down our video track (optionally audio too).
-	// We only support seeking with one track right now.
+	// Track down our video track.
+	// We only support seeking with one video track right now.
 	AVIVideoTrack *videoTrack = 0;
-	AVIAudioTrack *audioTrack = 0;
 	int videoIndex = -1;
-	int audioIndex = -1;
 	uint trackID = 0;
 
 	for (TrackListIterator it = getTrackListBegin(); it != getTrackListEnd(); it++, trackID++) {
@@ -455,15 +459,6 @@ bool AVIDecoder::seekIntern(const Audio::Timestamp &time) {
 
 			videoTrack = (AVIVideoTrack *)*it;
 			videoIndex = trackID;
-		} else if ((*it)->getTrackType() == Track::kTrackTypeAudio) {
-			if (audioTrack) {
-				// Already have one
-				// -> Not supported
-				return false;
-			}
-
-			audioTrack = (AVIAudioTrack *)*it;
-			audioIndex = trackID;
 		}
 	}
 
@@ -476,8 +471,9 @@ bool AVIDecoder::seekIntern(const Audio::Timestamp &time) {
 	if (time == getDuration()) {
 		videoTrack->setCurFrame(videoTrack->getFrameCount() - 1);
 
-		if (audioTrack)
-			audioTrack->resetStream();
+		for (TrackListIterator it = getTrackListBegin(); it != getTrackListEnd(); it++)
+			if ((*it)->getTrackType() == Track::kTrackTypeAudio)
+				((AVIAudioTrack *)*it)->resetStream();
 
 		return true;
 	}
@@ -538,7 +534,15 @@ bool AVIDecoder::seekIntern(const Audio::Timestamp &time) {
 	if (frameIndex < 0) // This shouldn't happen.
 		return false;
 
-	if (audioTrack) {
+	// Update all the audio tracks
+	uint audioIndex = 0;
+
+	for (TrackListIterator it = getTrackListBegin(); it != getTrackListEnd(); it++, audioIndex++) {
+		if ((*it)->getTrackType() != Track::kTrackTypeAudio)
+			continue;
+
+		AVIAudioTrack *audioTrack = (AVIAudioTrack *)*it;
+
 		// We need to find where the start of audio should be.
 		// Which is exactly 'initialFrames' audio chunks back from where
 		// our found frame is.
@@ -679,6 +683,16 @@ void AVIDecoder::forceVideoEnd() {
 			((AVIVideoTrack *)*it)->forceTrackEnd();
 }
 
+VideoDecoder::AudioTrack *AVIDecoder::getAudioTrack(int index) {
+	// AVI audio track indexes are relative to the first track
+	Track *track = getTrack(index);
+
+	if (!track || track->getTrackType() != Track::kTrackTypeAudio)
+		return 0;
+
+	return (AudioTrack *)track;
+}
+
 AVIDecoder::AVIVideoTrack::AVIVideoTrack(int frameCount, const AVIStreamHeader &streamHeader, const BitmapInfoHeader &bitmapInfoHeader, byte *initialPalette)
 		: _frameCount(frameCount), _vidsHeader(streamHeader), _bmInfo(bitmapInfoHeader), _initialPalette(initialPalette) {
 	_videoCodec = createCodec();
@@ -774,6 +788,8 @@ Codec *AVIDecoder::AVIVideoTrack::createCodec() {
 	case ID_MPG2:
 		return new MPEGDecoder();
 #endif
+	case ID_MJPG:
+		return new MJPEGDecoder();
 	default:
 		warning("Unknown/Unhandled compression format \'%s\'", tag2str(_vidsHeader.streamHandler));
 	}

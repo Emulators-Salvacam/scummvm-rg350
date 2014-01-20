@@ -94,11 +94,14 @@ FullpipeEngine::FullpipeEngine(OSystem *syst, const ADGameDescription *gameDesc)
 	_isProcessingMessages = false;
 
 	_musicAllowed = -1;
+	_musicGameVar = 0;
 
 	_aniMan = 0;
 	_aniMan2 = 0;
 	_currentScene = 0;
+	_loaderScene = 0;
 	_scene2 = 0;
+	_scene3 = 0;
 	_movTable = 0;
 	_floaters = 0;
 	_mgm = 0;
@@ -446,21 +449,6 @@ void FullpipeEngine::setObjectState(const char *name, int state) {
 	}
 
 	var->setSubVarAsInt(name, state);
-}
-
-void FullpipeEngine::updateMapPiece(int mapId, int update) {
-	for (int i = 0; i < 200; i++) {
-		int hiWord = (_mapTable[i] >> 16) & 0xffff;
-
-		if (hiWord == mapId) {
-			_mapTable[i] |= update;
-			return;
-		}
-		if (!hiWord) {
-			_mapTable[i] = (mapId << 16) | update;
-			return;
-		}
-	}
 }
 
 void FullpipeEngine::disableSaves(ExCommand *ex) {

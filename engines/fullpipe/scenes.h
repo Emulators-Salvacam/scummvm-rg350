@@ -26,9 +26,10 @@
 namespace Fullpipe {
 
 struct BehaviorEntryInfo;
-class StaticANIObject;
-class MctlLadder;
 class MGM;
+class MctlLadder;
+struct Ring;
+class StaticANIObject;
 
 int defaultUpdateCursor();
 
@@ -80,13 +81,97 @@ int scene11_updateCursor();
 void scene12_initScene(Scene *sc);
 int sceneHandler12(ExCommand *ex);
 
+void scene13_initScene(Scene *sc);
+int sceneHandler13(ExCommand *ex);
+
+void scene14_initScene(Scene *sc);
+void scene14_setupMusic();
+int sceneHandler14(ExCommand *cmd);
+int scene14_updateCursor();
+
 int scene15_updateCursor();
 void scene15_initScene(Scene *sc);
 int sceneHandler15(ExCommand *cmd);
 
+void scene16_initScene(Scene *sc);
+int sceneHandler16(ExCommand *cmd);
+int scene16_updateCursor();
+
+void scene17_initScene(Scene *sc);
+void scene17_restoreState();
+int sceneHandler17(ExCommand *cmd);
+int scene17_updateCursor();
+
+void scene18_preload();
+void scene19_preload(Scene *sc, int key);
+
+void scene20_initScene(Scene *sc);
+int sceneHandler20(ExCommand *ex);
+
+int scene21_updateCursor();
+void scene21_initScene(Scene *sc);
+int sceneHandler21(ExCommand *cmd);
+
+void scene22_initScene(Scene *sc);
+void scene22_setBagState();
+int sceneHandler22(ExCommand *cmd);
+int scene22_updateCursor();
+
+void scene23_initScene(Scene *sc);
+void scene23_setGiraffeState();
+int sceneHandler23(ExCommand *cmd);
+int scene23_updateCursor();
+
 void scene24_initScene(Scene *sc);
 void scene24_setPoolState();
 int sceneHandler24(ExCommand *cmd);
+
+void scene25_initScene(Scene *sc, int entrance);
+void scene25_setupWater(Scene *sc, int entrance);
+int sceneHandler25(ExCommand *cmd);
+int scene25_updateCursor();
+
+void scene26_initScene(Scene *sc);
+void scene26_setupDrop(Scene *sc);
+int sceneHandler26(ExCommand *cmd);
+int scene26_updateCursor();
+
+void scene28_initScene(Scene *sc);
+ int sceneHandler28(ExCommand *ex);
+int scene28_updateCursor();
+
+int scene30_updateCursor();
+void scene30_initScene(Scene *sc, int flag);
+int sceneHandler30(ExCommand *cmd);
+
+void scene31_initScene(Scene *sc);
+int sceneHandler31(ExCommand *ex);
+
+void scene32_initScene(Scene *sc);
+void scene32_setupMusic();
+int sceneHandler32(ExCommand *cmd);
+int scene32_updateCursor();
+
+void scene33_initScene(Scene *sc);
+void scene33_setupMusic();
+int sceneHandler33(ExCommand *cmd);
+int scene33_updateCursor();
+
+void scene34_initScene(Scene *sc);
+void scene34_initBeh();
+int sceneHandler34(ExCommand *cmd);
+int scene34_updateCursor();
+
+void scene35_initScene(Scene *sc);
+int sceneHandler35(ExCommand *cmd);
+
+int scene36_updateCursor();
+void scene36_initScene(Scene *sc);
+int sceneHandler36(ExCommand *cmd);
+
+void scene37_initScene(Scene *sc);
+int sceneHandler37(ExCommand *ex);
+int scene37_updateCursor();
 
 void sceneDbgMenu_initScene(Scene *sc);
 int sceneHandlerDbgMenu(ExCommand *cmd);
@@ -258,10 +343,92 @@ public:
 	int scene12_fly;
 	int scene12_flyCountdown;
 
+	StaticANIObject *scene13_whirlgig;
+	StaticANIObject *scene13_guard;
+	StaticANIObject *scene13_handleR;
+	StaticANIObject *scene13_handleL;
+	StaticANIObject *scene13_bridge;
+	bool scene13_guardDirection;
+	int scene13_dudeX;
+
+	StaticANIObject *scene14_grandma;
+	int scene14_sceneDeltaX;
+	int scene14_sceneDeltaY;
+	bool scene14_arcadeIsOn;
+	bool scene14_dudeIsKicking;
+	bool scene14_ballIsFlying;
+	bool scene14_dudeCanKick;
+	int scene14_sceneDiffX;
+	int scene14_sceneDiffY;
+	StaticANIObject *scene14_pink;
+	StaticANIObject *scene14_flyingBall;
+	Common::List<StaticANIObject *> scene14_balls;
+	bool scene14_grandmaIsHere;
+	int scene14_dudeX;
+	int scene14_dudeY;
+	int scene14_grandmaX;
+	int scene14_grandmaY;
+	int scene14_dude2X;
+	int scene14_ballDeltaX;
+	int scene14_ballDeltaY;
+	int scene14_ballX;
+	int scene14_ballY;
+	int scene14_hitsLeft;
+	Common::Point scene14_mouseCursorPos;
+
 	int scene15_chantingCountdown;
 	StaticANIObject *scene15_plusminus;
 	PictureObject *scene15_ladder;
 	StaticANIObject *scene15_boot;
+
+	Common::List<StaticANIObject *> scene16_figures;
+	StaticANIObject *scene16_walkingBoy;
+	StaticANIObject *scene16_walkingGirl;
+	int scene16_walkingCount;
+	StaticANIObject *scene16_wire;
+	StaticANIObject *scene16_mug;
+	StaticANIObject *scene16_jettie;
+	StaticANIObject *scene16_boot;
+	bool scene16_girlIsLaughing;
+	int scene16_sound;
+	bool scene16_placeIsOccupied;
+
+	int scene17_flyState;
+	bool scene17_sugarIsShown;
+	int scene17_sceneOldEdgeX;
+	int scene17_flyCountdown;
+	StaticANIObject *scene17_hand;
+	bool scene17_handPhase;
+	int scene17_sceneEdgeX;
+
+	int scene18_var01;
+
+	int scene20_fliesCountdown;
+	StaticANIObject *scene20_grandma;
+
+	StaticANIObject *scene21_giraffeBottom;
+	int scene21_giraffeBottomX;
+	int scene21_giraffeBottomY;
+	int scene21_pipeIsOpen;
+	double scene21_wigglePos;
+	bool scene21_wiggleTrigger;
+
+	StaticANIObject *scene22_bag;
+	StaticANIObject *scene22_giraffeMiddle;
+	bool scene22_dudeIsOnStool;
+	bool scene22_interactionIsDisabled;
+	bool scene22_craneIsOut;
+	int scene22_numBagFalls;
+
+	StaticANIObject *scene23_calend0;
+	StaticANIObject *scene23_calend1;
+	StaticANIObject *scene23_calend2;
+	StaticANIObject *scene23_calend3;
+	bool scene23_topReached;
+	bool scene23_isOnStool;
+	int scene23_someVar;
+	StaticANIObject *scene23_giraffeTop;
+	StaticANIObject *scene23_giraffee;
 
 	bool scene24_jetIsOn;
 	bool scene24_flowIsLow;
@@ -270,7 +437,118 @@ public:
 	StaticANIObject *scene24_jet;
 	StaticANIObject *scene24_drop;
 
+	StaticANIObject *scene25_water;
+	StaticANIObject *scene25_board;
+	StaticANIObject *scene25_drop;
+	bool scene25_dudeIsOnBoard;
+	bool scene25_waterIsPresent;
+	bool scene25_boardIsSelectable;
+	bool scene25_beardersAreThere;
+	int scene25_beardersCounter;
+	Common::Array<StaticANIObject *> scene25_bearders;
+	bool scene25_sneezeFlipper;
+
+	StaticANIObject *scene26_chhi;
+	StaticANIObject *scene26_drop;
+	PictureObject *scene26_sockPic;
+	StaticANIObject *scene26_sock;
+	StaticANIObject *scene26_activeVent;
+
+	bool scene28_fliesArePresent;
+	bool scene28_beardedDirection;
+	PictureObject *scene28_darkeningObject;
+	PictureObject *scene28_lighteningObject;
+	bool scene28_headDirection;
+	bool scene28_headBeardedFlipper;
+	bool scene28_lift6inside;
+
+	StaticANIObject *scene30_leg;
+	int scene30_liftFlag;
+
+	int scene31_chantingCountdown;
+	StaticANIObject *scene31_cactus;
+	StaticANIObject *scene31_plusMinus;
+
+	bool scene32_flagIsWaving;
+	bool scene32_flagNeedsStopping;
+	bool scene32_dudeIsSitting;
+	int scene32_cactusCounter;
+	bool scene32_dudeOnLadder;
+	bool scene32_cactusIsGrowing;
+	StaticANIObject *scene32_flag;
+	StaticANIObject *scene32_cactus;
+	StaticANIObject *scene32_massOrange;
+	StaticANIObject *scene32_massBlue;
+	StaticANIObject *scene32_massGreen;
+	StaticANIObject *scene32_button;
+
+	StaticANIObject *scene33_mug;
+	StaticANIObject *scene33_jettie;
+	StaticANIObject *scene33_cube;
+	int scene33_cubeX;
+	bool scene33_handleIsDown;
+	int scene33_ventsX[9];
+	int scene33_ventsState[9];
+
+	StaticANIObject *scene34_cactus;
+	StaticANIObject *scene34_vent;
+	StaticANIObject *scene34_hatch;
+	StaticANIObject *scene34_boot;
+	bool scene34_dudeClimbed;
+	bool scene34_dudeOnBoard;
+	bool scene34_dudeOnCactus;
+	int scene34_fliesCountdown;
+
+	StaticANIObject *scene35_hose;
+	StaticANIObject *scene35_bellyInflater;
+	int scene35_flowCounter;
+	int scene35_fliesCounter;
+
+	StaticANIObject *scene36_rotohrust;
+	StaticANIObject *scene36_scissors;
+
+	Common::Array<Ring *> scene37_rings;
+	int scene37_lastDudeX;
+	bool scene37_cursorIsLocked;
+	StaticANIObject *scene37_plusMinus1;
+	StaticANIObject *scene37_plusMinus2;
+	StaticANIObject *scene37_plusMinus3;
+	int scene37_soundFlipper;
+	int scene37_dudeX;
+
+	int scene38_var01;
+	int scene38_var02;
+	int scene38_var03;
+	int scene38_var04;
+	StaticANIObject *scene38_boss;
+	StaticANIObject *scene38_tally;
+	StaticANIObject *scene38_shorty;
+	StaticANIObject *scene38_domino0;
+	StaticANIObject *scene38_dominos;
+	StaticANIObject *scene38_domino1;
+	StaticANIObject *scene38_bottle;
+	int scene38_var05;
+	int scene38_var06;
+	int scene38_var07;
+	int scene38_var08;
+	int scene38_var09;
+	int scene38_var10;
+	int scene38_var11;
+	int scene38_var12;
+	int scene38_var13;
+
 	PictureObject *selector;
+};
+
+struct Ring {
+	StaticANIObject *ani;
+	int x;
+	int y;
+	int numSubRings;
+	int subRings[10];
+	bool state;
+
+	Ring();
 };
 
 } // End of namespace Fullpipe

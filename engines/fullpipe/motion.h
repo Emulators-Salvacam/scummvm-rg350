@@ -29,6 +29,8 @@ class Statics;
 class Movement;
 class MctlConnectionPoint;
 class MovGraphLink;
+class MessageQueue;
+class ExCommand2;
 
 int startWalkTo(int objId, int objKey, int x, int y, int a5);
 int doSomeAnimation(int objId, int objKey, int a3);
@@ -74,7 +76,7 @@ public:
 	MovGraphReact() : _pointCount(0), _points(0) {}
 	~MovGraphReact() { free(_points); }
 
-	virtual void method14() {}
+	virtual void setCenter(int x1, int y1, int x2, int y2) {}
 	virtual void createRegion() {}
 	virtual bool pointInRegion(int x, int y);
 };
@@ -115,6 +117,9 @@ public:
 	void initMovGraph2();
 	MctlConnectionPoint *findClosestConnectionPoint(int ox, int oy, int destIndex, int connectionX, int connectionY, int sourceIndex, int *minDistancePtr);
 	void replaceNodeX(int from, int to);
+
+	uint getMotionControllerCount() { return _motionControllers.size(); }
+	MotionController *getMotionController(int num) { return _motionControllers[num]->_motionControllerObj; }
 };
 
 struct MGMSubItem {
@@ -168,8 +173,11 @@ public:
 	void updateAnimStatics(StaticANIObject *ani, int staticsId);
 	Common::Point *getPoint(Common::Point *point, int aniId, int staticsId1, int staticsId2);
 	int getStaticsIndexById(int idx, int16 id);
+	int getStaticsIndex(int idx, Statics *st);
 	void clearMovements2(int idx);
 	int recalcOffsets(int idx, int st1idx, int st2idx, bool flip, bool flop);
+	Common::Point *calcLength(Common::Point *point, Movement *mov, int x, int y, int *x1, int *y1, int flag);
+	ExCommand2 *buildExCommand2(Movement *mov, int objId, int x1, int y1, Common::Point *x2, Common::Point *y2, int len);
 };
 
 struct MctlLadderMovementVars {
@@ -240,25 +248,29 @@ class ReactParallel : public MovGraphReact {
 	int _dx;
 	int _dy;
 
-  public:
+public:
 	ReactParallel();
 	virtual bool load(MfcArchive &file);
 
-	virtual void method14();
+	virtual void setCenter(int x1, int y1, int x2, int y2);
 	virtual void createRegion();
 };
 
 class ReactPolygonal : public MovGraphReact {
-	//CRgn _rgn;
-	int _field_C;
-	int _field_10;
+	Common::Rect *_bbox;
+	int _centerX;
+	int _centerY;
 
-  public:
+public:
 	ReactPolygonal();
+	~ReactPolygonal();
+
 	virtual bool load(MfcArchive &file);
 
-	virtual void method14();
+	virtual void setCenter(int x1, int y1, int x2, int y2);
 	virtual void createRegion();
+
+	void getBBox(Common::Rect *rect);
 };
 
 class MovGraphLink : public CObject {
@@ -277,6 +289,8 @@ class MovGraphLink : public CObject {
 
   public:
 	MovGraphLink();
+	virtual ~MovGraphLink();
+
 	virtual bool load(MfcArchive &file);
 
 	void calcNodeDistanceAndAngle();
@@ -314,6 +328,8 @@ public:
 
 public:
 	MovGraph();
+	virtual ~MovGraph();
+
 	virtual bool load(MfcArchive &file);
 
 	virtual void addObject(StaticANIObject *obj);
@@ -363,7 +379,7 @@ struct MovInfo1Sub {
 };
 
 struct MovInfo1 {
-	int field_0;
+	int index;
 	Common::Point pt1;
 	Common::Point pt2;
 	int distance1;

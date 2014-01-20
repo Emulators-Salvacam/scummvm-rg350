@@ -412,7 +412,6 @@ CreditsScene::CreditsScene(NeverhoodEngine *vm, Module *parentModule, bool canAb
 
 	_ticksTime = _vm->_system->getMillis() + 202100;
 
-	_vm->toggleSoundUpdate(true);
 	_musicResource = new MusicResource(_vm);
 	_musicResource->load(0x30812225);
 	_musicResource->play(0);
@@ -422,7 +421,6 @@ CreditsScene::CreditsScene(NeverhoodEngine *vm, Module *parentModule, bool canAb
 CreditsScene::~CreditsScene() {
 	_musicResource->unload();
 	delete _musicResource;
-	_vm->toggleSoundUpdate(false);
 }
 
 void CreditsScene::update() {
@@ -1027,6 +1025,12 @@ uint32 GameStateMenu::handleMessage(int messageNum, const MessageParam &param, E
 			break;
 		}
 		break;
+	case NM_MOUSE_WHEELUP:
+		_listBox->scrollUp();
+		break;
+	case NM_MOUSE_WHEELDOWN:
+		_listBox->scrollDown();
+		break;
 	}
 	return 0;
 }
@@ -1079,7 +1083,7 @@ static const NRect kLoadGameMenuButtonCollisionBounds[] = {
 	{ 182, 358, 241, 433 }
 };
 
-static const NRect kLoadGameMenuListBoxRect = { 0, 0, 320, 271 };
+static const NRect kLoadGameMenuListBoxRect = { 0, 0, 320, 272 };
 static const NRect kLoadGameMenuTextEditRect = { 0, 0, 320, 17 };
 static const NRect kLoadGameMenuMouseRect = { 263, 48, 583, 65 };
 
@@ -1112,7 +1116,7 @@ static const NRect kDeleteGameMenuButtonCollisionBounds[] = {
 	{ 395, 278, 452, 372 }
 };
 
-static const NRect kDeleteGameMenuListBoxRect = { 0, 0, 320, 271 };
+static const NRect kDeleteGameMenuListBoxRect = { 0, 0, 320, 272 };
 static const NRect kDeleteGameMenuTextEditRect = { 0, 0, 320, 17 };
 
 DeleteGameMenu::DeleteGameMenu(NeverhoodEngine *vm, Module *parentModule, SavegameList *savegameList)

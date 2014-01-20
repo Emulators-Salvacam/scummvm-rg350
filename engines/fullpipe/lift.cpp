@@ -105,4 +105,15 @@ void FullpipeEngine::lift_sub05(ExCommand *ex) {
 	warning("STUB: FullpipeEngine::lift_sub05()");
 }
 
+bool FullpipeEngine::lift_checkButton(const char *varname) {
+	warning("STUB: FullpipeEngine::lift_checkButton(%s)", varname);
+
+	return false;
+}
+
+void FullpipeEngine::lift_sub7(Scene *sc, int buttonId) {
+	warning("STUB: lift_sub7()");
+}
+
+
 } // End of namespace Fullpipe

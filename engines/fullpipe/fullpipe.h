@@ -64,6 +64,7 @@ struct MovTable;
 class MGM;
 class NGIArchive;
 class PictureObject;
+struct PreloadItem;
 class Scene;
 class SoundList;
 class StaticANIObject;
@@ -128,7 +129,9 @@ public:
 	int _sceneWidth;
 	int _sceneHeight;
 	Scene *_currentScene;
+	Scene *_loaderScene;
 	Scene *_scene2;
+	Scene *_scene3;
 	StaticANIObject *_aniMan;
 	StaticANIObject *_aniMan2;
 	byte *_globalPalette;
@@ -182,6 +185,7 @@ public:
 	Common::Array<Common::Point *> _arcadeKeys;
 
 	void initMap();
+	void updateMap(PreloadItem *pre);
 	void updateMapPiece(int mapId, int update);
 	void updateScreen();
 
@@ -265,6 +269,7 @@ public:
 	int lift_getButtonIdP(int objid);
 	void lift_setButton(const char *name, int state);
 	void lift_sub5(Scene *sc, int qu1, int qu2);
+	void lift_sub7(Scene *sc, int buttonId);
 	void lift_exitSeq(ExCommand *ex);
 	void lift_closedoorSeq();
 	void lift_animation3();
@@ -272,7 +277,10 @@ public:
 	void lift_sub1(StaticANIObject *ani);
 	void lift_startExitQueue();
 	void lift_sub05(ExCommand *ex);
+	bool lift_checkButton(const char *varname);
 
+	GameVar *_musicGameVar;
+	Audio::SoundHandle _sceneTrackHandle;
 public:
 
 	bool _isSaveAllowed;

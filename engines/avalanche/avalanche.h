@@ -42,6 +42,7 @@
 #include "avalanche/closing.h"
 #include "avalanche/sound.h"
 #include "avalanche/nim.h"
+#include "avalanche/clock.h"
 
 #include "common/serializer.h"
 
@@ -340,6 +341,7 @@ private:
 	void checkClick();
 	void fixFlashers();
 	void loadAlso(byte num);
+	void resetAllVariables();
 	void resetVariables();
 };
 

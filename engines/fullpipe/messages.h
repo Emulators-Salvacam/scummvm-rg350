@@ -57,7 +57,6 @@ class Message : public CObject {
 
 class ExCommand : public Message {
  public:
-
 	int _messageNum;
 	int _field_3C;
 	int _excFlags;
@@ -70,27 +69,42 @@ class ExCommand : public Message {
 
 	virtual bool load(MfcArchive &file);
 
+	virtual ExCommand *createClone();
+
 	bool handleMessage();
 	void sendMessage();
 	void postMessage();
 	void handle();
+
+	void firef34();
+	void setf3c(int val);
 };
 
 class ExCommand2 : public ExCommand {
  public:
 	Common::Point **_points;
 	int _pointsSize;
+
+	ExCommand2(int messageKind, int parentId, Common::Point **points, int pointsSize);
+	ExCommand2(ExCommand2 *src);
+	virtual ~ExCommand2();
+
+	virtual ExCommand2 *createClone();
 };
 
-class ObjstateCommand : public CObject {
+class ObjstateCommand : public ExCommand {
  public:
-	ExCommand _cmd;
 	char *_objCommandName;
 	int _value;
 
  public:
 	ObjstateCommand();
+	ObjstateCommand(ObjstateCommand *src);
+	virtual ~ObjstateCommand();
+
 	virtual bool load(MfcArchive &file);
+
+	virtual ObjstateCommand *createClone();
 };
 
 class MessageQueue : public CObject {
@@ -124,6 +138,7 @@ class MessageQueue : public CObject {
 
 	void addExCommand(ExCommand *ex);
 	void addExCommandToEnd(ExCommand *ex);
+	void insertExCommandAt(int pos, ExCommand *ex);
 	ExCommand *getExCommandByIndex(uint idx);
 	void deleteExCommandByIndex(uint idx, bool doFree);
 
@@ -175,6 +190,7 @@ bool insertMessageHandler(int (*callback)(ExCommand *), int index, int16 id);
 void clearMessageHandlers();
 void processMessages();
 void updateGlobalMessageQueue(int id, int objid);
+void clearMessages();
 void clearGlobalMessageQueueList1();
 
 bool chainQueue(int queueId, int flags);
