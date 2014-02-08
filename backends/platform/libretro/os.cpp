@@ -704,6 +704,7 @@ public:
 
 #define ANALOG_VALUE_X_ADD 8
 #define ANALOG_VALUE_Y_ADD 8
+#define ANALOG_THRESHOLD 0x1FFF
 
 	void processMouse(retro_input_state_t aCallback)
     {
@@ -724,14 +725,14 @@ public:
         joy_x = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
         joy_y = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
 
-        if (joy_x > 0)
+        if (joy_x > ANALOG_THRESHOLD)
         {
            _mouseX += ANALOG_VALUE_X_ADD;
            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
             do_joystick = true;
         }
-        else if (joy_x < 0)
+        else if (joy_x < -ANALOG_THRESHOLD)
         {
            _mouseX -= ANALOG_VALUE_X_ADD;
            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
@@ -739,14 +740,14 @@ public:
             do_joystick = true;
         }
 
-        if (joy_y > 0)
+        if (joy_y > ANALOG_THRESHOLD)
         {
             _mouseY += ANALOG_VALUE_Y_ADD; 
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
             _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
             do_joystick = true;
         }
-        else if (joy_y < 0)
+        else if (joy_y < -ANALOG_THRESHOLD)
         {
             _mouseY -= ANALOG_VALUE_Y_ADD; 
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
