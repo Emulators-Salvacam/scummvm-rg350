@@ -1678,7 +1678,7 @@ void Scene180::signal() {
 	case 24:
 	case 26:
 	case 46:
-		setSceneDelay((R2_GLOBALS._speechSubtitles & 1) ? 1 : 18);
+		setSceneDelay((R2_GLOBALS._speechSubtitles & SPEECH_TEXT) ? 1 : 18);
 		break;
 
 	case 13:
@@ -2993,7 +2993,7 @@ void Scene300::Action4::signal() {
 bool Scene300::QuinnWorkstation::startAction(CursorType action, Event &event) {
 	switch (action) {
 	case CURSOR_USE:
-		if (R2_GLOBALS._player._characterIndex != 1)
+		if (R2_GLOBALS._player._characterIndex != R2_QUINN)
 			SceneItem::display2(300, 46);
 		else if (R2_GLOBALS.getFlag(44)) {
 			R2_GLOBALS._player.setAction(NULL);
@@ -3024,7 +3024,7 @@ bool Scene300::QuinnWorkstation::startAction(CursorType action, Event &event) {
 bool Scene300::MirandaWorkstation::startAction(CursorType action, Event &event) {
 	switch (action) {
 	case CURSOR_USE:
-		if (R2_GLOBALS._player._characterIndex != 3)
+		if (R2_GLOBALS._player._characterIndex != R2_MIRANDA)
 			SceneItem::display2(300, 49);
 		else
 			R2_GLOBALS._sceneManager.changeScene(325);
@@ -3054,7 +3054,7 @@ bool Scene300::SeekerWorkstation::startAction(CursorType action, Event &event) {
 		break;
 
 	case CURSOR_USE:
-		if (R2_GLOBALS._player._characterIndex != 2)
+		if (R2_GLOBALS._player._characterIndex != R2_SEEKER)
 			SceneItem::display2(300, 48);
 		else
 			R2_GLOBALS._sceneManager.changeScene(325);
@@ -3465,7 +3465,7 @@ void Scene300::postInit(SceneObjectList *OwnerList) {
 	_background.setDetails(Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), 300, 0, -1, -1, 1, NULL);
 
 	switch (R2_GLOBALS._player._characterIndex) {
-	case 1:
+	case R2_QUINN:
 		_sceneMode = 300;
 
 		switch (R2_GLOBALS._sceneManager._previousScene) {
@@ -3486,7 +3486,7 @@ void Scene300::postInit(SceneObjectList *OwnerList) {
 						R2_GLOBALS.clearFlag(60);
 						R2_GLOBALS._events.setCursor(CURSOR_ARROW);
 						_sceneMode = 16;
-						_stripManager.start(404, this);
+						_stripManager.start3(404, this, R2_GLOBALS._stripManager_lookupList);
 					} else {
 						R2_GLOBALS._player.enableControl();
 						R2_GLOBALS._player._canWalk = false;
@@ -3554,7 +3554,7 @@ void Scene300::postInit(SceneObjectList *OwnerList) {
 		}
 		break;
 
-	case 3:
+	case R2_MIRANDA:
 		if (R2_GLOBALS._sceneManager._previousScene == 1500) {
 			R2_GLOBALS._player._oldCharacterScene[R2_MIRANDA] = 3150;
 			R2_GLOBALS._player._characterScene[R2_MIRANDA] = 3150;
@@ -3639,7 +3639,7 @@ void Scene300::signal() {
 		default:
 			R2_GLOBALS._player.enableControl(CURSOR_TALK);
 
-			if ((R2_GLOBALS._player._characterIndex != 1) || R2_GLOBALS.getFlag(44))
+			if ((R2_GLOBALS._player._characterIndex != R2_QUINN) || R2_GLOBALS.getFlag(44))
 				R2_GLOBALS._player._canWalk = false;
 			break;
 		}
@@ -4151,11 +4151,22 @@ void Scene325::signal() {
 				--v;
 			if (_priorConsoleAction == 5)
 				v += 8;
+
 			if (R2_GLOBALS.getFlag(51) && (v == 2))
 				R2_GLOBALS.setFlag(57);
 
 			if (R2_GLOBALS.getFlag(44) && !R2_GLOBALS.getFlag(51)) {
 				if (v != 13) {
+					if (_priorConsoleAction == 6) {
+					// Fix for original game bug. 
+					// The passive short scan geographical and astronomical sentences 
+					// are inverted in the original game.
+						if (v == 6)
+							v = 8;
+						else if (v == 8)
+							v = 6;
+					}
+
 					setMessage(328, v);
 				} else {
 					_scannerLocation = 864;
@@ -4302,12 +4313,12 @@ void Scene325::signal() {
 		if (_soundCount)
 			--_soundCount;
 
-		if (!_soundCount || (R2_GLOBALS._speechSubtitles == 2)) {
+		if (!_soundCount || !(R2_GLOBALS._speechSubtitles & SPEECH_VOICE)) {
 			_soundIndex = 0;
 			R2_GLOBALS._playStream.stop();
 		} else {
 			_sceneMode = 15;
-			R2_GLOBALS._playStream.play(_soundQueue[_soundIndex], this);
+			R2_GLOBALS._playStream.play(_soundQueue[_soundIndex++], this);
 		}
 		break;
 	default:
@@ -4513,6 +4524,7 @@ void Scene325::consoleAction(int id) {
 	case 14:
 		if (R2_GLOBALS.getFlag(55)) {
 			consoleAction(4);
+			// Workaround for original game bug.
 			// Empty message crashing the game. It should be a warning message forbidding to switch to active scan
 			// SceneItem::display2(329, 17);
 		} else {
@@ -4688,7 +4700,7 @@ void Scene325::setMessage(int resNum, int lineNum) {
 
 		R2_GLOBALS._sceneObjects->draw();
 
-		if ((_soundCount != 0) && (R2_GLOBALS._speechSubtitles != 2)) {
+		if ((_soundCount != 0) && (R2_GLOBALS._speechSubtitles & SPEECH_VOICE)) {
 			_sceneMode = 15;
 			R2_GLOBALS._playStream.play(_soundQueue[_soundIndex++], this);
 		}
@@ -5753,24 +5765,47 @@ bool Scene600::Smoke::startAction(CursorType action, Event &event) {
 	return false;
 }
 
-GfxSurface Scene600::Smoke::getFrame() {
-	GfxSurface frame = SceneActor::getFrame();
-
-	if (_effect) {
-		// Translate the frame using the scene's pixel map
-		byte *pixelMap = static_cast<Scene600 *>(R2_GLOBALS._sceneManager._scene)->_pixelMap;
-		Graphics::Surface surface = frame.lockSurface();
-		byte *srcP = (byte *)surface.getPixels();
-
-		while (srcP < ((byte *)surface.getBasePtr(0, surface.h))) {
-			*srcP = pixelMap[*srcP];
-			srcP++;
-		}
-
-		frame.unlockSurface();
+void Scene600::Smoke::draw() {
+	// Effect should always be active on smoke, but since the original had this
+	// check, include it here too
+	if (_effect == EFFECT_NONE) {
+		SceneActor::draw();
+		return;
 	}
 
-	return frame;
+	// Determine the area of the screen to be updated
+	Rect destRect = _bounds;
+	destRect.translate(-g_globals->_sceneManager._scene->_sceneBounds.left,
+		-g_globals->_sceneManager._scene->_sceneBounds.top);
+
+	// Get the smoke frame, screen reference, and pixel palette translation map
+	GfxSurface frame = getFrame();
+	Graphics::Surface s = frame.lockSurface();
+	Graphics::Surface screen = g_globals->gfxManager().getSurface().lockSurface();
+	byte *pixelMap = static_cast<Scene600 *>(R2_GLOBALS._sceneManager._scene)->_pixelMap;
+
+	// Loop through every pixel of the frame. Any pixel of the frame that's not a 
+	// tranparency, get the same pixel from the screen background, and shade it using
+	// the scene's pixel translation map
+	for (int yp = 0; yp < s.h; ++yp) {
+		byte *frameSrcP = (byte *)s.getBasePtr(0, yp);
+		byte *screenP = (byte *)screen.getBasePtr(destRect.left, destRect.top + yp);
+
+		for (int xp = 0; xp < s.w; ++xp, ++frameSrcP, ++screenP) {
+			if (*frameSrcP != frame._transColor) {
+				*frameSrcP = pixelMap[*screenP];
+			}
+		}
+	}
+
+	// Finished updating the frame
+	frame.unlockSurface();
+	g_globals->gfxManager().getSurface().unlockSurface();
+
+	// Draw the processed frame
+	Region *priorityRegion = g_globals->_sceneManager._scene->_priorities.find(_priority);
+	g_globals->gfxManager().copyFrom(frame, destRect, priorityRegion);
+
 }
 
 bool Scene600::Doorway::startAction(CursorType action, Event &event) {
@@ -5846,7 +5881,7 @@ bool Scene600::Laser::startAction(CursorType action, Event &event) {
 
 				scene->_smoke.postInit();
 				scene->_smoke.setup(601, 3, 1);
-				scene->_smoke._effect = EFFECT_3;
+				scene->_smoke._effect = EFFECT_SMOKE;
 				scene->_smoke._moveDiff = Common::Point(1, 1);
 				scene->_smoke._moveRate = 2;
 				scene->_smoke._numFrames = 3;
@@ -6027,7 +6062,7 @@ void Scene600::postInit(SceneObjectList *OwnerList) {
 			_smoke._numFrames = 3;
 			_smoke.animate(ANIM_MODE_2, NULL);
 			_smoke.fixPriority(130);
-			_smoke._effect = EFFECT_3;
+			_smoke._effect = EFFECT_SMOKE;
 			_smoke.setDetails(600, 24, 25, 26, 1, (SceneItem *) NULL);
 			_smoke.signal();
 		}
@@ -6098,7 +6133,7 @@ void Scene600::signal() {
 		R2_INVENTORY.setObjectScene(R2_AEROSOL, 600);
 		R2_GLOBALS.setFlag(5);
 
-		_smoke._effect = EFFECT_3;
+		_smoke._effect = EFFECT_SMOKE;
 		_smoke.signal();
 		break;
 	case 606:

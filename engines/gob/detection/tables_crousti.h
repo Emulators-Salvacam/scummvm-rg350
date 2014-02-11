@@ -20,37 +20,26 @@
  *
  */
 
-/*
- * This code is based on the original source code of Lord Avalot d'Argent version 1.3.
- * Copyright (c) 1994-1995 Mike, Mark and Thomas Thurman.
- */
+/* Detection tables for Croustibat. */
 
-/* PINGO	Full-screen sub-parts of the game. */
+#ifndef GOB_DETECTION_TABLES_CROUSTI_H
+#define GOB_DETECTION_TABLES_CROUSTI_H
 
-#ifndef AVALANCHE_PINGO_H
-#define AVALANCHE_PINGO_H
+// -- DOS VGA Floppy --
 
-#include "common/str.h"
+{
+	{
+		"crousti",
+		"",
+		AD_ENTRY1s("intro.stk", "63fd795818fa72c32b903bbd99e18ea1", 851926),
+		PT_BRA,
+		kPlatformDOS,
+		ADGF_NO_FLAGS,
+		GUIO2(GUIO_NOSUBTITLES, GUIO_NOSPEECH)
+	},
+	kGameTypeCrousti,
+	kFeaturesAdLib,
+	0, 0, 0
+},
 
-namespace Avalanche {
-class AvalancheEngine;
-
-class Pingo {
-public:
-	Pingo(AvalancheEngine *vm);
-
-	void bossKey();
-	void copy02();
-	void copy03();
-	void copyPage(byte frp, byte top);
-	void winningPic();
-
-private:
-	AvalancheEngine *_vm;
-
-	void dPlot(int16 x, int16 y, Common::String z);
-};
-
-} // End of namespace Avalanche.
-
-#endif // AVALANCHE_PINGO_H
+#endif // GOB_DETECTION_TABLES_CROUSTI_H

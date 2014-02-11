@@ -3913,8 +3913,6 @@ void Scene1337::Action10::signal() {
 void Scene1337::Action11::signal() {
 	Scene1337 *scene = (Scene1337 *)R2_GLOBALS._sceneManager._scene;
 
-	bool noAction = true;
-
 	switch (_actionIndex++) {
 	case 0: {
 		scene->_actionCard2->_card.postInit();
@@ -3944,6 +3942,8 @@ void Scene1337::Action11::signal() {
 		scene->_aSound1.play(57);
 
 		bool found = false;
+		bool noAction = true;
+
 		int i = -1;
 
 		switch (scene->_actionIdx2) {
@@ -5411,10 +5411,10 @@ void Scene1337::showOptionsDialog() {
 }
 
 void Scene1337::handleClick(int arg1, Common::Point pt) {
-	bool found = false;
 	int curReg = R2_GLOBALS._sceneRegions.indexOf(g_globals->_events._mousePos);
 
 	if (arg1 == 3) {
+		bool found = false;
 		int i;
 		for (i = 0; i <= 7; i++) {
 			if ( _gameBoardSide[2]._outpostStation[i].isIn(pt)
@@ -7439,7 +7439,7 @@ void Scene1550::DishControlsWindow::setup2(int visage, int stripFrameNum, int fr
 	if (scene->_dish._frame == 1)
 		_lever.setup(1559, 2, 1);
 	else
-		_lever.setup(1559, 2, 2);
+		_lever.setup(1559, 2, 5);
 	_lever.setPosition(Common::Point(156, 103));
 	_lever.fixPriority(251);
 	_lever.setDetails(1550, 69, -1, -1, 2, (SceneItem *) NULL);
@@ -7773,7 +7773,7 @@ void Scene1550::signal() {
 		_dishControlsWindow.remove();
 		_sceneMode = 20;
 		setAction(&_sequenceManager1, this, 1566, &_dish, &_dishTowerShadow, NULL);
-		R2_GLOBALS.setFlag(21);
+		R2_GLOBALS.setFlag(19);
 		break;
 	case 24:
 		_dishControlsWindow.remove();
@@ -8699,7 +8699,7 @@ void Scene1550::enterArea() {
 				warning("missing for loop, to be implemented");
 				warning("gfx_draw_slice");
 			}
-			warning("Missing sub2957D()");
+			warning("gfx_flip_screen()");
 			warning("gfx_set_pane_p()");
 #endif
 			R2_GLOBALS._sceneManager._fadeMode = FADEMODE_IMMEDIATE;
@@ -11190,7 +11190,7 @@ void Scene1800::SouthExit::changeScene() {
 		if (R2_GLOBALS._player._characterIndex == R2_QUINN)
 			scene->setAction(&scene->_sequenceManager, scene, 1802, &R2_GLOBALS._player, &scene->_companion, NULL);
 		else
-			scene->setAction(&scene->_sequenceManager, scene, 1802, &R2_GLOBALS._player, &scene->_companion, NULL);
+			scene->setAction(&scene->_sequenceManager, scene, 1803, &R2_GLOBALS._player, &scene->_companion, NULL);
 	}
 }
 

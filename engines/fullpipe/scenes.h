@@ -25,6 +25,7 @@
 
 namespace Fullpipe {
 
+struct Bat;
 struct BehaviorEntryInfo;
 class MGM;
 class MctlLadder;
@@ -136,8 +137,12 @@ void scene26_setupDrop(Scene *sc);
 int sceneHandler26(ExCommand *cmd);
 int scene26_updateCursor();
 
+void scene27_initScene(Scene *sc);
+int sceneHandler27(ExCommand *ex);
+int scene27_updateCursor();
+
 void scene28_initScene(Scene *sc);
- int sceneHandler28(ExCommand *ex);
+int sceneHandler28(ExCommand *ex);
 int scene28_updateCursor();
 
 int scene30_updateCursor();
@@ -176,8 +181,34 @@ int scene37_updateCursor();
 void scene38_initScene(Scene *sc);
 int sceneHandler38(ExCommand *ex);
 
+int sceneFinal_updateCursor();
+void sceneFinal_initScene();
+int sceneHandlerFinal(ExCommand *cmd);
+
 void sceneDbgMenu_initScene(Scene *sc);
 int sceneHandlerDbgMenu(ExCommand *cmd);
+
+struct Ball {
+	Ball *p0;
+	Ball *p1;
+	StaticANIObject *ani;
+
+	Ball() : p0(0), p1(0), ani(0) {}
+};
+
+struct BallChain {
+	Ball *pHead;
+	Ball *field_8;
+	int numBalls;
+	Ball *pTail;
+	byte *cPlex;
+	int cPlexLen;
+
+	BallChain() : pHead(0), field_8(0), pTail(0), numBalls(0), cPlex(0), cPlexLen(0) {}
+	~BallChain() { free(cPlex); }
+
+	void init(Ball **ball);
+};
 
 class Vars {
 public:
@@ -457,6 +488,25 @@ public:
 	StaticANIObject *scene26_sock;
 	StaticANIObject *scene26_activeVent;
 
+	PictureObject *scene27_hitZone;
+	StaticANIObject *scene27_driver;
+	StaticANIObject *scene27_maid;
+	StaticANIObject *scene27_batHandler;
+	bool scene27_driverHasVent;
+	StaticANIObject *scene27_bat;
+	bool scene27_dudeIsAiming;
+	bool scene27_maxPhaseReached;
+	bool scene27_wipeIsNeeded;
+	bool scene27_driverPushedButton;
+	int scene27_numLostBats;
+	int scene27_knockCount;
+	int scene27_aimStartX;
+	int scene27_aimStartY;
+	int scene27_launchPhase;
+	BallChain scene27_balls;
+	Common::Array<Bat *> scene27_bats;
+	Common::Array<Bat *> scene27_var07;
+
 	bool scene28_fliesArePresent;
 	bool scene28_beardedDirection;
 	PictureObject *scene28_darkeningObject;
@@ -535,6 +585,10 @@ public:
 	int scene38_shortyCounter;
 	int scene38_lastShortyAnim;
 	int scene38_shortyAnimCounter;
+
+	int sceneFinal_var01;
+	int sceneFinal_var02;
+	int sceneFinal_var03;
 
 	PictureObject *selector;
 };

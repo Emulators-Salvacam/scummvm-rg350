@@ -38,6 +38,7 @@ namespace Avalanche {
 class AvalancheEngine;
 class AnimationType;
 struct SpriteType;
+struct ChunkBlock;
 
 typedef byte FontType[256][16];
 typedef byte ManiType[2049];
@@ -58,10 +59,13 @@ public:
 	void loadDigits();
 	void loadMouse(byte which);
 
+	void drawDot(int x, int y, Color color);
 	void drawLine(int x1, int y1, int x2, int y2, int penX, int penY, Color color);
 	Common::Point drawScreenArc(int16 x, int16 y, int16 stAngle, int16 endAngle, uint16 radius, Color color);
 	void drawPieSlice(int16 x, int16 y, int16 stAngle, int16 endAngle, uint16 radius, Color color);
 	void drawTriangle(Common::Point *p, Color color);
+	void drawFilledRectangle(Common::Rect rect, Color color);
+	void drawRectangle(Common::Rect rect, Color color);
 	void drawNormalText(const Common::String text, FontType font, byte fontHeight, int16 x, int16 y, Color color);
 	void drawScrollText(const Common::String text, FontType font, byte fontHeight, int16 x, int16 y, Color color);
 	void drawDigit(int index, int x, int y);
@@ -79,8 +83,6 @@ public:
 	void drawDebugLines();
 
 	// For the mini-game "Nim".
-	void drawFilledRectangle(Common::Rect rect, Color color);
-	void drawRectangle(Common::Rect rect, Color color);
 	void nimLoad();
 	void nimDrawStone(int x, int y);
 	void nimDrawInitials();
@@ -89,6 +91,16 @@ public:
 
 	// Used in wobble()
 	void shiftScreen();
+
+	// Used in winning()
+	void drawWinningPic();
+
+	// Ghostroom's functions:
+	void ghostDrawGhost(byte ghostArr[2][66][26], uint16 destX, int16 destY); // Very similar to loadPictureSign(). TODO: Unify the two later if possible.
+	void ghostDrawGlerk(byte glerkArr[4][35][9], uint16 destX, uint16 destY); // Very similar to ghostDrawGhost(), but not enough to unify the two.
+	Graphics::Surface ghostLoadPicture(Common::File &file, Common::Point &coord);
+	void ghostDrawPicture(const Graphics::Surface &picture, uint16 destX, uint16 destY);
+	void ghostDrawBackgroundItems(Common::File &file);
 
 	void clearAlso();
 	void clearTextBar();

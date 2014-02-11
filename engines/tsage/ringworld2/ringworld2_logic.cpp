@@ -561,14 +561,14 @@ void SceneExt::saveCharacter(int characterIndex) {
 void SceneExt::scalePalette(int RFactor, int GFactor, int BFactor) {
 	byte *tmpPal = R2_GLOBALS._scenePalette._palette;
 	byte newR, newG, newB;
-	int tmp, varC, varD = 0;
+	int tmp, varD = 0;
 
 	for (int i = 0; i < 256; i++) {
 		newR = (RFactor * tmpPal[(3 * i)]) / 100;
 		newG = (GFactor * tmpPal[(3 * i) + 1]) / 100;
 		newB = (BFactor * tmpPal[(3 * i) + 2]) / 100;
 
-		varC = 769;
+		int varC = 769;
 		for (int j = 255; j >= 0; j--) {
 			tmp = abs(tmpPal[(3 * j)] - newR);
 			if (tmp >= varC)
@@ -623,6 +623,11 @@ void SceneHandlerExt::process(Event &event) {
 
 	if (!event.handled)
 		SceneHandler::process(event);
+}
+
+void SceneHandlerExt::dispatch() {
+	R2_GLOBALS._playStream.dispatch();
+	SceneHandler::dispatch();
 }
 
 void SceneHandlerExt::postLoad(int priorSceneBeforeLoad, int currentSceneBeforeLoad) {
@@ -2329,7 +2334,7 @@ void ScannerDialog::Button::reset() {
 		case 1800:
 			if (R2_GLOBALS._rimLocation < 1201)
 				scanner._obj4.setup(4, 3, 3);
-			else if (R2_GLOBALS._rimLocation < 1201)
+			else if (R2_GLOBALS._rimLocation > 1201)
 				scanner._obj4.setup(4, 3, 4);
 			else
 				scanner._obj4.setup(4, 3, 5);

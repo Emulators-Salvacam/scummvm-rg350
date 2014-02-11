@@ -82,8 +82,8 @@ void scene38_initScene(Scene *sc) {
 		g_vars->scene38_domino1->_flags &= 0xFFFB;
 	}
 
-	g_fp->lift_sub5(sc, QU_SC38_ENTERLIFT, QU_SC38_EXITLIFT);
-	g_fp->lift_sub7(sc, ST_LBN_0N);
+	g_fp->lift_init(sc, QU_SC38_ENTERLIFT, QU_SC38_EXITLIFT);
+	g_fp->lift_setButtonStatics(sc, ST_LBN_0N);
 }
 
 void sceneHandler38_tryTakeBottle() {
@@ -348,7 +348,7 @@ int sceneHandler38(ExCommand *cmd) {
 		break;
 
 	case MSG_LIFT_CLICKBUTTON:
-		g_fp->lift_animation3();
+		g_fp->lift_clickButton();
 		break;
 
 	case MSG_SC38_POINT:
@@ -368,7 +368,7 @@ int sceneHandler38(ExCommand *cmd) {
 		break;
 
 	case 64:
-		g_fp->lift_sub05(cmd);
+		g_fp->lift_hoverButton(cmd);
 		break;
 
 	case 29:
@@ -376,7 +376,7 @@ int sceneHandler38(ExCommand *cmd) {
 			StaticANIObject *ani = g_fp->_currentScene->getStaticANIObjectAtPos(g_fp->_sceneRect.left + cmd->_x, g_fp->_sceneRect.top + cmd->_y);
 
 			if (ani && ani->_id == ANI_LIFTBUTTON) {
-				g_fp->lift_sub1(ani);
+				g_fp->lift_animateButton(ani);
 
 				cmd->_messageKind = 0;
 			}

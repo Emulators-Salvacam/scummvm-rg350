@@ -198,7 +198,7 @@ void GraphicManager::drawToolbar() {
 
 Common::Point GraphicManager::drawArc(Graphics::Surface &surface, int16 x, int16 y, int16 stAngle, int16 endAngle, uint16 radius, Color color) {
 	Common::Point endPoint;
-	const float convfac = M_PI / 180.0;
+	const double convfac = M_PI / 180.0;
 
 	int32 xRadius = radius;
 	int32 yRadius = radius * kScreenWidth / (8 * kScreenHeight); // Just don't ask why...
@@ -279,6 +279,10 @@ Common::Point GraphicManager::drawArc(Graphics::Surface &surface, int16 x, int16
 	} while (j <= deltaEnd);
 
 	return endPoint;
+}
+
+void GraphicManager::drawDot(int x, int y, Color color) {
+	*(byte *)_surface.getBasePtr(x, y) = color;
 }
 
 void GraphicManager::drawLine(int x1, int y1, int x2, int y2, int penX, int penY, Color color) {
@@ -500,6 +504,135 @@ void GraphicManager::nimFree() {
 	_nimLogo.free();
 }
 
+void GraphicManager::ghostDrawGhost(byte ghostArr[2][66][26], uint16 destX, int16 destY) {
+	const byte kPlaneToUse[4] = { 0, 0, 0, 1 };
+	// Constants from the original code:
+	uint16 height = 66;
+	const uint16 width = 26 * 8;
+
+	// We have to mess around with the coords and the sizes since
+	// the ghost isn't always placed fully on the screen.
+	int yStart = 0;
+	if (destY < 0) {
+		yStart = abs(destY);
+		height -= yStart;
+		destY = 0;
+	}
+
+	Graphics::Surface ghostPic;
+	ghostPic.create(width, height, Graphics::PixelFormat::createFormatCLUT8());
+
+	for (int y = 0; y < height; y++) {
+		for (int plane = 0; plane < 4; plane++) {
+			for (uint16 x = 0; x < width / 8; x ++) {
+				byte pixel = ghostArr[kPlaneToUse[plane]][y + yStart][x];
+				for (int bit = 0; bit < 8; bit++) {
+					byte pixelBit = (pixel >> bit) & 1;
+					*(byte *)ghostPic.getBasePtr(x * 8 + 7 - bit, y) += (pixelBit << plane);
+				}
+			}
+		}
+	}
+	
+	drawPicture(_surface, ghostPic, destX, destY);
+
+	ghostPic.free();
+}
+
+void GraphicManager::ghostDrawGlerk(byte glerkArr[4][35][9], uint16 destX, uint16 destY) {
+	// Constants from the original code:
+	const uint16 height = 35;
+	const uint16 width = 9 * 8;
+
+	Graphics::Surface glerkPic;
+	glerkPic.create(width, height, Graphics::PixelFormat::createFormatCLUT8());
+
+	for (int y = 0; y < height; y++) {
+		for (int plane = 0; plane < 4; plane++) {
+			for (uint16 x = 0; x < width / 8; x++) {
+				byte pixel = glerkArr[plane][y][x];
+				for (int bit = 0; bit < 8; bit++) {
+					byte pixelBit = (pixel >> bit) & 1;
+					*(byte *)glerkPic.getBasePtr(x * 8 + 7 - bit, y) += (pixelBit << plane);
+				}
+			}
+		}
+	}
+
+	drawPicture(_surface, glerkPic, destX, destY);
+
+	glerkPic.free();
+}
+
+/**
+ *	With the use of the second argument, it replaces get_meg_aargh as well.
+ * @remarks	Originally called 'get_me' and was located in Ghostroom.
+ */
+Graphics::Surface GraphicManager::ghostLoadPicture(Common::File &file, Common::Point &coord) {
+	ChunkBlock cb = _vm->_ghostroom->readChunkBlock(file);
+
+	coord.x = cb._x;
+	coord.y = cb._y;
+	
+	Graphics::Surface picture = loadPictureGraphic(file);
+	
+	int bytesPerRow = (picture.w / 8);
+	if ((picture.w % 8) > 0)
+		bytesPerRow += 1;
+	int loadedBytes = picture.h * bytesPerRow * 4 + 4;
+	// * 4 is for the four planes, + 4 is for the reading of the width and the height at loadPictureGraphic's beginning.
+
+	int bytesToSkip = cb._size - loadedBytes;
+	file.skip(bytesToSkip);
+		
+	return picture;
+}
+
+void GraphicManager::ghostDrawPicture(const Graphics::Surface &picture, uint16 destX, uint16 destY) {
+	drawPicture(_surface, picture, destX, destY);
+}
+
+/**
+ * Loads and puts 3 images (in this order: cobweb, Mark's signature, open door) into the background at the beginning of the ghostroom scene.
+ * @remarks	Originally called 'plain_grab' and was located in Ghostroom. It was originally called 3 times. I unified these in one function, used a for cycle.
+ */
+void GraphicManager::ghostDrawBackgroundItems(Common::File &file) {
+	for (int num = 0; num < 3; num++) {
+		ChunkBlock cb = _vm->_ghostroom->readChunkBlock(file);
+
+		int width = cb._width;
+		int height = cb._height + 1;
+
+		Graphics::Surface picture;
+		picture.create(width, height, Graphics::PixelFormat::createFormatCLUT8());
+
+		// Load the picture according to it's type.
+		switch (cb._flavour) {
+		case kFlavourOne: // There is only one plane.
+			for (uint16 y = 0; y < height; y++) {
+				for (uint16 x = 0; x < width; x += 8) {
+					byte pixel = file.readByte();
+					for (int i = 0; i < 8; i++) {
+						byte pixelBit = (pixel >> i) & 1;
+						*(byte *)picture.getBasePtr(x + 7 - i, y) = (pixelBit << 3);
+					}
+				}
+			}
+			break;
+		case kFlavourEga:
+			picture = loadPictureRaw(file, width, height);
+			break;
+		default:
+			break;
+		}
+
+		drawPicture(_surface, picture, cb._x, cb._y);
+
+		picture.free();
+	}
+	refreshScreen();
+}
+
 /**
  * This function mimics Pascal's getimage().
  */
@@ -510,7 +643,7 @@ Graphics::Surface GraphicManager::loadPictureGraphic(Common::File &file) {
 
 	Graphics::Surface picture; // We make a Surface object for the picture itself.
 	picture.create(width, height, Graphics::PixelFormat::createFormatCLUT8());
-
+	
 	// Produce the picture. We read it in row-by-row, and every row has 4 planes.
 	for (int y = 0; y < height; y++) {
 		for (int8 plane = 3; plane >= 0; plane--) { // The planes are in the opposite way.
@@ -518,8 +651,7 @@ Graphics::Surface GraphicManager::loadPictureGraphic(Common::File &file) {
 				byte pixel = file.readByte();
 				for (int bit = 0; bit < 8; bit++) {
 					byte pixelBit = (pixel >> bit) & 1;
-					if (pixelBit != 0)
-						*(byte *)picture.getBasePtr(x + 7 - bit, y) += (pixelBit << plane);
+					*(byte *)picture.getBasePtr(x + 7 - bit, y) += (pixelBit << plane);
 				}
 			}
 		}
@@ -567,8 +699,7 @@ Graphics::Surface GraphicManager::loadPictureSign(Common::File &file, int xl, in
 				byte pixel = file.readByte();
 				for (int bit = 0; bit < 8; bit++) {
 					byte pixelBit = (pixel >> bit) & 1;
-					if (pixelBit != 0)
-						*(byte *)picture.getBasePtr(xx + 7 - bit, yy) += (pixelBit << plane);
+					*(byte *)picture.getBasePtr(xx + 7 - bit, yy) += (pixelBit << plane);
 				}
 			}
 		}
@@ -585,6 +716,19 @@ void GraphicManager::shiftScreen() {
 		memcpy(_surface.getBasePtr(0, y), _surface.getBasePtr(0, y - 1), _surface.w);
 
 	_surface.drawLine(0, 0, _surface.w, 0, kColorBlack);
+}
+
+void GraphicManager::drawWinningPic() {
+	Common::File file;
+
+	if (!file.open("finale.avd"))
+		error("AVALANCHE: Timer: File not found: finale.avd");
+
+	Graphics::Surface winning = loadPictureRaw(file, 640, 200);
+	drawPicture(_surface, winning, 0, 0);
+
+	winning.free();
+	file.close();
 }
 
 void GraphicManager::clearAlso() {
@@ -799,10 +943,10 @@ void GraphicManager::showScroll() {
 
 void GraphicManager::getNaturalPicture(SpriteType &sprite) {
 	sprite._type = kNaturalImage; // We simply read from the screen and later, in drawSprite() we draw it right back.
-	sprite._size = sprite._xl * 8 * sprite._yl + 1;
-	sprite._picture.create(sprite._xl * 8, sprite._yl + 1, Graphics::PixelFormat::createFormatCLUT8());
-	for (uint16 y = 0; y < sprite._yl + 1; y++) {
-		for (uint16 x = 0; x < sprite._xl * 8; x++)
+	sprite._size = sprite._width * 8 * sprite._height + 1;
+	sprite._picture.create(sprite._width * 8, sprite._height + 1, Graphics::PixelFormat::createFormatCLUT8());
+	for (uint16 y = 0; y < sprite._height + 1; y++) {
+		for (uint16 x = 0; x < sprite._width * 8; x++)
 			*(byte *)sprite._picture.getBasePtr(x, y) = *(byte *)_vm->_graphics->_surface.getBasePtr(sprite._x * 8 + x, sprite._y + y);
 	}
 }
