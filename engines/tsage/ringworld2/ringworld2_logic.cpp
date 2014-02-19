@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -294,7 +294,7 @@ Scene *Ringworld2Game::createScene(int sceneNumber) {
 		// Confrontation
 		return new Scene3400();
 	case 3500:
-		// Flub tube maze 
+		// Flub tube maze
 		return new Scene3500();
 	case 3600:
 		// Cutscene - walking at gunpoint
@@ -1212,6 +1212,12 @@ void Ringworld2Game::processEvent(Event &event) {
 		case Common::KEYCODE_F4:
 			// F4 - Restart
 			restartGame();
+			R2_GLOBALS._events.setCursorFromFlag();
+			break;
+
+		case Common::KEYCODE_F5:
+			// F5 - Save
+			saveGame();
 			R2_GLOBALS._events.setCursorFromFlag();
 			break;
 

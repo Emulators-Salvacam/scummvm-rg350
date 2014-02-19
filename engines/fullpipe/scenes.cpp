@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -155,6 +155,25 @@ Vars::Vars() {
 	scene08_inArcade = false;
 	scene08_stairsVisible = true;
 	scene08_manOffsetY = 0;
+
+	scene09_flyingBall = 0;
+	scene09_var05 = 0;
+	scene09_glotatel = 0;
+	scene09_spitter = 0;
+	scene09_grit = 0;
+	scene09_var02 = 0;
+	scene09_var08 = 1;
+	scene09_var09 = 0;
+	scene09_var10 = -1;
+	scene09_var11 = -1;
+	scene09_var12 = -1000;
+	scene09_numMovingHangers = 0;
+	scene09_var13 = 0;
+	scene09_var15 = 0;
+	scene09_var17 = 0;
+	scene09_var19 = 0;
+	scene09_var18.x = 0;
+	scene09_var18.y = -15;
 
 	scene10_gum = 0;
 	scene10_packet = 0;
@@ -635,7 +654,6 @@ bool FullpipeEngine::sceneSwitcher(EntranceInfo *entrance) {
 		_updateCursorCallback = scene08_updateCursor;
 		break;
 
-#if 0
 	case SC_9:
 		sceneVar = _gameLoader->_gameVar->getSubVarByName("SC_9");
 		scene->preloadMovements(sceneVar);
@@ -646,7 +664,6 @@ bool FullpipeEngine::sceneSwitcher(EntranceInfo *entrance) {
 		insertMessageHandler(sceneHandler09, 2, 2);
 		_updateCursorCallback = scene09_updateCursor;
 		break;
-#endif
 
 	case SC_10:
 		sceneVar = _gameLoader->_gameVar->getSubVarByName("SC_10");
@@ -1387,5 +1404,12 @@ void BallChain::init(Ball **ball) {
 		cPlex = 0;
 	}
 }
+
+Ball *BallChain::sub04(Ball *ballP, Ball *ballN) {
+	warning("STUB: BallChain::sub04");
+
+	return pTail;
+}
+
 
 } // End of namespace Fullpipe

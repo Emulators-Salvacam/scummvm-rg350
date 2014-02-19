@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -172,35 +172,31 @@ static const QueenGameDescription gameDescriptions[] = {
 		},
 	},
 
-#if 0
 	// DOS Floppy - French
 	{
 		{
 			"queen",
 			"Floppy",
-			AD_ENTRY1s("queen.1", NULL, 22157304), // TODO: Fill in correct MD5
+			AD_ENTRY1s("queen.1", "f5e827645d3c887be3bdf4729d847756", 22157304),
 			Common::FR_FRA,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
 			GUIO1(GUIO_NOSPEECH)
 		},
 	},
-#endif
 
-#if 0
 	// DOS CD - French
 	{
 		{
 			"queen",
 			"Talkie",
-			AD_ENTRY1s("queen.1", NULL, 186689095), // TODO: Fill in correct MD5
+			AD_ENTRY1s("queen.1", "6fd5486a0db75bae2e023b575c3d6a5d", 186689095),
 			Common::FR_FRA,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
 			GUIO1(GAMEOPTION_ALT_INTRO)
 		},
 	},
-#endif
 
 #if 0
 	// DOS Floppy - German

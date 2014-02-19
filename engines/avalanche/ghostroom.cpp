@@ -1,24 +1,24 @@
 /* ScummVM - Graphic Adventure Engine
-*
-* ScummVM is the legal property of its developers, whose names
-* are too numerous to list here. Please refer to the COPYRIGHT
-* file distributed with this source distribution.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
-* GNU General Public License for more details.
-
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*
-*/
+ *
+ * ScummVM is the legal property of its developers, whose names
+ * are too numerous to list here. Please refer to the COPYRIGHT
+ * file distributed with this source distribution.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ */
 
 /*
 * This code is based on the original source code of Lord Avalot d'Argent version 1.3.
@@ -209,7 +209,7 @@ void GhostRoom::run() {
 	CursorMan.showMouse(false);
 	_vm->_graphics->saveScreen();
 	_vm->fadeOut();
-	_vm->_graphics->drawFilledRectangle(Common::Rect(0, 0, 640, 200), kColorBlack); // Black out the whole screen.
+	_vm->_graphics->blackOutScreen();
 	_vm->fadeIn();
 
 	// Only load the pictures if it's our first time walking into the room.
@@ -230,16 +230,16 @@ void GhostRoom::run() {
 		int xBound = x % 30;
 		if ((22 <= xBound) && (xBound <= 27)) {
 			if (xBound == 27)
-				_vm->_graphics->drawFilledRectangle(Common::Rect(x, 135, x + 17, 137), kColorBlack);
+				_vm->_graphics->drawFilledRectangle(Common::Rect(x, 135, x + 16, 136), kColorBlack);
 			_vm->_graphics->ghostDrawPicture(_eyes[0], x, 136);
 			_vm->_graphics->drawDot(x + 16, 137, kColorBlack);
 		} else {
 			if (xBound == 21)
-				_vm->_graphics->drawFilledRectangle(Common::Rect(x, 137, x + 18, 139), kColorBlack);
+				_vm->_graphics->drawFilledRectangle(Common::Rect(x, 137, x + 17, 138), kColorBlack);
 			_vm->_graphics->ghostDrawPicture(_eyes[0], x, 135);
 			_vm->_graphics->drawDot(x + 16, 136, kColorBlack); // Eyes would leave a trail 1 pixel high behind them.
 		}
-		
+
 		// Plot the Glerk:
 		if ((x % 10) == 0) {
 			if (_glerkStage > 25)
@@ -255,12 +255,12 @@ void GhostRoom::run() {
 
 		wait(15);
 	}
-	
+
 	// Blank out the Glerk's space.
 	_vm->_graphics->drawFilledRectangle(Common::Rect(456, 14, 530, 50), kColorBlack);
 	_vm->_graphics->refreshScreen();
 
-	
+
 	// Here comes the descending ghost:
 	for (int y = -64; y <= 103; y++) {
 		_vm->_graphics->ghostDrawGhost(_ghost[1 + (abs(y / 7) % 2) * 3], 0, y);
@@ -298,7 +298,7 @@ void GhostRoom::run() {
 	wait(777);
 
 	// Erase "aargh":
-	_vm->_graphics->drawFilledRectangle(Common::Rect(172, 78, 348, 112), kColorBlack); 
+	_vm->_graphics->drawFilledRectangle(Common::Rect(172, 78, 347, 111), kColorBlack);
 	_vm->_graphics->refreshScreen();
 
 	for (int i = 4; i >= 0; i--) {
@@ -307,25 +307,25 @@ void GhostRoom::run() {
 	}
 
 	// Erase the exclamation mark:
-	_vm->_graphics->drawFilledRectangle(Common::Rect(246, 127, 252, 134), kColorBlack); 
+	_vm->_graphics->drawFilledRectangle(Common::Rect(246, 127, 251, 133), kColorBlack);
 	_vm->_graphics->refreshScreen();
 
 	// Avvy hurries back:
 	_glerkStage = 0;
 	_greldetCount = 18;
 	_redGreldet = false;
-	
+
 	for (int x = 217; x <= 479; x++) {
 		// The floating eyeballs again:
 		int xBound = x % 30;
 		if ((22 <= xBound) && (xBound <= 27)) {
 			if (xBound == 22)
-				_vm->_graphics->drawFilledRectangle(Common::Rect(x + 22, 134, x + 38, 138), kColorBlack);
+				_vm->_graphics->drawFilledRectangle(Common::Rect(x + 22, 134, x + 38, 137), kColorBlack);
 			_vm->_graphics->ghostDrawPicture(_eyes[1], x + 23, 136);
 			_vm->_graphics->drawDot(x + 22, 137, kColorBlack);
 		} else {
 			if (xBound == 28)
-				_vm->_graphics->drawFilledRectangle(Common::Rect(x + 22, 135, x + 38, 139), kColorBlack);
+				_vm->_graphics->drawFilledRectangle(Common::Rect(x + 22, 135, x + 38, 138), kColorBlack);
 			_vm->_graphics->ghostDrawPicture(_eyes[1], x + 23, 135);
 			_vm->_graphics->drawDot(x + 22, 136, kColorBlack); // Eyes would leave a trail 1 pixel high behind them.
 		}
@@ -343,7 +343,7 @@ void GhostRoom::run() {
 			_greldetCount = 0;
 			_redGreldet = !_redGreldet;
 		}
-		
+
 		_vm->_graphics->ghostDrawPicture(_greldet[kGreldetFade[_greldetCount]][_redGreldet], _greldetX, _greldetY);
 		_greldetCount++;
 
@@ -353,7 +353,7 @@ void GhostRoom::run() {
 	}
 
 	CursorMan.showMouse(true);
-	
+
 	_vm->fadeOut();
 	_vm->_graphics->restoreScreen();
 	_vm->_graphics->removeBackup();

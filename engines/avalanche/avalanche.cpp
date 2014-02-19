@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -57,6 +57,7 @@ AvalancheEngine::AvalancheEngine(OSystem *syst, const AvalancheGameDescription *
 	_nim = nullptr;
 	_ghostroom = nullptr;
 	_help = nullptr;
+	_shootemup = nullptr;
 
 	_platform = gd->desc.platform;
 	initVariables();
@@ -81,6 +82,7 @@ AvalancheEngine::~AvalancheEngine() {
 	delete _nim;
 	delete _ghostroom;
 	delete _help;
+	delete _shootemup;
 
 	for (int i = 0; i < 31; i++) {
 		for (int j = 0; j < 2; j++) {
@@ -165,6 +167,7 @@ Common::ErrorCode AvalancheEngine::initialize() {
 	_nim = new Nim(this);
 	_ghostroom = new GhostRoom(this);
 	_help = new Help(this);
+	_shootemup = new ShootEmUp(this);
 
 	_graphics->init();
 	_dialogs->init();

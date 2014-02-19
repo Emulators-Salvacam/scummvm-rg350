@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -352,6 +352,25 @@ void GraphicManager::drawNormalText(const Common::String text, FontType font, by
 	drawText(_surface, text, font, fontHeight, x, y, color);
 }
 
+/**
+ * Used in Help. Draws text double the size of the normal.
+ */
+void GraphicManager::drawBigText(const Common::String text, FontType font, byte fontHeight, int16 x, int16 y, Color color) {
+	for (uint i = 0; i < text.size(); i++) {
+		for (int j = 0; j < fontHeight; j++) {
+			byte pixel = font[(byte)text[i]][j];
+			byte pixelBit = 0;
+			for (int bit = 0; bit < 16; bit++) {
+				if ((bit % 2) == 0)
+					pixelBit = (pixel >> (bit / 2)) & 1;
+				for (int k = 0; k < 2; k++)
+					if (pixelBit)
+						*(byte *)_surface.getBasePtr(x + i * 16 + 16 - bit, y + j * 2 + k) = color;
+			}
+		}
+	}
+}
+
 void GraphicManager::drawScrollText(const Common::String text, FontType font, byte fontHeight, int16 x, int16 y, Color color) {
 	drawText(_scrolls, text, font, fontHeight, x, y, color);
 }
@@ -459,12 +478,16 @@ void GraphicManager::drawDebugLines() {
 	}
 }
 
-void GraphicManager::drawFilledRectangle(Common::Rect rect, Color color) {
-	_surface.fillRect(rect, color);
+void GraphicManager::drawRectangle(Common::Rect rect, Color color) {
+	_surface.frameRect(Common::Rect(rect.left, rect.top, rect.right + 1, rect.bottom + 1), color);
 }
 
-void GraphicManager::drawRectangle(Common::Rect rect, Color color) {
-	_surface.frameRect(rect, color);
+void GraphicManager::drawFilledRectangle(Common::Rect rect, Color color) {
+	_surface.fillRect(Common::Rect(rect.left, rect.top, rect.right + 1, rect.bottom + 1), color);
+}
+
+void GraphicManager::blackOutScreen() {
+	_vm->_graphics->drawFilledRectangle(Common::Rect(0, 0, 639, 199), kColorBlack);
 }
 
 void GraphicManager::nimLoad() {
@@ -533,7 +556,7 @@ void GraphicManager::ghostDrawGhost(byte ghostArr[2][66][26], uint16 destX, int1
 			}
 		}
 	}
-	
+
 	drawPicture(_surface, ghostPic, destX, destY);
 
 	ghostPic.free();
@@ -573,18 +596,11 @@ Graphics::Surface GraphicManager::ghostLoadPicture(Common::File &file, Common::P
 
 	coord.x = cb._x;
 	coord.y = cb._y;
-	
-	Graphics::Surface picture = loadPictureGraphic(file);
-	
-	int bytesPerRow = (picture.w / 8);
-	if ((picture.w % 8) > 0)
-		bytesPerRow += 1;
-	int loadedBytes = picture.h * bytesPerRow * 4 + 4;
-	// * 4 is for the four planes, + 4 is for the reading of the width and the height at loadPictureGraphic's beginning.
 
-	int bytesToSkip = cb._size - loadedBytes;
-	file.skip(bytesToSkip);
-		
+	Graphics::Surface picture = loadPictureGraphic(file);
+
+	skipDifference(cb._size, picture, file);
+
 	return picture;
 }
 
@@ -634,6 +650,129 @@ void GraphicManager::ghostDrawBackgroundItems(Common::File &file) {
 }
 
 /**
+* @remarks	Originally called 'plot_button'
+*/
+void GraphicManager::helpDrawButton(int y, byte which) {
+	if (y > 200) {
+		_vm->_graphics->setBackgroundColor(kColorGreen);
+		_vm->_system->delayMillis(10);
+		_vm->_graphics->setBackgroundColor(kColorBlack);
+		return;
+	}
+
+	Common::File file;
+
+	if (!file.open("buttons.avd"))
+		error("AVALANCHE: Help: File not found: buttons.avd");
+
+	file.seek(which * 930); // 930 is the size of one button.
+
+	Graphics::Surface button = loadPictureGraphic(file);
+
+	int x = 0;
+	if (y == -177) {
+		x = 229;
+		y = 5;
+	}
+	else
+		x = 470;
+
+	_vm->_graphics->drawPicture(_surface, button, x, y);
+
+	button.free();
+	file.close();
+}
+
+/**
+ * @remarks	Originally called 'light'
+ */
+void GraphicManager::helpDrawHighlight(byte which, Color color) {
+	if (which == 177) // Dummy value for "no button at all".
+		return;
+
+	which &= 31;
+	drawRectangle(Common::Rect(466, 38 + which * 27, 555, 62 + which * 27), color);
+}
+
+/**
+ * @remarks	Originally called 'titles'
+ */
+void GraphicManager::seuDrawTitle() {
+	Common::File file;
+
+	if (!file.open("shoot1.avd"))
+		error("AVALANCHE: ShootEmUp: File not found: shoot1.avd");
+
+	const uint16 width = 320;
+	const uint16 height = 200;
+
+	Graphics::Surface picture = loadPictureRaw(file, width, height);
+
+	Graphics::Surface doubledPicture;
+	doubledPicture.create(width * 2, height, Graphics::PixelFormat::createFormatCLUT8());
+
+	// These cycles are for doubling the picture's width.
+	for (int x = (width * 2) - 2 ; x >= 0; x -= 2) {
+		for (int y = 0; y < height; y++) {
+			*(byte *)doubledPicture.getBasePtr(x, y) = *(byte *)doubledPicture.getBasePtr(x + 1, y) = *(byte *)picture.getBasePtr(x / 2, y);
+		}
+	}
+
+	drawPicture(_surface, doubledPicture, 0, 0);
+	refreshScreen();
+
+	picture.free();
+	doubledPicture.free();
+
+	file.close();
+}
+
+void GraphicManager::seuLoad() {
+	Common::File file;
+
+	if (!file.open("notts.avd"))
+		error("AVALANCHE: ShootEmUp: File not found: notts.avd");
+
+	for (int i = 0; i < 99; i++) {
+		int size = file.readUint16LE();
+		_seuPictures[i] = loadPictureGraphic(file);
+		skipDifference(size, _seuPictures[i], file);
+	}
+
+	file.close();
+}
+
+void GraphicManager::seuFree() {
+	for (int i = 0; i < 99; i++)
+		_seuPictures[i].free();
+}
+
+/**
+ * @remarks	Originally called 'display' and it also replaces 'display_const'
+ */
+void GraphicManager::seuDrawPicture(int x, int y, byte which) {
+	drawPicture(_surface, _seuPictures[which], x, y);
+}
+
+/**
+ * This function is for skipping the difference between a stored 'size' value associated with a picture
+ * and the actual size of the pictures  when reading them from files for Ghostroom and Shoot em' up.
+ * It's needed bacuse the original code loaded the pictures to arrays first and only used the useful parts
+ * of these arrays when drawing the images, but in the ScummVM version, we only read the
+ * useful parts from the files, so we have to skip these differences between readings.
+ */
+void GraphicManager::skipDifference(int size, const Graphics::Surface &picture, Common::File &file) {
+	int bytesPerRow = (picture.w / 8);
+	if ((picture.w % 8) > 0)
+		bytesPerRow += 1;
+	int loadedBytes = picture.h * bytesPerRow * 4 + 4;
+	// * 4 is for the four planes, + 4 is for the reading of the width and the height at loadPictureGraphic's beginning.
+
+	int bytesToSkip = size - loadedBytes;
+	file.skip(bytesToSkip);
+}
+
+/**
  * This function mimics Pascal's getimage().
  */
 Graphics::Surface GraphicManager::loadPictureGraphic(Common::File &file) {
@@ -643,7 +782,7 @@ Graphics::Surface GraphicManager::loadPictureGraphic(Common::File &file) {
 
 	Graphics::Surface picture; // We make a Surface object for the picture itself.
 	picture.create(width, height, Graphics::PixelFormat::createFormatCLUT8());
-	
+
 	// Produce the picture. We read it in row-by-row, and every row has 4 planes.
 	for (int y = 0; y < height; y++) {
 		for (int8 plane = 3; plane >= 0; plane--) { // The planes are in the opposite way.
@@ -651,7 +790,10 @@ Graphics::Surface GraphicManager::loadPictureGraphic(Common::File &file) {
 				byte pixel = file.readByte();
 				for (int bit = 0; bit < 8; bit++) {
 					byte pixelBit = (pixel >> bit) & 1;
-					*(byte *)picture.getBasePtr(x + 7 - bit, y) += (pixelBit << plane);
+					// If the picture's width is not a multiple of 8, and we get over the boundary with the 'x' cycle, pixelBit is surely == 0.
+					// Otherwise, it doesn't cause trouble, since addign 0 doesn't have an effect at all.
+					if (pixelBit != 0)
+						*(byte *)picture.getBasePtr(x + 7 - bit, y) += (pixelBit << plane);
 				}
 			}
 		}
@@ -684,22 +826,21 @@ Graphics::Surface GraphicManager::loadPictureRaw(Common::File &file, uint16 widt
 	return picture;
 }
 
-Graphics::Surface GraphicManager::loadPictureSign(Common::File &file, int xl, int yl) {
+Graphics::Surface GraphicManager::loadPictureSign(Common::File &file, uint16 width, uint16 height) {
 	// I know it looks very similar to the other loadPicture methods, but in truth it's the combination of the two.
-	uint16 width = xl * 8;
-	uint16 height = yl;
+	width *= 8;
 
 	Graphics::Surface picture; // We make a Surface object for the picture itself.
 	picture.create(width, height, Graphics::PixelFormat::createFormatCLUT8());
 
 	// Produce the picture. We read it in row-by-row, and every row has 4 planes.
-	for (int yy = 0; yy < height; yy++) {
+	for (int y = 0; y < height; y++) {
 		for (int8 plane = 0; plane < 4; plane++) { // The planes are in the "right" order.
-			for (uint16 xx = 0; xx < width; xx += 8) {
+			for (uint16 x = 0; x < width; x += 8) {
 				byte pixel = file.readByte();
 				for (int bit = 0; bit < 8; bit++) {
 					byte pixelBit = (pixel >> bit) & 1;
-					*(byte *)picture.getBasePtr(xx + 7 - bit, yy) += (pixelBit << plane);
+					*(byte *)picture.getBasePtr(x + 7 - bit, y) += (pixelBit << plane);
 				}
 			}
 		}

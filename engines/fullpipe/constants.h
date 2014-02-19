@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -584,6 +584,35 @@ namespace Fullpipe {
 #define ST_MAN8_HANDSUP 773
 #define ST_MAN8_STAND 774
 #define ST_VMT_MIN 766
+
+// Scene 9
+#define ANI_BALL9 933
+#define ANI_GLOTATEL 924
+#define ANI_GRIT_9 2719
+#define ANI_PLEVATEL 919
+#define ANI_VISUNCHIK 904
+#define MSG_SC9_EATBALL 941
+#define MSG_SC9_FLOWN 943
+#define MSG_SC9_FROMLADDER 4207
+#define MSG_SC9_PLVCLICK 965
+#define MSG_SC9_SETSCROLL 964
+#define MSG_SC9_SHOWBALL 936
+#define MSG_SC9_STARTTIOTIA 4942
+#define MSG_SC9_TOLADDER 4206
+#define MV_GLT_FLYAWAY 931
+#define MV_MAN9_SHOOT 922
+#define MV_VSN_CYCLE2 2987
+#define PIC_SC9_LADDER_R 2700
+#define QU_SC9_EATBALL 942
+#define QU_TTA9_GOL 4937
+#define SND_9_006 3650
+#define SND_9_018 4200
+#define SND_9_019 4201
+#define ST_GLT_SIT 926
+#define ST_GRT9_GRIT 2722
+#define ST_GRT9_NORM 2721
+#define ST_PLV_SIT 921
+#define ST_VSN_NORMAL 906
 
 // Scene 10
 #define ANI_GUM 978

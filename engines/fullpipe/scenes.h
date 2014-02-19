@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -27,6 +27,7 @@ namespace Fullpipe {
 
 struct Bat;
 struct BehaviorEntryInfo;
+struct Hanger;
 class MGM;
 class MctlLadder;
 struct Ring;
@@ -69,6 +70,10 @@ void scene08_initScene(Scene *sc);
 void scene08_setupMusic();
 int sceneHandler08(ExCommand *cmd);
 int scene08_updateCursor();
+
+int scene09_updateCursor();
+void scene09_initScene(Scene *sc);
+int sceneHandler09(ExCommand *cmd);
 
 void scene10_initScene(Scene *sc);
 int sceneHandler10(ExCommand *cmd);
@@ -208,6 +213,8 @@ struct BallChain {
 	~BallChain() { free(cPlex); }
 
 	void init(Ball **ball);
+	Ball *sub04(Ball *ballP, Ball *ballN);
+	void reset() { pHead = 0; pTail = 0; field_8 = 0; numBalls = 0; free(cPlex); cPlex = 0; cPlexLen = 0; }
 };
 
 class Vars {
@@ -340,6 +347,27 @@ public:
 	bool scene08_inArcade;
 	bool scene08_stairsVisible;
 	int scene08_manOffsetY;
+
+	int scene09_var02;
+	StaticANIObject *scene09_flyingBall;
+	int scene09_var05;
+	StaticANIObject *scene09_glotatel;
+	StaticANIObject *scene09_spitter;
+	StaticANIObject *scene09_grit;
+	int scene09_var08;
+	int scene09_var09;
+	int scene09_var10;
+	int scene09_var11;
+	int scene09_var12;
+	BallChain scene09_balls;
+	Common::Array<Hanger *> scene09_hangers;
+	BallChain scene09_var07;
+	int scene09_numMovingHangers;
+	int scene09_var13;
+	int scene09_var15;
+	int scene09_var17;
+	int scene09_var19;
+	Common::Point scene09_var18;
 
 	StaticANIObject *scene10_gum;
 	StaticANIObject *scene10_packet;
