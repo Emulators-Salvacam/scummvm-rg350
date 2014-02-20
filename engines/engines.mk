@@ -262,3 +262,7 @@ DEFINES += -DENABLE_ZVISION=$(ENABLE_ZVISION)
 MODULES += engines/zvision
 endif
 
+ifdef ENABLE_VOYEUR
+DEFINES += -DENABLE_VOYEUR=$(ENABLE_VOYEUR)
+MODULES += engines/voyeur
+endif
