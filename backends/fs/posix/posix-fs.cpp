@@ -64,9 +64,6 @@ void POSIXFilesystemNode::setFlags() {
 }
 
 POSIXFilesystemNode::POSIXFilesystemNode(const Common::String &p) {
-#ifdef PLAYSTATION3
-   _path = "/";
-#else
 	assert(p.size() > 0);
 
 	// Expand "~/" to the value of the HOME env variable
@@ -83,7 +80,6 @@ POSIXFilesystemNode::POSIXFilesystemNode(const Common::String &p) {
    {
 		_path = p;
 	}
-#endif
 
 #ifdef __OS2__
 	// On OS/2, 'X:/' is a root of drive X, so we should not remove that last

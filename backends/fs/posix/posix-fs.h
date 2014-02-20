@@ -43,6 +43,7 @@
 
 static inline int access(const char *pn, int mode)
 {
+   warning("access: pn %s\n", pn);
    int fd = open(pn, O_RDONLY);
    if (fd < 0)
       return -1;
@@ -54,7 +55,7 @@ static inline int access(const char *pn, int mode)
 
 static inline char *getenv(const char *name)
 {
-   return (char*)"/";
+   return 0;
 }
 #endif
 

@@ -45,7 +45,7 @@ extern int errno;
 
 static inline char *getcwd (char *buf, size_t len)
 {
-   return "/";
+   return 0;
 }
 #endif
 
@@ -57,8 +57,12 @@ AbstractFSNode *POSIXFilesystemFactory::makeRootFileNode() const {
 }
 
 AbstractFSNode *POSIXFilesystemFactory::makeCurrentDirectoryFileNode() const {
+#ifdef PLAYSTATION3
+   return new POSIXFilesystemNode("/");
+#else
 	char buf[MAXPATHLEN];
 	return getcwd(buf, MAXPATHLEN) ? new POSIXFilesystemNode(buf) : NULL;
+#endif
 }
 
 AbstractFSNode *POSIXFilesystemFactory::makeFileNodePath(const Common::String &path) const {
