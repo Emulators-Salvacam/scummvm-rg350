@@ -33,9 +33,13 @@
 namespace Avalanche {
 
 const byte ShootEmUp::kStocks = 27;
+const byte ShootEmUp::kAvvyShoots = 86;
 const byte ShootEmUp::kFacingRight = 87;
 const byte ShootEmUp::kFacingLeft = 93;
 const long int ShootEmUp::kFlag = -20047;
+const byte ShootEmUp::kFrameDelayMax = 2;
+const byte ShootEmUp::kAvvyY = 150;
+const byte ShootEmUp::kShooting[7] = { 87, 80, 81, 82, 81, 80, 87 };
 
 ShootEmUp::ShootEmUp(AvalancheEngine *vm) {
 	_vm = vm;
@@ -80,6 +84,9 @@ ShootEmUp::ShootEmUp(AvalancheEngine *vm) {
 	_escapeCount = 0;
 	_escaping = false;
 	_timeThisSecond = 0;
+	_cp = false;
+	_wasFacing = 0;
+	_score = 0;
 }
 
 void ShootEmUp::run() {
@@ -119,6 +126,8 @@ void ShootEmUp::run() {
 		check321();
 		readKbd();
 
+		_cp = !_cp;
+
 		_vm->_graphics->refreshScreen();
 	} while (_time != 0);
 
@@ -146,11 +155,40 @@ void ShootEmUp::blankIt() {
 }
 
 void ShootEmUp::moveThem() {
-	warning("STUB: ShootEmUp::moveThem()");
+	for (int i = 0; i < 99; i++) {
+		if (_sprites[i]._x != kFlag) {
+			_sprites[i]._x += _sprites[i]._ix;
+			_sprites[i]._y += _sprites[i]._iy;
+		}
+	}
+}
+
+void ShootEmUp::blank(Common::Rect rect) {
+	_rectangles[_rectNum++] = rect;
 }
 
 void ShootEmUp::plotThem() {
-	warning("STUB: ShootEmUp::plotThem()");
+	for (int i = 0; i < 99; i++) {
+		if (_sprites[i]._x != kFlag) {
+			if (_sprites[i]._cameo) {
+				_vm->_graphics->seuDrawCameo(_sprites[i]._x, _sprites[i]._y, _sprites[i]._p, _sprites[i]._cameoFrame);
+				if (!_cp) {
+					_sprites[i]._cameoFrame += 2;
+					_sprites[i]._p += 2;
+				}
+			} else
+				_vm->_graphics->seuDrawPicture(_sprites[i]._x, _sprites[i]._y, _sprites[i]._p);
+
+			if (_sprites[i]._wipe)
+				blank(Common::Rect(_sprites[i]._x, _sprites[i]._y, _sprites[i]._x + _rectangles[i].width(), _sprites[i]._y + _rectangles[i].height()));
+
+			if (_sprites[i]._timeout > 0) {
+				_sprites[i]._timeout--;
+				if (_sprites[i]._timeout == 0)
+					_sprites[i]._y = kFlag;
+			}
+		}
+	}
 }
 
 void ShootEmUp::define(int16 x, int16 y, byte p, int8 ix, int8 iy, int16 time, bool isAMissile, bool doWeWipe) {
@@ -275,6 +313,8 @@ void ShootEmUp::setup() {
 		showStock(i);
 	}
 
+	_cp = true;
+
 	_avvyWas = 320;
 	_avvyPos = 320;
 	_avvyAnim = 1;
@@ -308,12 +348,55 @@ void ShootEmUp::setup() {
 	initRunner(20, 100, 61, 67, (-(int8)_vm->_rnd->getRandomNumber(4)) + 1, _vm->_rnd->getRandomNumber(3) - 2);
 }
 
-void ShootEmUp::initRunner(int16 xx, int16 yy, byte f1, byte f2, int8 ixx, int8 iyy) {
-	warning("STUB: ShootEmUp::initRunner()");
+void ShootEmUp::initRunner(int16 x, int16 y, byte f1, byte f2, int8 ix, int8 iy) {
+	for (int i = 0; i < 4; i++) {
+		if (_running[i]._x == kFlag) {
+			_running[i]._x = x;
+			_running[i]._y = y;
+			_running[i]._frame = f1;
+			_running[i]._tooHigh = f2;
+			_running[i]._lowest = f1;
+			_running[i]._ix = ix;
+			_running[i]._iy = iy;
+			if ((ix = 0) && (iy = 0))
+				_running[i]._ix = 2; // To stop them running on the spot!
+			_running[i]._frameDelay = kFrameDelayMax;
+			return;
+		}
+	}
 }
 
 void ShootEmUp::moveAvvy() {
-	warning("STUB: ShootEmUp::moveAvvy()");
+	if (_avvyWas < _avvyPos)
+		_avvyFacing = kFacingRight;
+	else if (_avvyWas > _avvyPos)
+		_avvyFacing = kFacingLeft;
+
+	if (!_firing) {
+		if (_avvyWas == _avvyPos)
+			_avvyAnim = 1;
+		else {
+			_avvyAnim++;
+			if (_avvyAnim == 6)
+				_avvyAnim = 0;
+		}
+	}
+
+	if (_avvyFacing == kAvvyShoots)
+		define(_avvyPos, kAvvyY, kShooting[_avvyAnim], 0, 0, 1, false, true);
+	else
+		define(_avvyPos, kAvvyY, _avvyAnim + _avvyFacing, 0, 0, 1, false, true);
+
+	_avvyWas = _avvyPos;
+
+	if (_avvyFacing == kAvvyShoots) {
+		if (_avvyAnim == 6) {
+			_avvyFacing = _wasFacing;
+			_avvyAnim = 0;
+			_firing = false;
+		} else
+			_avvyAnim++;
+	}
 }
 
 void ShootEmUp::readKbd() {
@@ -329,15 +412,64 @@ void ShootEmUp::collisionCheck() {
 }
 
 void ShootEmUp::turnAround(byte who, bool randomX) {
-	warning("STUB: ShootEmUp::turnAround()");
+	if (randomX) {
+		int8 ix = (_vm->_rnd->getRandomNumber(4) + 1);
+		if (_running[who]._ix > 0)
+			_running[who]._ix = -(ix);
+		else
+			_running[who]._ix = ix;
+	} else
+		_running[who]._ix = -(_running[who]._ix);
+
+	_running[who]._iy = -(_running[who]._iy);
 }
 
 void ShootEmUp::bumpFolk() {
-	warning("STUB: ShootEmUp::bumpFolk()");
+	for (int i = 0; i < 4; i++) {
+		if (_running[i]._x != kFlag) {
+			for (int j = i + 1; j < 4; j++) {
+				bool overlaps = overlap(_running[i]._x, _running[i]._y, _running[i]._x + 17, _running[i]._y + 24,
+										_running[j]._x, _running[j]._y, _running[j]._x + 17, _running[j]._y + 24);
+				if ((_running[i]._x != kFlag) && overlaps) {
+					turnAround(i, false); // Opp. directions.
+					turnAround(j, false);
+				}
+			}
+		}
+	}
 }
 
 void ShootEmUp::peopleRunning() {
-	warning("STUB: ShootEmUp::peopleRunning()");
+	if (_count321 != 0)
+		return;
+
+	for (int i = 0; i < 4; i++) {
+		if (_running[i]._x != kFlag) {
+			if (((_running[i]._y + _running[i]._iy) <= 53) || ((_running[i]._y + _running[i]._iy) >= 120))
+				_running[i]._iy = -(_running[i]._iy);
+
+			byte frame = 0;
+			if (_running[i]._ix < 0)
+				frame = _running[i]._frame;
+			else
+				frame = _running[i]._frame + 7;
+			define(_running[i]._x, _running[i]._y, frame, 0, 0, 1, false, true);
+
+			if (_running[i]._frameDelay == 0) {
+				_running[i]._frame++;
+				if (_running[i]._frame == _running[i]._tooHigh)
+					_running[i]._frame = _running[i]._lowest;
+				_running[i]._frameDelay = kFrameDelayMax;
+				_running[i]._y += _running[i]._iy;
+			} else
+				_running[i]._frameDelay--;
+
+			if (((_running[i]._x + _running[i]._ix) <= 0) || ((_running[i]._x + _running[i]._ix) >= 620))
+				turnAround(i, true);
+
+			_running[i]._x += _running[i]._ix;
+		}
+	}
 }
 
 void ShootEmUp::updateTime() {

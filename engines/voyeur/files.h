@@ -325,20 +325,17 @@ public:
 	int _pageIndex;
 	int _lastPage;
 	Common::Rect _bounds;
-	int _field18;  // Useless variable
 	PictureResource *_currentPic;
 	PictureResource *_activePage;
 	PictureResource *_pages[2];
-	byte *_field30;
 
 	// Rect lists and counts. Note that _rectListCount values of '-1' seem to have
-	// special significance, which is why I'm not making them redundant in favour 
+	// special significance, which is why I'm not making them redundant in favor 
 	// of the arrays' .size() method
 	Common::Array<Common::Rect> *_rectListPtr[3];
 	int _rectListCount[3];
 
 	Common::Rect _clipRect;
-	byte *_field7A;
 	GraphicMethodPtr _fn1;
 	ViewPortSetupPtr _setupFn;
 	ViewPortAddPtr _addFn;
@@ -390,7 +387,7 @@ public:
 	virtual ~FontResource();
 };
 
-enum FontJustify { ALIGN_LEFT = 0, ALIGN_CENTRE = 1, ALIGN_RIGHT = 2 };
+enum FontJustify { ALIGN_LEFT = 0, ALIGN_CENTER = 1, ALIGN_RIGHT = 2 };
 
 class FontInfoResource {
 public:
@@ -491,8 +488,6 @@ public:
 class ThreadResource {
 public:
 	static int _useCount[8];
-	static byte *_threadDataPtr;
-	static CMapResource *_cmd14Pal;
 	static void initUseCount();
 	static void unloadAllStacks(VoyeurEngine *vm);
 
@@ -505,7 +500,6 @@ private:
 	byte *getDataOffset();
 	void getButtonsText();
 	void getButtonsFlags();
-	void getButtonsUnused();
 	void performOpenCard();
 	const byte *getRecordOffset(const byte *p);
 	const byte *getNextRecord(const byte *p);
@@ -543,28 +537,15 @@ public:
 	int _savedStackId;
 	int _newStateId;
 	int _newStackId;
-	int _flags;
-	int _fieldA[8];  // Useless variable
-	int _field2A[8]; // Useless variable
 	int _stateFlags;
 	int _stateCount;
 	int _parseCount;
 	uint32 _nextStateId;
 	byte *_threadInfoPtr;
 	byte _buttonFlags[64];
-	const byte *_field8E[64]; // Useless variable
 	byte _buttonIds[64];
-	const byte *_buttonUnused[48];
 	byte *_ctlPtr;
 	byte *_playCommandsPtr;
-public:
-	ThreadResource(BoltFilesState &state, const byte *src);
-	virtual ~ThreadResource() {}
-
-	/**
-	 * Initialize the thread
-	 */
-	void initThreadStruct(int idx, int id);
 
 	/**
 	 * Loads the specified stack
@@ -577,14 +558,23 @@ public:
 	void unloadAStack(int stackId);
 
 	/**
-	 * Go to a new state and/or stack
-	 */
-	bool goToState(int stackId, int stateId);
-
-	/**
 	 * Initializes data for the thread based on the current state
 	 */
 	bool doState();
+
+public:
+	ThreadResource(BoltFilesState &state, const byte *src);
+	virtual ~ThreadResource() {}
+
+	/**
+	 * Initialize the thread
+	 */
+	void initThreadStruct(int idx, int id);
+
+	/**
+	 * Go to a new state and/or stack
+	 */
+	bool goToState(int stackId, int stateId);
 
 	bool chooseSTAMPButton(int buttonId);
 

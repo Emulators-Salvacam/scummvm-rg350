@@ -307,7 +307,7 @@ void VoyeurEngine::doClosingCredits() {
 		if (flags & 1) {
 			fi._foreColor = 1;
 			fi._curFont = _bVoy->boltEntry(0x402)._fontResource;
-			fi._justify = ALIGN_CENTRE;
+			fi._justify = ALIGN_CENTER;
 			fi._justifyWidth = 384;
 			fi._justifyHeight = 240;
 			fi._pos = Common::Point(0, READ_LE_UINT16(entry));
@@ -319,7 +319,7 @@ void VoyeurEngine::doClosingCredits() {
 		if (flags & 0x40) {
 			fi._foreColor = 2;
 			fi._curFont = _bVoy->boltEntry(0x400)._fontResource;
-			fi._justify = ALIGN_CENTRE;
+			fi._justify = ALIGN_CENTER;
 			fi._justifyWidth = 384;
 			fi._justifyHeight = 240;
 			fi._pos = Common::Point(0, READ_LE_UINT16(entry));
@@ -352,7 +352,7 @@ void VoyeurEngine::doClosingCredits() {
 		if (flags & 4) {
 			fi._foreColor = 1;
 			fi._curFont = _bVoy->boltEntry(0x402)._fontResource;
-			fi._justify = ALIGN_CENTRE;
+			fi._justify = ALIGN_CENTER;
 			fi._justifyWidth = 384;
 			fi._justifyHeight = 240;
 			fi._pos = Common::Point(0, READ_LE_UINT16(entry));
@@ -362,7 +362,7 @@ void VoyeurEngine::doClosingCredits() {
 
 			fi._foreColor = 2;
 			fi._curFont = _bVoy->boltEntry(0x400)._fontResource;
-			fi._justify = ALIGN_CENTRE;
+			fi._justify = ALIGN_CENTER;
 			fi._justifyWidth = 384;
 			fi._justifyHeight = 240;
 			fi._pos = Common::Point(0, READ_LE_UINT16(entry) + 13);
@@ -399,7 +399,7 @@ void VoyeurEngine::doPiracy() {
 	fi._backColor = 2;
 	fi._fontSaveBack = false;
 	fi._fontFlags = 0;
-	fi._justify = ALIGN_CENTRE;
+	fi._justify = ALIGN_CENTER;
 	fi._justifyWidth = 384;
 	fi._justifyHeight = 230;
 
@@ -472,15 +472,15 @@ void VoyeurEngine::reviewTape() {
 
 		_currentVocId = 151;
 		_voy._vocSecondsOffset = 0;
-		bool var1E = true;
+		bool needRedraw = true;
 		do {
 			if (_currentVocId != -1 && !_soundManager.getVOCStatus()) {
 				_voy._musicStartTime = _voy._RTVNum;
 				_soundManager.startVOCPlay(_currentVocId);
 			}
 
-			if (var1E) {
-				var1E = false;
+			if (needRedraw) {
+				needRedraw = false;
 				flipPageAndWait();
 
 				_graphicsManager._drawPtr->_penColor = 0;
@@ -595,7 +595,7 @@ void VoyeurEngine::reviewTape() {
 				case 2:
 					if (eventStart > 0) {
 						--eventStart;
-						var1E = true;
+						needRedraw = true;
 					}
 					foundIndex = -1;
 					break;
@@ -605,7 +605,7 @@ void VoyeurEngine::reviewTape() {
 						eventStart -= 8;
 						if (eventStart < 0)
 							eventStart = 0;
-						var1E = true;
+						needRedraw = true;
 					}
 					foundIndex = -1;
 					break;
@@ -613,7 +613,7 @@ void VoyeurEngine::reviewTape() {
 				case 4:
 					if ((_voy._eventCount - 8) > eventStart) {
 						++eventStart;
-						var1E = true;
+						needRedraw = true;
 					}
 					foundIndex = -1;
 					break;
@@ -623,7 +623,7 @@ void VoyeurEngine::reviewTape() {
 						eventStart += 8;
 						if ((_voy._eventCount - 8) < eventStart)
 							eventStart = _voy._eventCount - 8;
-						var1E = true;
+						needRedraw = true;
 					}
 					foundIndex = -1;
 					break;
@@ -808,7 +808,7 @@ void VoyeurEngine::doTapePlaying() {
 }
 
 bool VoyeurEngine::checkForMurder() {
-	int v = _controlPtr->_state->_victimMurderIndex;
+	int oldMurderIndex = _controlPtr->_state->_victimMurderIndex;
 
 	for (int idx = 0; idx < _voy._eventCount; ++idx) {
 		VoyeurEvent &evt = _voy._events[idx];
@@ -854,7 +854,7 @@ bool VoyeurEngine::checkForMurder() {
 		}
 	}
 
-	_controlPtr->_state->_victimMurderIndex = v;
+	_controlPtr->_state->_victimMurderIndex = oldMurderIndex;
 	_voy._videoEventId = -1;
 	return false;
 }
@@ -1019,7 +1019,7 @@ void VoyeurEngine::makeViewFinder() {
 	}
 
 	(*_graphicsManager._vPort)->drawIfaceTime();
-	doTimeBar(true);
+	doTimeBar();
 	pal->startFade();
 
 	flipPageAndWaitForFade();
@@ -1271,10 +1271,10 @@ void VoyeurEngine::getComputerBrush() {
 	}
 }
 
-void VoyeurEngine::doTimeBar(bool force) {
+void VoyeurEngine::doTimeBar() {
 	flashTimeBar();
 
-	if ((force || _timeBarVal != _voy._RTVNum) && _voy._RTVLimit > 0) {
+	if (_voy._RTVLimit > 0) {
 		if (_voy._RTVNum > _voy._RTVLimit || _voy._RTVNum < 0)
 			_voy._RTVNum = _voy._RTVLimit - 1;
 		

@@ -28,13 +28,9 @@
 namespace Voyeur {
 
 int ThreadResource::_useCount[8];
-byte *ThreadResource::_threadDataPtr;
-CMapResource *ThreadResource::_cmd14Pal;
 
 void ThreadResource::init() {
 	Common::fill(&_useCount[0], &_useCount[8], 0);
-	_threadDataPtr = nullptr;
-	_cmd14Pal = nullptr;
 }
 
 ThreadResource::ThreadResource(BoltFilesState &state, const byte *src):
@@ -43,7 +39,6 @@ ThreadResource::ThreadResource(BoltFilesState &state, const byte *src):
 	_stackId = READ_LE_UINT16(&src[0]);
 	_savedStateId = READ_LE_UINT16(&src[0]);
 	_savedStackId = READ_LE_UINT16(&src[0]);
-	_flags = src[8];
 	_ctlPtr = nullptr;
 	_aptPos = Common::Point(-1, -1);
 }
@@ -88,13 +83,10 @@ void ThreadResource::unloadAStack(int stackId) {
 }
 
 bool ThreadResource::doState() {
-	_flags |= 1;
-
 	if (!getStateInfo()) 
 		return false;
 
 	getButtonsFlags();
-	getButtonsUnused();
 
 	_vm->_glGoState = -1;
 	_vm->_glGoStack = -1;
@@ -108,11 +100,9 @@ bool ThreadResource::doState() {
 }
 
 bool ThreadResource::getStateInfo() {
-	_flags &= 0xff;
 	int id = READ_LE_UINT16(_ctlPtr);
 
 	if (id <= _stateId) {
-		_flags |= 0x8000;
 		return false;
 	} else {
 		uint32 fld = READ_LE_UINT32(_ctlPtr + 2);
@@ -137,8 +127,7 @@ bool ThreadResource::getStateInfo() {
 
 byte *ThreadResource::getDataOffset() {
 	uint32 offset = READ_LE_UINT32(_ctlPtr + 10);
-	_threadDataPtr = _ctlPtr + offset;
-	return _threadDataPtr;
+	return _ctlPtr + offset;
 }
 
 void ThreadResource::getButtonsText() {
@@ -149,12 +138,10 @@ void ThreadResource::getButtonsText() {
 			++p;
 			if (*p++ & 0x80) {
 				assert(idx < 63);
-				_field8E[idx] = getRecordOffset(p);
 				p += 4;
 			}
 
 			++idx;
-			_field8E[idx] = NULL;
 		}
 	}
 }
@@ -175,17 +162,6 @@ void ThreadResource::getButtonsFlags() {
 
 			++idx;
 		}
-	}
-}
-
-void ThreadResource::getButtonsUnused() {
-	int idx = 0;
-	
-	for (const byte *p = _threadInfoPtr; *p++ != 0x4A; p = getNextRecord(p)) {
-		assert(idx < 47);
-		_buttonUnused[idx++] = getRecordOffset(p);
-		_buttonUnused[idx] = nullptr;
-		p += 4;
 	}
 }
 
@@ -310,8 +286,6 @@ void ThreadResource::cardAction(const byte *card) {
 }
 
 bool ThreadResource::chooseSTAMPButton(int buttonId) {
-	_flags &= ~1;
-
 	for (int idx = 0; idx < _stateCount; ++idx) {
 		if (_buttonIds[idx] == buttonId) {
 			const byte *card = getSTAMPCard(idx);
@@ -716,7 +690,7 @@ void ThreadResource::parsePlayCommands() {
 
 const byte *ThreadResource::cardPerform(const byte *card) {
 	uint16 id = *card++;
-	int varD = 5;
+	int subId = 5;
 	uint32 v2;
 	byte bVal;
 	uint32 idx1, idx2;
@@ -831,17 +805,17 @@ const byte *ThreadResource::cardPerform(const byte *card) {
 	case 24:
 	case 27:
 	case 28:
-		varD -= 3;	
+		subId -= 3;	
 		// Deliberate fall-through
 
 	case 21:
 	case 22:
 	case 25:
 	case 26:
-		bVal = card[varD];
+		bVal = card[subId];
 		if (bVal == 61) {
 			if (cardPerform2(card, id)) {
-				card += varD;
+				card += subId;
 				while (*card != 30 && *card != 29)
 					card = cardPerform(card);
 
@@ -856,7 +830,7 @@ const byte *ThreadResource::cardPerform(const byte *card) {
 					}
 				}
 			} else {
-				card += varD;
+				card += subId;
 				int count = 1;
 				while (count > 0) {
 					card = getNextRecord(card);
@@ -874,11 +848,11 @@ const byte *ThreadResource::cardPerform(const byte *card) {
 			++card;
 		} else {
 			if (cardPerform2(card, id)) {
-				card += varD;
+				card += subId;
 				card = cardPerform(card);
 				while (*card++ != 61) ;		
 			} else {
-				card += varD;
+				card += subId;
 				while (*card != 61 && *card != 29)
 					++card;
 			}
@@ -888,11 +862,7 @@ const byte *ThreadResource::cardPerform(const byte *card) {
 	case 41:
 		bVal = *card++;
 		assert(bVal < 8);
-		_fieldA[bVal] = READ_LE_UINT32(card);
-		card += 4;
-
-		_field2A[bVal] = READ_LE_UINT16(card);
-		card += 2;
+		card += 6;
 	
 	case 45:
 		_newStateId = _nextStateId;
@@ -1268,7 +1238,7 @@ void ThreadResource::doRoom() {
 
 			_vm->flipPageAndWait();
 
-			vm._graphicsManager.fadeUpICF1(0);
+			vm._graphicsManager.fadeUpICF1();
 			voy._eventFlags &= EVTFLAG_RECORDING;
 			vm._eventsManager.showCursor();
 		}
@@ -1369,7 +1339,7 @@ int ThreadResource::doInterface() {
 
 	do {
 		_vm->_voyeurArea = AREA_INTERFACE;
-		_vm->doTimeBar(true);
+		_vm->doTimeBar();
 		_vm->_eventsManager.getMouseInfo();
 
 		if (checkMansionScroll())
@@ -1553,10 +1523,7 @@ bool ThreadResource::goToState(int stackId, int stateId) {
 }
 
 void ThreadResource::savePrevious() {
-	if (_savedStateId == _stateId && _stackId == _savedStackId) {
-		_flags &= ~1;
-	} else {
-		_flags |= 1;
+	if (_savedStateId != _stateId || _stackId != _savedStackId) {
 		_savedStateId = _stateId;
 		_savedStackId = _stackId;
 	}
@@ -1628,7 +1595,7 @@ void ThreadResource::freeTheApt() {
 	_vm->_graphicsManager.fadeDownICF1(5);
 	_vm->flipPageAndWaitForFade();
 
-	_vm->_graphicsManager.fadeUpICF1(0);
+	_vm->_graphicsManager.fadeUpICF1();
 
 	if (_vm->_currentVocId != -1) {
 		_vm->_soundManager.stopVOCPlay();
