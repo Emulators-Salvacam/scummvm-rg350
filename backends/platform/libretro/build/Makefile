@@ -54,7 +54,8 @@ else ifeq ($(platform), ps3)
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
    LD = ./fake-link.sh $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe cru
-	FS_TYPE := ps3
+	FS_TYPE := posix
+   DEFINES += -DPLAYSTATION3
 else ifeq ($(platform), wii)
    TARGET := $(TARGET_NAME)_libretro_wii.a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)

@@ -30,11 +30,18 @@
 #define FORBIDDEN_SYMBOL_EXCEPTION_getenv
 #define FORBIDDEN_SYMBOL_EXCEPTION_exit		//Needed for IRIX's unistd.h
 
+#ifdef PLAYSTATION3
+#define FORBIDDEN_SYMBOL_ALLOW_ALL
+#include <unistd.h>
+#endif
+
 #include "backends/fs/posix/posix-fs.h"
 #include "backends/fs/stdiostream.h"
 #include "common/algorithm.h"
 
+#ifndef PLAYSTATION3
 #include <sys/param.h>
+#endif
 #include <sys/stat.h>
 #ifdef _WIN32
 #include "dirent_win32.h"
@@ -57,6 +64,9 @@ void POSIXFilesystemNode::setFlags() {
 }
 
 POSIXFilesystemNode::POSIXFilesystemNode(const Common::String &p) {
+#ifdef PLAYSTATION3
+   _path = "/";
+#else
 	assert(p.size() > 0);
 
 	// Expand "~/" to the value of the HOME env variable
@@ -68,9 +78,12 @@ POSIXFilesystemNode::POSIXFilesystemNode(const Common::String &p) {
 			// two chars, so this is safe:
 			_path += p.c_str() + 1;
 		}
-	} else {
+	}
+   else
+   {
 		_path = p;
 	}
+#endif
 
 #ifdef __OS2__
 	// On OS/2, 'X:/' is a root of drive X, so we should not remove that last

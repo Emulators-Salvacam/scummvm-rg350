@@ -28,6 +28,26 @@
 #define FORBIDDEN_SYMBOL_EXCEPTION_unistd_h
 #define FORBIDDEN_SYMBOL_EXCEPTION_mkdir
 #define FORBIDDEN_SYMBOL_EXCEPTION_exit		//Needed for IRIX's unistd.h
+#ifdef PLAYSTATION3
+#include <string.h>
+#include <stdlib.h>
+#define FORBIDDEN_SYMBOL_ALLOW_ALL
+
+extern char *getwd(char *);
+extern int errno;
+
+#ifndef PATH_MAX
+#define PATH_MAX   1024
+#endif
+
+#define ERANGE          34               // Result too large
+#define ENOMEM          12               // Cannot allocate memory
+
+static inline char *getcwd (char *buf, size_t len)
+{
+   return "/";
+}
+#endif
 
 #include "backends/fs/posix/posix-fs-factory.h"
 #include "backends/fs/posix/posix-fs.h"
