@@ -41,7 +41,7 @@ private:
 	struct Sprite {
 		int8 _ix, _iy;
 		int16 _x, _y;
-		byte _p;
+		int8 _p;
 		int16 _timeout;
 		bool _cameo;
 		byte _cameoFrame;
@@ -66,6 +66,8 @@ private:
 	static const byte kFrameDelayMax;
 	static const byte kAvvyY;
 	static const byte kShooting[7];
+	static const byte kTimesASecond;
+	static const byte kFlashTime;
 
 	AvalancheEngine *_vm;
 
@@ -91,16 +93,18 @@ private:
 	byte _timeThisSecond;
 	bool _cp;
 	byte _wasFacing;
+	byte _escapeStock;
+	bool _gotOut;
 
 	bool overlap(uint16 a1x, uint16 a1y, uint16 a2x, uint16 a2y, uint16 b1x, uint16 b1y, uint16 b2x, uint16 b2y);
-	byte getStockNumber(byte x);
+	byte getStockNumber(byte index);
 	void blankIt();
 	void moveThem();
 	void blank(Common::Rect rect);
 	void plotThem();
-	void define(int16 x, int16 y, byte p, int8 ix, int8 iy, int16 time, bool isAMissile, bool doWeWipe);
-	void defineCameo(int16 xx, int16 yy, byte pp, int16 time);
-	void showStock(byte x);
+	void define(int16 x, int16 y, int8 p, int8 ix, int8 iy, int16 time, bool isAMissile, bool doWeWipe);
+	void defineCameo(int16 x, int16 y, int8 p, int16 time);
+	void showStock(byte index);
 	void drawNumber(int number, int size, int x);
 	void showScore();
 	void showTime();

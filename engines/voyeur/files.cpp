@@ -711,10 +711,10 @@ RectResource::RectResource(const byte *src, int size, bool isExtendedRects) {
 	}
 
 	for (int i = 0; i < count; ++i, src += 8) {
-		int arrIndex = 0, count = 0;
+		int arrIndex = 0, rectCount = 0;
 		if (isExtendedRects) {
 			arrIndex = READ_LE_UINT16(src);
-			count = READ_LE_UINT16(src + 2);
+			rectCount = READ_LE_UINT16(src + 2);
 			src += 4;
 		}
 
@@ -723,7 +723,7 @@ RectResource::RectResource(const byte *src, int size, bool isExtendedRects) {
 		int x2 = READ_LE_UINT16(src + 4); 
 		int y2 = READ_LE_UINT16(src + 6);
 
-		_entries.push_back(RectEntry(x1, y1, x2, y2, arrIndex, count));
+		_entries.push_back(RectEntry(x1, y1, x2, y2, arrIndex, rectCount));
 	}
 
 	left = _entries[0].left;
@@ -766,36 +766,36 @@ void DisplayResource::sFillBox(int width, int height) {
 }
 
 bool DisplayResource::clipRect(Common::Rect &rect) {
-	Common::Rect clipRect;
+	Common::Rect clippingRect;
 	if (_vm->_graphicsManager._clipPtr) {
-		clipRect = *_vm->_graphicsManager._clipPtr;
+		clippingRect = *_vm->_graphicsManager._clipPtr;
 	} else if (_flags & DISPFLAG_VIEWPORT) {
-		clipRect = ((ViewPortResource *)this)->_clipRect;
+		clippingRect = ((ViewPortResource *)this)->_clipRect;
 	} else {
-		clipRect = ((PictureResource *)this)->_bounds;
+		clippingRect = ((PictureResource *)this)->_bounds;
 	}
 
 	Common::Rect r = rect;
-	if (r.left < clipRect.left) {
-		if (r.right <= clipRect.left)
+	if (r.left < clippingRect.left) {
+		if (r.right <= clippingRect.left)
 			return false;
-		r.setWidth(r.right - clipRect.left);
+		r.setWidth(r.right - clippingRect.left);
 	}
-	if (r.right >= clipRect.right) {
-		if (r.left >= clipRect.left)
+	if (r.right >= clippingRect.right) {
+		if (r.left >= clippingRect.left)
 			return false;
-		r.setWidth(clipRect.right - r.left);
+		r.setWidth(clippingRect.right - r.left);
 	}
 
-	if (r.top < clipRect.top) {
-		if (r.bottom <= clipRect.top)
+	if (r.top < clippingRect.top) {
+		if (r.bottom <= clippingRect.top)
 			return false;
-		r.setHeight(r.bottom - clipRect.top);
+		r.setHeight(r.bottom - clippingRect.top);
 	}
-	if (r.bottom >= clipRect.bottom) {
-		if (r.top >= clipRect.top)
+	if (r.bottom >= clippingRect.bottom) {
+		if (r.top >= clippingRect.top)
 			return false;
-		r.setWidth(clipRect.bottom - r.top);
+		r.setWidth(clippingRect.bottom - r.top);
 	}
 
 	rect = r;
@@ -1252,7 +1252,7 @@ ViewPortResource::~ViewPortResource() {
 		delete _rectListPtr[i];
 }
 
-void ViewPortResource::setupViewPort(PictureResource *page, Common::Rect *clipRect,
+void ViewPortResource::setupViewPort(PictureResource *page, Common::Rect *clippingRect,
 		ViewPortSetupPtr setupFn, ViewPortAddPtr addFn, ViewPortRestorePtr restoreFn) {
 	PictureResource *pic = _currentPic;
 	Common::Rect r = _bounds;
@@ -1284,24 +1284,24 @@ void ViewPortResource::setupViewPort(PictureResource *page, Common::Rect *clipRe
 			r.setHeight(yDiff <= r.height() ? r.height() - yDiff : 0);
 	}
 
-	if (clipRect) {
+	if (clippingRect) {
 		// Clip based on the passed clip rectangles
-		xDiff = clipRect->left - r.left;
-		yDiff = clipRect->top - r.top;
+		xDiff = clippingRect->left - r.left;
+		yDiff = clippingRect->top - r.top;
 
 		if (xDiff > 0) {
 			int width = r.width();
-			r.left = clipRect->left;
+			r.left = clippingRect->left;
 			r.setWidth(xDiff <= width ? width - xDiff : 0);
 		}
 		if (yDiff > 0) {
 			int height = r.height();
-			r.top = clipRect->top;
+			r.top = clippingRect->top;
 			r.setHeight(yDiff <= height ? height - yDiff : 0);
 		}
 		
-		xDiff = r.right - clipRect->right;
-		yDiff = r.bottom - clipRect->bottom;
+		xDiff = r.right - clippingRect->right;
+		yDiff = r.bottom - clippingRect->bottom;
 
 		if (xDiff > 0)
 			r.setWidth(xDiff <= r.width() ? r.width() - xDiff : 0);
@@ -1325,8 +1325,8 @@ void ViewPortResource::setupViewPort() {
 		&GraphicsManager::restoreMCGASaveRect);
 }
 
-void ViewPortResource::setupViewPort(PictureResource *pic, Common::Rect *clipRect) {
-	setupViewPort(pic, clipRect,
+void ViewPortResource::setupViewPort(PictureResource *pic, Common::Rect *clippingRect) {
+	setupViewPort(pic, clippingRect,
 		&GraphicsManager::setupMCGASaveRect, &GraphicsManager::addRectOptSaveRect,
 		&GraphicsManager::restoreMCGASaveRect);
 }

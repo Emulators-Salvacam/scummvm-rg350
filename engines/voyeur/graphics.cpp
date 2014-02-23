@@ -111,7 +111,6 @@ void GraphicsManager::addRectNoSaveBack(ViewPortResource *viewPort, int idx, con
 
 void GraphicsManager::sDrawPic(DisplayResource *srcDisplay, DisplayResource *destDisplay,
 		const Common::Point &initialOffset) {
-	int imageDataShift = 0;
 	int width1, width2;
 	int widthDiff, widthDiff2;
 	int height1;
@@ -138,10 +137,15 @@ void GraphicsManager::sDrawPic(DisplayResource *srcDisplay, DisplayResource *des
 	if (srcDisplay->_flags & DISPFLAG_VIEWPORT) {
 		// A viewport was passed, not a picture
 		srcPic = ((ViewPortResource *)srcDisplay)->_currentPic;
+	} else {
+		srcPic = (PictureResource *)srcDisplay;
+	}
+
+	if (destDisplay->_flags & DISPFLAG_VIEWPORT) {
+		// A viewport was passed, not a picture
 		destViewPort = (ViewPortResource *)destDisplay;
 		destPic = destViewPort->_currentPic;
 	} else {
-		srcPic = (PictureResource *)srcDisplay;
 		destPic = (PictureResource *)destDisplay;
 	}
 
@@ -242,6 +246,7 @@ void GraphicsManager::sDrawPic(DisplayResource *srcDisplay, DisplayResource *des
 	}
 
 	if (srcFlags & DISPFLAG_1000) {
+		int imageDataShift = 0;
 		srcImgData = srcPic->_imgData + (imageDataShift << 14);
 		for (uint idx = 0; idx < srcPic->_maskData; ++idx) {
 			if (imageDataShift < 4)
@@ -464,16 +469,16 @@ void GraphicsManager::sDrawPic(DisplayResource *srcDisplay, DisplayResource *des
 						} else {
 							// loc_26543
 							for (int yp = 0; yp < height1; ++yp) {
-								int runLength = 0;
-								for (int xp = 0; xp < width2; ++xp, --runLength) {
-									if (runLength <= 0) {
+								int runLen = 0;
+								for (int xp = 0; xp < width2; ++xp, --runLen) {
+									if (runLen <= 0) {
 										// Start of run length, so get pixel and repeat length
 										pixel = *srcP++;
 										if (pixel & 0x80) {
 											pixel &= 0x7f;
-											runLength = *srcP++;
-											if (runLength == 0)
-												runLength = width2;
+											runLen = *srcP++;
+											if (runLen == 0)
+												runLen = width2;
 										}
 									}
 
@@ -547,7 +552,7 @@ void GraphicsManager::sDrawPic(DisplayResource *srcDisplay, DisplayResource *des
 
 			if (!(srcFlags & PICFLAG_PIC_OFFSET)) {
 				srcP = srcImgData += srcOffset;
-				int pixel = 0;
+				pixel = 0;
 
 				if (destFlags & PICFLAG_PIC_OFFSET) {
 					destP = destImgData + screenOffset;
@@ -564,15 +569,15 @@ void GraphicsManager::sDrawPic(DisplayResource *srcDisplay, DisplayResource *des
 								height1 = tmpHeight + height1;
 
 								for (int yp = 0; yp < height1; ++yp) {
-									int runLength = 0;
-									for (int xp = 0; xp < width2; ++xp, --runLength) {
-										if (runLength <= 0) {
+									int runLen = 0;
+									for (int xp = 0; xp < width2; ++xp, --runLen) {
+										if (runLen <= 0) {
 											pixel = *srcP++;
 											if (pixel & 0x80) {
 												pixel &= 0x7F;
-												runLength = *srcP++;
-												if (!runLength)
-													runLength = width2;
+												runLen = *srcP++;
+												if (!runLen)
+													runLen = width2;
 											}
 										}
 
@@ -591,7 +596,7 @@ void GraphicsManager::sDrawPic(DisplayResource *srcDisplay, DisplayResource *des
 								destP = (byte *)_screenSurface.getPixels() + screenOffset;
 
 								for (int yp = 0; yp < height1; ++yp) {
-									for (int xp = 0; xp < width2; ++xp, ++destP) {
+									for (int xi = 0; xi < width2; ++xi, ++destP) {
 										byteVal2 = 0;
 										for (int xp = 0; xp < width2; ++xp, ++destP, --byteVal2) {
 											if (!byteVal2) {

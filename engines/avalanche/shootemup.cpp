@@ -40,6 +40,8 @@ const long int ShootEmUp::kFlag = -20047;
 const byte ShootEmUp::kFrameDelayMax = 2;
 const byte ShootEmUp::kAvvyY = 150;
 const byte ShootEmUp::kShooting[7] = { 87, 80, 81, 82, 81, 80, 87 };
+const byte ShootEmUp::kTimesASecond = 18;
+const byte ShootEmUp::kFlashTime = 20; // If flash_time is <= this, the word "time" will flash. Should be about 20.
 
 ShootEmUp::ShootEmUp(AvalancheEngine *vm) {
 	_vm = vm;
@@ -87,6 +89,8 @@ ShootEmUp::ShootEmUp(AvalancheEngine *vm) {
 	_cp = false;
 	_wasFacing = 0;
 	_score = 0;
+	_escapeStock = 0;
+	_gotOut = false;
 }
 
 void ShootEmUp::run() {
@@ -112,6 +116,8 @@ void ShootEmUp::run() {
 	setup();
 	
 	do {
+		uint32 beginLoop = _vm->_system->getMillis();
+
 		blankIt();
 		hitPeople();
 		plotThem();
@@ -129,6 +135,11 @@ void ShootEmUp::run() {
 		_cp = !_cp;
 
 		_vm->_graphics->refreshScreen();
+
+		uint32 delay = _vm->_system->getMillis() - beginLoop;
+		if (delay <= 55)
+			_vm->_system->delayMillis(55 - delay); // Replaces slowdown(); 55 comes from 18.2 Hz (B Flight).
+
 	} while (_time != 0);
 
 	_vm->fadeOut();
@@ -143,9 +154,13 @@ bool ShootEmUp::overlap(uint16 a1x, uint16 a1y, uint16 a2x, uint16 a2y, uint16 b
 	return (a2x >= b1x) && (b2x >= a1x) && (a2y >= b1y) && (b2y >= a1y);
 }
 
-byte ShootEmUp::getStockNumber(byte x) {
-	warning("STUB: ShootEmUp::getStockNumber()");
-	return 0;
+byte ShootEmUp::getStockNumber(byte index) {
+	while (_hasEscaped[index]) {
+		index++;
+		if (index == 7)
+			index = 0;
+	}
+	return index;
 }
 
 void ShootEmUp::blankIt() {
@@ -180,39 +195,63 @@ void ShootEmUp::plotThem() {
 				_vm->_graphics->seuDrawPicture(_sprites[i]._x, _sprites[i]._y, _sprites[i]._p);
 
 			if (_sprites[i]._wipe)
-				blank(Common::Rect(_sprites[i]._x, _sprites[i]._y, _sprites[i]._x + _rectangles[i].width(), _sprites[i]._y + _rectangles[i].height()));
+				blank(Common::Rect(_sprites[i]._x, _sprites[i]._y, _sprites[i]._x + _vm->_graphics->seuGetPicWidth(_sprites[i]._p), _sprites[i]._y + _vm->_graphics->seuGetPicHeight(_sprites[i]._p)));
 
 			if (_sprites[i]._timeout > 0) {
 				_sprites[i]._timeout--;
 				if (_sprites[i]._timeout == 0)
-					_sprites[i]._y = kFlag;
+					_sprites[i]._x = kFlag;
 			}
 		}
 	}
 }
 
-void ShootEmUp::define(int16 x, int16 y, byte p, int8 ix, int8 iy, int16 time, bool isAMissile, bool doWeWipe) {
+void ShootEmUp::define(int16 x, int16 y, int8 p, int8 ix, int8 iy, int16 time, bool isAMissile, bool doWeWipe) {
 	for (int i = 0; i < 99; i++) {
 		if (_sprites[i]._x == kFlag) {
 			_sprites[i]._x = x;
 			_sprites[i]._y = y;
-			_sprites[i]._p = p;
+			_sprites[i]._p = p - 1;
 			_sprites[i]._ix = ix;
 			_sprites[i]._iy = iy;
 			_sprites[i]._timeout = time;
 			_sprites[i]._cameo = false;
 			_sprites[i]._missile = isAMissile;
 			_sprites[i]._wipe = doWeWipe;
+			return;
 		}
 	}
 }
 
-void ShootEmUp::defineCameo(int16 xx, int16 yy, byte pp, int16 time) {
-	warning("STUB: ShootEmUp::defineCameo()");
+void ShootEmUp::defineCameo(int16 x, int16 y, int8 p, int16 time) {
+	for (int i = 0; i < 99; i++) {
+		if (_sprites[i]._x == kFlag) {
+			_sprites[i]._x = x;
+			_sprites[i]._y = y;
+			_sprites[i]._p = p;
+			_sprites[i]._ix = 0;
+			_sprites[i]._iy = 0;
+			_sprites[i]._timeout = time;
+			_sprites[i]._cameo = true;
+			_sprites[i]._cameoFrame = p + 1;
+			_sprites[i]._missile = false;
+			_sprites[i]._wipe = false;
+			return;
+		}
+	}
 }
 
-void ShootEmUp::showStock(byte x) {
-	warning("STUB: ShootEmUp::showStock()");
+void ShootEmUp::showStock(byte index) {
+	if (_escaping && (index == _escapeStock)) {
+		_vm->_graphics->seuDrawPicture(index * 90 + 20, 30, kStocks + 2);
+		return;
+	}
+
+	if (_stockStatus[index] > 5)
+		return;
+
+	_vm->_graphics->seuDrawPicture(index * 90 + 20, 30, kStocks + _stockStatus[index]);
+	_stockStatus[index] = 1 - _stockStatus[index];
 }
 
 void ShootEmUp::drawNumber(int number, int size, int x) {
@@ -236,7 +275,7 @@ void ShootEmUp::showTime() {
 }
 
 void ShootEmUp::gain(int8 howMuch) {
-	if ((_score + howMuch) == 0) // howMuch can be negative!
+	if ((_score + howMuch) < 0) // howMuch can be negative!
 		_score = 0;
 	else
 		_score += howMuch;
@@ -308,11 +347,6 @@ void ShootEmUp::setup() {
 	_score = 0;
 	_time = 120;
 
-	for (int i = 0; i < 7; i++) {
-		_stockStatus[i] = _vm->_rnd->getRandomNumber(1);
-		showStock(i);
-	}
-
 	_cp = true;
 
 	_avvyWas = 320;
@@ -327,11 +361,19 @@ void ShootEmUp::setup() {
 	for (int i = 0; i < 4; i++)
 		_running[i]._x = kFlag;
 
+	for (int i = 0; i < 99; i++)
+		_sprites[i]._x = kFlag;
+
 	newEscape();
 
 	_count321 = 255; // Counting down.
 
 	_vm->_graphics->blackOutScreen();
+
+	for (int i = 0; i < 7; i++) {
+		_stockStatus[i] = _vm->_rnd->getRandomNumber(1);
+		showStock(i);
+	}
 
 	// Set up status line:
 	_vm->_graphics->seuDrawPicture(0, 0, 16); // Score:
@@ -404,11 +446,55 @@ void ShootEmUp::readKbd() {
 }
 
 void ShootEmUp::animate() {
-	warning("STUB: ShootEmUp::animate()");
+	if (_vm->_rnd->getRandomNumber(9) == 1)
+		showStock(getStockNumber(_vm->_rnd->getRandomNumber(5)));
+	for (int i = 0; i < 7; i++) {
+		if (_stockStatus[i] > 5) {
+			_stockStatus[i]--;
+			if (_stockStatus[i] == 8) {
+				_stockStatus[i] = 0;
+				showStock(i);
+			}
+		}
+	}
 }
 
 void ShootEmUp::collisionCheck() {
-	warning("STUB: ShootEmUp::collisionCheck()");
+	for (int i = 0; i < 99; i++) {
+		if ((_sprites[i]._x != kFlag) && (_sprites[i]._missile) &&
+			(_sprites[i]._y < 60) && (_sprites[i]._timeout == 1)) {
+			int distFromSide = (_sprites[i]._x - 20) % 90;
+			int thisStock = (_sprites[i]._x - 20) / 90;
+			if ((!_hasEscaped[thisStock]) && (distFromSide > 17) && (distFromSide < 34)) {
+				_vm->_sound->playNote(999, 3);
+				_vm->_system->delayMillis(3);
+				define(_sprites[i]._x + 20, _sprites[i]._y, 26 + _vm->_rnd->getRandomNumber(1), 3, 1, 12, false, true); // Well done!
+				define(thisStock * 90 + 20, 30, 31, 0, 0, 7, false, false); // Face of man
+				defineCameo(thisStock * 90 + 20 + 10, 35, 40, 7); // Splat!
+				define(thisStock * 90 + 20 + 20, 50, 34 + _vm->_rnd->getRandomNumber(4), 0, 2, 9, false, true); // Oof!
+				_stockStatus[thisStock] = 17;
+				gain(3); // Score for hitting a face.
+
+				if (_escaping && (_escapeStock = thisStock)) { // Hit the escaper.
+					_vm->_sound->playNote(1777, 1);
+					_vm->_system->delayMillis(1);
+					gain(5); // Bonus for hitting escaper.
+					_escaping = false;
+					newEscape();
+				}
+			} else {
+				define(_sprites[i]._x, _sprites[i]._y, 83 + _vm->_rnd->getRandomNumber(2), 2, 2, 17, false, true); // Missed!
+				if ((!_hasEscaped[thisStock]) && (distFromSide > 3) && (distFromSide < 43)) {
+					define(thisStock * 90 + 20, 30, 30, 0, 0, 7, false, false); // Face of man
+					if (distFromSide > 35)
+						defineCameo(_sprites[i]._x - 27, 35, 40, 7); // Splat!
+					else
+						defineCameo(_sprites[i]._x - 7, 35, 40, 7);
+					_stockStatus[thisStock] = 17;
+				}
+			}
+		}
+	}
 }
 
 void ShootEmUp::turnAround(byte who, bool randomX) {
@@ -473,7 +559,27 @@ void ShootEmUp::peopleRunning() {
 }
 
 void ShootEmUp::updateTime() {
-	warning("STUB: ShootEmUp::updateTime()");
+	if (_count321 != 0)
+		return;
+
+	_timeThisSecond++;
+
+	if (_timeThisSecond < kTimesASecond)
+		return;
+
+	_time--;
+	showTime();
+	_timeThisSecond = 0;
+
+	if (_time <= kFlashTime) {
+		int timeMode = 0;
+		if ((_time % 2) == 1)
+			timeMode = 19; // Normal 'Time:'
+		else
+			timeMode = 85; // Flash 'Time:'
+
+		_vm->_graphics->seuDrawPicture(110, 0, timeMode);
+	}
 }
 
 void ShootEmUp::hitPeople() {
@@ -500,11 +606,63 @@ void ShootEmUp::hitPeople() {
 }
 
 void ShootEmUp::escapeCheck() {
-	warning("STUB: ShootEmUp::escapeCheck()");
+	if (_count321 != 0)
+		return;
+
+	if (_escapeCount > 0) {
+		_escapeCount--;
+		return;
+	}
+
+	// Escape_count = 0; now what ?
+
+	if (_escaping) {
+		if (_gotOut) {
+			newEscape();
+			_escaping = false;
+			_vm->_graphics->seuDrawPicture(_escapeStock * 90 + 20, 30, kStocks + 4);
+		} else {
+			_vm->_graphics->seuDrawPicture(_escapeStock * 90 + 20, 30, kStocks + 5);
+			_escapeCount = 20;
+			_gotOut = true;
+			define(_escapeStock * 90 + 20, 50, 25, 0, 2, 17, false, true); // Escaped!
+			gain(-10);
+			_hasEscaped[_escapeStock] = true;
+
+			_howManyHaveEscaped++;
+
+			if (_howManyHaveEscaped == 7)
+				_time = 0;
+		}
+	} else {
+		_escapeStock = getStockNumber(_vm->_rnd->getRandomNumber(6));
+		_escaping = true;
+		_gotOut = false;
+		_vm->_graphics->seuDrawPicture(_escapeStock * 90 + 20, 30, kStocks + 2); // Smiling!
+		_escapeCount = 200;
+	}
 }
 
 void ShootEmUp::check321() {
-	warning("STUB: ShootEmUp::check321()");
+	if (_count321 == 0)
+		return;
+
+	_count321--;
+
+	switch (_count321) {
+	case 84:
+		define(320, 60, 16, 2, 1, 94, false, true);
+		break;
+	case 169:
+		define(320, 60, 15, 0, 1, 94, false, true);
+		break;
+	case 254:
+		define(320, 60, 14, -2, 1, 94, false, true);
+		define(0, 100, 18, 2, 0, 254, false, true);
+		break;
+	default:
+		break;
+	}
 }
 
 } // End of namespace Avalanche

@@ -40,7 +40,11 @@ VoyeurEngine::VoyeurEngine(OSystem *syst, const VoyeurGameDescription *gameDesc)
 		_defaultFontInfo(3, 0xff, 0xff, 0, 0, ALIGN_LEFT, 0, Common::Point(), 1, 1, 
 			Common::Point(1, 1), 1, 0, 0) {
 	_bVoy = NULL;
-	_iForceDeath = -1;
+
+	_iForceDeath = ConfMan.getInt("boot_param");
+	if (_iForceDeath < 1 || _iForceDeath > 4)
+		_iForceDeath = -1;
+
 	_controlPtr = NULL;
 	_stampFlags = 0;
 	_playStampGroupId = _currentVocId = 0;
@@ -69,8 +73,7 @@ Common::Error VoyeurEngine::run() {
 	globalInitBolt();
 
 	// The original allows the victim to be explicitly specified via the command line.
-	// We don't currently support this in ScummVM, but I'm leaving the code below
-	// in case we ever want to make use of it.
+	// This is possible in ScummVM by using a boot parameter.
 	if (_iForceDeath >= 1 && _iForceDeath <= 4)
 		_voy._eventFlags |= EVTFLAG_VICTIM_PRESET;
 
