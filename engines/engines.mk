@@ -266,3 +266,8 @@ ifdef ENABLE_VOYEUR
 DEFINES += -DENABLE_VOYEUR=$(ENABLE_VOYEUR)
 MODULES += engines/voyeur
 endif
+
+ifdef ENABLE_BBVS
+DEFINES += -DENABLE_BBVS=$(ENABLE_BBVS)
+MODULES += engines/bbvs
+endif
