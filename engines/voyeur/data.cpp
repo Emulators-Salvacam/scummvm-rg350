@@ -38,7 +38,7 @@ void VoyeurEvent::synchronize(Common::Serializer &s) {
 
 /*------------------------------------------------------------------------*/
 
-SVoy::SVoy() {
+SVoy::SVoy(VoyeurEngine *vm):_vm(vm) {
 	// Initialize all the data fields
 	_abortInterface = false;
 	_isAM = false;
@@ -77,10 +77,19 @@ SVoy::SVoy() {
 	_aptLoadMode = -1;
 	_eventFlags |= EVTFLAG_100;
 	_totalPhoneCalls = 0;
-}
 
-void SVoy::setVm(VoyeurEngine *vm) {
-	_vm = vm;
+	for (int i = 0; i < 6; i++)
+		_evPicPtrs[i] = nullptr;
+	for (int i = 0; i < 1000; i++) {
+		_events[i]._hour = 0;
+		_events[i]._minute = 0;
+		_events[i]._isAM = true;
+		_events[i]._type = EVTYPE_NONE;
+		_events[i]._audioVideoId = -1;
+		_events[i]._computerOn = 0;
+		_events[i]._computerOff = 0;
+		_events[i]._dead = 0;
+	}
 }
 
 void SVoy::addEvent(int hour, int minute, VoyeurEventType type, int audioVideoId, 
@@ -159,7 +168,7 @@ void SVoy::addVideoEventStart() {
 	e._type = EVTYPE_VIDEO;
 	e._audioVideoId = _vm->_audioVideoId;
 	e._computerOn = _vocSecondsOffset;
-	e._dead = _vm->_eventsManager._videoDead;
+	e._dead = _vm->_eventsManager->_videoDead;
 }
 
 void SVoy::addVideoEventEnd() {
@@ -177,7 +186,7 @@ void SVoy::addAudioEventStart() {
 	e._type = EVTYPE_AUDIO;
 	e._audioVideoId = _vm->_audioVideoId;
 	e._computerOn = _vocSecondsOffset;
-	e._dead = _vm->_eventsManager._videoDead;
+	e._dead = _vm->_eventsManager->_videoDead;
 }
 
 void SVoy::addAudioEventEnd() {
@@ -229,10 +238,10 @@ void SVoy::reviewAnEvidEvent(int eventIndex) {
 	int frameOff = e._computerOff;
 
 	if (_vm->_bVoy->getBoltGroup(_vm->_playStampGroupId)) {
-		_vm->_graphicsManager._backColors = _vm->_bVoy->boltEntry(_vm->_playStampGroupId + 1)._cMapResource;
-		_vm->_graphicsManager._backgroundPage = _vm->_bVoy->boltEntry(_vm->_playStampGroupId)._picResource;
-		(*_vm->_graphicsManager._vPort)->setupViewPort(_vm->_graphicsManager._backgroundPage);
-		_vm->_graphicsManager._backColors->startFade();
+		_vm->_graphicsManager->_backColors = _vm->_bVoy->boltEntry(_vm->_playStampGroupId + 1)._cMapResource;
+		_vm->_graphicsManager->_backgroundPage = _vm->_bVoy->boltEntry(_vm->_playStampGroupId)._picResource;
+		(*_vm->_graphicsManager->_vPort)->setupViewPort(_vm->_graphicsManager->_backgroundPage);
+		_vm->_graphicsManager->_backColors->startFade();
 
 		_vm->doEvidDisplay(frameOff, e._dead);
 		_vm->_bVoy->freeBoltGroup(_vm->_playStampGroupId);
@@ -251,10 +260,10 @@ void SVoy::reviewComputerEvent(int eventIndex) {
 	_computerTextId = e._computerOn;
 
 	if (_vm->_bVoy->getBoltGroup(_vm->_playStampGroupId)) {
-		_vm->_graphicsManager._backColors = _vm->_bVoy->boltEntry(_vm->_playStampGroupId + 1)._cMapResource;
-		_vm->_graphicsManager._backgroundPage = _vm->_bVoy->boltEntry(_vm->_playStampGroupId)._picResource;
-		(*_vm->_graphicsManager._vPort)->setupViewPort(_vm->_graphicsManager._backgroundPage);
-		_vm->_graphicsManager._backColors->startFade();
+		_vm->_graphicsManager->_backColors = _vm->_bVoy->boltEntry(_vm->_playStampGroupId + 1)._cMapResource;
+		_vm->_graphicsManager->_backgroundPage = _vm->_bVoy->boltEntry(_vm->_playStampGroupId)._picResource;
+		(*_vm->_graphicsManager->_vPort)->setupViewPort(_vm->_graphicsManager->_backgroundPage);
+		_vm->_graphicsManager->_backColors->startFade();
 		_vm->flipPageAndWaitForFade();
 
 		_vm->getComputerBrush();
@@ -269,7 +278,7 @@ void SVoy::reviewComputerEvent(int eventIndex) {
 
 bool SVoy::checkForKey() {
 	_vm->_controlPtr->_state->_victimEvidenceIndex = 0;
-	if (_vm->_voy._victimMurdered)
+	if (_vm->_voy->_victimMurdered)
 		return false;
 
 	for (int eventIdx = 0; eventIdx < _eventCount; ++eventIdx) {
@@ -343,6 +352,9 @@ bool SVoy::checkForKey() {
 			default:
 				break;
 			}
+			break;
+
+		default:
 			break;
 		}
 

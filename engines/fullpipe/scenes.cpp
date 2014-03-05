@@ -157,29 +157,26 @@ Vars::Vars() {
 	scene08_manOffsetY = 0;
 
 	scene09_flyingBall = 0;
-	scene09_var05 = 0;
-	scene09_glotatel = 0;
+	scene09_numSwallenBalls = 0;
+	scene09_gulper = 0;
 	scene09_spitter = 0;
 	scene09_grit = 0;
-	scene09_var02 = 0;
-	scene09_var08 = 1;
-	scene09_var09 = 0;
-	scene09_var10 = -1;
-	scene09_var11 = -1;
-	scene09_var12 = -1000;
+	scene09_dudeY = 0;
+	scene09_gulperIsPresent = true;
+	scene09_dudeIsOnLadder = false;
+	scene09_interactingHanger = -1;
+	scene09_intHangerPhase = -1;
+	scene09_intHangerMaxPhase = -1000;
 	scene09_numMovingHangers = 0;
-	scene09_var13 = 0;
-	scene09_var15 = 0;
-	scene09_var17 = 0;
-	scene09_var19 = 0;
-	scene09_var18[0].x = 0;
-	scene09_var18[0].y = -15;
-	scene09_var18[1].x = 15;
-	scene09_var18[1].y = 0;
-	scene09_var18[2].x = 0;
-	scene09_var18[2].y = 0;
-	scene09_var18[3].x = 0;
-	scene09_var18[3].y = 0;
+	scene09_clickY = 0;
+	scene09_hangerOffsets[0].x = 0;
+	scene09_hangerOffsets[0].y = -15;
+	scene09_hangerOffsets[1].x = 15;
+	scene09_hangerOffsets[1].y = 0;
+	scene09_hangerOffsets[2].x = 0;
+	scene09_hangerOffsets[2].y = 0;
+	scene09_hangerOffsets[3].x = 0;
+	scene09_hangerOffsets[3].y = 0;
 
 	scene10_gum = 0;
 	scene10_packet = 0;
@@ -274,6 +271,42 @@ Vars::Vars() {
 	scene17_sceneEdgeX = 0;
 
 	scene18_var01 = 0;
+	scene18_var16 = 200;
+	scene18_var17 = 200;
+	scene18_var18 = 300;
+	scene18_var19 = 300;
+	scene18_whirlgig = 0;
+	scene18_var20 = 1032;
+	scene18_var04 = -318;
+	scene18_var08 = 0;
+	scene18_var09 = 0;
+	scene18_var03 = false;
+	scene18_var21 = 0;
+	scene18_var11 = 0;
+	scene18_var12 = 0;
+	scene18_var22 = 1;
+	scene18_var23 = -1;
+	scene18_var24 = 0;
+	scene18_var25 = 0;
+	scene18_var26 = 1;
+	scene18_var27 = -1;
+	scene18_var13 = -1;
+	scene18_var14 = -1;
+	scene18_var28 = 0;
+	scene18_var15 = 0;
+	scene18_boy = 0;
+	scene18_girl = 0;
+	scene18_domino = 0;
+	scene18_var29 = 290;
+	scene18_var30 = -363;
+	scene18_var05 = 283;
+	scene18_var06 = -350;
+
+	scene19_var01 = 0;
+	scene19_var02 = 0;
+	scene19_var03 = 0;
+	scene19_var04 = 0;
+	scene19_var05 = false;
 
 	scene20_fliesCountdown = 0;
 	scene20_grandma = 0;
@@ -764,14 +797,16 @@ bool FullpipeEngine::sceneSwitcher(EntranceInfo *entrance) {
 
 #if 0
 	case SC_18:
-		sub_40E1B0();
+		scene18_setupEntrance();
 		sceneVar = _gameLoader->_gameVar->getSubVarByName("SC_18");
 		scene->preloadMovements(sceneVar);
-		sub_4062D0();
-		if (dword_476C38)
+		g_fp->stopAllSounds();
+
+		if (g_vars->scene18_var01)
 			scene18_initScene1(scene);
 		else
 			scene18_initScene2(scene);
+
 		_behaviorManager->initBehavior(scene, sceneVar);
 		scene->initObjectCursors("SC_18");
 		setSceneMusicParameters(sceneVar);
@@ -780,27 +815,30 @@ bool FullpipeEngine::sceneSwitcher(EntranceInfo *entrance) {
 		break;
 
 	case SC_19:
-		if (!g_scene3) {
-			g_scene3 = accessScene(SC_18);
+		if (!g_fp->_scene3) {
+			g_fp->_scene3 = accessScene(SC_18);
 			getGameLoader()->loadScene(SC_18);
 			scene18_initScene2(g_scene3);
-			sub_40C5F0();
-			scene19_sub_420B10(g_scene3, entrance->field_4);
-			dword_476C38 = 1;
+			scene18_preload();
+			scene19_setMovements(g_scene3, entrance->field_4);
+			g_vars->scene18_var01 = 1;
 		}
-		sub_40C650();
+
+		scene19_preload();
 		sceneVar = _gameLoader->_gameVar->getSubVarByName("SC_19");
 		scene->preloadMovements(sceneVar);
-		sub_4062D0();
-		if (dword_476C38)
+		g_fp->stopAllSounds();
+
+		if (g_vars->scene18_var01)
 			scene18_initScene1(scene);
 		else
 			scene19_initScene2();
+
 		_behaviorManager->initBehavior(scene, sceneVar);
 		scene->initObjectCursors("SC_19");
 		setSceneMusicParameters(sceneVar);
 		addMessageHandler(sceneHandler19, 2);
-		scene19_sub_4211D0(scene);
+		scene19_setSugarState(scene);
 		_updateCursorCallback = scene19_updateCursor;
 		break;
 #endif

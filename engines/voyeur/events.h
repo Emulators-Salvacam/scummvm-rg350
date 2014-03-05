@@ -112,10 +112,8 @@ public:
 	byte *_cycleNext[4];
 	VInitCycleResource *_cyclePtr;
 
-	EventsManager();
-	void setVm(VoyeurEngine *vm) { _vm = vm; }
+	EventsManager(VoyeurEngine *vm);
 
-	void resetMouse();
 	void setMousePos(const Common::Point &p) { _mousePos = p; }
 	void startMainClockInt();
 	void sWaitFlip();
@@ -128,7 +126,7 @@ public:
 	void addFadeInt();
 
 	void setCursor(PictureResource *pic);
-	void setCursor(byte *cursorData, int width, int height);
+	void setCursor(byte *cursorData, int width, int height, int keyColor);
 	void setCursorColor(int idx, int mode);
 	void showCursor();
 	void hideCursor();

@@ -38,7 +38,7 @@ DrawInfo::DrawInfo(int penColor, const Common::Point &pos) {
 
 /*------------------------------------------------------------------------*/
 
-GraphicsManager::GraphicsManager(): _defaultDrawInfo(1, Common::Point()), _drawPtr(&_defaultDrawInfo) {
+GraphicsManager::GraphicsManager(VoyeurEngine *vm) : _defaultDrawInfo(1, Common::Point()), _drawPtr(&_defaultDrawInfo), _vm(vm) {
 	_SVGAMode = 0;
 	_planeSelect = 0;
 	_saveBack = true;
@@ -49,6 +49,7 @@ GraphicsManager::GraphicsManager(): _defaultDrawInfo(1, Common::Point()), _drawP
 	_fontPtr = NULL;
 	Common::fill(&_VGAColors[0], &_VGAColors[PALETTE_SIZE], 0);
 	_fontChar = new PictureResource(0, 0xff, 0xff, 0, Common::Rect(), 0, NULL, 0);
+	_backColors = nullptr;
 }
 
 void GraphicsManager::sInitGraphics() {
@@ -294,7 +295,7 @@ void GraphicsManager::sDrawPic(DisplayResource *srcDisplay, DisplayResource *des
 							srcP = (byte *)_screenSurface.getPixels() + srcOffset;
 
 							for (int yp = 0; yp < height1; ++yp) {
-								for (int xp = 0; xp < width2; ++width2, ++srcP, ++destP) {
+								for (int xp = 0; xp < width2; ++xp, ++srcP, ++destP) {
 									pixel = *srcP;
 									if (pixel)
 										*destP = pixel;
@@ -844,7 +845,7 @@ void GraphicsManager::sDrawPic(DisplayResource *srcDisplay, DisplayResource *des
 	}
 
 	if (cursorData) {
-		_vm->_eventsManager.setCursor(cursorData, width2, height1);
+		_vm->_eventsManager->setCursor(cursorData, width2, height1, srcPic->_keyColor);
 		delete[] cursorData;
 	}
 }
@@ -876,7 +877,7 @@ void GraphicsManager::fillPic(DisplayResource *display, byte onOff) {
  * Queues the given picture for display
  */
 void GraphicsManager::sDisplayPic(PictureResource *pic) {
-	_vm->_eventsManager._intPtr._flipWait = true;
+	_vm->_eventsManager->_intPtr._flipWait = true;
 }
 
 void GraphicsManager::flipPage() {
@@ -939,7 +940,7 @@ void GraphicsManager::clearPalette() {
 
 void GraphicsManager::setPalette(const byte *palette, int start, int count) {
 	g_system->getPaletteManager()->setPalette(palette, start, count);
-	_vm->_eventsManager._gameData._hasPalette = false;
+	_vm->_eventsManager->_gameData._hasPalette = false;
 }
 
 void GraphicsManager::setPalette128(const byte *palette, int start, int count) {
@@ -954,7 +955,7 @@ void GraphicsManager::resetPalette() {
 	for (int i = 0; i < 256; ++i)
 		setColor(i, 0, 0, 0);
 
-	_vm->_eventsManager._intPtr._hasPalette = true;
+	_vm->_eventsManager->_intPtr._hasPalette = true;
 }
 
 void GraphicsManager::setColor(int idx, byte r, byte g, byte b) {
@@ -963,8 +964,8 @@ void GraphicsManager::setColor(int idx, byte r, byte g, byte b) {
 	vgaP[1] = g;
 	vgaP[2] = b;
 
-	_vm->_eventsManager._intPtr._palStartIndex = MIN(_vm->_eventsManager._intPtr._palStartIndex, idx);
-	_vm->_eventsManager._intPtr._palEndIndex = MAX(_vm->_eventsManager._intPtr._palEndIndex, idx);
+	_vm->_eventsManager->_intPtr._palStartIndex = MIN(_vm->_eventsManager->_intPtr._palStartIndex, idx);
+	_vm->_eventsManager->_intPtr._palEndIndex = MAX(_vm->_eventsManager->_intPtr._palEndIndex, idx);
 }
 
 void GraphicsManager::setOneColor(int idx, byte r, byte g, byte b) {
@@ -983,7 +984,7 @@ void GraphicsManager::setColors(int start, int count, const byte *pal) {
 		}
 	}
 
-	_vm->_eventsManager._intPtr._hasPalette = true;
+	_vm->_eventsManager->_intPtr._hasPalette = true;
 }
 
 void GraphicsManager::screenReset() {
@@ -998,45 +999,45 @@ void GraphicsManager::screenReset() {
 
 void GraphicsManager::fadeDownICF1(int steps) {
 	if (steps > 0) {
-		int stepAmount = _vm->_voy._fadingAmount2 / steps;
+		int stepAmount = _vm->_voy->_fadingAmount2 / steps;
 
 		for (int idx = 0; idx < steps; ++idx) {
-			_vm->_voy._fadingAmount2 -= stepAmount;
-			_vm->_eventsManager.delay(1);
+			_vm->_voy->_fadingAmount2 -= stepAmount;
+			_vm->_eventsManager->delay(1);
 		}
 	}
 
-	_vm->_voy._fadingAmount2 = 0;
+	_vm->_voy->_fadingAmount2 = 0;
 }
 
 void GraphicsManager::fadeUpICF1(int steps) {
 	if (steps > 0) {
-		int stepAmount = (63 - _vm->_voy._fadingAmount2) / steps;
+		int stepAmount = (63 - _vm->_voy->_fadingAmount2) / steps;
 
 		for (int idx = 0; idx < steps; ++idx) {
-			_vm->_voy._fadingAmount2 += stepAmount;
-			_vm->_eventsManager.delay(1);
+			_vm->_voy->_fadingAmount2 += stepAmount;
+			_vm->_eventsManager->delay(1);
 		}
 	}
 
-	_vm->_voy._fadingAmount2 = 63;
+	_vm->_voy->_fadingAmount2 = 63;
 }
 
 void GraphicsManager::fadeDownICF(int steps) {
 	if (steps > 0) {
-		_vm->_eventsManager.hideCursor();
-		int stepAmount1 = _vm->_voy._fadingAmount1 / steps;
-		int stepAmount2 = _vm->_voy._fadingAmount2 / steps;
+		_vm->_eventsManager->hideCursor();
+		int stepAmount1 = _vm->_voy->_fadingAmount1 / steps;
+		int stepAmount2 = _vm->_voy->_fadingAmount2 / steps;
 
 		for (int idx = 0; idx < steps; ++idx) {
-			_vm->_voy._fadingAmount1 -= stepAmount1;
-			_vm->_voy._fadingAmount2 -= stepAmount2;
-			_vm->_eventsManager.delay(1);
+			_vm->_voy->_fadingAmount1 -= stepAmount1;
+			_vm->_voy->_fadingAmount2 -= stepAmount2;
+			_vm->_eventsManager->delay(1);
 		}
 	}
 
-	_vm->_voy._fadingAmount1 = 0;
-	_vm->_voy._fadingAmount2 = 0;
+	_vm->_voy->_fadingAmount1 = 0;
+	_vm->_voy->_fadingAmount2 = 0;
 }
 
 void GraphicsManager::drawDot() {

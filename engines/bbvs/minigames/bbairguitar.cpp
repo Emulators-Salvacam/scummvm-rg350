@@ -732,7 +732,7 @@ void MinigameBbAirGuitar::updateObjs() {
 	}
 }
 
-int MinigameBbAirGuitar::run(bool fromMainGame) {
+bool MinigameBbAirGuitar::run(bool fromMainGame) {
 
 	memset(_objects, 0, sizeof(_objects));
 
@@ -767,7 +767,7 @@ int MinigameBbAirGuitar::run(bool fromMainGame) {
 
 	_gameState = 0;
 	_gameTicks = 0;
-	_gameResult = 0;
+	_gameResult = false;
 	_gameDone = false;
 	initObjects();
 	
@@ -1037,7 +1037,7 @@ void MinigameBbAirGuitar::noteOn(int noteNum) {
 	if (_playerMode == 2 || _playerMode == 3) {
 		_ticksDelta = _vm->_system->getMillis() - _noteStartTime;
 		_track[_trackCount].ticks = _ticksDelta;
-		if (_trackCount < kMaxTracks)
+		if (_trackCount < kMaxTracks - 1)
 			++_trackCount;
 		_track[_trackCount].noteNum = noteNum;
 	}

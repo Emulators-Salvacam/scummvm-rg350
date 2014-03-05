@@ -80,7 +80,6 @@ private:
 	FontInfoResource _defaultFontInfo;
 
 	void ESP_Init();
-	void initializeManagers();
 	void globalInitBolt();
 	void initBolt();
 	void vInitInterrupts();
@@ -157,12 +156,12 @@ protected:
 	virtual bool hasFeature(EngineFeature f) const;
 public:
 	BoltFile *_bVoy;
-	Debugger _debugger;
-	EventsManager _eventsManager;
-	FilesManager _filesManager;
-	GraphicsManager _graphicsManager;
-	SoundManager _soundManager;
-	SVoy _voy;
+	Debugger *_debugger;
+	EventsManager *_eventsManager;
+	FilesManager *_filesManager;
+	GraphicsManager *_graphicsManager;
+	SoundManager *_soundManager;
+	SVoy *_voy;
 
 	BoltFile *_stampLibPtr;
 	BoltGroup *_controlGroupPtr;

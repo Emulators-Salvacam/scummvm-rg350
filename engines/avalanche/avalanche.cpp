@@ -51,13 +51,14 @@ AvalancheEngine::AvalancheEngine(OSystem *syst, const AvalancheGameDescription *
 	_sequence = nullptr;
 	_timer = nullptr;
 	_animation = nullptr;
-	_menu = nullptr;
+	_dropdown = nullptr;
 	_closing = nullptr;
 	_sound = nullptr;
 	_nim = nullptr;
 	_ghostroom = nullptr;
 	_help = nullptr;
 	_shootemup = nullptr;
+	_mainmenu = nullptr;
 
 	_platform = gd->desc.platform;
 	initVariables();
@@ -76,13 +77,14 @@ AvalancheEngine::~AvalancheEngine() {
 	delete _sequence;
 	delete _timer;
 	delete _animation;
-	delete _menu;
+	delete _dropdown;
 	delete _closing;
 	delete _sound;
 	delete _nim;
 	delete _ghostroom;
 	delete _help;
 	delete _shootemup;
+	delete _mainmenu;
 
 	for (int i = 0; i < 31; i++) {
 		for (int j = 0; j < 2; j++) {
@@ -161,13 +163,14 @@ Common::ErrorCode AvalancheEngine::initialize() {
 	_sequence = new Sequence(this);
 	_timer = new Timer(this);
 	_animation = new Animation(this);
-	_menu = new Menu(this);
+	_dropdown = new DropDownMenu(this);
 	_closing = new Closing(this);
 	_sound = new SoundHandler(this);
 	_nim = new Nim(this);
 	_ghostroom = new GhostRoom(this);
 	_help = new Help(this);
 	_shootemup = new ShootEmUp(this);
+	_mainmenu = new MainMenu(this);
 
 	_graphics->init();
 	_dialogs->init();
@@ -444,7 +447,7 @@ bool AvalancheEngine::loadGame(const int16 slot) {
 
 	_background->release();
 	minorRedraw();
-	_menu->setup();
+	_dropdown->setup();
 	setRoom(kPeopleAvalot, _room);
 	_alive = true;
 	refreshObjectList();

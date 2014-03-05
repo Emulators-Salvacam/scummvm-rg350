@@ -106,8 +106,8 @@ public:
 	BoltFile(const Common::String &filename, BoltFilesState &state);
 	virtual ~BoltFile();
 
-	BoltGroup *getBoltGroup(uint16 id, bool process = true);
-	void freeBoltGroup(uint16 id, bool freeEntries = true);
+	BoltGroup *getBoltGroup(uint16 id);
+	void freeBoltGroup(uint16 id);
 	void freeBoltMember(uint32 id);
 	byte *memberAddr(uint32 id);
 	byte *memberAddrOffset(uint32 id);
@@ -207,11 +207,10 @@ public:
 	BoltFilesState _boltFilesState;
 	BoltFile *_curLibPtr;
 public:
-	FilesManager();
-	void setVm(VoyeurEngine *vm) { _boltFilesState._vm = vm; }
+	FilesManager(VoyeurEngine *vm);
 
 	bool openBoltLib(const Common::String &filename, BoltFile *&boltFile);
-	byte *fload(const Common::String &filename, int *size = NULL);
+	byte *fload(const Common::String &filename, int *size);
 };
 
 class RectEntry: public Common::Rect {
@@ -292,6 +291,7 @@ public:
 	Common::Rect _bounds;
 	uint32 _maskData;
 	uint _planeSize;
+	byte _keyColor;
 
 	/**
 	 * Image data for the picture
@@ -348,7 +348,7 @@ public:
 	void setupViewPort();
 	void setupViewPort(PictureResource *pic, Common::Rect *clippingRect = NULL);
 	void addSaveRect(int pageIndex, const Common::Rect &r);
-	void fillPic(byte onOff = 0);
+	void fillPic(byte onOff);
 	void drawIfaceTime();
 	void drawPicPerm(PictureResource *pic, const Common::Point &pt);
 };

@@ -172,8 +172,9 @@ void BoltFilesState::nextBlock() {
 
 /*------------------------------------------------------------------------*/
 
-FilesManager::FilesManager() {
-
+FilesManager::FilesManager(VoyeurEngine *vm) {
+	_curLibPtr = nullptr;
+	_boltFilesState._vm = vm;
 }
 
 bool FilesManager::openBoltLib(const Common::String &filename, BoltFile *&boltFile) {
@@ -238,7 +239,7 @@ BoltFile::~BoltFile() {
 		_state._curLibPtr = NULL;
 }
 
-BoltGroup *BoltFile::getBoltGroup(uint16 id, bool process) {
+BoltGroup *BoltFile::getBoltGroup(uint16 id) {
 	_state._curLibPtr = this;
 	_state._curGroupPtr = &_groups[(id >> 8) & 0xff];
 
@@ -247,16 +248,11 @@ BoltGroup *BoltFile::getBoltGroup(uint16 id, bool process) {
 		_state._curGroupPtr->load(id & 0xff00);
 	}
 
-	if (process) {
-		// Pre-process the resources
-		id &= 0xff00;
-		for (int idx = 0; idx < _state._curGroupPtr->_count; ++idx, ++id) {
-			byte *member = getBoltMember(id);
-			assert(member);
-		}
-	} else if (!_state._curGroupPtr->_processed) {
-		_state._curGroupPtr->_processed = true;
-		_state._curGroupPtr->load(id & 0xff00);
+	// Pre-process the resources
+	id &= 0xff00;
+	for (int idx = 0; idx < _state._curGroupPtr->_count; ++idx, ++id) {
+		byte *member = getBoltMember(id);
+		assert(member);
 	}
 
 	resolveAll();
@@ -264,7 +260,7 @@ BoltGroup *BoltFile::getBoltGroup(uint16 id, bool process) {
 	return _state._curGroupPtr;
 }
 
-void BoltFile::freeBoltGroup(uint16 id, bool freeEntries) {
+void BoltFile::freeBoltGroup(uint16 id) {
 	_state._curLibPtr = this;
 	_state._curGroupPtr = &_groups[(id >> 8) & 0xff];
 
@@ -421,7 +417,7 @@ byte *BoltFile::getBoltMember(uint32 id) {
 }
 
 void BoltFile::initDefault() {
-	_state._curMemberPtr->_data = _state.decompress(0, _state._curMemberPtr->_size, 
+	_state._curMemberPtr->_data = _state.decompress(NULL, _state._curMemberPtr->_size, 
 		_state._curMemberPtr->_mode);	
 }
 
@@ -485,8 +481,8 @@ void BVoyBoltFile::initViewPortList() {
 	_state._curMemberPtr->_viewPortListResource = res = new ViewPortListResource(
 		_state, _state._curMemberPtr->_data);
 
-	_state._vm->_graphicsManager._viewPortListPtr = res;
-	_state._vm->_graphicsManager._vPort = &res->_entries[0];
+	_state._vm->_graphicsManager->_viewPortListPtr = res;
+	_state._vm->_graphicsManager->_vPort = &res->_entries[0];
 }
 
 void BVoyBoltFile::initFontInfo() {
@@ -508,7 +504,7 @@ void BVoyBoltFile::sInitRect() {
 	_state._curMemberPtr->_data = _state.decompress(NULL, _state._curMemberPtr->_size, 
 		_state._curMemberPtr->_mode);
 
-	// Check whether the resouce Id is in the list of extended rects
+	// Check whether the resource Id is in the list of extended rects
 	bool isExtendedRects = false;
 	for (int i = 0; i < 49 && !isExtendedRects; ++i)
 		isExtendedRects = RESOLVE_TABLE[i] == (_state._curMemberPtr->_id & 0xff00);
@@ -743,32 +739,34 @@ RectResource::RectResource(int x1, int y1, int x2, int y2) {
 
 DisplayResource::DisplayResource() {
 	_vm = NULL;
+	_flags = 0;
 }
 
 DisplayResource::DisplayResource(VoyeurEngine *vm) {
 	_vm = vm;
+	_flags = 0;
 }
 
 void DisplayResource::sFillBox(int width, int height) {
 	assert(_vm);
-	bool saveBack = _vm->_graphicsManager._saveBack;
-	_vm->_graphicsManager._saveBack = false;
+	bool saveBack = _vm->_graphicsManager->_saveBack;
+	_vm->_graphicsManager->_saveBack = false;
 
 	PictureResource pr;
 	pr._flags = 1;
 	pr._select = 0xff;
 	pr._pick = 0;
-	pr._onOff = _vm->_graphicsManager._drawPtr->_penColor;
+	pr._onOff = _vm->_graphicsManager->_drawPtr->_penColor;
 	pr._bounds = Common::Rect(0, 0, width, height);
 
-	_vm->_graphicsManager.sDrawPic(&pr, this, _vm->_graphicsManager._drawPtr->_pos);
-	_vm->_graphicsManager._saveBack = saveBack;
+	_vm->_graphicsManager->sDrawPic(&pr, this, _vm->_graphicsManager->_drawPtr->_pos);
+	_vm->_graphicsManager->_saveBack = saveBack;
 }
 
 bool DisplayResource::clipRect(Common::Rect &rect) {
 	Common::Rect clippingRect;
-	if (_vm->_graphicsManager._clipPtr) {
-		clippingRect = *_vm->_graphicsManager._clipPtr;
+	if (_vm->_graphicsManager->_clipPtr) {
+		clippingRect = *_vm->_graphicsManager->_clipPtr;
 	} else if (_flags & DISPFLAG_VIEWPORT) {
 		clippingRect = ((ViewPortResource *)this)->_clipRect;
 	} else {
@@ -803,11 +801,11 @@ bool DisplayResource::clipRect(Common::Rect &rect) {
 }
 
 int DisplayResource::drawText(const Common::String &msg) {
-	GraphicsManager &gfxManager = _vm->_graphicsManager;
+	GraphicsManager &gfxManager = *_vm->_graphicsManager;
 	assert(gfxManager._fontPtr);
 	assert(gfxManager._fontPtr->_curFont);
 	FontInfoResource &fontInfo = *gfxManager._fontPtr;
-	PictureResource &fontChar = *_vm->_graphicsManager._fontChar;
+	PictureResource &fontChar = *_vm->_graphicsManager->_fontChar;
 	FontResource &fontData = *fontInfo._curFont;
 	int xShadows[9] = { 0, 1, 1, 1, 0, -1, -1, -1, 0 };
 	int yShadows[9] = { 0, 1, 0, -1, -1, -1, 0, 1, 1 };
@@ -992,7 +990,7 @@ int DisplayResource::textWidth(const Common::String &msg) {
 		return 0;
 
 	const char *msgP = msg.c_str();
-	FontResource &fontData = *_vm->_graphicsManager._fontPtr->_curFont;
+	FontResource &fontData = *_vm->_graphicsManager->_fontPtr->_curFont;
 	int minChar = fontData._minChar;
 	int maxChar = fontData._maxChar;
 	int padding = fontData._padding;
@@ -1033,6 +1031,7 @@ PictureResource::PictureResource(BoltFilesState &state, const byte *src):
 	_maskData = READ_LE_UINT32(&src[14]);
 	_planeSize = READ_LE_UINT16(&src[22]);
 
+	_keyColor = 0;
 	_imgData = NULL;
 	_freeImgData = DisposeAfterUse::YES;
 
@@ -1078,9 +1077,9 @@ PictureResource::PictureResource(BoltFilesState &state, const byte *src):
 				mode = 226;
 		}
 
-		if (mode != state._vm->_graphicsManager._SVGAMode) {
-			state._vm->_graphicsManager._SVGAMode = mode;
-			state._vm->_graphicsManager.clearPalette();			
+		if (mode != state._vm->_graphicsManager->_SVGAMode) {
+			state._vm->_graphicsManager->_SVGAMode = mode;
+			state._vm->_graphicsManager->clearPalette();			
 		}
 
 		int screenOffset = READ_LE_UINT32(&src[18]) & 0xffff;
@@ -1089,12 +1088,12 @@ PictureResource::PictureResource(BoltFilesState &state, const byte *src):
 		if (_flags & PICFLAG_CLEAR_SCREEN) {
 			// Clear screen picture. That's right. This game actually has a picture
 			// resource flag to clear the screen! Bizarre.
-			Graphics::Surface &s = state._vm->_graphicsManager._screenSurface;
+			Graphics::Surface &s = state._vm->_graphicsManager->_screenSurface;
 			s.fillRect(Common::Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), 0);
 		} else {
-			// Direct sceren loading picture. In this case, the raw data of the resource
+			// Direct screen loading picture. In this case, the raw data of the resource
 			// is directly decompressed into the screen surface. Again, bizarre.
-			byte *pDest = (byte *)state._vm->_graphicsManager._screenSurface.getPixels();
+			byte *pDest = (byte *)state._vm->_graphicsManager->_screenSurface.getPixels();
 			state.decompress(pDest, SCREEN_WIDTH * SCREEN_HEIGHT, state._curMemberPtr->_mode);
 		}
 	} else {
@@ -1156,6 +1155,7 @@ PictureResource::PictureResource(int flags, int select, int pick, int onOff,
 	_maskData = maskData;
 	_imgData = imgData;
 	_planeSize = planeSize;
+	_freeImgData = DisposeAfterUse::NO;
 }
 
 PictureResource::~PictureResource() {
@@ -1316,11 +1316,11 @@ void ViewPortResource::setupViewPort(PictureResource *page, Common::Rect *clippi
 	_restoreFn = restoreFn;
 
 	if (setupFn)
-		(_state._vm->_graphicsManager.*setupFn)(this);
+		(_state._vm->_graphicsManager->*setupFn)(this);
 }
 
 void ViewPortResource::setupViewPort() {
-	setupViewPort(_state._vm->_graphicsManager._backgroundPage, NULL,
+	setupViewPort(_state._vm->_graphicsManager->_backgroundPage, NULL,
 		&GraphicsManager::setupMCGASaveRect, &GraphicsManager::addRectOptSaveRect,
 		&GraphicsManager::restoreMCGASaveRect);
 }
@@ -1336,7 +1336,7 @@ void ViewPortResource::addSaveRect(int pageIndex, const Common::Rect &r) {
 	
 	if (clipRect(rect)) {
 		if (_addFn) {
-			(_state._vm->_graphicsManager.*_addFn)(this, pageIndex, rect);
+			(_state._vm->_graphicsManager->*_addFn)(this, pageIndex, rect);
 		} else if (_rectListCount[pageIndex] != -1) {
 			_rectListPtr[pageIndex]->push_back(rect);
 		}
@@ -1344,26 +1344,26 @@ void ViewPortResource::addSaveRect(int pageIndex, const Common::Rect &r) {
 }
 
 void ViewPortResource::fillPic(byte onOff) {
-	_state._vm->_graphicsManager.fillPic(this, onOff);
+	_state._vm->_graphicsManager->fillPic(this, onOff);
 }
 
 void ViewPortResource::drawIfaceTime() {
 	// Hour display
-	_state._vm->_graphicsManager.drawANumber(*_state._vm->_graphicsManager._vPort, 
+	_state._vm->_graphicsManager->drawANumber(*_state._vm->_graphicsManager->_vPort, 
 		(_state._vm->_gameHour / 10) == 0 ? 10 : _state._vm->_gameHour / 10,
 		Common::Point(161, 25));
-	_state._vm->_graphicsManager.drawANumber(*_state._vm->_graphicsManager._vPort, 
+	_state._vm->_graphicsManager->drawANumber(*_state._vm->_graphicsManager->_vPort, 
 		_state._vm->_gameHour % 10, Common::Point(172, 25));
 
 	// Minute display
-	_state._vm->_graphicsManager.drawANumber(*_state._vm->_graphicsManager._vPort, 
+	_state._vm->_graphicsManager->drawANumber(*_state._vm->_graphicsManager->_vPort, 
 		_state._vm->_gameMinute / 10, Common::Point(190, 25));
-	_state._vm->_graphicsManager.drawANumber(*_state._vm->_graphicsManager._vPort, 
+	_state._vm->_graphicsManager->drawANumber(*_state._vm->_graphicsManager->_vPort, 
 		_state._vm->_gameMinute % 10, Common::Point(201, 25));
 
 	// AM/PM indicator
-	PictureResource *pic = _state._vm->_bVoy->boltEntry(_state._vm->_voy._isAM ? 272 : 273)._picResource;
-	_state._vm->_graphicsManager.sDrawPic(pic, *_state._vm->_graphicsManager._vPort, 
+	PictureResource *pic = _state._vm->_bVoy->boltEntry(_state._vm->_voy->_isAM ? 272 : 273)._picResource;
+	_state._vm->_graphicsManager->sDrawPic(pic, *_state._vm->_graphicsManager->_vPort, 
 		Common::Point(215, 27));
 }
 
@@ -1371,9 +1371,9 @@ void ViewPortResource::drawPicPerm(PictureResource *pic, const Common::Point &pt
 	Common::Rect bounds = pic->_bounds;
 	bounds.translate(pt.x, pt.y);
 
-	bool saveBack = _state._vm->_graphicsManager._saveBack;
-	_state._vm->_graphicsManager._saveBack = false;
-	_state._vm->_graphicsManager.sDrawPic(pic, this, pt);
+	bool saveBack = _state._vm->_graphicsManager->_saveBack;
+	_state._vm->_graphicsManager->_saveBack = false;
+	_state._vm->_graphicsManager->sDrawPic(pic, this, pt);
 	clipRect(bounds);
 
 	for (int pageIndex = 0; pageIndex < _pageCount; ++pageIndex) {
@@ -1382,7 +1382,7 @@ void ViewPortResource::drawPicPerm(PictureResource *pic, const Common::Point &pt
 		}
 	}
 
-	_state._vm->_graphicsManager._saveBack = saveBack;
+	_state._vm->_graphicsManager->_saveBack = saveBack;
 }
 /*------------------------------------------------------------------------*/
 
@@ -1515,7 +1515,7 @@ CMapResource::CMapResource(BoltFilesState &state, const byte *src): _vm(state._v
 	_entries = new byte[count * 3];
 	Common::copy(src + 6, src + 6 + 3 * count, _entries);
 
-	int palIndex = state._vm->_graphicsManager._viewPortListPtr->_palIndex;
+	int palIndex = state._vm->_graphicsManager->_viewPortListPtr->_palIndex;
 	if (_end > palIndex)
 		_end = palIndex;
 	if (_start > palIndex)
@@ -1527,7 +1527,7 @@ CMapResource::~CMapResource() {
 }
 
 void CMapResource::startFade() {
-	_vm->_eventsManager.startFade(this);
+	_vm->_eventsManager->startFade(this);
 }
 
 /*------------------------------------------------------------------------*/
@@ -1542,7 +1542,7 @@ VInitCycleResource::VInitCycleResource(BoltFilesState &state, const byte *src):
 }
 
 void VInitCycleResource::vStartCycle() {
-	EventsManager &evt = _state._vm->_eventsManager;
+	EventsManager &evt = *_state._vm->_eventsManager;
 	evt._cycleIntNode._flags |= 1;
 	evt._cyclePtr = this;
 
@@ -1556,7 +1556,7 @@ void VInitCycleResource::vStartCycle() {
 }
 
 void VInitCycleResource::vStopCycle() {
-	EventsManager &evt = _state._vm->_eventsManager;
+	EventsManager &evt = *_state._vm->_eventsManager;
 	evt._cycleIntNode._flags |= 1;
 	evt._cycleStatus &= ~1;
 }
