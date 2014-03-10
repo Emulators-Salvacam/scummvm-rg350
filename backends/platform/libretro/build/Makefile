@@ -36,7 +36,7 @@ else ifeq ($(platform), osx)
    LDFLAGS += -dynamiclib -fPIC
 else ifeq ($(platform), ios)
    TARGET  := $(TARGET_NAME)_libretro_ios.dylib
-   DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1
+   DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
    LDFLAGS += -dynamiclib -fPIC
    CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
 else ifeq ($(platform), qnx)
