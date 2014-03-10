@@ -24,6 +24,7 @@ MODULES += \
 	backends \
 	engines \
 	video \
+	image \
 	graphics \
 	audio \
 	common \
