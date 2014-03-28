@@ -190,7 +190,6 @@ void AvalancheEngine::setup() {
 
 	_animation->resetAnims();
 
-	drawToolbar();
 	_dialogs->setReadyLight(2);
 
 	fadeIn();
@@ -210,9 +209,16 @@ void AvalancheEngine::setup() {
 
 		loadGame(loadSlot);
 	} else {
-		_mainmenu->run();
-
+		// We don't need the MainMenu during the whole game, only at the beginning of it.
+		MainMenu *mainmenu = new MainMenu(this);
+		mainmenu->run();
+		delete mainmenu;
+		if (_letMeOut)
+			return;
+		
 		newGame();
+
+		drawToolbar();
 
 		thinkAbout(kObjectMoney, kThing);
 
@@ -223,7 +229,7 @@ void AvalancheEngine::setup() {
 void AvalancheEngine::runAvalot() {
 	setup();
 
-	do {
+	while (!_letMeOut && !shouldQuit()) {
 		uint32 beginLoop = _system->getMillis();
 
 		updateEvents(); // The event handler.
@@ -241,7 +247,7 @@ void AvalancheEngine::runAvalot() {
 		uint32 delay = _system->getMillis() - beginLoop;
 		if (delay <= 55)
 			_system->delayMillis(55 - delay); // Replaces slowdown(); 55 comes from 18.2 Hz (B Flight).
-	} while (!_letMeOut && !shouldQuit());
+	};
 
 	warning("STUB: run()");
 
@@ -410,9 +416,7 @@ void AvalancheEngine::loadAlso(byte num) {
 	}
 }
 
-void AvalancheEngine::loadRoom(byte num) {
-	CursorMan.showMouse(false);
-
+void AvalancheEngine::loadBackground(byte num) {
 	Common::String filename = Common::String::format("place%d.avd", num);
 	Common::File file;
 	if (!file.open(filename))
@@ -434,9 +438,15 @@ void AvalancheEngine::loadRoom(byte num) {
 	_graphics->refreshBackground();
 
 	file.close();
+}
 
+void AvalancheEngine::loadRoom(byte num) {
+	CursorMan.showMouse(false);
+
+	loadBackground(num);
 	loadAlso(num);
-	_background->load(num);
+	_background->loadSprites(num);
+
 	CursorMan.showMouse(true);
 }
 
