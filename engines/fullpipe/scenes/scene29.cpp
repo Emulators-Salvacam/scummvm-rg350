@@ -211,6 +211,109 @@ void sceneHandler29_manBend() {
 	g_vars->scene29_var21 = g_fp->_aniMan->_oy;
 }
 
+bool sceneHandler29_sub15(StaticANIObject *ani, int maxx) {
+	if (!g_vars->scene29_var10 || g_vars->scene29_var15)
+		return false;
+
+	if ((ani->_ox >= g_vars->scene29_var20 + 42 || ani->_ox <= g_vars->scene29_var20 + 8)
+		&& (ani->_ox < g_vars->scene29_var20 + 8 || maxx > g_vars->scene29_var20 + 27))
+		return false;
+
+	if (!g_fp->_aniMan->_movement)
+		return true;
+
+	int phase = g_fp->_aniMan->_movement->_currDynamicPhaseIndex;
+
+	if (g_fp->_aniMan->_movement->_id != MV_MAN29_BEND && g_fp->_aniMan->_movement->_id != MV_MAN29_RUN
+		&& (g_fp->_aniMan->_movement->_id != MV_MAN29_JUMP || (phase >= 3 && phase <= 6)))
+		return false;
+	else
+		return true;
+}
+
+bool sceneHandler29_sub16(StaticANIObject *ani, int maxx) {
+	if (!g_vars->scene29_var10 || g_vars->scene29_var15)
+		return false;
+
+	if (ani->_ox >= g_vars->scene29_var20 + 40) {
+		if (maxx > g_vars->scene29_var20 + 27)
+			return false;
+	} else {
+		if (ani->_ox <= g_vars->scene29_var20 + 10) {
+			if (ani->_ox < g_vars->scene29_var20 + 40)
+				return false;
+
+			if (maxx > g_vars->scene29_var20 + 27)
+				return false;
+		}
+	}
+
+	if (!g_fp->_aniMan->_movement)
+		return true;
+
+	if (g_fp->_aniMan->_movement->_id == MV_MAN29_JUMP)
+		return true;
+
+	if (g_fp->_aniMan->_movement->_id == MV_MAN29_RUN)
+		return true;
+
+	if (g_fp->_aniMan->_movement->_id == MV_MAN29_BEND) {
+		if (g_fp->_aniMan->_movement->_currDynamicPhaseIndex < 1 || g_fp->_aniMan->_movement->_currDynamicPhaseIndex > 5)
+			return true;
+	}
+
+	return false;
+}
+
+void sceneHandler29_manHit() {
+	MGMInfo mgminfo;
+
+	g_vars->scene29_var15 = 1;
+
+	g_fp->_aniMan->changeStatics2(ST_MAN29_RUNR);
+	g_fp->_aniMan->setOXY(g_vars->scene29_var20, g_vars->scene29_var21);
+
+	mgminfo.ani = g_fp->_aniMan;
+	mgminfo.staticsId2 = ST_MAN29_SITR;
+	mgminfo.y1 = 463;
+	mgminfo.x1 = g_vars->scene29_var20 <= 638 ? 351 : 0;
+	mgminfo.field_1C = 10;
+	mgminfo.field_10 = 1;
+	mgminfo.flags = (g_vars->scene29_var20 <= 638 ? 2 : 0) | 0x44;
+	mgminfo.movementId = MV_MAN29_HIT;
+
+	MessageQueue *mq = g_vars->scene29_mgm.genMovement(&mgminfo);
+	ExCommand *ex;
+
+	if (mq) {
+		if (g_vars->scene29_var20 <= 638) {
+			ex = new ExCommand(ANI_MAN, 1, MV_MAN29_STANDUP_NORM, 0, 0, 0, 1, 0, 0, 0);
+			ex->_excFlags = 2;
+			ex->_keyCode = g_fp->_aniMan->_okeyCode;
+			mq->addExCommandToEnd(ex);
+
+			ex = new ExCommand(0, 17, MSG_SC29_STOPRIDE, 0, 0, 0, 1, 0, 0, 0);
+			ex->_excFlags = 2;
+			mq->addExCommandToEnd(ex);
+
+			g_vars->scene29_var09 = 0;
+			g_vars->scene29_var10 = 0;
+			g_vars->scene29_var11 = 0;
+			g_vars->scene29_var12 = 0;
+		} else {
+			ex = new ExCommand(ANI_MAN, 1, MV_MAN29_STANDUP, 0, 0, 0, 1, 0, 0, 0);
+			ex->_excFlags = 2;
+			ex->_keyCode = g_fp->_aniMan->_okeyCode;
+			mq->addExCommandToEnd(ex);
+		}
+
+		mq->setFlags(mq->getFlags() | 1);
+
+		if (!mq->chain(g_fp->_aniMan))
+			delete mq;
+	}
+}
+
 void sceneHandler29_sub03() {
 	warning("STUB: sceneHandler29_sub03()");
 }
@@ -330,11 +433,36 @@ void sceneHandler29_sub05() {
 }
 
 void sceneHandler29_shootersEscape() {
-	warning("STUB: sceneHandler29_shootersEscape()");
+	if (g_vars->scene29_var10) {
+		g_vars->scene29_var20 += 2;
+
+		g_fp->_aniMan->setOXY(g_vars->scene29_var20, g_vars->scene29_var21);
+
+		if (g_vars->scene29_var20 > 1310 && !g_vars->scene29_shooter1->_movement && !g_vars->scene29_shooter2->_movement
+			&& g_vars->scene29_shooter1->_statics->_staticsId == ST_STR1_RIGHT) {
+			g_vars->scene29_var13 = 0;
+
+			g_vars->scene29_shooter1->changeStatics2(ST_STR1_STAND);
+			g_vars->scene29_shooter2->changeStatics2(ST_STR2_STAND);
+
+			chainQueue(QU_SC29_ESCAPE, 1);
+
+			g_vars->scene29_ass->queueMessageQueue(0);
+			g_vars->scene29_ass->hide();
+
+			g_fp->setObjectState(sO_LeftPipe_29, g_fp->getObjectEnumState(sO_LeftPipe_29, sO_IsOpened));
+		}
+	} else if (g_vars->scene29_var09) {
+		g_vars->scene29_var20 -= 4;
+
+		g_fp->_aniMan->setOXY(g_vars->scene29_var20, g_vars->scene29_var21);
+	}
 }
 
 void sceneHandler29_sub07() {
-	warning("STUB: sceneHandler29_sub07()");
+	g_vars->scene29_var20 -= 2;
+  
+	g_fp->_aniMan->setOXY(g_vars->scene29_var20, g_vars->scene29_var21);
 }
 
 void sceneHandler29_assHitGreen() {
@@ -370,7 +498,91 @@ void sceneHandler29_shoot() {
 }
 
 void sceneHandler29_animBearded() {
-	warning("STUB: sceneHandler29_animBearded()");
+	MessageQueue *mq;
+
+	for (uint i = 0; i < g_vars->scene29_var19.size(); i++) {
+		StaticANIObject *ani = g_vars->scene29_var19[i]->ani;
+
+		if (g_vars->scene29_var19[i]->wbflag) {
+			int x = ani->_ox;
+			int y = ani->_oy;
+
+			if (!ani->_movement && ani->_statics->_staticsId == (ST_BRDCMN_RIGHT | 0x4000)) {
+				x -= 4;
+
+				if (x - g_vars->scene29_var20 < 100 || !g_vars->scene29_var10) {
+					mq = new MessageQueue(g_fp->_currentScene->getMessageQueueById(QU_SC29_BRDOUT1), 0, 1);
+
+					mq->replaceKeyCode(-1, ani->_okeyCode);
+					mq->chain(0);
+
+					g_vars->scene29_var19[i]->wbflag = 0;
+					g_vars->scene29_var19[i]->wbcounter = 0;
+				}
+			}
+
+			if (!ani->_movement && ani->_statics->_staticsId == ST_BRDCMN_GOR)
+				ani->startAnim(MV_BRDCMN_GOR, 0, -1);
+
+			if (ani->_movement) {
+				if (ani->_movement->_id == MV_BRDCMN_GOR) {
+					x -= 4;
+
+					if (g_vars->scene29_var20 - x < 60 || x - g_vars->scene29_var20 < -260 || !g_vars->scene29_var10) {
+						ani->changeStatics2(ST_BRDCMN_RIGHT);
+
+						mq = new MessageQueue(g_fp->_currentScene->getMessageQueueById(QU_SC29_BRDOUT2), 0, 1);
+
+						mq->replaceKeyCode(-1, ani->_okeyCode);
+						mq->chain(0);
+
+						g_vars->scene29_var19[i]->wbflag = 0;
+						g_vars->scene29_var19[i]->wbcounter = 0;
+					}
+				}
+			}
+
+			ani->setOXY(x, y);
+			continue;
+		}
+
+		if (g_vars->scene29_var10 && g_vars->scene29_var19[i]->wbcounter > 30) {
+			int newx;
+
+			if (g_fp->_rnd->getRandomNumber(1))
+				goto dostuff;
+
+			if (g_vars->scene29_var20 <= 700) {
+				g_vars->scene29_var19[i]->wbcounter++;
+				continue;
+			}
+
+			if (g_vars->scene29_var20 >= 1100) {
+			dostuff:
+				if (g_vars->scene29_var20 <= 700 || g_vars->scene29_var20 >= 1350) {
+					g_vars->scene29_var19[i]->wbcounter++;
+					continue;
+				}
+
+				mq = new MessageQueue(g_fp->_currentScene->getMessageQueueById(QU_SC29_BRD2), 0, 1);
+
+				newx = g_vars->scene29_var20 - 200;
+			} else {
+				mq = new MessageQueue(g_fp->_currentScene->getMessageQueueById(QU_SC29_BRD1), 0, 1);
+
+				newx = g_vars->scene29_var20 + 350;
+			}
+
+			mq->getExCommandByIndex(0)->_x = newx;
+			mq->replaceKeyCode(-1, ani->_okeyCode);
+			mq->chain(0);
+
+			g_vars->scene29_var19[i]->wbflag = 1;
+			g_vars->scene29_var19[i]->wbcounter = 0;
+		}
+
+		g_vars->scene29_var19[i]->wbcounter++;
+	}
 }
 
 
