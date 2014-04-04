@@ -172,7 +172,94 @@ void scene29_initScene(Scene *sc) {
 }
 
 void sceneHandler29_winArcade() {
-	warning("STUB: sceneHandler29_winArcade()");
+	if (g_vars->scene29_shooter2->_flags & 4) {
+		g_vars->scene29_var13 = 0;
+
+		g_vars->scene29_shooter1->changeStatics2(ST_STR1_STAND);
+		g_vars->scene29_shooter2->changeStatics2(ST_STR2_STAND);
+
+		g_vars->scene29_shooter2->_flags &= 0xFFFB;
+
+		StaticANIObject *ani;
+		Ball *newball, *ball, *oldp0;
+
+		while (g_vars->scene29_var08.numBalls) {
+			ball = g_vars->scene29_var08.pHead;
+			ani = g_vars->scene29_var08.pHead->ani;
+			oldp0 = g_vars->scene29_var08.pHead->p0;
+			g_vars->scene29_var08.pHead = g_vars->scene29_var08.pHead->p0;
+
+			if (g_vars->scene29_var08.pHead)
+				oldp0->p1 = 0;
+			else
+				g_vars->scene29_var08.field_8 = 0;
+
+			ball->p0 = g_vars->scene29_var08.pTail;
+			g_vars->scene29_var08.pTail = ball;
+			g_vars->scene29_var08.numBalls--;
+
+			if (!g_vars->scene29_var08.numBalls)
+				g_vars->scene29_var08.reset();
+
+			ani->hide();
+
+			newball = g_vars->scene29_var05.sub04(g_vars->scene29_var05.field_8, 0);
+			newball->ani = ani;
+
+			if (g_vars->scene29_var05.field_8)
+				g_vars->scene29_var05.field_8->p0 = newball;
+			else
+				g_vars->scene29_var05.pHead = newball;
+
+			g_vars->scene29_var05.field_8 = newball;
+		}
+
+		while (g_vars->scene29_var07.numBalls) {
+			ball = g_vars->scene29_var07.pHead;
+			ani = g_vars->scene29_var07.pHead->ani;
+			oldp0 = g_vars->scene29_var07.pHead->p0;
+			g_vars->scene29_var07.pHead = g_vars->scene29_var07.pHead->p0;
+
+			if (g_vars->scene29_var07.pHead)
+				oldp0->p1 = 0;
+			else
+				g_vars->scene29_var07.field_8 = 0;
+
+			ball->p0 = g_vars->scene29_var07.pTail;
+			g_vars->scene29_var07.pTail = ball;
+			g_vars->scene29_var07.numBalls--;
+
+			if (!g_vars->scene29_var07.numBalls) {
+				g_vars->scene29_var07.numBalls = 0;
+				g_vars->scene29_var07.pTail = 0;
+				g_vars->scene29_var07.field_8 = 0;
+				g_vars->scene29_var07.pHead = 0;
+
+				free(g_vars->scene29_var07.cPlex);
+
+				g_vars->scene29_var07.cPlex = 0;
+			}
+
+			ani->hide();
+
+			newball = g_vars->scene29_var06.sub04(g_vars->scene29_var06.field_8, 0);
+			newball->ani = ani;
+
+			if (g_vars->scene29_var06.field_8)
+				g_vars->scene29_var06.field_8->p0 = newball;
+			else
+				g_vars->scene29_var06.pHead = newball;
+
+			g_vars->scene29_var06.field_8 = newball;
+		}
+
+		g_vars->scene29_ass->queueMessageQueue(0);
+		g_vars->scene29_ass->_flags &= 0xFFFB;
+
+		chainQueue(QU_SC29_ESCAPE, 1);
+	}
+
+	g_fp->setObjectState(sO_LeftPipe_29, g_fp->getObjectEnumState(sO_LeftPipe_29, sO_IsOpened));
 }
 
 void sceneHandler29_shootGreen() {
@@ -249,7 +336,76 @@ void sceneHandler29_shootGreen() {
 }
 
 void sceneHandler29_shootRed() {
-	warning("STUB: sceneHandler29_shootRed()");
+	if (g_vars->scene29_var05.numBalls) {
+		int x = g_vars->scene29_shooter1->_ox - 101;
+		int y = g_vars->scene29_shooter1->_oy - 14;
+		StaticANIObject *ani = g_vars->scene29_var05.pHead->ani;
+		Ball *oldhead = g_vars->scene29_var05.pHead;
+		Ball *oldp0 = g_vars->scene29_var05.pHead->p0;
+
+		g_vars->scene29_var05.pHead = g_vars->scene29_var05.pHead->p0;
+
+		if (g_vars->scene29_var05.pHead)
+			oldp0->p1 = 0;
+		else
+			g_vars->scene29_var05.field_8 = 0;
+
+		oldhead->p0 = g_vars->scene29_var05.pTail;
+
+		g_vars->scene29_var05.pTail = oldhead;
+		g_vars->scene29_var05.numBalls--;
+
+		if (!g_vars->scene29_var05.numBalls) {
+			g_vars->scene29_var05.numBalls = 0;
+			g_vars->scene29_var05.pTail = 0;
+			g_vars->scene29_var05.field_8 = 0;
+			g_vars->scene29_var05.pHead = 0;
+
+			free(g_vars->scene29_var05.cPlex);
+			g_vars->scene29_var05.cPlex = 0;
+		}
+
+		ani->show1(x, y, MV_SHR_NORM, 0);
+		ani->_priority = 5;
+
+		Ball *runPtr = g_vars->scene29_var07.pTail;
+		Ball *lastP = g_vars->scene29_var07.field_8;
+
+		if (!g_vars->scene29_var07.pTail) {
+			g_vars->scene29_var07.cPlex = (byte *)calloc(g_vars->scene29_var07.cPlexLen, sizeof(Ball));
+
+			byte *p1 = g_vars->scene29_var07.cPlex + (g_vars->scene29_var07.cPlexLen - 1) * sizeof(Ball);
+
+			if (g_vars->scene29_var07.cPlexLen - 1 < 0) {
+				runPtr = g_vars->scene29_var07.pTail;
+			} else {
+				runPtr = g_vars->scene29_var07.pTail;
+
+				for (int j = 0; j < g_vars->scene29_var07.cPlexLen; j++) {
+					((Ball *)p1)->p1 = runPtr;
+					runPtr = (Ball *)p1;
+
+					p1 -= sizeof(Ball);
+				}
+
+				g_vars->scene29_var07.pTail = runPtr;
+			}
+		}
+		g_vars->scene29_var07.pTail = runPtr->p0;
+		runPtr->p1 = lastP;
+		runPtr->p0 = 0;
+		runPtr->ani = ani;
+
+		g_vars->scene29_var07.numBalls++;
+
+		if (g_vars->scene29_var07.field_8) {
+			g_vars->scene29_var07.field_8->p0 = runPtr;
+			g_vars->scene29_var07.field_8 = runPtr;
+		} else {
+			g_vars->scene29_var07.pHead = runPtr;
+			g_vars->scene29_var07.field_8 = runPtr;
+		}
+	}
 }
 
 void sceneHandler29_manJump() {
@@ -383,8 +539,154 @@ void sceneHandler29_manHit() {
 	}
 }
 
+void sceneHandler29_assHitRed() {
+	if (g_vars->scene29_ass->_statics->_staticsId == ST_ASS_NORM) {
+		g_vars->scene29_ass->changeStatics2(ST_ASS_NORM);
+		g_vars->scene29_ass->startAnim(MV_ASS_HITRED, 0, -1);
+	}
+}
+
+void sceneHandler29_assHitGreen() {
+	if (g_vars->scene29_ass->_statics->_staticsId == ST_ASS_NORM) {
+		g_vars->scene29_ass->changeStatics2(ST_ASS_NORM);
+		g_vars->scene29_ass->startAnim(MV_ASS_HITGREEN, 0, -1);
+	}
+}
+
 void sceneHandler29_sub03() {
-	warning("STUB: sceneHandler29_sub03()");
+	Ball *ball = g_vars->scene29_var08.pHead;
+	Ball *newball;
+	int x, y;
+
+	while (ball) {
+		x = ball->ani->_ox - 30;
+		y = ball->ani->_oy;
+
+		if (x >= 186) {
+			if (sceneHandler29_sub16(ball->ani, x)) {
+				newball = g_vars->scene29_var05.sub04(g_vars->scene29_var05.field_8, 0);
+				newball->ani = ball->ani;
+
+				if (g_vars->scene29_var05.field_8)
+					g_vars->scene29_var05.field_8->p0 = newball;
+				else
+					g_vars->scene29_var05.pHead = newball;
+
+				g_vars->scene29_var05.field_8 = newball;
+
+				if (ball == g_vars->scene29_var08.pHead)
+					g_vars->scene29_var08.pHead = ball->p0;
+				else
+					ball->p1->p0 = ball->p0;
+
+				if (ball == g_vars->scene29_var08.field_8)
+					g_vars->scene29_var08.field_8 = ball->p1;
+				else
+					ball->p0->p1 = ball->p1;
+
+				g_vars->scene29_var08.init(&ball);
+
+				sceneHandler29_manHit();
+
+				g_fp->playSound(SND_29_014, 0);
+
+				ball->ani->startAnim(MV_SHG_HITMAN, 0, -1);
+
+				g_vars->scene29_var18 = ball->ani->_id;
+			} else {
+				ball->ani->setOXY(x, y);
+			}
+		} else {
+			newball = g_vars->scene29_var05.sub04(g_vars->scene29_var05.field_8, 0);
+			newball->ani = ball->ani;
+
+			if (g_vars->scene29_var05.field_8)
+				g_vars->scene29_var05.field_8->p0 = newball;
+			else
+				g_vars->scene29_var05.pHead = newball;
+
+			g_vars->scene29_var05.field_8 = newball;
+
+			ball->ani->hide();
+
+			if (ball == g_vars->scene29_var08.pHead)
+				g_vars->scene29_var08.pHead = ball->p0;
+			else
+				ball->p1->p0 = ball->p0;
+
+			if (ball == g_vars->scene29_var08.field_8)
+				g_vars->scene29_var08.field_8 = ball->p1;
+			else
+				ball->p0->p1 = ball->p1;
+
+			g_vars->scene29_var08.init(&ball);
+
+			sceneHandler29_assHitGreen();
+		}
+
+		ball = ball->p0;
+	}
+
+	ball = g_vars->scene29_var07.pHead;
+
+	while (ball) {
+		x = ball->ani->_ox - 30;
+		y = ball->ani->_oy;
+
+		if (x >= 147) {
+			if (sceneHandler29_sub15(ball->ani, x)) {
+				newball = g_vars->scene29_var06.sub04(g_vars->scene29_var06.field_8, 0);
+				newball->ani = ball->ani;
+
+				if (g_vars->scene29_var06.field_8)
+					g_vars->scene29_var06.field_8->p0 = newball;
+				else
+					g_vars->scene29_var06.pHead = newball;
+
+				g_vars->scene29_var06.field_8 = newball;
+
+				g_vars->scene29_var07.sub05(ball);
+
+				sceneHandler29_manHit();
+
+				g_fp->playSound(SND_29_027, 0);
+
+				ball->ani->startAnim(MV_SHR_HITMAN, 0, -1);
+
+				g_vars->scene29_var18 = ball->ani->_id;
+			} else {
+				ball->ani->setOXY(x, y);
+			}
+		} else {
+			newball = g_vars->scene29_var06.sub04(g_vars->scene29_var06.field_8, 0);
+			newball->ani = ball->ani;
+
+			if (g_vars->scene29_var06.field_8)
+				g_vars->scene29_var06.field_8->p0 = newball;
+			else
+				g_vars->scene29_var06.pHead = newball;
+
+			g_vars->scene29_var06.field_8 = newball;
+
+			ball->ani->hide();
+
+			if (ball == g_vars->scene29_var07.pHead)
+				g_vars->scene29_var07.pHead = ball->p0;
+			else
+				ball->p1->p0 = ball->p0;
+
+			if (ball == g_vars->scene29_var07.field_8)
+				g_vars->scene29_var07.field_8 = ball->p1;
+			else
+				ball->p0->p1 = ball->p1;
+
+			g_vars->scene29_var07.init(&ball);
+
+			sceneHandler29_assHitRed();
+		}
+
+		ball = ball->p0;
+	}
 }
 
 void sceneHandler29_manFromL() {
@@ -498,7 +800,19 @@ void sceneHandler29_clickPorter(ExCommand *cmd) {
 }
 
 void sceneHandler29_sub05() {
-	warning("STUB: sceneHandler29_sub05()");
+	if (g_fp->_aniMan->_statics->_staticsId == ST_MAN29_RUNR) {
+		if (g_vars->scene29_var20 > 1436) {
+			sceneHandler29_manFromR();
+		} else {
+			g_vars->scene29_var14 = (1310 - g_vars->scene29_var20) * 5213 / 100000 + 25;
+
+			if (!g_vars->scene29_var15)
+				g_fp->_aniMan->startAnim(MV_MAN29_RUN, 0, -1);
+		}
+	}
+
+	g_vars->scene29_var20 = g_fp->_aniMan->_ox;
+	g_vars->scene29_var21 = g_fp->_aniMan->_oy;
 }
 
 void sceneHandler29_shootersEscape() {
@@ -532,20 +846,6 @@ void sceneHandler29_sub07() {
 	g_vars->scene29_var20 -= 2;
   
 	g_fp->_aniMan->setOXY(g_vars->scene29_var20, g_vars->scene29_var21);
-}
-
-void sceneHandler29_assHitGreen() {
-	if (g_vars->scene29_ass->_statics->_staticsId == ST_ASS_NORM) {
-		g_vars->scene29_ass->changeStatics2(ST_ASS_NORM);
-		g_vars->scene29_ass->startAnim(MV_ASS_HITGREEN, 0, -1);
-	}
-}
-
-void sceneHandler29_assHitRed() {
-	if (g_vars->scene29_ass->_statics->_staticsId == ST_ASS_NORM) {
-		g_vars->scene29_ass->changeStatics2(ST_ASS_NORM);
-		g_vars->scene29_ass->startAnim(MV_ASS_HITRED, 0, -1);
-	}
 }
 
 void sceneHandler29_shoot() {
