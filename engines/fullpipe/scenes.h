@@ -591,18 +591,14 @@ public:
 	bool scene28_headBeardedFlipper;
 	bool scene28_lift6inside;
 
-	int scene29_var01;
-	int scene29_var02;
-	int scene29_var03;
-	int scene29_var04;
 	StaticANIObject *scene29_porter;
 	StaticANIObject *scene29_shooter1;
 	StaticANIObject *scene29_shooter2;
 	StaticANIObject *scene29_ass;
-	BallChain scene29_var05;
-	BallChain scene29_var06;
+	BallChain scene29_balls;
+	BallChain scene29_redBalls;
 	BallChain scene29_var07;
-	BallChain scene29_var08;
+	BallChain scene29_greenBalls;
 	int scene29_var09;
 	int scene29_var10;
 	int scene29_var11;
