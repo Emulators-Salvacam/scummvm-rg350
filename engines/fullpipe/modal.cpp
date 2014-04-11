@@ -718,7 +718,7 @@ bool ModalCredits::init(int counterdiff) {
 
 		g_fp->_modalObject = menu;
 
-		menu->_field_34 = 1;
+		menu->_mfield_34 = 1;
 	}
 
 	return true;
@@ -750,9 +750,201 @@ void ModalCredits::update() {
 }
 
 ModalMainMenu::ModalMainMenu() {
-	warning("STUB: ModalMainMenu::ModalMainMenu()");
+	_areas.clear();
 
-	_field_34 = 0;
+	_lastArea = 0;
+	_hoverAreaId = 0;
+	_mfield_34 = 0;
+	_scene = g_fp->accessScene(SC_MAINMENU);
+	_debugKeyCount = 0;
+	_sliderOffset = 0;
+	_screct.left = g_fp->_sceneRect.left;
+	_screct.top = g_fp->_sceneRect.top;
+	_screct.right = g_fp->_sceneRect.right;
+	_screct.bottom = g_fp->_sceneRect.bottom;
+
+	if (g_fp->_currentScene) {
+		_bgX = g_fp->_currentScene->_x;
+		_bgY = g_fp->_currentScene->_y;
+	} else {
+		_bgX = 0;
+		_bgY = 0;
+	}
+
+	g_fp->_sceneRect.top = 0;
+	g_fp->_sceneRect.left = 0;
+	g_fp->_sceneRect.right = 800;
+	g_fp->_sceneRect.bottom = 600;
+
+	MenuArea *area;
+
+	area = new MenuArea();
+	area->picIdL = PIC_MNU_EXIT_L;
+	area->picObjD = 0;
+	area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
+	area->picObjL->_flags &= 0xFFFB;
+	_areas.push_back(area);
+
+	area = new MenuArea();
+	area->picIdL = PIC_MNU_CONTINUE_L;
+	area->picObjD = 0;
+	area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
+	area->picObjL->_flags &= 0xFFFB;
+	_areas.push_back(area);
+
+	if (isSaveAllowed()) {
+		area = new MenuArea();
+		area->picIdL = PIC_MNU_SAVE_L;
+		area->picObjD = 0;
+		area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
+		area->picObjL->_flags &= 0xFFFB;
+		_areas.push_back(area);
+	}
+
+	area = new MenuArea();
+	area->picIdL = PIC_MNU_LOAD_L;
+	area->picObjD = 0;
+	area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
+	area->picObjL->_flags &= 0xFFFB;
+	_areas.push_back(area);
+
+	area = new MenuArea();
+	area->picIdL = PIC_MNU_RESTART_L;
+	area->picObjD = 0;
+	area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
+	area->picObjL->_flags &= 0xFFFB;
+	_areas.push_back(area);
+
+	area = new MenuArea();
+	area->picIdL = PIC_MNU_AUTHORS_L;
+	area->picObjD = 0;
+	area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
+	area->picObjL->_flags &= 0xFFFB;
+	_areas.push_back(area);
+
+	area = new MenuArea();
+	area->picIdL = PIC_MNU_SLIDER_L;
+	area->picObjD = _scene->getPictureObjectById(PIC_MNU_SLIDER_D, 0);
+	area->picObjD->_flags |= 4;
+	area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
+	area->picObjL->_flags &= 0xFFFB;
+	_areas.push_back(area);
+	_menuSliderIdx = _areas.size() - 1;
+
+	area = new MenuArea();
+	area->picIdL = PIC_MNU_MUSICSLIDER_L;
+	area->picObjD = _scene->getPictureObjectById(PIC_MNU_MUSICSLIDER_D, 0);
+	area->picObjD->_flags |= 4;
+	area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
+	area->picObjL->_flags &= 0xFFFB;
+	_areas.push_back(area);
+	_musicSliderIdx = _areas.size();
+
+	if (g_fp->_mainMenu_debugEnabled)
+		enableDebugMenuButton();
+
+	setSliderPos();
+}
+
+void ModalMainMenu::update() {
+	_scene->draw();
+}
+
+bool ModalMainMenu::handleMessage(ExCommand *message) {
+	if (message->_messageKind != 17)
+		return false;
+
+	Common::Point point;
+
+	if (message->_messageNum == 29) {
+		point.x = message->_x;
+		point.y = message->_y;
+
+		int numarea = checkHover(point);
+
+		if (numarea >= 0) {
+			if (numarea == _menuSliderIdx) {
+				_lastArea = _areas[_menuSliderIdx];
+				_sliderOffset = _lastArea->picObjL->_ox - point.x;
+
+				return false;
+			}
+
+			if (numarea == _musicSliderIdx) {
+				_lastArea = _areas[_musicSliderIdx];
+				_sliderOffset = _lastArea->picObjL->_ox - point.x;
+
+				return false;
+			}
+
+			_hoverAreaId = _areas[numarea]->picIdL;
+		}
+
+		return false;
+	}
+
+	if (message->_messageNum == 30) {
+		if (_lastArea)
+			_lastArea = 0;
+
+		return false;
+	}
+
+	if (message->_messageNum != 36)
+		return false;
+
+	if (message->_keyCode == 27)
+		_hoverAreaId = PIC_MNU_CONTINUE_L;
+	else
+		enableDebugMenu(message->_keyCode);
+
+	return false;
+}
+
+int ModalMainMenu::checkHover(Common::Point &point) {
+	warning("STUB: ModalMainMenu::checkHover()");
+
+	return 0;
+}
+
+bool ModalMainMenu::isSaveAllowed() {
+	warning("STUB: ModalMainMenu::isSaveAllowed()");
+
+	return true;
+}
+
+void ModalMainMenu::enableDebugMenu(char c) {
+	const char deb[] = "DEBUGER";
+
+	if (c == deb[_debugKeyCount]) {
+		_debugKeyCount++;
+
+		if (deb[_debugKeyCount] )
+			return;
+
+		enableDebugMenuButton();
+	}
+
+	_debugKeyCount = 0;
+}
+
+void ModalMainMenu::enableDebugMenuButton() {
+	MenuArea *area;
+
+	for (uint i = 0; i < _areas.size(); i++)
+		if (_areas[i]->picIdL == PIC_MNU_DEBUG_L)
+			return;
+
+	area = new MenuArea();
+	area->picIdL = PIC_MNU_DEBUG_L;
+	area->picObjD = 0;
+	area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
+	area->picObjL->_flags &= 0xFFFB;
+	_areas.push_back(area);
+}
+
+void ModalMainMenu::setSliderPos() {
+	warning("STUB: ModalMainMenu::setSliderPos()");
 }
 
 ModalHelp::ModalHelp() {
