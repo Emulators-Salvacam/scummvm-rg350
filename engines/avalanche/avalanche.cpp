@@ -142,7 +142,7 @@ void AvalancheEngine::initVariables() {
 	_letMeOut = false;
 	_thinks = 2;
 	_thinkThing = true;
-	_seeScroll = false;
+	_animationsEnabled = true;
 	_currentMouse = 177;
 	_holdLeftMouse = false;
 
@@ -336,8 +336,8 @@ void AvalancheEngine::synchronize(Common::Serializer &sz) {
 
 }
 
-bool AvalancheEngine::canSaveGameStateCurrently() { // TODO: Refine these!!!
-	return (!_seeScroll && _alive);
+bool AvalancheEngine::canSaveGameStateCurrently() {
+	return (_animationsEnabled && _alive);
 }
 
 Common::Error AvalancheEngine::saveGameState(int slot, const Common::String &desc) {
@@ -381,8 +381,8 @@ Common::String AvalancheEngine::getSaveFileName(const int slot) {
 	return Common::String::format("%s.%03d", _targetName.c_str(), slot);
 }
 
-bool AvalancheEngine::canLoadGameStateCurrently() { // TODO: Refine these!!!
-	return (!_seeScroll);
+bool AvalancheEngine::canLoadGameStateCurrently() {
+	return (_animationsEnabled);
 }
 
 Common::Error AvalancheEngine::loadGameState(int slot) {
@@ -432,7 +432,7 @@ bool AvalancheEngine::loadGame(const int16 slot) {
 
 	_isLoaded = true;
 
-	_seeScroll = true;  // This prevents display of the new sprites before the new picture is loaded.
+	_animationsEnabled = false;
 
 	if (_holdTheDawn) {
 		_holdTheDawn = false;
