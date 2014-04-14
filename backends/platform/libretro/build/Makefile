@@ -9,6 +9,10 @@ else ifneq ($(findstring MINGW,$(shell uname -a)),)
    platform = win
 else ifneq ($(findstring Darwin,$(shell uname -a)),)
    platform = osx
+	arch = intel
+ifeq ($(shell uname -p),powerpc)
+	arch = ppc
+endif
 else ifneq ($(findstring win,$(shell uname -a)),)
    platform = win
 endif
@@ -34,6 +38,10 @@ else ifeq ($(platform), osx)
    TARGET  := $(TARGET_NAME)_libretro.dylib
    DEFINES += -fPIC
    LDFLAGS += -dynamiclib -fPIC
+	arch = intel
+ifeq ($(shell uname -p),powerpc)
+	arch = ppc
+endif
 else ifeq ($(platform), ios)
    TARGET  := $(TARGET_NAME)_libretro_ios.dylib
    DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
