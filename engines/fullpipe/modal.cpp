@@ -27,6 +27,7 @@
 #include "fullpipe/motion.h"
 #include "fullpipe/scenes.h"
 #include "fullpipe/gameloader.h"
+#include "fullpipe/statics.h"
 
 #include "fullpipe/constants.h"
 
@@ -838,7 +839,7 @@ ModalMainMenu::ModalMainMenu() {
 	area->picObjL = _scene->getPictureObjectById(area->picIdL, 0);
 	area->picObjL->_flags &= 0xFFFB;
 	_areas.push_back(area);
-	_musicSliderIdx = _areas.size();
+	_musicSliderIdx = _areas.size() - 1;
 
 	if (g_fp->_mainMenu_debugEnabled)
 		enableDebugMenuButton();
@@ -1024,17 +1025,150 @@ bool ModalMainMenu::init(int counterdiff) {
 }
 
 void ModalMainMenu::updateVolume() {
-	warning("STUB: ModalMainMenu::updateVolume()");
+	if (g_fp->_soundEnabled ) {
+		for (int s = 0; s < g_fp->_currSoundListCount; s++)
+			for (int i = 0; i < g_fp->_currSoundList1[s]->getCount(); i++) {
+				updateSoundVolume(g_fp->_currSoundList1[s]->getSoundByIndex(i));
+			}
+	}
+}
+
+void ModalMainMenu::updateSoundVolume(Sound *snd) {
+	if (!snd->_objectId)
+		return;
+
+	StaticANIObject *ani = g_fp->_currentScene->getStaticANIObject1ById(snd->_objectId, -1);
+	if (!ani)
+		return;
+
+	int a, b;
+
+	if (ani->_ox >= _screct.left) {
+		int par, pan;
+
+		if (ani->_ox <= _screct.right) {
+			int dx;
+
+			if (ani->_oy <= _screct.bottom) {
+				if (ani->_oy >= _screct.top) {
+					snd->setPanAndVolume(g_fp->_sfxVolume, 0);
+
+					return;
+				}
+				dx = _screct.top - ani->_oy;
+			} else {
+				dx = ani->_oy - _screct.bottom;
+			}
+
+		    par = 0;
+
+			if (dx > 800) {
+				snd->setPanAndVolume(-3500, 0);
+				return;
+			}
+
+			pan = -3500;
+			a = g_fp->_sfxVolume - (-3500);
+			b = 800 - dx;
+		} else {
+			int dx = ani->_ox - _screct.right;
+
+			if (dx > 800) {
+				snd->setPanAndVolume(-3500, 0);
+				return;
+			}
+
+			pan = -3500;
+			par = dx * (-3500) / -800;
+			a = g_fp->_sfxVolume - (-3500);
+			b = 800 - dx;
+		}
+
+		int32 pp = b * a; //(0x51EB851F * b * a) >> 32) >> 8; // TODO FIXME
+
+		snd->setPanAndVolume(pan + (pp >> 31) + pp, par);
+
+		return;
+	}
+
+	int dx = _screct.left - ani->_ox;
+	if (dx <= 800) {
+		int32 s = 0x51EB851F * (800 - dx) * (g_fp->_sfxVolume - (-3500)); // TODO FIXME
+		int32 p = -3500 + (s >> 31) + (s >> 8);
+
+		if (p > g_fp->_sfxVolume)
+			p = g_fp->_sfxVolume;
+
+		snd->setPanAndVolume(p, dx * (-3500) / 800);
+	} else {
+		snd->setPanAndVolume(-3500, 0);
+	}
+
+	warning("STUB: ModalMainMenu::updateSoundVolume()");
 }
 
 void ModalMainMenu::updateSliderPos() {
-	warning("STUB: ModalMainMenu::updateSliderPos()");
+	if (_lastArea->picIdL == PIC_MNU_SLIDER_L) {
+		int x = g_fp->_mouseScreenPos.x + _sliderOffset;
+
+		if (x >= 65) {
+			if (x > 238)
+				x = 238;
+		} else {
+			x = 65;
+		}
+
+		_lastArea->picObjD->setOXY(x, _lastArea->picObjD->_oy);
+		_lastArea->picObjL->setOXY(x, _lastArea->picObjD->_oy);
+
+		int vol = 1000 * (3 * x - 195);
+		g_fp->_sfxVolume = vol / 173 - 3000;
+
+		if (!(vol / 173))
+			g_fp->_sfxVolume = -10000;
+
+		g_fp->updateSoundVolume();
+	} else if (_lastArea->picIdL == PIC_MNU_MUSICSLIDER_L) {
+		int x = g_fp->_mouseScreenPos.x + _sliderOffset;
+
+		if (x >= 65) {
+			if (x > 238)
+				x = 238;
+		} else {
+			x = 65;
+		}
+
+		_lastArea->picObjD->setOXY(x, _lastArea->picObjD->_oy);
+		_lastArea->picObjL->setOXY(x, _lastArea->picObjD->_oy);
+
+		g_fp->setMusicVolume(255 * (x - 65) / 173);
+	}
 }
 
 int ModalMainMenu::checkHover(Common::Point &point) {
-	warning("STUB: ModalMainMenu::checkHover()");
+	for (uint i = 0; i < _areas.size(); i++) {
+		if (_areas[i]->picObjL->isPixelHitAtPos(point.x, point.y)) {
+			_areas[i]->picObjL->_flags |= 4;
 
-	return 0;
+			return i;
+		} else {
+			_areas[i]->picObjL->_flags &= 0xFFFB;
+		}
+	}
+
+	if (isOverArea(_areas[_menuSliderIdx]->picObjL, &point)) {
+		_areas[_menuSliderIdx]->picObjL->_flags |= 4;
+
+		return _menuSliderIdx;
+	}
+
+	if (isOverArea(_areas[_musicSliderIdx]->picObjL, &point)) {
+		_areas[_musicSliderIdx]->picObjL->_flags |= 4;
+
+		return _musicSliderIdx;
+	}
+
+	return -1;
 }
 
 bool ModalMainMenu::isOverArea(PictureObject *obj, Common::Point *point) {
@@ -1054,7 +1188,16 @@ bool ModalMainMenu::isOverArea(PictureObject *obj, Common::Point *point) {
 }
 
 bool ModalMainMenu::isSaveAllowed() {
-	warning("STUB: ModalMainMenu::isSaveAllowed()");
+	if (!g_fp->_isSaveAllowed)
+		return false;
+
+	if (g_fp->_aniMan->_flags & 0x100)
+		return false;
+
+	for (Common::Array<MessageQueue *>::iterator s = g_fp->_globalMessageQueueList->begin(); s != g_fp->_globalMessageQueueList->end(); ++s) {
+		if (!(*s)->_isFinished && ((*s)->getFlags() & 1))
+			return false;
+	}
 
 	return true;
 }
@@ -1090,7 +1233,31 @@ void ModalMainMenu::enableDebugMenuButton() {
 }
 
 void ModalMainMenu::setSliderPos() {
-	warning("STUB: ModalMainMenu::setSliderPos()");
+	int x = 173 * (g_fp->_sfxVolume + 3000) / 3000 + 65;
+	PictureObject *obj = _areas[_menuSliderIdx]->picObjD;
+
+	if (x >= 65) {
+		if (x > 238)
+			x = 238;
+	} else {
+		x = 65;
+	}
+
+	obj->setOXY(x, obj->_oy);
+	_areas[_menuSliderIdx]->picObjL->setOXY(x, obj->_oy);
+
+	x = 173 * g_fp->_musicVolume / 255 + 65;
+	obj = _areas[_musicSliderIdx]->picObjD;
+
+	if (x >= 65) {
+		if (x > 238)
+			x = 238;
+	} else {
+		x = 65;
+	}
+
+	obj->setOXY(x, obj->_oy);
+	_areas[_musicSliderIdx]->picObjL->setOXY(x, obj->_oy);
 }
 
 ModalHelp::ModalHelp() {

@@ -161,8 +161,10 @@ public:
 	void stopAllSoundStreams();
 	void stopAllSoundInstances(int id);
 	void updateSoundVolume();
+	void setMusicVolume(int vol);
 
 	int _sfxVolume;
+	int _musicVolume;
 
 	GlobalMessageQueueList *_globalMessageQueueList;
 	MessageHandler *_messageHandlers;
