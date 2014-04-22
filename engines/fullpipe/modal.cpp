@@ -21,13 +21,13 @@
  */
 
 #include "fullpipe/fullpipe.h"
-#include "fullpipe/modal.h"
 #include "fullpipe/messages.h"
 #include "fullpipe/constants.h"
 #include "fullpipe/motion.h"
 #include "fullpipe/scenes.h"
 #include "fullpipe/gameloader.h"
 #include "fullpipe/statics.h"
+#include "fullpipe/modal.h"
 
 #include "fullpipe/constants.h"
 
@@ -920,7 +920,7 @@ bool ModalMainMenu::init(int counterdiff) {
 			g_fp->_modalObject = mq;
 
 			mq->_parentObj = this;
-			mq->create(_scene, PIC_MEX_BGR);
+			mq->create(_scene, (PictureObject *)_scene->_picObjList[0], PIC_MEX_BGR);
 
 			_hoverAreaId = 0;
 
@@ -1321,8 +1321,135 @@ void ModalHelp::launch() {
 	}
 }
 
-void ModalQuery::create(Scene *sc, int picId) {
-	warning("STUB: ModalQuery::create()");
+ModalQuery::ModalQuery() {
+	_picObjList = 0;
+	_bg = 0;
+	_okBtn = 0;
+	_cancelBtn = 0;
+	_queryResult = -1;
+}
+
+ModalQuery::~ModalQuery() {
+	_bg->_flags &= 0xFFFB;
+	_cancelBtn->_flags &= 0xFFFB;
+	_okBtn->_flags &= 0xFFFB;
+}
+
+bool ModalQuery::create(Scene *sc, PictureObject *picObjList, int id) {
+	if (id == PIC_MEX_BGR) {
+		_bg = sc->getPictureObjectById(PIC_MEX_BGR, 0);
+
+		if (!_bg)
+			return false;
+
+		_okBtn = sc->getPictureObjectById(PIC_MEX_OK, 0);
+
+		if (!_okBtn)
+			return false;
+
+		_cancelBtn = sc->getPictureObjectById(PIC_MEX_CANCEL, 0);
+
+		if (!_cancelBtn)
+			return 0;
+	} else {
+		if (id != PIC_MOV_BGR)
+			return false;
+
+		_bg = sc->getPictureObjectById(PIC_MOV_BGR, 0);
+
+		if (!_bg)
+			return false;
+
+		_okBtn = sc->getPictureObjectById(PIC_MOV_OK, 0);
+
+		if (!_okBtn)
+			return false;
+
+		_cancelBtn = sc->getPictureObjectById(PIC_MOV_CANCEL, 0);
+
+		if (!_cancelBtn)
+			return false;
+	}
+
+	_queryResult = -1;
+	_picObjList = picObjList;
+
+	return true;
+}
+
+void ModalQuery::update() {
+	if (_picObjList)
+		_picObjList->draw();
+
+	_bg->draw();
+
+	if (_okBtn->_flags & 4)
+		_okBtn->draw();
+
+	if (_cancelBtn->_flags & 4)
+		_cancelBtn->draw();
+}
+
+bool ModalQuery::handleMessage(ExCommand *cmd) {
+	if (cmd->_messageKind == 17) {
+		if (cmd->_messageNum == 29) {
+			if (_okBtn->isPointInside(g_fp->_mouseScreenPos.x, g_fp->_mouseScreenPos.y)) {
+				_queryResult = 1;
+
+				return false;
+			}
+
+			if (_cancelBtn->isPointInside(g_fp->_mouseScreenPos.x, g_fp->_mouseScreenPos.y))
+				_queryResult = 0;
+		} else if (cmd->_messageNum == 36 && cmd->_keyCode == 27) {
+			_queryResult = 0;
+
+			return false;
+		}
+	}
+
+	return false;
+}
+
+bool ModalQuery::init(int counterdiff) {
+	if (_okBtn->isPointInside(g_fp->_mouseScreenPos.x, g_fp->_mouseScreenPos.y))
+		_okBtn->_flags |= 4;
+	else
+		_okBtn->_flags &= 0xFFFB;
+
+	if (_cancelBtn->isPointInside(g_fp->_mouseScreenPos.x, g_fp->_mouseScreenPos.y))
+		_cancelBtn->_flags |= 4;
+	else
+		_cancelBtn->_flags &= 0xFFFB;
+
+	if (_queryResult == -1) {
+		return true;
+	} else {
+		if (_bg->_id == PIC_MEX_BGR) {
+			_cancelBtn->_flags &= 0xFFFB;
+			_okBtn->_flags &= 0xFFFB;
+
+			if (_queryResult == 1) {
+				warning("STUB: ModalQuery::init()");
+				//sceneFade(g_vrtDrawHandle, (Scene *)this->_picObjList, 0);
+
+				//if (inputArFlag) {
+				//	g_needRestart = 1;
+				//	return 0;
+				//}
+				//SendMessageA(hwndCallback, WM_DESTROY, 0, 0);
+			}
+		}
+	}
+
+	return false;
+}
+
+ModalSaveGame::ModalSaveGame() {
+	warning("STUB: ModalSaveGame::ModalSaveGame()");
+
+	_oldBgX = 0;
+	_oldBgY = 0;
 }
 
 void ModalSaveGame::setScene(Scene *sc) {

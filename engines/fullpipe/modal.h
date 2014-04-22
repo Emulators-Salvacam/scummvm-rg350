@@ -215,21 +215,31 @@ public:
 
 class ModalQuery : public BaseModalObject {
 public:
-	ModalQuery() {}
-	virtual ~ModalQuery() {}
+	ModalQuery();
+	virtual ~ModalQuery();
 
 	virtual bool pollEvent() { return true; }
-	virtual bool handleMessage(ExCommand *message) { return false; }
-	virtual bool init(int counterdiff) { return true; }
-	virtual void update() {}
+	virtual bool handleMessage(ExCommand *message);
+	virtual bool init(int counterdiff);
+	virtual void update();
 	virtual void saveload() {}
 
-	void create(Scene *sc, int picId);
+	bool create(Scene *sc, PictureObject *picObjList, int picId);
+	int getQueryResult() { return _queryResult; }
+
+
+private:
+	PictureObject *_picObjList;
+	PictureObject *_bg;
+	PictureObject *_okBtn;
+	PictureObject *_cancelBtn;
+	int _queryResult;
+
 };
 
 class ModalSaveGame : public BaseModalObject {
 public:
-	ModalSaveGame() {}
+	ModalSaveGame();
 	virtual ~ModalSaveGame() {}
 
 	virtual bool pollEvent() { return true; }
