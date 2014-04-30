@@ -26,6 +26,7 @@
 #include "fullpipe/scene.h"
 #include "fullpipe/sound.h"
 #include "fullpipe/ngiarchive.h"
+#include "fullpipe/messages.h"
 #include "common/memstream.h"
 #include "audio/audiostream.h"
 #include "audio/decoders/vorbis.h"
@@ -73,6 +74,18 @@ bool SoundList::loadFile(const char *fname, char *libname) {
 	return load(archive, libname);
 }
 
+Sound *SoundList::getSoundItemById(int id) {
+	if (_soundItemsCount == 0) {
+		return _soundItems[0]->getId() != id ? 0 : _soundItems[0];
+	}
+
+	for (int i = 0; i < _soundItemsCount; i++) {
+		if (_soundItems[i]->getId() == id)
+			return _soundItems[i];
+	}
+	return NULL;
+}
+
 Sound::Sound() {
 	_id = 0;
 	_directSoundBuffer = 0;
@@ -80,10 +93,13 @@ Sound::Sound() {
 	_objectId = 0;
 	memset(_directSoundBuffers, 0, sizeof(_directSoundBuffers));
 	_description = 0;
+	_volume = 100;
 }
 
 Sound::~Sound() {
-	warning("STUB: Sound::~Sound()");
+	freeSound();
+
+	free(_description);
 }
 
 bool Sound::load(MfcArchive &file, NGIArchive *archive) {
@@ -120,7 +136,36 @@ void Sound::setPanAndVolumeByStaticAni() {
 }
 
 void Sound::setPanAndVolume(int vol, int pan) {
-	warning("STUB: Sound::setPanAndVolume");
+	g_fp->_mixer->setChannelVolume(_handle, vol / 39); // 0..10000
+	g_fp->_mixer->setChannelBalance(_handle, pan / 78); // -10000..10000
+}
+
+void Sound::play(int flag) {
+	Audio::SoundHandle handle = getHandle();
+
+	if (g_fp->_mixer->isSoundHandleActive(handle))
+		return;
+
+	byte *soundData = loadData();
+	Common::MemoryReadStream *dataStream = new Common::MemoryReadStream(soundData, getDataSize());
+	Audio::RewindableAudioStream *wav = Audio::makeWAVStream(dataStream, DisposeAfterUse::YES);
+	Audio::AudioStream *audioStream = new Audio::LoopingAudioStream(wav, (flag == 1) ? 0 : 1);
+
+	g_fp->_mixer->playStream(Audio::Mixer::kSFXSoundType, &handle, audioStream);
+}
+
+void Sound::freeSound() {
+	stop();
+
+	free(_soundData);
+}
+
+int Sound::getVolume() {
+	return g_fp->_mixer->getChannelVolume(_handle) * 39;  // 0..10000
+}
+
+void Sound::stop() {
+	g_fp->_mixer->stopHandle(_handle);
 }
 
 void FullpipeEngine::setSceneMusicParameters(GameVar *gvar) {
@@ -269,7 +314,7 @@ void FullpipeEngine::playSound(int id, int flag) {
 	Sound *sound = 0;
 
 	for (int i = 0; i < _currSoundListCount; i++) {
-		sound = _currSoundList1[i]->getSoundById(id);
+		sound = _currSoundList1[i]->getSoundItemById(id);
 
 		if (sound)
 			break;
@@ -280,12 +325,7 @@ void FullpipeEngine::playSound(int id, int flag) {
 		return;
 	}
 
-	byte *soundData = sound->loadData();
-	Common::MemoryReadStream *dataStream = new Common::MemoryReadStream(soundData, sound->getDataSize());
-	Audio::RewindableAudioStream *wav = Audio::makeWAVStream(dataStream, DisposeAfterUse::YES);
-	Audio::AudioStream *audioStream = new Audio::LoopingAudioStream(wav, (flag == 1) ? 0 : 1);
-	Audio::SoundHandle handle = sound->getHandle();
-	_mixer->playStream(Audio::Mixer::kSFXSoundType, &handle, audioStream);
+	sound->play(flag);
 }
 
 void FullpipeEngine::playTrack(GameVar *sceneVar, const char *name, bool delayed) {
@@ -350,7 +390,33 @@ void FullpipeEngine::playTrack(GameVar *sceneVar, const char *name, bool delayed
 }
 
 void global_messageHandler_handleSound(ExCommand *cmd) {
-	debug(0, "STUB: global_messageHandler_handleSound()");
+	if (!g_fp->_soundEnabled)
+		return;
+
+	Sound *snd = 0;
+
+	for (int i = 0; i < g_fp->_currSoundListCount; i++)
+		snd = g_fp->_currSoundList1[i]->getSoundItemById(cmd->_messageNum);
+
+	if (!snd)
+		return;
+
+	if (cmd->_field_14 & 1) {
+		if (!g_fp->_flgSoundList && (cmd->_field_14 & 4))
+			snd->freeSound();
+
+		snd->updateVolume();
+
+		if (snd->_objectId && g_fp->_currentScene->getStaticANIObject1ById(snd->_objectId, -1))
+			snd->setPanAndVolumeByStaticAni();
+		else
+			snd->setPanAndVolume(g_fp->_sfxVolume, 0);
+
+		if (snd->getVolume() > -3500)
+			snd->play(cmd->_keyCode);
+	} else if (cmd->_field_14 & 2) {
+		snd->stop();
+	}
 }
 
 void FullpipeEngine::stopSoundStream2() {
@@ -363,14 +429,11 @@ void FullpipeEngine::stopAllSoundStreams() {
 }
 
 void FullpipeEngine::stopAllSoundInstances(int id) {
-	SoundList *soundList = _currentScene->_soundList;
+	for (int i = 0; i < _currSoundListCount; i++) {
+		Sound *sound = _currSoundList1[i]->getSoundItemById(id);
 
-	for (int i = 0; i < soundList->getCount(); i++) {
-		Sound *sound = soundList->getSoundByIndex(i);
-
-		if (sound->getId() == id) {
-			_mixer->stopHandle(sound->getHandle());
-		}
+		if (sound)
+			sound->stop();
 	}
 }
 
