@@ -125,9 +125,10 @@ void MctlCompound::addObject(StaticANIObject *obj) {
 }
 
 int MctlCompound::removeObject(StaticANIObject *obj) {
-	warning("STUB: MctlCompound::removeObject()");
+	for (uint i = 0; i < _motionControllers.size(); i++)
+		_motionControllers[i]->_motionControllerObj->removeObject(obj);
 
-	return 0;
+	return 1;
 }
 
 void MctlCompound::initMovGraph2() {
@@ -434,7 +435,20 @@ MctlConnectionPoint *MctlCompound::findClosestConnectionPoint(int ox, int oy, in
 }
 
 void MctlCompound::replaceNodeX(int from, int to) {
-	warning("STUB: MctlCompound::replaceNodeX()");
+	for (uint i = 0; i < _motionControllers.size(); i++) {
+		if (_motionControllers[i]->_motionControllerObj->_objtype == kObjTypeMovGraph) {
+			MovGraph *gr = (MovGraph *)_motionControllers[i]->_motionControllerObj;
+
+			for (ObList::iterator n = gr->_nodes.begin(); n != gr->_nodes.end(); ++n) {
+				MovGraphNode *node = (MovGraphNode *)*n;
+
+				if (node->_x == from)
+					node->_x = to;
+			}
+
+			gr->calcNodeDistancesAndAngles();
+		}
+	}
 }
 
 MctlConnectionPoint::MctlConnectionPoint() {
@@ -493,7 +507,7 @@ bool MctlCompoundArray::load(MfcArchive &file) {
 MovGraphItem::MovGraphItem() {
 	ani = 0;
 	field_4 = 0;
-	field_8 = 0;
+	movarr = 0;
 	field_C = 0;
 	field_10 = 0;
 	field_14 = 0;
@@ -507,6 +521,10 @@ MovGraphItem::MovGraphItem() {
 	field_34 = 0;
 	field_38 = 0;
 	field_3C = 0;
+}
+
+void MovGraphItem::free() {
+	warning("STUB: MovGraphItem::free()");
 }
 
 int MovGraph_messageHandler(ExCommand *cmd);
@@ -562,7 +580,16 @@ int MovGraph::removeObject(StaticANIObject *obj) {
 }
 
 void MovGraph::freeItems() {
-	warning("STUB: MovGraph::freeItems()");
+	for (uint i = 0; i < _items.size(); i++) {
+		_items[i]->free();
+
+		for (int j = 0; j < _items[i]->movarr->size(); j++)
+			delete (_items[i]->movarr)->operator[](j);
+
+		delete _items[i]->movarr;
+	}
+
+	_items.clear();
 }
 
 int MovGraph::method28() {
@@ -660,12 +687,164 @@ void MovGraph::calcNodeDistancesAndAngles() {
 	}
 }
 
+bool MovGraph::findClosestLink(int unusedArg, Common::Point *p, MovArr *movarr) {
+	MovGraphLink *link = 0;
+	double mindist = 1.0e20;
+	int resx = 0, resy = 0;
+
+	for (ObList::iterator i = _links.begin(); i != _links.end(); ++i) {
+		MovGraphLink *lnk = (MovGraphLink *)*i;
+
+		if ((lnk->_flags & 0x10000000) && !(lnk->_flags & 0x20000000) ) {
+			double dx1 = lnk->_movGraphNode1->_x - p->x;
+			double dy1 = lnk->_movGraphNode1->_y - p->y;
+			double dx2 = lnk->_movGraphNode2->_x - p->x;
+			double dy2 = lnk->_movGraphNode2->_y - p->y;
+			double dx3 = lnk->_movGraphNode2->_x - lnk->_movGraphNode1->_x;
+			double dy3 = lnk->_movGraphNode2->_y - lnk->_movGraphNode1->_y;
+			double sq1 = sqrt(dy1 * dy1 + dx1 * dx1);
+			double sdist = (dy3 * dy1 + dx3 * dx1) / lnk->_distance / sq1;
+			double ldist = sdist * sq1;
+			double dist = sqrt(1.0 - sdist * sdist) * sq1;
+
+			if (ldist < 0.0) {
+				ldist = 0.0;
+				dist = sqrt(dx1 * dx1 + dy1 * dy1);
+			}
+
+			if (ldist > lnk->_distance) {
+				ldist = lnk->_distance;
+				dist = sqrt(dx2 * dx2 + dy2 * dy2);
+			}
+
+			if (ldist >= 0.0 && ldist <= lnk->_distance && dist < mindist) {
+				resx = lnk->_movGraphNode1->_x + (int)(dx3 * ldist / lnk->_distance);
+				resy = lnk->_movGraphNode1->_y + (int)(dy3 * ldist / lnk->_distance);
+
+				mindist = dist;
+				link = lnk;
+			}
+		}
+	}
+
+	if (mindist < 1.0e20) {
+		if (movarr)
+			movarr->_link = link;
+
+		p->x = resx;
+		p->y = resy;
+
+		return true;
+	}
+
+	return false;
+}
+
 int MovGraph::getItemIndexByStaticAni(StaticANIObject *ani) {
 	for (uint i = 0; i < _items.size(); i++)
 		if (_items[i]->ani == ani)
 			return i;
 
 	return -1;
+}
+
+Common::Array<MovArr *> *MovGraph::genMovArr(int x, int y, int *arrSize, int flag1, int flag2) {
+	if (!_links.size()) {
+		*arrSize = 0;
+
+		return 0;
+	}
+
+	Common::Array<MovArr *> *arr = new Common::Array<MovArr *>;
+	MovArr *movarr;
+
+	for (ObList::iterator i = _links.begin(); i != _links.end(); ++i) {
+		MovGraphLink *lnk = (MovGraphLink *)*i;
+
+		if (flag1) {
+			Common::Point point(x, y);
+			double dist = calcDistance(&point, lnk, 0);
+
+			if (dist >= 0.0 && dist < 2.0) {
+				movarr = new MovArr;
+
+				movarr->_link = lnk;
+				movarr->_dist = ((double)(lnk->_movGraphNode1->_y - lnk->_movGraphNode2->_y) * (double)(lnk->_movGraphNode1->_y - point.y) + 
+								 (double)(lnk->_movGraphNode2->_x - lnk->_movGraphNode1->_x) * (double)(point.x - lnk->_movGraphNode1->_x)) / 
+					lnk->_distance / lnk->_distance;
+				movarr->_point = point;
+
+				arr->push_back(movarr);
+			}
+		} else {
+			if (lnk->_movGraphReact) {
+				if (lnk->_movGraphReact->pointInRegion(x, y)) {
+					if (!(lnk->_flags & 0x10000000) || lnk->_flags & 0x20000000) {
+						if (!flag2) {
+							movarr = new MovArr;
+							movarr->_link = lnk;
+							movarr->_dist = 0.0;
+							movarr->_point.x = lnk->_movGraphNode1->_x;
+							movarr->_point.y = lnk->_movGraphNode1->_y;
+							arr->push_back(movarr);
+
+							movarr = new MovArr;
+							movarr->_link = lnk;
+							movarr->_dist = 1.0;
+							movarr->_point.x = lnk->_movGraphNode1->_x;
+							movarr->_point.y = lnk->_movGraphNode1->_y;
+							arr->push_back(movarr);
+						}
+					} else {
+						movarr = new MovArr;
+						movarr->_link = lnk;
+						movarr->_dist = ((double)(lnk->_movGraphNode1->_y - lnk->_movGraphNode2->_y) * (double)(lnk->_movGraphNode1->_y - y) + 
+										 (double)(lnk->_movGraphNode2->_x - lnk->_movGraphNode1->_x) * (double)(x - lnk->_movGraphNode1->_x)) / 
+							lnk->_distance / lnk->_distance;
+						movarr->_point.x = x;
+						movarr->_point.y = y;
+
+						calcDistance(&movarr->_point, lnk, 0);
+
+						arr->push_back(movarr);
+					}
+				}
+			}
+		}
+	}
+
+	*arrSize = arr->size();
+
+	return arr;
+}
+
+void MovGraph::shuffleTree(MovGraphLink *lnk, MovGraphLink *lnk2, Common::Array<MovGraphLink *> &tempObList1, Common::Array<MovGraphLink *> &tempObList2) {
+	if (lnk == lnk2) {
+		for (uint i = 0; i < tempObList1.size(); i++)
+			tempObList2.push_back(tempObList1[i]);
+
+		tempObList2.push_back(lnk);
+	} else {
+		lnk->_flags |= 0x80000000;
+
+		tempObList1.push_back(lnk);
+
+		for (ObList::iterator i = _links.begin(); i != _links.end(); ++i) {
+			MovGraphLink *l = (MovGraphLink *)*i;
+
+			if (l->_movGraphNode1 != lnk->_movGraphNode1) {
+				if (l->_movGraphNode2 != lnk->_movGraphNode1) {
+					if (l->_movGraphNode1 != lnk->_movGraphNode2 && l->_movGraphNode2 != lnk->_movGraphNode2)
+						continue;
+				}
+			}
+
+			if (!(l->_flags & 0xA0000000))
+				shuffleTree(l, lnk2, tempObList1, tempObList2);
+		}
+
+		lnk->_flags &= 0x7FFFFFFF;
+	}
 }
 
 int MovGraph2::getItemIndexByGameObjectId(int objectId) {
@@ -1089,7 +1268,10 @@ int MovGraph2::removeObject(StaticANIObject *obj) {
 }
 
 void MovGraph2::freeItems() {
-	warning("STUB: MovGraph2::freeItems()");
+	for (uint i = 0; i < _items2.size(); i++)
+		delete _items2[i];
+
+	_items2.clear();
 }
 
 MessageQueue *MovGraph2::method34(StaticANIObject *ani, int xpos, int ypos, int fuzzyMatch, int staticsId) {
@@ -2528,7 +2710,10 @@ MovGraphLink::MovGraphLink() {
 }
 
 MovGraphLink::~MovGraphLink() {
-	warning("STUB: MovGraphLink::~MovGraphLink()");
+	delete _movGraphReact;
+
+	_dwordArray1.clear();
+	_dwordArray2.clear();
 }
 
 

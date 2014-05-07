@@ -298,8 +298,12 @@ void FullpipeEngine::startSoundStream1(char *trackName) {
 }
 
 void FullpipeEngine::stopAllSounds() {
-	// TODO: Differences from stopAllSoundStreams()
-	_mixer->stopAll();
+	// _mixer->stopAll();
+
+	for (int i = 0; i < _currSoundListCount; i++)
+		for (int j = 0; i < _currSoundList1[i]->getCount(); j++) {
+			_currSoundList1[i]->getSoundByIndex(j)->stop();
+		}
 }
 
 void FullpipeEngine::toggleMute() {
@@ -447,7 +451,7 @@ void FullpipeEngine::updateSoundVolume() {
 void FullpipeEngine::setMusicVolume(int vol) {
 	_musicVolume = vol;
 
-	debug(3, "STUB FullpipeEngine::setMusicVolume()");
+	g_fp->_mixer->setVolumeForSoundType(Audio::Mixer::kMusicSoundType, vol);
 }
 
 } // End of namespace Fullpipe

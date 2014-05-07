@@ -299,10 +299,19 @@ class MovGraphLink : public CObject {
 	void calcNodeDistanceAndAngle();
 };
 
+struct MovArr {
+	int _afield_0;
+	int _afield_4;
+	int _afield_8;
+	MovGraphLink *_link;
+	double _dist;
+	Common::Point _point;
+};
+
 struct MovGraphItem {
 	StaticANIObject *ani;
 	int field_4;
-	int field_8;
+	Common::Array<MovArr *> *movarr;
 	int field_C;
 	int field_10;
 	int field_14;
@@ -318,6 +327,7 @@ struct MovGraphItem {
 	int field_3C;
 
 	MovGraphItem();
+	void free();
 };
 
 class MovGraph : public MotionController {
@@ -349,8 +359,11 @@ public:
 
 	double calcDistance(Common::Point *point, MovGraphLink *link, int fuzzyMatch);
 	void calcNodeDistancesAndAngles();
+	bool findClosestLink(int unusedArg, Common::Point *p, MovArr *movarr);
 	MovGraphNode *calcOffset(int ox, int oy);
 	int getItemIndexByStaticAni(StaticANIObject *ani);
+	Common::Array<MovArr *> *genMovArr(int x, int y, int *arrSize, int flag1, int flag2);
+	void shuffleTree(MovGraphLink *lnk, MovGraphLink *lnk2, Common::Array<MovGraphLink *> &tempObList1, Common::Array<MovGraphLink *> &tempObList2);
 };
 
 class Movement;
