@@ -583,8 +583,8 @@ void MovGraph::freeItems() {
 	for (uint i = 0; i < _items.size(); i++) {
 		_items[i]->free();
 
-		for (int j = 0; j < _items[i]->movarr->size(); j++)
-			delete (_items[i]->movarr)->operator[](j);
+		for (uint j = 0; j < _items[i]->movarr->size(); j++)
+			delete (*_items[i]->movarr)[j];
 
 		delete _items[i]->movarr;
 	}
@@ -628,6 +628,88 @@ int MovGraph::method44() {
 }
 
 MessageQueue *MovGraph::doWalkTo(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId) {
+#if 0
+	PicAniInfo picAniInfo;
+	int ss;
+
+	MovItem *v9 = method28(subj, xpos, ypos, fuzzyMatch, &ss);
+	subj->getPicAniInfo(&picAniInfo);
+	if ( v9 ) {
+		MovArr *goal = _callback1(subj, v9, ss);
+		int idx = getItemIndexByStaticAni(subj);
+
+		for (uint i = 0; i < _items[idx]->count; i++) {
+			if (_items[idx]->items[i]->movarr == goal) {
+				if (subj->_movement) {
+					Common::Point point;
+
+					subj->calcStepLen(point);
+					v15 = MovGraph_sub_451D50(this, subj, subj->_ox - point.x, subj->_oy - point.y, subj->_movement->_staticsObj1->_staticsId, xpos, ypos, 0, fuzzyMatch);
+					v16 = v15;
+					if ( !v15 || !MessageQueue_getExCommandByIndex(v15, 0) )
+						goto return_0;
+					
+					ExCommand *ex = MessageQueue_getExCommandByIndex(v16, 0);
+
+					if ((ex->_messageKind != 1 && ex->_messageKind != 20) || 
+						ex->_messageNum != subj->_movement->_id || 
+						(ex->_field_14 >= 1 && ex->_field_14 <= subj->_movement->_currDynamicPhaseIndex))
+						subj->playIdle();
+				}
+			}
+		}
+	}
+	v22 = method28(subj, xpos, ypos, fuzzyMatch, &ss);
+	if ( v22
+		 && (v23 = this->_callback1(subj, v22, ss),
+			 v24 = MovGraph_getItemIndexByStaticAni(this, subj),
+			 v25 = 0,
+			 v24 <<= 6,
+			 v26 = (MovGraphItem *)((char *)this->_items + v24),
+			 ptr = v24,
+			 v27 = v26->count,
+			 v27 > 0) ) {
+		v28 = v26->items;
+		while ( v28->movarr != v23 ) {
+			++v25;
+			++v28;
+			if ( v25 >= v27 )
+				goto LABEL_20;
+		}
+		v30 = v26->items;
+		v31 = v26->movarr;
+		v32 = v25;
+		v33 = v30[v32].movarr;
+		vvv = v30[v32].movarr;
+		if ( v31 )
+			CObjectFree(v31);
+		memcpy((char *)&this->_items->movarr + ptr, v33, 0x20u);
+		v34 = vvv;
+		v35 = (MovArr *)operator new(8 * vvv->_movStepCount);
+		v36 = ptr;
+		*(MovArr **)((char *)&this->_items->movarr + ptr) = v35;
+		memcpy(*(void **)((char *)&this->_items->movarr + v36), v34->_movSteps, 8 * v34->_movStepCount);
+		*(int *)((char *)&this->_items->field_10 + v36) = -1;
+		*(int *)((char *)&this->_items->field_14 + v36) = 0;
+		MessageQueue *mq = fillMGMinfo(*(StaticANIObject **)((char *)&this->_items->ani + v36), (MovArr *)((char *)&this->_items->movarr + v36), staticsId);
+		if (mq) {
+			ExCommand *ex = new ExCommand();
+			ex->_messageKind = 17;
+			ex->_messageNum = 54;
+			ex->_parentId = subj->_id;
+			ex->_field_3C = 1;
+			mq->addExCommandToEnd(ex);
+		}
+		subj->setPicAniInfo(&picAniInfo);
+		result = mq;
+	} else {
+	LABEL_20:
+		subj->setPicAniInfo(&picAniInfo);
+	return_0:
+		result = 0;
+	}
+	return result;
+#endif
 	warning("STUB: MovGraph::doWalkTo()");
 
 	return 0;
@@ -731,8 +813,10 @@ bool MovGraph::findClosestLink(int unusedArg, Common::Point *p, MovArr *movarr) 
 		if (movarr)
 			movarr->_link = link;
 
-		p->x = resx;
-		p->y = resy;
+		if (p) {
+			p->x = resx;
+			p->y = resy;
+		}
 
 		return true;
 	}
@@ -862,7 +946,7 @@ Common::Array<Common::Rect *> *MovGraph::getBboxes(MovArr *movarr1, MovArr *mova
 
 	Common::Array<Common::Rect *> *res = new Common::Array<Common::Rect *>;
 
-	for (uint i = 0; i < *listCount; i++) {
+	for (int i = 0; i < *listCount; i++) {
 		Common::Rect *r = new Common::Rect;
 
 		calcBbox(r, tempObList2[i], movarr1, movarr2);
@@ -880,10 +964,7 @@ void MovGraph::calcBbox(Common::Rect *rect, MovGraphLink *grlink, MovArr *movarr
 }
 
 bool MovGraph::calcChunk(int idx, int x, int y, MovArr *arr, int a6) {
-#if 0
 	int staticsId;
-
-	v7 = idx << 6;
 
 	if (_items[idx]->ani->_statics) {
 		staticsId = _items[idx]->ani->_statics->_staticsId;
@@ -894,44 +975,47 @@ bool MovGraph::calcChunk(int idx, int x, int y, MovArr *arr, int a6) {
 		staticsId = _items[idx]->ani->_movement->_staticsObj2->_staticsId;
 	}
 
-	v19 = -1;
-	v11 = 100;
-	v12 = genMovArr(x, y, &arrSize, 0, 1);
-	movarr = v12;
-	if ( !v12 )
-		return findClosestLink(idx, (POINT *)&x, arr);
-	unusedArg = 0;
-	if ( arrSize <= 0 ) {
-	LABEL_16:
-		CObjectFree(v12);
-		return 0;
-	}
-	v14 = &v12->_link;
-	do {
-		v15 = _mgm->refreshOffsets(_items[idx]->ani->_id, staticsId, v12->_link->dwordArray2[_field_44]->sceneId);
-		if ( v15 < v11 ) {
-			v11 = v15;
-			v19 = unusedArg;
-		}
-		v16 = _mgm->refreshOffsets(_items[idx]->ani->_id, staticsId, v12->_link->dwordArray2[_field_444]->scene);
-		if ( v16 < v11 ) {
-			v11 = v16;
-			v19 = unusedArg;
-		}
-		v14 += 8;
-		++unusedArg;
-	} while ( unusedArg < arrSize );
-	if ( v19 == -1 ) {
-		v12 = movarr;
-		goto LABEL_16;
-	}
-	v17 = movarr;
-	memcpy(arr, &movarr[v19], 0x20u);
-	CObjectFree(v17);
-#endif
+	int arrSize;
 
-	warning("STUB: MovGraph::calcChunk()");
-	return true;
+	Common::Array<MovArr *> *movarr = genMovArr(x, y, &arrSize, 0, 1);
+
+	if (!movarr)
+		return findClosestLink(idx, 0, arr);
+
+	bool res = false;
+
+	int idxmin = -1;
+	int offmin = 100;
+
+	for (int i = 0; i < arrSize; i++) {
+		int off = _mgm.refreshOffsets(_items[idx]->ani->_id, staticsId, (*movarr)[i]->_link->_dwordArray2[_field_44]);
+
+		if (off < offmin) {
+			offmin = off;
+			idxmin = i;
+		}
+
+		off = _mgm.refreshOffsets(_items[idx]->ani->_id, staticsId, (*movarr)[i]->_link->_dwordArray2[_field_44 + 1]);
+		if (off < offmin) {
+			offmin = off;
+			idxmin = i;
+		}
+	}
+
+	if (idxmin != -1) {
+		arr->_afield_0 = (*movarr)[idxmin]->_afield_0;
+		arr->_afield_4 = (*movarr)[idxmin]->_afield_4;
+		arr->_afield_8 = (*movarr)[idxmin]->_afield_8;
+		arr->_link = (*movarr)[idxmin]->_link;
+		arr->_dist = (*movarr)[idxmin]->_dist;
+		arr->_point = (*movarr)[idxmin]->_point;
+
+		res = true;
+	}
+
+	delete movarr;
+
+	return res;
 }
 
 int MovGraph2::getItemIndexByGameObjectId(int objectId) {
