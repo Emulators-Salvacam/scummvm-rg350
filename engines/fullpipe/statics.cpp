@@ -1276,7 +1276,7 @@ bool StaticANIObject::startAnim(int movementId, int messageQueueId, int dynPhase
 	if (_flags & 0x80)
 		return false;
 
-	debug(0, "StaticANIObject::startAnim(%d, %d, %d) (%s [%d]) [%d, %d]", movementId, messageQueueId, dynPhaseIdx, transCyrillic((byte *)_objectName), _id, _ox, _oy);
+	debug(4, "StaticANIObject::startAnim(%d, %d, %d) (%s [%d]) [%d, %d]", movementId, messageQueueId, dynPhaseIdx, transCyrillic((byte *)_objectName), _id, _ox, _oy);
 
 	if (_messageQueueId) {
 		updateGlobalMessageQueue(messageQueueId, _id);
@@ -1521,9 +1521,6 @@ Movement::~Movement() {
 	if (!_currMovement ) {
 		if (_updateFlag1)
 			_dynamicPhases.remove_at(0);
-
-		for (uint i = 0; i < _dynamicPhases.size(); i++)
-			delete _dynamicPhases[i];
 
 		_dynamicPhases.clear();
 	}

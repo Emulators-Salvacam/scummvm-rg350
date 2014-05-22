@@ -515,7 +515,7 @@ MovGraphItem::MovGraphItem() {
 	field_1C = 0;
 	field_20 = 0;
 	field_24 = 0;
-	items = 0;
+	movitems = 0;
 	count = 0;
 	field_30 = 0;
 	field_34 = 0;
@@ -529,14 +529,23 @@ void MovGraphItem::free() {
 
 int MovGraph_messageHandler(ExCommand *cmd);
 
-int MovGraphCallback(int a1, int a2, int a3) {
-	warning("STUB: MovgraphCallback");
+Common::Array<MovArr *> *movGraphCallback(StaticANIObject *ani, Common::Array<MovItem *> *items, signed int counter) {
+	int residx = 0;
+	int itemidx = 0;
 
-	return 0;
+	while (counter > 1) {
+		if ((*items)[itemidx]->_mfield_4 > (*items)[itemidx + 1]->_mfield_4)
+			residx = itemidx;
+
+		counter--;
+		itemidx++;
+	}
+
+	return (*items)[residx]->movarr;
 }
 
 MovGraph::MovGraph() {
-	_callback1 = MovGraphCallback;
+	_callback1 = movGraphCallback;
 	_field_44 = 0;
 	insertMessageHandler(MovGraph_messageHandler, getMessageHandlersCount() - 1, 129);
 
@@ -591,22 +600,88 @@ void MovGraph::freeItems() {
 
 	_items.clear();
 }
-
-int MovGraph::method28() {
+Common::Array<MovItem *> *MovGraph::method28(StaticANIObject *ani, int x, int y, int flag1, int *rescount) {
 	warning("STUB: MovGraph::method28()");
 
 	return 0;
 }
 
-int MovGraph::method2C(StaticANIObject *obj, int x, int y) {
+bool MovGraph::method2C(StaticANIObject *obj, int x, int y) {
 	obj->setOXY(x, y);
 	return method3C(obj, 1);
 }
 
-MessageQueue *MovGraph::method34(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId) {
-	warning("STUB: MovGraph::method34()");
+MessageQueue *MovGraph::method34(StaticANIObject *ani, int xpos, int ypos, int fuzzyMatch, int staticsId) {
+	if (!ani) {
+		if (!_items.size())
+			return 0;
 
-	return 0;
+		ani = _items[0]->ani;
+	}
+
+	if (ABS(ani->_ox - xpos) < 50 && ABS(ani->_oy - ypos) < 50)
+		return 0;
+
+	if (!ani->isIdle())
+		return 0;
+
+	if (ani->_flags & 0x100)
+		return 0;
+
+	int count;
+	Common::Array<MovItem *> *movitems = method28(ani, xpos, ypos, fuzzyMatch, &count);
+
+	if (!movitems)
+		return 0;
+
+	if (ani->_movement) {
+		Common::Point point;
+
+		ani->calcStepLen(&point);
+
+		MessageQueue *mq = sub1(ani, ani->_ox - point.x, ani->_oy - point.y, ani->_movement->_staticsObj1->_staticsId, xpos, ypos, 0, fuzzyMatch);
+
+		if (!mq || !mq->getExCommandByIndex(0))
+			return 0;
+
+		ExCommand *ex = mq->getExCommandByIndex(0);
+
+		if ((ex->_messageKind != 1 && ex->_messageKind != 20) || ex->_messageNum != ani->_movement->_id ||
+			(ex->_field_14 >= 1 && ex->_field_14 <= ani->_movement->_currDynamicPhaseIndex)) {
+			mq = new MessageQueue(g_fp->_globalMessageQueueList->compact());
+
+			ex = new ExCommand(ani->_id, 21, 0, 0, 0, 0, 1, 0, 0, 0);
+			ex->_keyCode = ani->_okeyCode;
+			ex->_field_3C = 1;
+			ex->_field_24 = 0;
+			mq->addExCommandToEnd(ex);
+
+			ex = new ExCommand(ani->_id, 51, 0, xpos, ypos, 0, 1, 0, 0, 0);
+			ex->_keyCode = ani->_okeyCode;
+			ex->_field_3C = 1;
+			ex->_field_24 = 0;
+			ex->_field_20 = fuzzyMatch;
+			mq->addExCommandToEnd(ex);
+
+			if (mq->chain(0))
+				return mq;
+
+			delete mq;
+
+			return 0;
+		}
+
+		int count2;
+
+		ani->setSomeDynamicPhaseIndex(ex->_field_14);
+		method28(ani, xpos, ypos, fuzzyMatch, &count2);
+
+		int idx = getItemIndexByStaticAni(ani);
+		count = _items[idx]->count;
+		movitems = _items[idx]->movitems;
+	}
+
+	return method50(ani, _callback1(ani, movitems, count), staticsId);
 }
 
 int MovGraph::changeCallback() {
@@ -615,39 +690,88 @@ int MovGraph::changeCallback() {
 	return 0;
 }
 
-int MovGraph::method3C(StaticANIObject *ani, int flag) {
-	warning("STUB: MovGraph::method3C()");
+bool MovGraph::method3C(StaticANIObject *ani, int flag) {
+	int idx = getItemIndexByStaticAni(ani);
 
-	return 0;
+	if (idx == -1)
+		return false;
+
+	Common::Point point;
+	MovArr movarr;
+
+	point.x = ani->_ox;
+	point.y = ani->_oy;
+
+	findClosestLink(idx, &point, &movarr);
+	ani->setOXY(point.x, point.y);
+
+	if (flag) {
+		Statics *st;
+
+		if (ani->_statics) {
+			int t = _mgm.refreshOffsets(ani->_id, ani->_statics->_staticsId, movarr._link->_dwordArray2[_field_44]);
+			if (t > _mgm.refreshOffsets(ani->_id, ani->_statics->_staticsId, movarr._link->_dwordArray2[_field_44 + 1]))
+				st = ani->getStaticsById(movarr._link->_dwordArray2[_field_44 + 1]);
+			else
+				st = ani->getStaticsById(movarr._link->_dwordArray2[_field_44]);
+		} else {
+			ani->stopAnim_maybe();
+			st = ani->getStaticsById(movarr._link->_dwordArray2[_field_44]);
+		}
+
+		ani->_statics = st;
+	}
+
+	return true;
 }
 
-int MovGraph::method44() {
-	warning("STUB: MovGraph::method44()");
+bool MovGraph::method44(StaticANIObject *ani, int x, int y) {
+	int idx = getItemIndexByStaticAni(ani);
+	MovArr m;
 
-	return 0;
+	if (idx != -1) {
+		if (x != -1 || y != -1) {
+			int counter;
+
+			Common::Array<MovItem *> *movitem = method28(ani, x, y, 0, &counter);
+
+			if (movitem) {
+				Common::Array<MovArr *> *movarr = _callback1(ani, movitem, counter);
+				int cnt = (*movarr)[0]->_movStepCount;
+
+				if (cnt > 0) {
+					if ((*movarr)[0]->_movSteps[cnt - 1].link->_flags & 0x4000000)
+						return true;
+				}
+			}
+		} else if (calcChunk(idx, ani->_ox, ani->_oy, &m, 0) && m._link && (m._link->_flags & 0x4000000)) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 MessageQueue *MovGraph::doWalkTo(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId) {
-#if 0
 	PicAniInfo picAniInfo;
 	int ss;
 
-	MovItem *movitem = method28(subj, xpos, ypos, fuzzyMatch, &ss);
+	Common::Array<MovItem *> *movitem = method28(subj, xpos, ypos, fuzzyMatch, &ss);
 
 	subj->getPicAniInfo(&picAniInfo);
 
 	if (movitem) {
-		MovArr *goal = _callback1(subj, movitem, ss);
+		Common::Array<MovArr *> *goal = _callback1(subj, movitem, ss);
 		int idx = getItemIndexByStaticAni(subj);
 
-		for (uint i = 0; i < _items[idx]->count; i++) {
-			if (_items[idx]->items[i]->movarr == goal) {
+		for (int i = 0; i < _items[idx]->count; i++) {
+			if (_items[idx]->movitems->operator[](i)->movarr == goal) {
 				if (subj->_movement) {
 					Common::Point point;
 
-					subj->calcStepLen(point);
+					subj->calcStepLen(&point);
 
-					MessageQueue *mq = MovGraph_sub_451D50(this, subj, subj->_ox - point.x, subj->_oy - point.y, subj->_movement->_staticsObj1->_staticsId, xpos, ypos, 0, fuzzyMatch);
+					MessageQueue *mq = sub1(subj, subj->_ox - point.x, subj->_oy - point.y, subj->_movement->_staticsObj1->_staticsId, xpos, ypos, 0, fuzzyMatch);
 
 					if (!mq || !mq->getExCommandByIndex(0))
 						return 0;
@@ -665,15 +789,13 @@ MessageQueue *MovGraph::doWalkTo(StaticANIObject *subj, int xpos, int ypos, int 
 
 	movitem = method28(subj, xpos, ypos, fuzzyMatch, &ss);
 	if (movitem) {
-		MovArr *goal = _callback1(subj, movitem, ss);
+		Common::Array<MovArr *> *goal = _callback1(subj, movitem, ss);
 		int idx = getItemIndexByStaticAni(subj);
-		v25 = 0;
-		idx <<= 6;
 
 		if (_items[idx]->count > 0) {
 			int arridx = 0;
 
-			while (_items[idx]->items[arridx]->movarr != goal) {
+			while (_items[idx]->movitems->operator[](arridx)->movarr != goal) {
 				arridx++;
 
 				if (arridx >= _items[idx]->count) {
@@ -682,18 +804,18 @@ MessageQueue *MovGraph::doWalkTo(StaticANIObject *subj, int xpos, int ypos, int 
 				}
 			}
 
-			_items[idx]->movarr.clear();
+			_items[idx]->movarr->clear();
 
-			for (uint i = 0; i < _items[idx]->items[arridx].movarr->_movStepCount; i++) {
+			for (int i = 0; i < (*_items[idx]->movitems->operator[](arridx)->movarr)[i]->_movStepCount; i++) {
 				MovArr *m = new MovArr;
 
-				*m = *_items[idx]->items[arridx].movarr[i];
+				*m = *(*_items[idx]->movitems->operator[](arridx)->movarr)[i];
 			}
 
 			_items[idx]->field_10 = -1;
 			_items[idx]->field_14 = 0;
 
-			MessageQueue *mq = fillMGMinfo(_items[idx]->ani, _items[idx]->movarr, staticsId);
+			MessageQueue *mq = fillMGMinfo(_items[idx]->ani, (*_items[idx]->movarr)[0], staticsId);
 			if (mq) {
 				ExCommand *ex = new ExCommand();
 				ex->_messageKind = 17;
@@ -711,13 +833,21 @@ MessageQueue *MovGraph::doWalkTo(StaticANIObject *subj, int xpos, int ypos, int 
 	subj->setPicAniInfo(&picAniInfo);
 
 	return 0;
-#endif
-	warning("STUB: MovGraph::doWalkTo()");
+}
+
+MessageQueue *MovGraph::sub1(StaticANIObject *ani, int x, int y, int a5, int x1, int y1, int a8, int a9) {
+	warning("STUB: *MovGraph::sub1()");
 
 	return 0;
 }
 
-int MovGraph::method50() {
+MessageQueue *MovGraph::fillMGMinfo(StaticANIObject *ani, MovArr *movarr, int staticsId) {
+	warning("STUB: *MovGraph::fillMGMinfo()");
+
+	return 0;
+}
+
+MessageQueue *MovGraph::method50(StaticANIObject *ani, Common::Array<MovArr *> *movarr, int staticsId) {
 	warning("STUB: MovGraph::method50()");
 
 	return 0;
@@ -1489,6 +1619,8 @@ MessageQueue *MovGraph2::doWalkTo(StaticANIObject *obj, int xpos, int ypos, int 
 	MovInfo1 movInfo1;
 	PicAniInfo picAniInfo;
 	Common::Point point;
+
+	debug(0, "MovGraph2::doWalkTo(%d, %d, %d, %d, %d)", obj->_id, xpos, ypos, fuzzyMatch, staticsId);
 
 	int idx = getItemIndexByGameObjectId(obj->_id);
 
@@ -3117,26 +3249,26 @@ bool MovGraphReact::pointInRegion(int x, int y) {
 	}
 }
 
-int startWalkTo(int objId, int objKey, int x, int y, int a5) {
-	MctlCompound *mc = getSc2MctlCompoundBySceneId(g_fp->_currentScene->_sceneId);
+int startWalkTo(int objId, int objKey, int x, int y, int fuzzyMatch) {
+	MctlCompound *mc = getCurrSceneSc2MotionController();
 
 	if (mc)
-		return (mc->method34(g_fp->_currentScene->getStaticANIObject1ById(objId, objKey), x, y, a5, 0) != 0);
+		return (mc->method34(g_fp->_currentScene->getStaticANIObject1ById(objId, objKey), x, y, fuzzyMatch, 0) != 0);
 
 	return 0;
 }
 
-int doSomeAnimation(int objId, int objKey, int a3) {
+bool doSomeAnimation(int objId, int objKey, int a3) {
 	StaticANIObject *ani = g_fp->_currentScene->getStaticANIObject1ById(objId, objKey);
 	MctlCompound *cmp = getCurrSceneSc2MotionController();
 
 	if (ani && cmp)
 		return cmp->method3C(ani, a3);
 
-	return 0;
+	return false;
 }
 
-int doSomeAnimation2(int objId, int objKey) {
+bool doSomeAnimation2(int objId, int objKey) {
 	return doSomeAnimation(objId, objKey, 0);
 }
 
