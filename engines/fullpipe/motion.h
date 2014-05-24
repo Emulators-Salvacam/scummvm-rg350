@@ -31,6 +31,7 @@ class MctlConnectionPoint;
 class MovGraphLink;
 class MessageQueue;
 class ExCommand2;
+struct MovArr;
 struct MovItem;
 
 int startWalkTo(int objId, int objKey, int x, int y, int a5);
@@ -57,7 +58,7 @@ public:
 	virtual bool method2C(StaticANIObject *obj, int x, int y) { return false; }
 	virtual int method30() { return 0; }
 	virtual MessageQueue *method34(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId) { return 0; }
-	virtual int changeCallback() { return 0; }
+	virtual void changeCallback(MovArr *(*_callback1)(StaticANIObject *ani, Common::Array<MovItem *> *items, signed int counter)) {}
 	virtual bool method3C(StaticANIObject *ani, int flag) { return 0; }
 	virtual int method40() { return 0; }
 	virtual bool method44(StaticANIObject *ani, int x, int y) { return false; }
@@ -306,7 +307,7 @@ struct MovStep {
 };
 
 struct MovArr {
-	MovStep *_movSteps;
+	Common::Array<MovStep *> _movSteps;
 	int _movStepCount;
 	int _afield_8;
 	MovGraphLink *_link;
@@ -315,7 +316,7 @@ struct MovArr {
 };
 
 struct MovItem {
-	Common::Array<MovArr *> *movarr;
+	MovArr *movarr;
 	int _mfield_4;
 	int _mfield_8;
 	int _mfield_C;
@@ -324,14 +325,7 @@ struct MovItem {
 struct MovGraphItem {
 	StaticANIObject *ani;
 	int field_4;
-	Common::Array<MovArr *> *movarr;
-	int field_C;
-	int field_10;
-	int field_14;
-	int field_18;
-	int field_1C;
-	int field_20;
-	int field_24;
+	MovArr movarr;
 	Common::Array<MovItem *> *movitems;
 	int count;
 	int field_30;
@@ -349,7 +343,7 @@ public:
 	ObList _links;
 	int _field_44;
 	Common::Array<MovGraphItem *> _items;
-	Common::Array<MovArr *> *(*_callback1)(StaticANIObject *ani, Common::Array<MovItem *> *items, signed int counter);
+	MovArr *(*_callback1)(StaticANIObject *ani, Common::Array<MovItem *> *items, signed int counter);
 	MGM _mgm;
 
 public:
@@ -364,11 +358,11 @@ public:
 	virtual Common::Array<MovItem *> *method28(StaticANIObject *ani, int x, int y, int flag1, int *rescount);
 	virtual bool method2C(StaticANIObject *obj, int x, int y);
 	virtual MessageQueue *method34(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId);
-	virtual int changeCallback();
+	virtual void changeCallback(MovArr *(*_callback1)(StaticANIObject *ani, Common::Array<MovItem *> *items, signed int counter));
 	virtual bool method3C(StaticANIObject *ani, int flag);
 	virtual bool method44(StaticANIObject *ani, int x, int y);
 	virtual MessageQueue *doWalkTo(StaticANIObject *subj, int xpos, int ypos, int fuzzyMatch, int staticsId);
-	virtual MessageQueue *method50(StaticANIObject *ani, Common::Array<MovArr *> *movarr, int staticsId);
+	virtual MessageQueue *method50(StaticANIObject *ani, MovArr *movarr, int staticsId);
 
 	double calcDistance(Common::Point *point, MovGraphLink *link, int fuzzyMatch);
 	void calcNodeDistancesAndAngles();
