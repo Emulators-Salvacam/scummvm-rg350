@@ -28,6 +28,7 @@ static const PlainGameDescriptor wintermuteGames[] = {
 	{"5ld",             "Five Lethal Demons"},
 	{"5ma",             "Five Magical Amulets"},
 	{"actualdest",      "Actual Destination"},
+	{"agustin",			"Boredom of Agustin Cordes"},
 	{"bickadoodle",     "Bickadoodle"},
 	{"bookofgron",      "Book of Gron Part One"},
 	{"bthreshold",      "Beyond the Threshold"},
@@ -68,6 +69,7 @@ static const PlainGameDescriptor wintermuteGames[] = {
 	{"spaceinvaders",   "Space Invaders"},
 	{"spacemadness",    "Space Madness"},
 	{"thebox",          "The Box"},
+	{"thekite",			"The Kite"},
 	{"tib",             "Fairy Tales About Toshechka and Boshechka"},
 	{"tradestory",      "The Trader of Stories"},
 	{"twc",             "the white chamber"},
@@ -108,6 +110,16 @@ static const ADGameDescription gameDescriptions[] = {
 		ADGF_UNSTABLE,
 		GUIO0()
 	},
+	// Boredom of Agustin Cordes
+	{
+		"agustin",
+		"",
+		AD_ENTRY1s("data.dcp", "abb79c16c9b92e9b06525a4c7c3f5861", 2461949),
+		Common::EN_ANY,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE,
+		GUIO0()
+	},
 	// Beyond the Threshold
 	{
 		"bthreshold",
@@ -123,6 +135,16 @@ static const ADGameDescription gameDescriptions[] = {
 		"bickadoodle",
 		"",
 		AD_ENTRY1s("data.dcp", "84db4d1594cac95e25614985775d10a8", 35303844),
+		Common::EN_ANY,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE,
+		GUIO0()
+	},
+	// Bickadoodle (Ver 1.1)
+	{
+		"bickadoodle",
+		"Version 1.1",
+		AD_ENTRY1s("data.dcp", "8bb52ac9a9ee129c5059e8e808b669d7", 35337760),
 		Common::EN_ANY,
 		Common::kPlatformWindows,
 		ADGF_UNSTABLE,
@@ -1084,6 +1106,16 @@ static const ADGameDescription gameDescriptions[] = {
 		ADGF_UNSTABLE,
 		GUIO0()
 	},
+	// Rhiannon: Curse of the four Branches (English PC DVD)
+	{
+		"rhiannon",
+		"DVD",
+		AD_ENTRY1s("data.dcp", "6736bbc921bb6ce5161b3ad095a97bd4", 1053441028),
+		Common::EN_ANY,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE,
+		GUIO0()
+	},
 	// 1 1/2 Ritter: Auf der Suche nach der hinreissenden Herzelinde
 	{
 		"ritter",
@@ -1160,6 +1192,56 @@ static const ADGameDescription gameDescriptions[] = {
 		"thebox",
 		"",
 		AD_ENTRY1s("data.dcp", "ec5f0c7e8174e307701447b53afe7e2f", 108372483),
+		Common::EN_ANY,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE,
+		GUIO0()
+	},
+	// The Kite (Version 1.1)
+	{
+		"thekite",
+		"Version 1.1",
+		AD_ENTRY1s("data.dcp", "92d29428f464469bda2d81b03d4d5c3e", 47332296),
+		Common::EN_ANY,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE,
+		GUIO0()
+	},
+	// The Kite (Version 1.2.e)
+	{
+		"thekite",
+		"Version 1.2.e",
+		AD_ENTRY1s("data.dcp", "92451578b1bdd2b32a1db592a4f6d5fc", 47360539),
+		Common::EN_ANY,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE,
+		GUIO0()
+	},
+	// The Kite (Version 1.2.i) (Italian)
+	{
+		"thekite",
+		"Version 1.2.i",
+		AD_ENTRY1s("data.dcp", "d3435b106a1b3b4c1df8ad596d271586", 47509274),
+		Common::IT_ITA,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE,
+		GUIO0()
+	},
+	// The Kite (Version 1.2.r) (Russian)
+	{
+		"thekite",
+		"Version 1.2.r",
+		AD_ENTRY1s("data.dcp", "d531e097dd884737469da014ed882cde", 47554582 ),
+		Common::RU_RUS,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE,
+		GUIO0()
+	},
+	// The Kite (Version 1.3.e)
+	{
+		"thekite",
+		"Version 1.3.e",
+		AD_ENTRY1s("data.dcp", "9761827b51370263b7623721545d7627", 47382987),
 		Common::EN_ANY,
 		Common::kPlatformWindows,
 		ADGF_UNSTABLE,

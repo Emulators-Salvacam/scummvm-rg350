@@ -110,7 +110,6 @@ void loadPackedFileToMem(int fileIdx, uint8 *buffer) {
 int getNumObjectsByClass(int scriptIdx, int param) {
 	objDataStruct *ptr2;
 	int counter;
-	int i;
 
 	if (!overlayTable[scriptIdx].ovlData)
 		return (0);
@@ -125,7 +124,7 @@ int getNumObjectsByClass(int scriptIdx, int param) {
 
 	counter = 0;
 
-	for (i = 0; i < overlayTable[scriptIdx].ovlData->numObj; i++) {
+	for (int i = 0; i < overlayTable[scriptIdx].ovlData->numObj; i++) {
 		if (ptr2[i]._class == param) {
 			counter++;
 		}
@@ -135,15 +134,12 @@ int getNumObjectsByClass(int scriptIdx, int param) {
 }
 
 void resetFileEntryRange(int start, int count) {
-	int i;
-
-	for (i = 0; i < count; ++i)
+	for (int i = 0; i < count; ++i)
 		resetFileEntry(start + i);
 }
 
 int getProcParam(int overlayIdx, int param2, const char *name) {
 	int numSymbGlob;
-	int i;
 	exportEntryStruct *arraySymbGlob;
 	char *exportNamePtr;
 	char exportName[80];
@@ -161,9 +157,9 @@ int getProcParam(int overlayIdx, int param2, const char *name) {
 	if (!exportNamePtr)
 		return 0;
 
-	for (i = 0; i < numSymbGlob; i++) {
+	for (int i = 0; i < numSymbGlob; i++) {
 		if (arraySymbGlob[i].var4 == param2) {
-			strcpy(exportName, arraySymbGlob[i].offsetToName + exportNamePtr);
+			Common::strlcpy(exportName, arraySymbGlob[i].offsetToName + exportNamePtr, sizeof(exportName));
 
 			if (!strcmp(exportName, name)) {
 				return (arraySymbGlob[i].idx);
@@ -188,9 +184,7 @@ void changeScriptParamInList(int param1, int param2, scriptInstanceStruct *pScri
 }
 
 void initBigVar3() {
-	int i;
-
-	for (i = 0; i < NUM_FILE_ENTRIES; i++) {
+	for (int i = 0; i < NUM_FILE_ENTRIES; i++) {
 		if (filesDatabase[i].subData.ptr) {
 			MemFree(filesDatabase[i].subData.ptr);
 		}
@@ -338,13 +332,12 @@ void removeExtention(const char *name, char *buffer) {	// not like in original
 int lastFileSize;
 
 int loadFileSub1(uint8 **ptr, const char *name, uint8 *ptr2) {
-	int i;
 	char buffer[256];
 	int fileIdx;
 	int unpackedSize;
 	uint8 *unpackedBuffer;
 
-	for (i = 0; i < 64; i++) {
+	for (int i = 0; i < 64; i++) {
 		if (preloadData[i].ptr) {
 			if (!strcmp(preloadData[i].name, name)) {
 				error("Unsupported code in loadFIleSub1");
@@ -371,7 +364,7 @@ int loadFileSub1(uint8 **ptr, const char *name, uint8 *ptr2) {
 		 * strcatuint8(buffer,".HP");
 		 * } */
 	} else {
-		strcpy(buffer, name);
+		Common::strlcpy(buffer, name, sizeof(buffer));
 	}
 
 	fileIdx = findFileInDisks(buffer);
@@ -440,8 +433,6 @@ uint8 *mainProc14(uint16 overlay, uint16 idx) {
 }
 
 void CruiseEngine::initAllData() {
-	int i;
-
 	setupFuncArray();
 	initOverlayTable();
 
@@ -457,15 +448,13 @@ void CruiseEngine::initAllData() {
 
 	menuTable[0] = NULL;
 
-	for (i = 0; i < 2000; i++) {
+	for (int i = 0; i < 2000; i++)
 		globalVars[i] = 0;
-	}
 
-	for (i = 0; i < 8; i++) {
+	for (int i = 0; i < 8; i++)
 		backgroundTable[i].name[0] = 0;
-	}
 
-	for (i = 0; i < NUM_FILE_ENTRIES; i++) {
+	for (int i = 0; i < NUM_FILE_ENTRIES; i++) {
 		filesDatabase[i].subData.ptr = NULL;
 		filesDatabase[i].subData.ptrMask = NULL;
 	}
@@ -653,8 +642,7 @@ int findObject(int mouseX, int mouseY, int *outObjOvl, int *outObjIdx) {
 				(currentObject->type == OBJ_TYPE_SPRITE || currentObject->type == OBJ_TYPE_MASK ||
 				currentObject->type == OBJ_TYPE_EXIT || currentObject->type == OBJ_TYPE_VIRTUAL)) {
 			const char* pObjectName = getObjectName(currentObject->idx, overlayTable[currentObject->overlay].ovlData->arrayNameObj);
-
-			strcpy(objectName, pObjectName);
+			Common::strlcpy(objectName, pObjectName, sizeof(objectName));
 
 			if (strlen(objectName) && (currentObject->freeze == 0)) {
 				int objIdx = currentObject->idx;
@@ -863,7 +851,6 @@ bool createDialog(int objOvl, int objIdx, int x, int y) {
 	bool found = false;
 	int testState1 = -1;
 	int testState2 = -1;
-	int j;
 	int16 objectState;
 	int16 objectState2;
 
@@ -871,7 +858,7 @@ bool createDialog(int objOvl, int objIdx, int x, int y) {
 
 	menuTable[0] = createMenu(x, y, _vm->langString(ID_SPEAK_ABOUT));
 
-	for (j = 1; j < numOfLoadedOverlay; j++) {
+	for (int j = 1; j < numOfLoadedOverlay; j++) {
 		if (overlayTable[j].alreadyLoaded) {
 			int idHeader = overlayTable[j].ovlData->numMsgRelHeader;
 
@@ -895,24 +882,26 @@ bool createDialog(int objOvl, int objIdx, int x, int y) {
 					}
 
 					if ((thisOvl == objOvl) && (ptrHead->obj2Number == objIdx)) {
-						int verbeOvl = ptrHead->verbOverlay;
+						int verbOvl = ptrHead->verbOverlay;
 						int obj1Ovl = ptrHead->obj1Overlay;
 						int obj2Ovl = ptrHead->obj2Overlay;
 
-						if (!verbeOvl) verbeOvl = j;
-						if (!obj1Ovl)  obj1Ovl = j;
-						if (!obj2Ovl)  obj2Ovl = j;
+						if (!verbOvl)
+							verbOvl = j;
+						if (!obj1Ovl)
+							obj1Ovl = j;
+						if (!obj2Ovl)
+							obj2Ovl = j;
 
-						char verbe_name[80];
-
-						verbe_name[0]	= 0;
+						char verbName[80];
+						verbName[0]	= 0;
 
 						ovlDataStruct *ovl2 = NULL;
 						ovlDataStruct *ovl3 = NULL;
 						ovlDataStruct *ovl4 = NULL;
 
-						if (verbeOvl > 0)
-							ovl2 = overlayTable[verbeOvl].ovlData;
+						if (verbOvl > 0)
+							ovl2 = overlayTable[verbOvl].ovlData;
 
 						if (obj1Ovl > 0)
 							ovl3 = overlayTable[obj1Ovl].ovlData;
@@ -932,9 +921,9 @@ bool createDialog(int objOvl, int objIdx, int x, int y) {
 						        ((testState2 == -1) || (testState2 == objectState))) {
 							if (ovl2->nameVerbGlob) {
 								const char *ptr = getObjectName(ptrHead->verbNumber, ovl2->nameVerbGlob);
-								strcpy(verbe_name, ptr);
+								Common::strlcpy(verbName, ptr, sizeof(verbName));
 
-								if (!strlen(verbe_name))
+								if (!strlen(verbName))
 									attacheNewScriptToTail(&relHead, j, ptrHead->id, 30, currentScriptPtr->scriptNumber, currentScriptPtr->overlayNumber, scriptType_REL);
 								else if (ovl2->nameVerbGlob) {
 									found = true;
@@ -963,12 +952,11 @@ bool findRelation(int objOvl, int objIdx, int x, int y) {
 	bool found = false;
 	bool first = true;
 	int testState = -1;
-	int j;
 	int16 objectState;
 
 	getSingleObjectParam(objOvl, objIdx, 5, &objectState);
 
-	for (j = 1; j < numOfLoadedOverlay; j++) {
+	for (int j = 1; j < numOfLoadedOverlay; j++) {
 		if (overlayTable[j].alreadyLoaded) {
 			int idHeader = overlayTable[j].ovlData->numMsgRelHeader;
 
@@ -985,23 +973,27 @@ bool findRelation(int objOvl, int objIdx, int x, int y) {
 				objDataStruct* pObject = getObjectDataFromOverlay(thisOvl, ptrHead->obj1Number);
 
 				if ((thisOvl == objOvl) && (objIdx == ptrHead->obj1Number) && pObject && (pObject->_class != THEME)) {
-					int verbeOvl = ptrHead->verbOverlay;
+					int verbOvl = ptrHead->verbOverlay;
 					int obj1Ovl = ptrHead->obj1Overlay;
-					int obj2Ovl = ptrHead->obj2Overlay;
+					// Unused variable
+					// int obj2Ovl = ptrHead->obj2Overlay;
 
-					if (!verbeOvl) verbeOvl = j;
-					if (!obj1Ovl)  obj1Ovl = j;
-					if (!obj2Ovl)  obj2Ovl = j;
+					if (!verbOvl)
+						verbOvl = j;
+					if (!obj1Ovl)
+						obj1Ovl = j;
+					// Unused variable
+					// if (!obj2Ovl)
+					//	obj2Ovl = j;
 
-					char verbe_name[80];
-					verbe_name[0]	= 0;
+					char verbName[80];
+					verbName[0]	= 0;
 
 					ovlDataStruct *ovl2 = NULL;
 					ovlDataStruct *ovl3 = NULL;
-					//ovlDataStruct *ovl4 = NULL;
 
-					if (verbeOvl > 0)
-						ovl2 = overlayTable[verbeOvl].ovlData;
+					if (verbOvl > 0)
+						ovl2 = overlayTable[verbOvl].ovlData;
 
 					if (obj1Ovl > 0)
 						ovl3 = overlayTable[obj1Ovl].ovlData;
@@ -1022,10 +1014,10 @@ bool findRelation(int objOvl, int objIdx, int x, int y) {
 					if ((ovl2) && (ptrHead->verbNumber >= 0)) {
 						if (ovl2->nameVerbGlob) {
 							const char *ptr = getObjectName(ptrHead->verbNumber, ovl2->nameVerbGlob);
-							strcpy(verbe_name, ptr);
+							Common::strlcpy(verbName, ptr, sizeof(verbName));
 
 							if ((!first) && ((testState == -1) || (testState == objectState))) {
-								if (!strlen(verbe_name)) {
+								if (!strlen(verbName)) {
 									if (currentScriptPtr) {
 										attacheNewScriptToTail(&relHead, j, ptrHead->id, 30, currentScriptPtr->scriptNumber, currentScriptPtr->overlayNumber, scriptType_REL);
 									} else {
@@ -1088,9 +1080,6 @@ void callSubRelation(menuElementSubStruct *pMenuElement, int nOvl, int nObj) {
 		}
 
 		if ((obj2Ovl == nOvl) && (pHeader->obj2Number != -1) && (pHeader->obj2Number == nObj)) {
-			int x = 60;
-			int y = 60;
-
 			objectParamsQuery params;
 			memset(&params, 0, sizeof(objectParamsQuery)); // to remove warning
 
@@ -1138,6 +1127,8 @@ void callSubRelation(menuElementSubStruct *pMenuElement, int nOvl, int nObj) {
 						}
 					}
 				} else if (pHeader->type == RT_MSG) {
+					int x = 60;
+					int y = 60;
 
 					if (pHeader->obj2Number >= 0) {
 						if ((pHeader->trackX !=-1) && (pHeader->trackY !=-1) &&
@@ -1906,11 +1897,10 @@ void CruiseEngine::mainLoop() {
 		// Raoul appearing when looking at the book is being there are 3 script iterations separation between the
 		// scene being changed to the book, and the Raoul actor being frozen/disabled. This loop is a hack to ensure
 		// that does a few extra script executions for that scene
-		bool bgChanged;
 		int numIterations = 1;
 
 		while (numIterations-- > 0) {
-			bgChanged = backgroundChanged[masterScreen];
+			bool bgChanged = backgroundChanged[masterScreen];
 
 			manageScripts(&relHead);
 			manageScripts(&procHead);

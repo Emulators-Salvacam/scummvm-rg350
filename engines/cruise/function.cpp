@@ -87,9 +87,7 @@ int16 Op_Exec() {
 
 	int numOfArgToPop = popVar();
 
-	int i = 0;
-
-	for (i = 0; i < numOfArgToPop; i++) {
+	for (int i = 0; i < numOfArgToPop; i++) {
 		popTable[numOfArgToPop - i - 1] = popVar();
 	}
 
@@ -111,7 +109,7 @@ int16 Op_Exec() {
 
 	ptr2 = ptr;
 
-	for (i = 0; i < numOfArgToPop; i++) {
+	for (int i = 0; i < numOfArgToPop; i++) {
 		WRITE_BE_UINT16(ptr2, popTable[i]);
 		ptr2 += 2;
 	}
@@ -335,20 +333,15 @@ int16 Op_RemoveMessage() {
 }
 
 int16 Op_FindSet() {
-	int16 i;
-	char name[36] = "";
-	char *ptr;
-
-	ptr = (char *) popPtr();
-
-	if (!ptr) {
+	char *ptr = (char *) popPtr();
+	if (!ptr)
 		return -1;
-	}
 
-	strcpy(name, ptr);
+	char name[36] = "";
+	Common::strlcpy(name, ptr, sizeof(name));
 	strToUpper(name);
 
-	for (i = 0; i < NUM_FILE_ENTRIES; i++) {
+	for (int i = 0; i < NUM_FILE_ENTRIES; i++) {
 		if (!strcmp(name, filesDatabase[i].subData.name)) {
 			return (i);
 		}
@@ -397,8 +390,7 @@ int16 Op_FreeOverlay() {
 	char *namePtr;
 
 	namePtr = (char *) popPtr();
-
-	strcpy(localName, namePtr);
+	Common::strlcpy(localName, namePtr, sizeof(localName));
 
 	if (localName[0]) {
 		strToUpper(localName);
@@ -410,14 +402,10 @@ int16 Op_FreeOverlay() {
 
 int16 Op_FindProc() {
 	char name[36] = "";
-	char *ptr;
-	int param;
 
-	ptr = (char *)popPtr();
-
-	strcpy(name, ptr);
-
-	param = getProcParam(popVar(), 20, name);
+	char *ptr = (char *)popPtr();
+	Common::strlcpy(name, ptr, sizeof(name));
+	int param = getProcParam(popVar(), 20, name);
 
 	return param;
 }
@@ -497,7 +485,7 @@ int16 Op_LoadBackground() {
 
 	ptr = (char *) popPtr();
 
-	strcpy(bgName, ptr);
+	Common::strlcpy(bgName, ptr, sizeof(bgName));
 
 	bgIdx = popVar();
 
@@ -537,12 +525,10 @@ int16 Op_LoadFrame() {
 	int param1;
 	int param2;
 	int param3;
+
 	char name[36] = "";
-	char *ptr;
-
-	ptr = (char *) popPtr();
-
-	strcpy(name, ptr);
+	char *ptr = (char *) popPtr();
+	Common::strlcpy(name, ptr, sizeof(name));
 
 	param1 = popVar();
 	param2 = popVar();
@@ -575,7 +561,7 @@ int16 Op_LoadAbs() {
 	slot = popVar();
 
 	if ((slot >= 0) && (slot < NUM_FILE_ENTRIES)) {
-		strcpy(name, ptr);
+		Common::strlcpy(name, ptr, sizeof(name));
 		strToUpper(name);
 
 		gfxModuleData_gfxWaitVSync();
@@ -663,8 +649,7 @@ int16 Op_FindOverlay() {
 	char *ptr;
 
 	ptr = (char *) popPtr();
-
-	strcpy(name, ptr);
+	Common::strlcpy(name, ptr, sizeof(name));
 	strToUpper(name);
 
 	return (isOverlayLoaded(name));
@@ -996,11 +981,9 @@ int16 Op_SetColor()	{
 	int endIdx = popVar();
 	int startIdx = popVar();
 
-	int i;
-
 #define convertRatio 36.571428571428571428571428571429
 
-	for (i = startIdx; i <= endIdx; i++) {
+	for (int i = startIdx; i <= endIdx; i++) {
 		int offsetTable[3];
 
 		offsetTable[0] = (int)(colorR * convertRatio);
@@ -1353,7 +1336,7 @@ int16 Op_LoadSong() {
 	const char *ptr = (const char *)popPtr();
 	char buffer[33];
 
-	strcpy(buffer, ptr);
+	Common::strlcpy(buffer, ptr, sizeof(buffer));
 	strToUpper(buffer);
 	_vm->sound().loadMusic(buffer);
 
@@ -1576,7 +1559,7 @@ int16 Op_FindObject() {
 	var_26[0] = 0;
 
 	if (ptr) {
-		strcpy(var_26, ptr);
+		Common::strlcpy(var_26, ptr, sizeof(var_26));
 	}
 
 	overlayIdx = popVar();
@@ -1649,7 +1632,7 @@ int16 Op_SongExist() {
 
 	if (songName) {
 		char name[33];
-		strcpy(name, songName);
+		Common::strlcpy(name, songName, sizeof(name));
 		strToUpper(name);
 
 		if (!strcmp(_vm->sound().musicName(), name))

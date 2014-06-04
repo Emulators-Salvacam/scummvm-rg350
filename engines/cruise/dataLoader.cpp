@@ -170,11 +170,11 @@ int createResFileEntry(int width, int height, int size, int resType) {
 	return 0;	// for compilers that don't support NORETURN
 
 #if 0
-	int i;
 	int entryNumber;
 	int div = 0;
 
-	for (i = 0; i < NUM_FILE_ENTRIES; i++) {
+	int i = 0;
+	for (; i < NUM_FILE_ENTRIES; i++) {
 		if (!filesDatabase[i].subData.ptr)
 			break;
 	}
@@ -280,10 +280,9 @@ int loadFileRange(const char *name, int startIdx, int currentEntryIdx, int numId
 
 	switch (fileType) {
 	case type_SET: {
-		int i;
 		int numMaxEntriesInSet = getNumMaxEntiresInSet(ptr);
 
-		for (i = 0; i < numIdx; i++) {
+		for (int i = 0; i < numIdx; i++) {
 			if ((startIdx + i) > numMaxEntriesInSet) {
 				MemFree(ptr);
 				return 0;	// exit if limit is reached
@@ -325,12 +324,9 @@ int loadFullBundle(const char *name, int startIdx) {
 	switch (fileType) {
 	case type_SET: {
 		// Sprite set
-		int i;
-		int numMaxEntriesInSet;
+		int numMaxEntriesInSet = getNumMaxEntiresInSet(ptr);	// get maximum number of sprites/animations in SET file
 
-		numMaxEntriesInSet = getNumMaxEntiresInSet(ptr);	// get maximum number of sprites/animations in SET file
-
-		for (i = 0; i < numMaxEntriesInSet; i++) {
+		for (int i = 0; i < numMaxEntriesInSet; i++) {
 			loadSetEntry(name, ptr, i, startIdx + i);
 		}
 
@@ -437,7 +433,6 @@ int loadSetEntry(const char *name, uint8 *ptr, int currentEntryIdx, int currentD
 		int resourceSize;
 		int fileIndex;
 		setHeaderEntry localBuffer;
-		uint8 *ptr5;
 
 		Common::MemoryReadStream s4(ptr + offset + 6, 16);
 
@@ -476,18 +471,15 @@ int loadSetEntry(const char *name, uint8 *ptr, int currentEntryIdx, int currentD
 			filesDatabase[fileIndex].width += 2;
 		}
 
-		ptr5 = ptr3 + localBuffer.offset + numIdx * 16;
-
+		uint8 *ptr5 = ptr3 + localBuffer.offset + numIdx * 16;
 		memcpy(filesDatabase[fileIndex].subData.ptr, ptr5, resourceSize);
-
-		ptr5 += resourceSize;
 
 		switch (localBuffer.type) {
 		case 0: { // polygon
 			filesDatabase[fileIndex].subData.resourceType = OBJ_TYPE_POLY;
 			filesDatabase[fileIndex].subData.index = currentEntryIdx;
 			break;
-		}
+			}
 		case 1: {
 			filesDatabase[fileIndex].width = filesDatabase[fileIndex].widthInColumn * 8;
 			filesDatabase[fileIndex].subData.resourceType = OBJ_TYPE_BGMASK;
@@ -495,7 +487,7 @@ int loadSetEntry(const char *name, uint8 *ptr, int currentEntryIdx, int currentD
 			filesDatabase[fileIndex].subData.index = currentEntryIdx;
 			filesDatabase[fileIndex].subData.transparency = 0;
 			break;
-		}
+			}
 		case 4: {
 			filesDatabase[fileIndex].width = filesDatabase[fileIndex].widthInColumn * 2;
 			filesDatabase[fileIndex].subData.resourceType = OBJ_TYPE_SPRITE;
@@ -503,7 +495,7 @@ int loadSetEntry(const char *name, uint8 *ptr, int currentEntryIdx, int currentD
 			filesDatabase[fileIndex].subData.index = currentEntryIdx;
 			filesDatabase[fileIndex].subData.transparency = localBuffer.transparency % 0x10;
 			break;
-		}
+			}
 		case 5: {
 			filesDatabase[fileIndex].subData.resourceType = OBJ_TYPE_SPRITE;
 			decodeGfxUnified(&filesDatabase[fileIndex], localBuffer.type);
@@ -511,22 +503,22 @@ int loadSetEntry(const char *name, uint8 *ptr, int currentEntryIdx, int currentD
 			filesDatabase[fileIndex].subData.index = currentEntryIdx;
 			filesDatabase[fileIndex].subData.transparency = localBuffer.transparency;
 			break;
-		}
+			}
 		case 8: {
 			filesDatabase[fileIndex].subData.resourceType = OBJ_TYPE_SPRITE;
 			filesDatabase[fileIndex].width = filesDatabase[fileIndex].widthInColumn;
 			filesDatabase[fileIndex].subData.index = currentEntryIdx;
 			filesDatabase[fileIndex].subData.transparency = localBuffer.transparency;
 			break;
-		}
+			}
 		default: {
-			warning("Unsuported gfx loading type: %d", localBuffer.type);
+			warning("Unsupported gfx loading type: %d", localBuffer.type);
 			break;
-		}
+			}
 		}
 
 		if (name != filesDatabase[fileIndex].subData.name)
-			strcpy(filesDatabase[fileIndex].subData.name, name);
+			Common::strlcpy(filesDatabase[fileIndex].subData.name, name, sizeof(filesDatabase[fileIndex].subData.name));
 
 		// create the mask
 		switch (localBuffer.type) {

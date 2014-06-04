@@ -379,13 +379,12 @@ void AdLibSoundDriver::stopChannel(int channel) {
 }
 
 void AdLibSoundDriver::stopAll() {
-	int i;
-	for (i = 0; i < 18; ++i) {
+	for (int i = 0; i < 18; ++i)
 		OPLWriteReg(_opl, 0x40 | _operatorsTable[i], 63);
-	}
-	for (i = 0; i < 9; ++i) {
+
+	for (int i = 0; i < 9; ++i)
 		OPLWriteReg(_opl, 0xB0 | i, 0);
-	}
+
 	OPLWriteReg(_opl, 0xBD, 0);
 }
 
@@ -630,7 +629,7 @@ bool PCSoundFxPlayer::load(const char *song) {
 		stop();
 	}
 
-	strcpy(_musicName, song);
+	Common::strlcpy(_musicName, song, sizeof(_musicName));
 	_songPlayed = false;
 	_looping = false;
 	_sfxData = readBundleSoundFile(song);
@@ -652,7 +651,7 @@ bool PCSoundFxPlayer::load(const char *song) {
 			if (dot) {
 				*dot = '\0';
 			}
-			strcat(instrument, _driver->getInstrumentExtension());
+			Common::strlcat(instrument, _driver->getInstrumentExtension(), sizeof(instrument));
 			_instrumentsData[i] = readBundleSoundFile(instrument);
 			if (!_instrumentsData[i]) {
 				warning("Unable to load soundfx instrument '%s'", instrument);

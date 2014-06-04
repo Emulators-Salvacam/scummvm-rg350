@@ -29,9 +29,12 @@
 #include "groovie/graphics.h"
 #include "groovie/music.h"
 #include "groovie/resource.h"
-#include "groovie/roq.h"
 #include "groovie/stuffit.h"
 #include "groovie/vdx.h"
+
+#ifdef ENABLE_GROOVIE2
+#include "groovie/roq.h"
+#endif
 
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
@@ -50,7 +53,8 @@ namespace Groovie {
 GroovieEngine::GroovieEngine(OSystem *syst, const GroovieGameDescription *gd) :
 	Engine(syst), _gameDescription(gd), _debugger(NULL), _script(NULL),
 	_resMan(NULL), _grvCursorMan(NULL), _videoPlayer(NULL), _musicPlayer(NULL),
-	_graphicsMan(NULL), _macResFork(NULL), _waitingForInput(false), _font(NULL) {
+	_graphicsMan(NULL), _macResFork(NULL), _waitingForInput(false), _font(NULL),
+	_spookyMode(false) {
 
 	// Adding the default directories
 	const Common::FSNode gameDataDir(ConfMan.get("path"));
@@ -103,14 +107,18 @@ Common::Error GroovieEngine::run() {
 
 	// Initialize the graphics
 	switch (_gameDescription->version) {
-	case kGroovieV2:
+	case kGroovieV2: {
 		// Request the mode with the highest precision available
-		initGraphics(640, 480, true, NULL);
+		Graphics::PixelFormat format(4, 8, 8, 8, 8, 24, 16, 8, 0);
+		initGraphics(640, 480, true, &format);
 
-		// Save the enabled mode as it can be both an RGB mode or CLUT8
-		_pixelFormat = _system->getScreenFormat();
-		_mode8bit = (_pixelFormat == Graphics::PixelFormat::createFormatCLUT8());
+		if (_system->getScreenFormat() != format)
+			return Common::kUnsupportedColorMode;
+
+		// Save the enabled mode
+		_pixelFormat = format;
 		break;
+	}
 	case kGroovieT7G:
 		initGraphics(640, 480, true);
 		_pixelFormat = Graphics::PixelFormat::createFormatCLUT8();
@@ -154,7 +162,9 @@ Common::Error GroovieEngine::run() {
 	case kGroovieV2:
 		_resMan = new ResMan_v2();
 		_grvCursorMan = new GrvCursorMan_v2(_system);
+#ifdef ENABLE_GROOVIE2
 		_videoPlayer = new ROQPlayer(this);
+#endif
 		break;
 	}
 

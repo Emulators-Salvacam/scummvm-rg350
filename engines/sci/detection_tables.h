@@ -469,6 +469,14 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		AD_LISTEND},
 		Common::EN_ANY, Common::kPlatformWindows, ADGF_CD, GUIO4(GUIO_MIDIGM, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
+	// Eco Quest - English DOS Floppy (reported by misterhands in bug #6599)
+	// Game v1.10, interpreter 2.000.286, INT #6.12.92
+	{"ecoquest", "Floppy", {
+		{"resource.map", 0, "acb10c12bf15ffa7d0fac36124b20c8e", 4890},
+		{"resource.000", 0, "89cf7c8eed99afd0a9f4188170b81ebe", 3428654},
+		AD_LISTEND},
+		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO4(GUIO_NOSPEECH, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+
 	// Eco Quest - English DOS Floppy
 	// SCI interpreter version 1.000.510
 	{"ecoquest", "Floppy", {
@@ -861,7 +869,7 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		{"resource.002", 0, "e0dd44069a62a463fd124974b915f10d", 342149},
 		{"resource.003", 0, "e0dd44069a62a463fd124974b915f10d", 328925},
 		AD_LISTEND},
-		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO4(GUIO_NOSPEECH, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
 	// Hoyle 1 - English DOS (supplied by wibble92 in bug report #2644547)
 	// SCI interpreter version 0.000.530
@@ -885,6 +893,14 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 	{"hoyle1", "", {
 		{"resource.map", 0, "0af9a3dcd72a091960de070432e1f524", 4386},
 		{"resource.001", 0, "e0dd44069a62a463fd124974b915f10d", 518127},
+		AD_LISTEND},
+		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+
+	// Hoyle 1 - English DOS v1.000.115 (supplied by misterhands in bug report #6597)
+	// Executable scanning reports "0.000.668"
+	{"hoyle1", "", {
+		{"resource.map", 0, "3ddf55fdbe14eb0e89a27a2cfc1338bd", 4386},
+		{"resource.001", 0, "e0dd44069a62a463fd124974b915f10d", 519525},
 		AD_LISTEND},
 		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
@@ -916,6 +932,14 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		AD_LISTEND},
 		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
+	// Hoyle 2 - English DOS (supplied by misterhands in bug report #6598)
+	// Game v1.000.016, interpreter 0.000.668, INT #12.5.90
+	{"hoyle2", "", {
+		{"resource.map", 0, "d8758a4eb6f34f6b3130bf25a496d123", 1356},
+		{"resource.001", 0, "8f2dd70abe01112eca464cda818b5eb6", 217880},
+		AD_LISTEND},
+		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+
 	// Hoyle 2 - English Amiga (from www.back2roots.org)
 	// Executable scanning reports "1.002.032"
 	// SCI interpreter version 0.000.685
@@ -923,15 +947,15 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		{"resource.map", 0, "62ed48d20c580e5a98f102f7cd93706a", 1356},
 		{"resource.001", 0, "8f2dd70abe01112eca464cda818b5eb6", 222704},
 		AD_LISTEND},
-		Common::EN_ANY, Common::kPlatformAmiga, 0, GUIO4(GUIO_NOSPEECH, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+		Common::EN_ANY, Common::kPlatformAmiga, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
 	// Hoyle 2 - English Macintosh
 	// Executable scanning reports "x.yyy.zzz"
 	{"hoyle2", "", {
 		{"resource.map", 0, "1af1d3aa3cf564f93477c9f87e53f495", 1728},
 		{"resource.001", 0, "b73b8131669d69d41a326415e4519138", 482882},
-		{NULL, 0, NULL, 0}},
-		Common::EN_ANY, Common::kPlatformMacintosh, 0, GUIO4(GUIO_NOSPEECH, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+		AD_LISTEND},
+		Common::EN_ANY, Common::kPlatformMacintosh, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
 #if 0 // TODO: unknown if these files are corrupt
 	// Hoyle 3 - English Amiga (from www.back2roots.org)
@@ -1744,12 +1768,21 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		AD_LISTEND},
 		Common::EN_ANY, Common::kPlatformDOS, ADGF_DEMO, GUIO4(GUIO_NOSPEECH, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
-	// Laura Bow 2 - English DOS Floppy
+	// Laura Bow 2 - English DOS Floppy v1.0
 	// Executable scanning reports "2.000.274"
 	// SCI interpreter version 1.001.069 (just a guess)
 	{"laurabow2", "", {
 		{"resource.map", 0, "610bfd9a852004222f0faaf5fc9e630a", 6489},
 		{"resource.000", 0, "57084910bc923bff5d6d9bc1b56e9604", 5035964},
+		AD_LISTEND},
+		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO4(GUIO_NOSPEECH, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+
+	// Laura Bow 2 v1.1 - English DOS Floppy (supplied by misterhands in bug report #6543)
+	// Executable scanning reports "2.000.274"
+	{"laurabow2", "", {
+		{"resource.map", 0, "3b6dfbcda210bbc3f23fd1927113bf98", 6483},
+		{"resource.000", 0, "57084910bc923bff5d6d9bc1b56e9604", 5028766},
+		{"resource.msg", 0, "d1755fc4f41b5210febc9410503c6a29", 278354},
 		AD_LISTEND},
 		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO4(GUIO_NOSPEECH, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
@@ -2422,6 +2455,17 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		{"resource.002", 0, "4db83250f821607b634c99d663cae74a", 663713},
 		{"resource.003", 0, "509b2467ba779100d5933ed51a9ae32f", 560255},
 		{"resource.004", 0, "93afc85d5ffa60ea555d6cc336d22c03", 651109},
+		AD_LISTEND},
+		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+
+	// Mixed-Up Fairy Tales - English DOS Floppy EGA (from misterhands, bug report #6596)
+	// Version 1.0, interpreter 1.000.158, INT# 11.23.91
+	{"fairytales", "EGA", {
+		{"resource.map", 0, "de9e151517013af15e0baf7bd8cbfe0b", 3243},
+		{"resource.000", 0, "27ec5fa09cd12a7fd16e86d96a2ed245", 840595},
+		{"resource.001", 0, "6ef4acdab49bdcaccf649640ddb12e9a", 115071},
+		{"resource.002", 0, "020d8c9da753a30899dd10c4463682db", 762020},
+		{"resource.003", 0, "9e0dea6b2bfd6cf0007cceb866bcbfb3", 670688},
 		AD_LISTEND},
 		Common::EN_ANY, Common::kPlatformDOS, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
@@ -3580,7 +3624,18 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		{"resource.002", 0, "9107c2aa5398e28b5c5406df13491f85", 596768},
 		{"resource.003", 0, "9107c2aa5398e28b5c5406df13491f85", 693573},
 		AD_LISTEND},
-		Common::DE_DEU, Common::kPlatformDOS, ADGF_ADDENGLISH, GUIO4(GUIO_NOSPEECH, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+		Common::DE_DEU, Common::kPlatformDOS, ADGF_ADDENGLISH, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
+
+	// Space Quest 3 v1.1 (game says 0.016) - English Mac (supplied by misterhands in bug report #6484)
+	// Executable scanning reports "0.024"
+	{"sq3", "", {
+		{"resource.map", 0, "d1574928fc6187f5958d431ac9d8022e", 5844},
+		{"resource.001", 0, "0d8dfe42683b46f3131823233a91ce6a", 771942},
+		{"resource.002", 0, "0d8dfe42683b46f3131823233a91ce6a", 794127},
+		{"resource.003", 0, "0d8dfe42683b46f3131823233a91ce6a", 776554},
+		{"resource.004", 0, "0d8dfe42683b46f3131823233a91ce6a", 787066},
+		AD_LISTEND},
+		Common::EN_ANY, Common::kPlatformMacintosh, 0, GUIO5(GUIO_NOSPEECH, GAMEOPTION_EGA_UNDITHER, GAMEOPTION_PREFER_DIGITAL_SFX, GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_FB01_MIDI)	},
 
 	// Space Quest 4 - English Amiga
 	// Executable scanning reports "1.004.024"

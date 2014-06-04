@@ -415,6 +415,8 @@ int32 opcodeType3()	{	// math
 		return (0);
 	}
 	case 1: {
+		if (pop2 == 0)
+			error("opcodeType3 - Invalid value for pop2");
 		pushVar(pop1 / pop2);
 		return (0);
 	}
@@ -427,6 +429,8 @@ int32 opcodeType3()	{	// math
 		return (0);
 	}
 	case 4: {
+		if (pop2 == 0)
+			error("opcodeType3 - Invalid value for pop2");
 		pushVar(pop1 % pop2);
 		return (0);
 	}
@@ -451,9 +455,7 @@ int32 opcodeType9() {		// stop script
 }
 
 void setupFuncArray() {
-	int i;
-
-	for (i = 0; i < 64; i++) {
+	for (int i = 0; i < 64; i++) {
 		opcodeTypeTable[i] = NULL;
 	}
 

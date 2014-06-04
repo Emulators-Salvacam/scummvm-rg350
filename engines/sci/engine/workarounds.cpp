@@ -90,9 +90,11 @@ const SciWorkaroundEntry uninitializedReadWorkarounds[] = {
 	{ GID_HOYLE4,        700,    -1,  1,      "BridgeDefense", "think",          -1,   -1, { WORKAROUND_FAKE,   0 } }, // sometimes while playing bridge, temp var 3, 17 and others, objects LeadReturn_Trump, ThirdSeat_Trump and others
 	{ GID_HOYLE4,        700,   730,  1,      "BridgeDefense", "beatTheirBest",  -1,    3, { WORKAROUND_FAKE,   0 } }, // rarely while playing bridge
 	{ GID_HOYLE4,        700,    -1,  1,               "Code", "doit",           -1,   -1, { WORKAROUND_FAKE,   0 } }, // when placing a bid in bridge (always), temp var 11, 24, 27, 46, 75, objects compete_tree, compwe_tree, other1_tree, b1 - bugs #5663 and #5794
+	{ GID_HOYLE4,        700,   921,  0,              "Print", "addEdit",        -1,   -1, { WORKAROUND_FAKE,   0 } }, // when saving the game (may also occur in other situations) - bug #6601
 	{ GID_HOYLE4,        300,   300,  0,                   "", "export 2",   0x1d4d,    0, { WORKAROUND_FAKE,   0 } }, // after passing around cards in hearts
 	{ GID_HOYLE4,        400,   400,  1,            "GinHand", "calcRuns",       -1,    4, { WORKAROUND_FAKE,   0 } }, // sometimes while playing Gin Rummy (e.g. when knocking and placing a card) - bug #5665
 	{ GID_HOYLE4,        500,    17,  1,          "Character", "say",            -1,  504, { WORKAROUND_FAKE,   0 } }, // sometimes while playing Cribbage (e.g. when the opponent says "Last Card") - bug #5662
+	{ GID_HOYLE4,         -1,   937,  0,            "IconBar", "dispatchEvent",  -1,  408, { WORKAROUND_FAKE,   0 } }, // pressing ENTER on scoreboard while mouse is not on OK button, may not happen all the time - bug #6603
 	{ GID_ISLANDBRAIN,   100,   937,  0,            "IconBar", "dispatchEvent",  -1,   58, { WORKAROUND_FAKE,   0 } }, // when using ENTER at the startup menu - bug #5241
 	{ GID_ISLANDBRAIN,   140,   140,  0,              "piece", "init",           -1,    3, { WORKAROUND_FAKE,   1 } }, // first puzzle right at the start, some initialization variable. bnt is done on it, and it should be non-0
 	{ GID_ISLANDBRAIN,   200,   268,  0,          "anElement", "select",         -1,    0, { WORKAROUND_FAKE,   0 } }, // elements puzzle, gets used before super TextIcon
@@ -218,6 +220,14 @@ const SciWorkaroundEntry kCelWide_workarounds[] = {
 	{ GID_PQ2,            -1,   255,  0,              "DIcon", "setSize",        -1,    0, { WORKAROUND_STILLCALL, 0 } }, // when showing picture within windows, called with 2nd/3rd parameters as objects
 	{ GID_SQ1,             1,   255,  0,              "DIcon", "setSize",        -1,    0, { WORKAROUND_STILLCALL, 0 } }, // DEMO: Called with 2nd/3rd parameters as objects when clicking on the menu - bug #5012
 	{ GID_FANMADE,        -1,   979,  0,              "DIcon", "setSize",        -1,    0, { WORKAROUND_STILLCALL, 0 } }, // In The Gem Scenario and perhaps other fanmade games, this is called with 2nd/3rd parameters as objects - bug #5144
+	SCI_WORKAROUNDENTRY_TERMINATOR
+};
+
+//    gameID,           room,script,lvl,          object-name, method-name,    call,index,                workaround
+const SciWorkaroundEntry kDeleteKey_workarounds[] = {
+	{    GID_HOYLE4,     300,   999,  0,     "handleEventList", "delete",        -1,    0, { WORKAROUND_IGNORE, 0 } }, // restarting hearts, while tray is shown - bug #6604
+	{    GID_HOYLE4,     500,   999,  0,     "handleEventList", "delete",        -1,    0, { WORKAROUND_IGNORE, 0 } }, // restarting cribbage, while tray is shown - bug #6604
+	{    GID_HOYLE4,     975,   999,  0,     "handleEventList", "delete",        -1,    0, { WORKAROUND_IGNORE, 0 } }, // going back to gamelist from hearts/cribbage, while tray is shown - bug #6604
 	SCI_WORKAROUNDENTRY_TERMINATOR
 };
 
