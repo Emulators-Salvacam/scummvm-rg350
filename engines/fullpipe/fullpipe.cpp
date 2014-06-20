@@ -34,6 +34,7 @@
 #include "fullpipe/modal.h"
 #include "fullpipe/input.h"
 #include "fullpipe/motion.h"
+#include "fullpipe/statics.h"
 #include "fullpipe/scenes.h"
 #include "fullpipe/floaters.h"
 #include "fullpipe/console.h"
@@ -242,11 +243,13 @@ void FullpipeEngine::restartGame() {
 }
 
 Common::Error FullpipeEngine::run() {
-	const Graphics::PixelFormat format(2, 5, 6, 5, 0, 11, 5, 0, 0);
+	const Graphics::PixelFormat format(4, 8, 8, 8, 8, 24, 16, 8, 0);
 	// Initialize backend
 	initGraphics(800, 600, true, &format);
 
 	_backgroundSurface.create(800, 600, format);
+
+	_origFormat = new Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0);
 
 	_console = new Console(this);
 
@@ -413,21 +416,34 @@ void FullpipeEngine::updateEvents() {
 		}
 	}
 
-		
-#if 0
-	warning("STUB: FullpipeEngine::updateEvents() <mainWindowProc>");
-	if (Msg == MSG_SC11_SHOWSWING && _modalObject) {
-		_modalObject->method14();
-	}
-#endif
+	// pollEvent() is implemented only for video player. So skip it.
+	//if (event.kbd.keycode == MSG_SC11_SHOWSWING && _modalObject) {
+	//	_modalObject->pollEvent();
+	//}
 }
 
 void FullpipeEngine::freeGameLoader() {
-	warning("STUB: FullpipeEngine::freeGameLoader()");
+	setCursor(0);
+	delete _movTable;
+	_floaters->stopAll();
+	delete _gameLoader;
+	_currentScene = 0;
+	_scene2 = 0;
+	_loaderScene = 0;
 }
 
 void FullpipeEngine::cleanup() {
-	warning("STUB: FullpipeEngine::cleanup()");
+	//cleanRecorder();
+	clearMessageHandlers();
+	clearMessages();
+	_globalMessageQueueList->compact();
+
+	for (uint i = 0; i < _globalMessageQueueList->size(); i++)
+		delete (*_globalMessageQueueList)[i];
+
+	stopAllSoundStreams();
+
+	delete _origFormat;
 }
 
 void FullpipeEngine::updateScreen() {
@@ -514,7 +530,7 @@ void FullpipeEngine::disableSaves(ExCommand *ex) {
 		_isSaveAllowed = false;
 
 		if (_globalMessageQueueList->size() && (*_globalMessageQueueList)[0] != 0) {
-			for (int i = 0; i < _globalMessageQueueList->size(); i++) {
+			for (uint i = 0; i < _globalMessageQueueList->size(); i++) {
 				if ((*_globalMessageQueueList)[i]->_flags & 1)
 					if ((*_globalMessageQueueList)[i]->_id != ex->_parId && !(*_globalMessageQueueList)[i]->_isFinished)
 						return;

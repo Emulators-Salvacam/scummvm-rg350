@@ -59,7 +59,8 @@ Game *Game::init(MADSEngine *vm) {
 Game::Game(MADSEngine *vm)
 	: _vm(vm), _surface(nullptr), _objects(vm), _scene(vm),
 	  _screenObjects(vm), _player(vm) {
-	_sectionNumber = _priorSectionNumber = 0;
+	_sectionNumber = 1;
+	_priorSectionNumber = 0;
 	_loadGameSlot = -1;
 	_lastSave = -1;
 	_saveFile = nullptr;
@@ -108,49 +109,15 @@ void Game::run() {
 	}
 
 	_statusFlag = true;
-	int protectionResult = -1;
 
 	if (_loadGameSlot == -1) {
-		protectionResult = checkCopyProtection();
-		switch (protectionResult) {
-		case PROTECTION_FAIL:
-			// Copy protection failed
-			_scene._nextSceneId = 804;
-			break;
-		case PROTECTION_ESCAPE:
-			// User escaped out of copy protection dialog
-			_vm->quitGame();
-			break;
-		default:
-			// Copy protection check succeeded
-			_scene._nextSceneId = 101;
-			_scene._priorSceneId = -1;
-			break;
-		}
+		startGame();
 	}
 
 	// Get the initial starting time for the first scene
 	_scene._frameStartTime = _vm->_events->getFrameCounter();
 
-	if (_saveFile == nullptr && protectionResult != -1 && protectionResult != -2) {
-		initSection(_sectionNumber);
-		_statusFlag = true;
-
-		_vm->_dialogs->_pendingDialog = DIALOG_DIFFICULTY;
-		_vm->_dialogs->showDialog();
-		_vm->_dialogs->_pendingDialog = DIALOG_NONE;
-
-		_priorSectionNumber = 0;
-		_priorSectionNumber = -1;
-		_scene._priorSceneId = 0;
-		_scene._currentSceneId = -1;
-	}
-
-	if (protectionResult != 1 && protectionResult != 2) {
-		initializeGlobals();
-	}
-
-	if (_statusFlag)
+	if (!_vm->shouldQuit())
 		gameLoop();
 }
 

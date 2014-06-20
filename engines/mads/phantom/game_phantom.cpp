@@ -41,22 +41,12 @@ GamePhantom::GamePhantom(MADSEngine *vm)
 	_storyMode = STORYMODE_NAUGHTY;
 }
 
-ProtectionResult GamePhantom::checkCopyProtection() {
-	/*
-	// DEBUG: Flag copy protection failure
-	_globals[5] = -1;
+void GamePhantom::startGame() {
+	_scene._priorSceneId = 0;
+	_scene._currentSceneId = -1;
+	_scene._nextSceneId = 101;
 
-	if (!ConfMan.getBool("copy_protection"))
-		return true;
-
-	* DEBUG: Disabled for now
-	CopyProtectionDialog *dlg = new CopyProtectionDialog(_vm, false);
-	dlg->show();
-	delete dlg;
-	*/
-
-	// DEBUG: Return that copy protection failed
-	return PROTECTION_SUCCEED;
+	initializeGlobals();
 }
 
 void GamePhantom::initializeGlobals() {

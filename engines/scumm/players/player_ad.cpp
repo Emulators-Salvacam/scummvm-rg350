@@ -24,6 +24,7 @@
 #include "scumm/imuse/imuse.h"
 #include "scumm/scumm.h"
 #include "scumm/resource.h"
+#include "scumm/saveload.h"
 
 #include "audio/fmopl.h"
 
@@ -74,11 +75,9 @@ Player_AD::Player_AD(ScummEngine *scumm, Audio::Mixer *mixer)
 	_numHWChannels = ARRAYSIZE(_hwChannels);
 
 	memset(_voiceChannels, 0, sizeof(_voiceChannels));
-	for (int i = 0; i < ARRAYSIZE(_voiceChannels); ++i) {
-		_voiceChannels[i].hardwareChannel = -1;
-	}
 
 	_musicVolume = _sfxVolume = 255;
+	_isSeeking = false;
 }
 
 Player_AD::~Player_AD() {
@@ -186,8 +185,51 @@ void Player_AD::saveLoadWithSerializer(Serializer *ser) {
 		return;
 	}
 
-	// TODO: Be nicer than the original and save the data to continue the
-	// currently played sound resources on load?
+	if (ser->getVersion() >= VER(96)) {
+		int32 res[4] = {
+			_soundPlaying, _sfx[0].resource, _sfx[1].resource, _sfx[2].resource
+		};
+
+		// The first thing we save is a list of sound resources being played
+		// at the moment.
+		ser->saveLoadArrayOf(res, 4, sizeof(res[0]), sleInt32);
+
+		// If we are loading start the music again at this point.
+		if (ser->isLoading()) {
+			if (res[0] != -1) {
+				startSound(res[0]);
+			}
+		}
+
+		uint32 musicOffset = _curOffset;
+
+		static const SaveLoadEntry musicData[] = {
+			MKLINE(Player_AD, _engineMusicTimer, sleInt32, VER(96)),
+			MKLINE(Player_AD, _musicTimer, sleUint32, VER(96)),
+			MKLINE(Player_AD, _internalMusicTimer, sleUint32, VER(96)),
+			MKLINE(Player_AD, _curOffset, sleUint32, VER(96)),
+			MKLINE(Player_AD, _nextEventTimer, sleUint32, VER(96)),
+			MKEND()
+		};
+
+		ser->saveLoadEntries(this, musicData);
+
+		// We seek back to the old music position.
+		if (ser->isLoading()) {
+			SWAP(musicOffset, _curOffset);
+			musicSeekTo(musicOffset);
+		}
+
+		// Finally start up the SFX. This makes sure that they are not
+		// accidently stopped while seeking to the old music position.
+		if (ser->isLoading()) {
+			for (int i = 1; i < ARRAYSIZE(res); ++i) {
+				if (res[i] != -1) {
+					startSound(res[i]);
+				}
+			}
+		}
+	}
 }
 
 int Player_AD::readBuffer(int16 *buffer, const int numSamples) {
@@ -324,13 +366,14 @@ void Player_AD::writeReg(int r, int v) {
 
 			int vol = 0x3F - (v & 0x3F);
 			vol = vol * scale / Audio::Mixer::kMaxChannelVolume;
-			v &= 0xA0;
+			v &= 0xC0;
 			v |= (0x3F - vol);
 		}
 	}
 
 	// Since AdLib's lowest volume level does not imply that the sound is
 	// completely silent we ignore key on in such a case.
+	// We also ignore key on for music whenever we do seeking.
 	if (r >= 0xB0 && r <= 0xB8) {
 		const int channel = r - 0xB0;
 		bool mute = false;
@@ -341,6 +384,8 @@ void Player_AD::writeReg(int r, int v) {
 		} else {
 			if (!_musicVolume) {
 				mute = true;
+			} else {
+				mute = _isSeeking;
 			}
 		}
 
@@ -465,94 +510,18 @@ void Player_AD::updateMusic() {
 	}
 
 	while (true) {
-		uint command = _musicData[_curOffset++];
-		if (command == 0xFF) {
-			// META EVENT
-			// Get the command number.
-			command = _musicData[_curOffset++];
-			if (command == 47) {
-				// End of track
-				if (_loopFlag) {
-					// In case the track is looping jump to the start.
-					_curOffset = _musicLoopStart;
-					_nextEventTimer = 0;
-					continue;
-				} else {
-					// Otherwise completely stop playback.
-					stopMusic();
-				}
+		if (parseCommand()) {
+			// We received an EOT command. In case there's no music playing
+			// we know there was no looping enabled. Thus, we stop further
+			// handling. Otherwise we will just continue parsing. It is
+			// important to note that we need to parse a command directly
+			// at the new position, i.e. there is no time value we need to
+			// parse.
+			if (_soundPlaying == -1) {
 				return;
-			} else if (command == 88) {
-				// This is proposedly a debug information insertion. The CMS
-				// player code handles this differently, but is still using
-				// the same resources...
-				_curOffset += 5;
-			} else if (command == 81) {
-				// Change tempo. This is used exclusively in Loom.
-				const uint timing = _musicData[_curOffset + 2] | (_musicData[_curOffset + 1] << 8);
-				_musicTicks = 0x73000 / timing;
-				command = _musicData[_curOffset++];
-				_curOffset += command;
 			} else {
-				// In case an unknown meta event occurs just skip over the
-				// data by using the length supplied.
-				command = _musicData[_curOffset++];
-				_curOffset += command;
+				continue;
 			}
-		} else {
-			if (command >= 0x90) {
-				// NOTE ON
-				// Extract the channel number and save it in command.
-				command -= 0x90;
-
-				const uint instrOffset = _instrumentOffset[command];
-				if (instrOffset) {
-					if (_musicData[instrOffset + 13] != 0) {
-						setupRhythm(_musicData[instrOffset + 13], instrOffset);
-					} else {
-						int channel = allocateVoiceChannel();
-						if (channel != -1) {
-							setupChannel(_voiceChannels[channel].hardwareChannel, _musicData + instrOffset);
-							_voiceChannels[channel].lastEvent = command + 0x90;
-							_voiceChannels[channel].frequency = _musicData[_curOffset];
-							setupFrequency(channel, _musicData[_curOffset]);
-						}
-					}
-				}
-			} else {
-				// NOTE OFF
-				const uint note = _musicData[_curOffset];
-				command += 0x10;
-
-				// Find the output channel which plays the note.
-				uint channel = 0xFF;
-				for (int i = 0; i < ARRAYSIZE(_voiceChannels); ++i) {
-					if (_voiceChannels[i].frequency == note && _voiceChannels[i].lastEvent == command) {
-						channel = i;
-						break;
-					}
-				}
-
-				if (channel != 0xFF) {
-					// In case a output channel playing the note was found,
-					// stop it.
-					noteOff(channel);
-				} else {
-					// In case there is no such note this will disable the
-					// rhythm instrument played on the channel.
-					command -= 0x90;
-					const uint instrOffset = _instrumentOffset[command];
-					if (instrOffset && _musicData[instrOffset + 13] != 0) {
-						const uint rhythmInstr = _musicData[instrOffset + 13];
-						if (rhythmInstr < 6) {
-							_mdvdrState &= _mdvdrTable[rhythmInstr] ^ 0xFF;
-							writeReg(0xBD, _mdvdrState);
-						}
-					}
-				}
-			}
-
-			_curOffset += 2;
 		}
 
 		// In case there is a delay till the next event stop handling.
@@ -562,22 +531,120 @@ void Player_AD::updateMusic() {
 		++_curOffset;
 	}
 
-	_nextEventTimer = _musicData[_curOffset++];
-	if (_nextEventTimer & 0x80) {
-		_nextEventTimer -= 0x80;
-		_nextEventTimer <<= 7;
-		_nextEventTimer |= _musicData[_curOffset++];
-	}
-
+	_nextEventTimer = parseVLQ();
 	_nextEventTimer >>= (_vm->_game.id == GID_LOOM) ? 2 : 1;
 	if (!_nextEventTimer) {
 		_nextEventTimer = 1;
 	}
 }
 
+bool Player_AD::parseCommand() {
+	uint command = _musicData[_curOffset++];
+	if (command == 0xFF) {
+		// META EVENT
+		// Get the command number.
+		command = _musicData[_curOffset++];
+		if (command == 47) {
+			// End of track
+			if (_loopFlag) {
+				// In case the track is looping jump to the start.
+				_curOffset = _musicLoopStart;
+				_nextEventTimer = 0;
+			} else {
+				// Otherwise completely stop playback.
+				stopMusic();
+			}
+			return true;
+		} else if (command == 88) {
+			// This is proposedly a debug information insertion. The CMS
+			// player code handles this differently, but is still using
+			// the same resources...
+			_curOffset += 5;
+		} else if (command == 81) {
+			// Change tempo. This is used exclusively in Loom.
+			const uint timing = _musicData[_curOffset + 2] | (_musicData[_curOffset + 1] << 8);
+			_musicTicks = 0x73000 / timing;
+			command = _musicData[_curOffset++];
+			_curOffset += command;
+		} else {
+			// In case an unknown meta event occurs just skip over the
+			// data by using the length supplied.
+			command = _musicData[_curOffset++];
+			_curOffset += command;
+		}
+	} else {
+		if (command >= 0x90) {
+			// NOTE ON
+			// Extract the channel number and save it in command.
+			command -= 0x90;
+
+			const uint instrOffset = _instrumentOffset[command];
+			if (instrOffset) {
+				if (_musicData[instrOffset + 13] != 0) {
+					setupRhythm(_musicData[instrOffset + 13], instrOffset);
+				} else {
+					// Priority 256 makes sure we always prefer music
+					// channels over SFX channels.
+					int channel = allocateHWChannel(256);
+					if (channel != -1) {
+						setupChannel(channel, _musicData + instrOffset);
+						_voiceChannels[channel].lastEvent = command + 0x90;
+						_voiceChannels[channel].frequency = _musicData[_curOffset];
+						setupFrequency(channel, _musicData[_curOffset]);
+					}
+				}
+			}
+		} else {
+			// NOTE OFF
+			const uint note = _musicData[_curOffset];
+			command += 0x10;
+
+			// Find the output channel which plays the note.
+			uint channel = 0xFF;
+			for (int i = 0; i < ARRAYSIZE(_voiceChannels); ++i) {
+				if (_voiceChannels[i].frequency == note && _voiceChannels[i].lastEvent == command) {
+					channel = i;
+					break;
+				}
+			}
+
+			if (channel != 0xFF) {
+				// In case a output channel playing the note was found,
+				// stop it.
+				noteOff(channel);
+			} else {
+				// In case there is no such note this will disable the
+				// rhythm instrument played on the channel.
+				command -= 0x90;
+				const uint instrOffset = _instrumentOffset[command];
+				if (instrOffset && _musicData[instrOffset + 13] != 0) {
+					const uint rhythmInstr = _musicData[instrOffset + 13];
+					if (rhythmInstr < 6) {
+						_mdvdrState &= _mdvdrTable[rhythmInstr] ^ 0xFF;
+						writeReg(0xBD, _mdvdrState);
+					}
+				}
+			}
+		}
+
+		_curOffset += 2;
+	}
+
+	return false;
+}
+
+uint Player_AD::parseVLQ() {
+	uint vlq = _musicData[_curOffset++];
+	if (vlq & 0x80) {
+		vlq -= 0x80;
+		vlq <<= 7;
+		vlq |= _musicData[_curOffset++];
+	}
+	return vlq;
+}
+
 void Player_AD::noteOff(uint channel) {
-	VoiceChannel &vChannel = _voiceChannels[channel];
-	writeReg(0xB0 + vChannel.hardwareChannel, vChannel.b0Reg & 0xDF);
+	writeReg(0xB0 + channel, _voiceChannels[channel].b0Reg & 0xDF);
 	freeVoiceChannel(channel);
 }
 
@@ -593,14 +660,13 @@ void Player_AD::setupFrequency(uint channel, int8 frequency) {
 		++octave;
 	}
 
-	VoiceChannel &vChannel = _voiceChannels[channel];
 	const uint noteFrequency = _noteFrequencies[frequency];
 	octave <<= 2;
 	octave |= noteFrequency >> 8;
 	octave |= 0x20;
-	writeReg(0xA0 + vChannel.hardwareChannel, noteFrequency & 0xFF);
-	vChannel.b0Reg = octave;
-	writeReg(0xB0 + vChannel.hardwareChannel, octave);
+	writeReg(0xA0 + channel, noteFrequency & 0xFF);
+	_voiceChannels[channel].b0Reg = octave;
+	writeReg(0xB0 + channel, octave);
 }
 
 void Player_AD::setupRhythm(uint rhythmInstr, uint instrOffset) {
@@ -621,32 +687,43 @@ void Player_AD::setupRhythm(uint rhythmInstr, uint instrOffset) {
 	}
 }
 
-int Player_AD::allocateVoiceChannel() {
-	for (int i = 0; i < ARRAYSIZE(_voiceChannels); ++i) {
-		if (!_voiceChannels[i].lastEvent) {
-			// 256 makes sure it's a higher prority than any SFX
-			_voiceChannels[i].hardwareChannel = allocateHWChannel(256);
-			if (_voiceChannels[i].hardwareChannel != -1) {
-				return i;
-			} else {
-				// No free HW channels => cancel
-				return -1;
-			}
-		}
-	}
-
-	return -1;
-}
-
 void Player_AD::freeVoiceChannel(uint channel) {
 	VoiceChannel &vChannel = _voiceChannels[channel];
-	assert(vChannel.hardwareChannel != -1);
+	assert(vChannel.lastEvent);
 
-	freeHWChannel(vChannel.hardwareChannel);
-	vChannel.hardwareChannel = -1;
+	freeHWChannel(channel);
 	vChannel.lastEvent = 0;
 	vChannel.b0Reg = 0;
 	vChannel.frequency = 0;
+}
+
+void Player_AD::musicSeekTo(const uint position) {
+	// This method is actually dangerous to use and should only be used for
+	// loading save games because it does not set up anything like the engine
+	// music timer or similar.
+	_isSeeking = true;
+
+	// Seek until the given position.
+	while (_curOffset != position) {
+		if (parseCommand()) {
+			// We encountered an EOT command. This should not happen unless
+			// we try to seek to an illegal position. In this case just abort
+			// seeking.
+			::debugC(3, DEBUG_SOUND, "AD illegal seek to %u", position);
+			break;
+		}
+		parseVLQ();
+	}
+
+	_isSeeking = false;
+
+	// Turn on all notes.
+	for (int i = 0; i < ARRAYSIZE(_voiceChannels); ++i) {
+		if (_voiceChannels[i].lastEvent != 0) {
+			const int reg = 0xB0 + i;
+			writeReg(reg, readReg(reg));
+		}
+	}
 }
 
 const uint Player_AD::_noteFrequencies[12] = {

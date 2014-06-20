@@ -154,7 +154,7 @@ void UISlots::draw(bool updateFlag, bool delFlag) {
 				bool flipped = slot._frameNumber < 0;
 
 				if (slot._segmentId == IMG_SPINNING_OBJECT) {
-					MSprite *sprite = asset->getFrame(frameNumber);
+					MSprite *sprite = asset->getFrame(frameNumber - 1);
 					sprite->copyTo(&userInterface, slot._position,
 						sprite->getTransparencyIndex());
 				} else {
@@ -487,7 +487,7 @@ void UserInterface::drawItemVocabList() {
 	}
 }
 
-void UserInterface::drawScrolller() {
+void UserInterface::drawScroller() {
 	if (_scrollbarActive)
 		writeVocab(CAT_INV_SCROLLER, _scrollbarActive);
 	writeVocab(CAT_INV_SCROLLER, 4);
@@ -573,7 +573,7 @@ void UserInterface::scrollbarChanged() {
 	Common::Rect r(73, 4, 73 + 9, 4 + 38);
 	_uiSlots.add(r);
 	_uiSlots.draw(false, false);
-	drawScrolller();
+	drawScroller();
 	updateRect(r);
 }
 
@@ -995,8 +995,8 @@ void UserInterface::selectObject(int invIndex) {
 		noInventoryAnim();
 	} else {
 		loadInventoryAnim(_vm->_game->_objects._inventoryList[invIndex]);
-		_vm->_palette->setPalette(_vm->_palette->_mainPalette, 7, 1);
-		_vm->_palette->setPalette(_vm->_palette->_mainPalette, 246, 2);
+		_vm->_palette->setPalette(&_vm->_palette->_mainPalette[7 * 3], 7, 1);
+		_vm->_palette->setPalette(&_vm->_palette->_mainPalette[246 * 3], 246, 2);
 	}
 }
 

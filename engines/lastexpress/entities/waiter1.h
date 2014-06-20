@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef LASTEXPRESS_SERVERS1_H
-#define LASTEXPRESS_SERVERS1_H
+#ifndef LASTEXPRESS_WAITER1_H
+#define LASTEXPRESS_WAITER1_H
 
 #include "lastexpress/entities/entity.h"
 
@@ -29,10 +29,20 @@ namespace LastExpress {
 
 class LastExpressEngine;
 
-class Servers1 : public Entity {
+class Waiter1 : public Entity {
 public:
-	Servers1(LastExpressEngine *engine);
-	~Servers1() {}
+	Waiter1(LastExpressEngine *engine);
+	~Waiter1() {}
+
+	/**
+	 * Call a savepoint (or draw sequence in default case)
+	 *
+	 * @param sequence1   The sequence to draw in the default case
+	 * @param entity      The entity
+	 * @param action      The action
+	 * @param sequence2   The sequence name for the savepoint
+	 */
+	DECLARE_FUNCTION_4(callSavepoint, const char *sequence1, EntityIndex entity, ActionIndex action, const char *sequence2)
 
 	/**
 	 * Updates parameter 2 using time value
@@ -56,22 +66,12 @@ public:
 	 * @param car            The car
 	 * @param position       The position
 	 */
-	DECLARE_FUNCTION_3(updatePosition, const char *sequence, CarIndex car, Position position)
+	DECLARE_FUNCTION_3(updatePosition, const char *sequence1, CarIndex car, Position position)
 
 	/**
 	 * Process callback action when the entity direction is not kDirectionRight
 	 */
-	DECLARE_FUNCTION(callbackActionOnDirection)
-
-	/**
-	 * Call a savepoint (or draw sequence in default case)
-	 *
-	 * @param sequence1   The sequence to draw in the default case
-	 * @param entity      The entity
-	 * @param action      The action
-	 * @param sequence2   The sequence name for the savepoint
-	 */
-	DECLARE_FUNCTION_4(callSavepoint, const char *sequence1, EntityIndex entity, ActionIndex action, const char *sequence2)
+	DECLARE_FUNCTION_NOSETUP(callbackActionOnDirection)
 
 	/**
 	 * Plays sound
@@ -80,66 +80,51 @@ public:
 	 */
 	DECLARE_FUNCTION_1(playSound, const char *filename)
 
-	DECLARE_FUNCTION(function7)
+	DECLARE_FUNCTION(rebeccaFeedUs)
+	DECLARE_FUNCTION(rebeccaClearOurTable)
+	DECLARE_FUNCTION(abbotCheckMe)
+	DECLARE_FUNCTION(abbotClearTable)
 
 	/**
 	 * Setup Chapter 1
 	 */
 	DECLARE_FUNCTION(chapter1)
-
-	DECLARE_FUNCTION(function9)
-	DECLARE_FUNCTION(function10)
-	DECLARE_FUNCTION(function11)
-	DECLARE_FUNCTION(function12)
-	DECLARE_FUNCTION(function13)
-
-	/**
-	 * Handle Chapter 1 events
-	 */
-	DECLARE_FUNCTION(chapter1Handler)
-
-	DECLARE_FUNCTION(function15)
-	DECLARE_FUNCTION(function16)
+	DECLARE_FUNCTION(annaOrder)
+	DECLARE_FUNCTION(augustOrder)
+	DECLARE_FUNCTION(serveAnna)
+	DECLARE_FUNCTION(serveAugust)
+	DECLARE_FUNCTION(clearAnna)
+	DECLARE_FUNCTION(clearTatiana)
+	DECLARE_FUNCTION(clearAugust1)
+	DECLARE_FUNCTION(clearAugust2)
+	DECLARE_FUNCTION(servingDinner)
+	DECLARE_FUNCTION(function21)
+	DECLARE_FUNCTION(function22)
 
 	/**
 	 * Setup Chapter 2
 	 */
 	DECLARE_FUNCTION(chapter2)
-
-	/**
-	 * Handle Chapter 2 events
-	 */
-	DECLARE_FUNCTION(chapter2Handler)
-
-	DECLARE_FUNCTION(function19)
-	DECLARE_FUNCTION(function20)
-	DECLARE_FUNCTION(function21)
+	DECLARE_FUNCTION(inKitchen)
+	DECLARE_FUNCTION(augustComeHere2)
+	DECLARE_FUNCTION(augustClearTable2)
 
 	/**
 	 * Setup Chapter 3
 	 */
 	DECLARE_FUNCTION(chapter3)
-
-	/**
-	 * Handle Chapter 3 events
-	 */
-	DECLARE_FUNCTION(chapter3Handler)
-
-	DECLARE_FUNCTION(function24)
+	DECLARE_FUNCTION(serving3)
+	DECLARE_FUNCTION(annaComeHere3)
+	DECLARE_FUNCTION(abbotServeLunch3)
 
 	/**
 	 * Setup Chapter 4
 	 */
 	DECLARE_FUNCTION(chapter4)
-
-	/**
-	 * Handle Chapter 4 events
-	 */
-	DECLARE_FUNCTION(chapter4Handler)
-
-	DECLARE_FUNCTION(function27)
-	DECLARE_FUNCTION(function28)
-	DECLARE_FUNCTION(function29)
+	DECLARE_FUNCTION(serving4)
+	DECLARE_FUNCTION(augustOrder4)
+	DECLARE_FUNCTION(serveAugust4)
+	DECLARE_FUNCTION(augustClearTable)
 
 	/**
 	 * Setup Chapter 5
@@ -154,10 +139,10 @@ public:
 	DECLARE_NULL_FUNCTION()
 
 private:
-	void serveTable(const SavePoint &savepoint, const char *seq1, EntityIndex entity, const char *seq2, const char *seq3, const char *seq4, uint *parameter, Position position = 0, bool updatePosition = true, uint *parameter2 = NULL);
-	void serveSalon(const SavePoint &savepoint, const char *seq1, const char *snd1, EntityIndex entity, const char *snd2, const char *seq2, ActionIndex action, const char *seq3, uint *parameter);
+	void handleServer(const SavePoint &savepoint, const char *name, EntityIndex entity, ActionIndex action, uint *parameter, const char *name2 = "");
+	void serveTable(const SavePoint &savepoint, const char *seq1, EntityIndex entity, const char *seq2, const char *seq3, const char *seq4, uint *parameter, bool shouldUpdatePosition = true, bool pushSavepoint = false, Position position = 0);
 };
 
 } // End of namespace LastExpress
 
-#endif // LASTEXPRESS_SERVERS1_H
+#endif // LASTEXPRESS_WAITER1_H

@@ -35,10 +35,10 @@ namespace Cruise {
 
 enum RelationType {RT_REL = 30, RT_MSG = 50};
 
-static int playerDontAskQuit;
+static bool _playerDontAskQuit;
 unsigned int timer = 0;
 
-gfxEntryStruct* linkedMsgList = NULL;
+gfxEntryStruct *linkedMsgList = nullptr;
 
 typedef CruiseEngine::MemInfo MemInfo;
 
@@ -427,7 +427,7 @@ void resetFileEntry(int32 entryNumber) {
 }
 
 uint8 *mainProc14(uint16 overlay, uint16 idx) {
-	ASSERT(0);
+	assert(0);
 
 	return NULL;
 }
@@ -909,14 +909,14 @@ bool createDialog(int objOvl, int objIdx, int x, int y) {
 						if (obj2Ovl > 0)
 							ovl4 = overlayTable[obj2Ovl].ovlData;
 
-						if ((ovl3) && (ptrHead->obj1Number >= 0)) {
+						if (ovl3 && (ptrHead->obj1Number >= 0)) {
 							testState1 = ptrHead->obj1OldState;
 						}
-						if ((ovl4) && (ptrHead->obj2Number >= 0)) {
+						if (ovl4 && (ptrHead->obj2Number >= 0)) {
 							testState2 = ptrHead->obj2OldState;
 						}
 
-						if ((ovl4) && (ptrHead->verbNumber >= 0) &&
+						if (ovl4 && ovl2 && (ptrHead->verbNumber >= 0) &&
 						        ((testState1 == -1) || (testState1 == objectState2)) &&
 						        ((testState2 == -1) || (testState2 == objectState))) {
 							if (ovl2->nameVerbGlob) {
@@ -934,8 +934,11 @@ bool createDialog(int objOvl, int objIdx, int x, int y) {
 									else
 										color = -1;
 
-									ptr = getObjectName(ptrHead->obj1Number, ovl3->arrayNameObj);
-									addSelectableMenuEntry(j, i, menuTable[0], 1, color, ptr);
+									if (ovl3) {
+										ptr = getObjectName(ptrHead->obj1Number, ovl3->arrayNameObj);
+										addSelectableMenuEntry(j, i, menuTable[0], 1, color, ptr);
+									} else
+										error("Unexpected null pointer in createDialog()");
 								}
 							}
 						}
@@ -1157,7 +1160,7 @@ void callSubRelation(menuElementSubStruct *pMenuElement, int nOvl, int nObj) {
 						createTextObject(&cellHead, ovlIdx, pHeader->id, x, y, 200, findHighColor(), masterScreen, 0, 0);
 					}
 
-					userWait = 1;
+					userWait = true;
 					autoOvl = ovlIdx;
 					autoMsg = pHeader->id;
 
@@ -1186,7 +1189,7 @@ void callSubRelation(menuElementSubStruct *pMenuElement, int nOvl, int nObj) {
 
 							pTrack->flag = 1;
 							autoTrack = true;
-							userWait = 0;
+							userWait = false;
 							userEnabled = 0;
 							freezeCell(&cellHead, ovlIdx, pHeader->id, 5, -1, 0, 9998);
 						}
@@ -1303,7 +1306,7 @@ void callRelation(menuElementSubStruct *pMenuElement, int nObj2) {
 					createTextObject(&cellHead, ovlIdx, pHeader->id, x, y, 200, findHighColor(), masterScreen, 0, 0);
 				}
 
-				userWait = 1;
+				userWait = true;
 				autoOvl = ovlIdx;
 				autoMsg = pHeader->id;
 
@@ -1334,7 +1337,7 @@ void callRelation(menuElementSubStruct *pMenuElement, int nObj2) {
 						pTrack->flag = 1;
 
 						autoTrack = true;
-						userWait = 0;
+						userWait = false;
 						userEnabled = 0;
 						freezeCell(&cellHead, ovlIdx, pHeader->id, 5, -1, 0, 9998);
 					}
@@ -1359,7 +1362,7 @@ void closeAllMenu() {
 		menuTable[1] = NULL;
 	}
 	if (linkedMsgList) {
-		ASSERT(0);
+		assert(0);
 //					freeMsgList(linkedMsgList);
 	}
 
@@ -1455,7 +1458,7 @@ int CruiseEngine::processInput() {
 	if (userWait) {
 		// Check for left mouse button click or Space to end user waiting
 		if ((keyboardCode == Common::KEYCODE_SPACE) || (button == CRS_MB_LEFT))
-			userWait = 0;
+			userWait = false;
 
 		keyboardCode = Common::KEYCODE_INVALID;
 		return 0;
@@ -1514,7 +1517,7 @@ int CruiseEngine::processInput() {
 					menuTable[0] = NULL;
 
 					if (linkedMsgList) {
-						ASSERT(0);
+						assert(0);
 						//					freeMsgList(linkedMsgList);
 					}
 
@@ -1706,7 +1709,7 @@ bool manageEvents() {
 			break;
 		case Common::EVENT_QUIT:
 		case Common::EVENT_RTL:
-			playerDontAskQuit = 1;
+			_playerDontAskQuit = true;
 			break;
 		case Common::EVENT_KEYUP:
 			switch (event.kbd.keycode) {
@@ -1772,16 +1775,12 @@ void CruiseEngine::mainLoop() {
 	currentActiveMenu = -1;
 	autoMsg = -1;
 	linkedRelation = 0;
-	main21 = 0;
-	main22 = 0;
-	userWait = 0;
+	userWait = false;
 	autoTrack = false;
 
 	initAllData();
 
-	playerDontAskQuit = 0;
-	int quitValue2 = 1;
-	int quitValue = 0;
+	_playerDontAskQuit = false;
 
 	if (ConfMan.hasKey("save_slot"))
 		loadGameState(ConfMan.getInt("save_slot"));
@@ -1831,23 +1830,20 @@ void CruiseEngine::mainLoop() {
 			if (!skipEvents || bFastMode)
 				skipEvents = manageEvents();
 
-			if (bFastMode) {
-				if (currentTick >= (lastTickDebug + 10))
-					lastTickDebug = currentTick;
-			} else {
+			if (!bFastMode) {
 				g_system->delayMillis(10);
 				currentTick = g_system->getMillis();
 			}
 
-			if (playerDontAskQuit)
+			if (_playerDontAskQuit)
 				break;
 
 			_vm->getDebugger()->onFrame();
-		} while (currentTick < lastTick + _gameSpeed && !bFastMode);
-		if (playerDontAskQuit)
+		} while (currentTick < _lastTick + _gameSpeed && !bFastMode);
+		if (_playerDontAskQuit)
 			break;
 
-		lastTick = g_system->getMillis();
+		_lastTick = g_system->getMillis();
 
 		// Handle switchover in game speed after intro
 		if (!_speedFlag && canLoadGameStateCurrently()) {
@@ -1862,7 +1858,7 @@ void CruiseEngine::mainLoop() {
 
 //      readKeyboard();
 
-		bool isUserWait = userWait != 0;
+		bool isUserWait = userWait;
 		// WORKAROUND: This prevents hotspots responding during
 		// delays i.e. Menu opening if you click fast on another
 		// hotspot after trying to open a locked door, which
@@ -1871,8 +1867,8 @@ void CruiseEngine::mainLoop() {
 			currentMouseButton = 0;
 		}
 
-		playerDontAskQuit = processInput();
-		if (playerDontAskQuit)
+		_playerDontAskQuit = processInput();
+		if (_playerDontAskQuit)
 			break;
 
 		if (enableUser) {
@@ -1918,7 +1914,7 @@ void CruiseEngine::mainLoop() {
 		processAnimation();
 
 		if (remdo) {
-			// ASSERT(0);
+			// assert(0);
 			/*    main3 = 0;
 			 * var24 = 0;
 			 * var23 = 0;
@@ -1927,7 +1923,7 @@ void CruiseEngine::mainLoop() {
 		}
 
 		if (cmdLine[0]) {
-			ASSERT(0);
+			assert(0);
 			/*        redrawStrings(0,&cmdLine,8);
 
 			        waitForPlayerInput();
@@ -1937,13 +1933,13 @@ void CruiseEngine::mainLoop() {
 
 		if (displayOn) {
 			if (doFade)
-				PCFadeFlag = 0;
+				PCFadeFlag = false;
 
 			/*if (!PCFadeFlag)*/
 			mainDraw(userWait);
 			flipScreen();
 
-			if (userWait == 1) {
+			if (userWait) {
 				// Waiting for press - original wait loop has been integrated into the
 				// main event loop
 				continue;
@@ -1958,7 +1954,7 @@ void CruiseEngine::mainLoop() {
 						char* pText = getText(autoMsg, autoOvl);
 
 						if (strlen(pText))
-							userWait = 1;
+							userWait = true;
 					}
 
 					changeScriptParamInList(-1, -1, &relHead, 9998, 0);
@@ -1976,7 +1972,7 @@ void CruiseEngine::mainLoop() {
 			g_system->updateScreen();
 		}
 
-	} while (!playerDontAskQuit && quitValue2 && quitValue != 7);
+	} while (!_playerDontAskQuit);
 
 	// Free data
 	removeAllScripts(&relHead);

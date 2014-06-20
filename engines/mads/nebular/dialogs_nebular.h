@@ -39,7 +39,7 @@ private:
 	int _dialogWidth;
 	CapitalizationMode _capitalizationMode;
 
-	DialogsNebular(MADSEngine *vm): Dialogs(vm), _capitalizationMode(kUppercase) {}
+	DialogsNebular(MADSEngine *vm): Dialogs(vm), _capitalizationMode(kUppercase), _dialogWidth(0) {}
 
 	virtual Common::String getVocab(int vocabId);
 
@@ -101,9 +101,12 @@ public:
 
 enum DialogTextAlign { ALIGN_CENTER = -1, ALIGN_AT_CENTER = -2, ALIGN_RIGHT = -3 };
 
+enum DialogState { DLGSTATE_UNSELECTED = 0, DLGSTATE_SELECTED = 1, DLGSTATE_FOCUSED = 2 };
+
 class ScreenDialog {
 	struct DialogLine {
-		int _state;
+		bool _active;
+		DialogState _state;
 		Common::Point _pos;
 		int _textDisplayIndex;
 		Common::String _msg;
@@ -115,9 +118,10 @@ class ScreenDialog {
 	};
 protected:
 	MADSEngine *_vm;
-	MSurface _savedSurface;
 	Common::Array<DialogLine> _lines;
 	int _v1;
+	int _v2;
+	bool _v3;
 	int _selectedLine;
 	bool _dirFlag;
 	int _screenId;
@@ -131,14 +135,19 @@ protected:
 	void clearLines();
 
 	/**
+	 * Setup lines to be clickable
+	 */
+	void setClickableLines();
+
+	/**
 	 * Add a quote to the lines list
 	 */
-	void addQuote(int id1, int id2, DialogTextAlign align, const Common::Point &pt, Font *font);
+	void addQuote(int id1, int id2, DialogTextAlign align, const Common::Point &pt, Font *font = nullptr);
 
 	/**
 	 * Adds a line to the lines list
 	 */
-	void addLine(const Common::String &msg, DialogTextAlign align, const Common::Point &pt, Font *font);
+	void addLine(const Common::String &msg, DialogTextAlign align, const Common::Point &pt, Font *font = nullptr);
 
 	/**
 	 * Initializes variables
@@ -154,11 +163,46 @@ protected:
 	 * Choose the background to display for the dialog
 	 */
 	void chooseBackground();
+
+	/**
+	 * Handle events whilst the dialog is active
+	 */
+	void handleEvents();
+
+	/**
+	 * Refresh the display of the dialog's text
+	 */
+	void refreshText();
 public:
 	/**
 	 * Constructor
 	 */
 	ScreenDialog(MADSEngine *vm);
+
+	/**
+	 * Destructor
+	 */
+	virtual ~ScreenDialog() {}
+
+	/**
+	 * Show the dialog
+	 */
+	virtual void show();
+};
+
+class DifficultyDialog : public ScreenDialog {
+private:
+	/**
+	 * Set the lines for the dialog 
+	 */
+	void setLines();
+public:
+	DifficultyDialog(MADSEngine *vm);
+
+	/**
+	* Show the dialog
+	*/
+	virtual void show();
 };
 
 class GameMenuDialog : public ScreenDialog {

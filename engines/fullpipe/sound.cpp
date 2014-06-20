@@ -268,7 +268,7 @@ void FullpipeEngine::setSceneMusicParameters(GameVar *gvar) {
 
 		while (sub) {
 			if (_musicAllowed & sub->_value.intValue) {
-				strcpy(_sceneTracks[_numSceneTracks], sub->_varName);
+				Common::strlcpy(_sceneTracks[_numSceneTracks], sub->_varName, 260);
 
 				_numSceneTracks++;
 			}
@@ -286,7 +286,7 @@ void FullpipeEngine::setSceneMusicParameters(GameVar *gvar) {
 	if (seq) {
 		_sceneTrackHasSequence = true;
 
-		strcpy(_trackName, seq->_value.stringValue);
+		Common::strlcpy(_trackName, seq->_value.stringValue, 2600);
 	}
 
 	if (_musicLocal)
@@ -432,7 +432,7 @@ void FullpipeEngine::playTrack(GameVar *sceneVar, const char *name, bool delayed
 
 		while (sub) {
 			if (_musicAllowed & sub->_value.intValue) {
-				strcpy(_sceneTracks[_numSceneTracks], sub->_varName);
+				Common::strlcpy(_sceneTracks[_numSceneTracks], sub->_varName, 260);
 
 				_numSceneTracks++;
 			}
@@ -450,7 +450,7 @@ void FullpipeEngine::playTrack(GameVar *sceneVar, const char *name, bool delayed
 	if (seq) {
 		_sceneTrackHasSequence = true;
 
-		strcpy(_trackName, seq->_value.stringValue);
+		Common::strlcpy(_trackName, seq->_value.stringValue, 2600);
 	}
 
 	if (delayed) {

@@ -55,6 +55,7 @@ static const PlainGameDescriptor wintermuteGames[] = {
 	{"looky",           "Looky"},
 	{"julia",           "J.U.L.I.A."},
 	{"mirage",          "Mirage"},
+	{"oknytt",          "Oknytt"},
 	{"paintaria",       "Paintaria"},
 	{"pigeons",         "Pigeons in the Park"},
 	{"projectdoom",     "Project: Doom"},
@@ -73,6 +74,7 @@ static const PlainGameDescriptor wintermuteGames[] = {
 	{"tib",             "Fairy Tales About Toshechka and Boshechka"},
 	{"tradestory",      "The Trader of Stories"},
 	{"twc",             "the white chamber"},
+	{"vsevolod",        "Vsevolod"},
 	{"wintermute",      "Wintermute engine game"},
 	{"wtetris",         "Wilma Tetris"},
 	{"zilm",            "Zilm: A Game of Reflex"},
@@ -697,6 +699,16 @@ static const ADGameDescription gameDescriptions[] = {
 		ADGF_UNSTABLE,
 		GUIO0()
 	},
+	// Oknytt
+	{
+		"oknytt",
+		"Version 1.0",
+		AD_ENTRY1s("data.dcp", "6456cf8f429905c83f07509f9da536dd", 109502959),
+		Common::EN_ANY,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE,
+		GUIO0()
+	},
 	// Paintaria
 	{
 		"paintaria",
@@ -1276,6 +1288,17 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::UNK_LANG,
 		Common::kPlatformWindows,
 		ADGF_UNSTABLE,
+		GUIO0()
+	},
+	// Vsevolod Prologue (Demo)
+	{
+		"vsevolod",
+		"Prologue",
+		AD_ENTRY1s("data.dcp", "f2dcffd2692dbfcc9371fa1a87970fe7", 388669493),
+		Common::EN_ANY,
+		Common::kPlatformWindows,
+		ADGF_UNSTABLE |
+		ADGF_DEMO,
 		GUIO0()
 	},
 	// Wilma Tetris

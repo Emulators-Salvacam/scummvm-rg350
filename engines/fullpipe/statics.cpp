@@ -528,15 +528,15 @@ void Movement::draw(bool flipFlag, int angle) {
 	if (_currMovement) {
 		bmp = _currDynamicPhase->getPixelData()->reverseImage();
 	} else {
-		bmp = _currDynamicPhase->getPixelData();
+		bmp = _currDynamicPhase->getPixelData()->reverseImage(false);
 	}
 
 	if (flipFlag) {
-		bmp->flipVertical()->drawShaded(1, x, y + 30 + _currDynamicPhase->_rect->bottom, _currDynamicPhase->_paletteData);
+		bmp->flipVertical()->drawShaded(1, x, y + 30 + _currDynamicPhase->_rect->bottom, _currDynamicPhase->_paletteData, _currDynamicPhase->_alpha);
 	} if (angle) {
-		bmp->drawRotated(x, y, angle, _currDynamicPhase->_paletteData);
+		bmp->drawRotated(x, y, angle, _currDynamicPhase->_paletteData, _currDynamicPhase->_alpha);
 	} else {
-		bmp->putDib(x, y, (int32 *)_currDynamicPhase->_paletteData);
+		bmp->putDib(x, y, (int32 *)_currDynamicPhase->_paletteData, _currDynamicPhase->_alpha);
 	}
 
 	if (_currDynamicPhase->_rect->top) {
@@ -549,11 +549,11 @@ void Movement::draw(bool flipFlag, int angle) {
 		if (_currDynamicPhase->_convertedBitmap) {
 			if (_currMovement) {
 				//vrtSetAlphaBlendMode(g_vrtDrawHandle, 1, LOBYTE(_currDynamicPhase->rect.top));
-				_currDynamicPhase->_convertedBitmap->reverseImage()->putDib(x, y, (int32 *)_currDynamicPhase->_paletteData);
+				_currDynamicPhase->_convertedBitmap->reverseImage()->putDib(x, y, (int32 *)_currDynamicPhase->_paletteData, _currDynamicPhase->_alpha);
 				//vrtSetAlphaBlendMode(g_vrtDrawHandle, 0, 255);
 			} else {
 				//vrtSetAlphaBlendMode(g_vrtDrawHandle, 1, LOBYTE(_currDynamicPhase->rect.top));
-				_currDynamicPhase->_convertedBitmap->putDib(x, y, (int32 *)_currDynamicPhase->_paletteData);
+				_currDynamicPhase->_convertedBitmap->reverseImage(false)->putDib(x, y, (int32 *)_currDynamicPhase->_paletteData, _currDynamicPhase->_alpha);
 				//vrtSetAlphaBlendMode(g_vrtDrawHandle, 0, 255);
 			}
 		}
@@ -979,11 +979,12 @@ void StaticANIObject::stopAnim_maybe() {
 					_ox += point.x;
 					_oy += point.y;
 				}
+			} else {
+			  _statics = _movement->_staticsObj2;
 			}
-		}
-
-		if (_movement->_currDynamicPhaseIndex || !(_flags & 0x40))
+		} else {
 			_statics = _movement->_staticsObj2;
+		}
 
 		_statics->getSomeXY(point);
 
@@ -1453,14 +1454,8 @@ bool Statics::load(MfcArchive &file) {
 void Statics::init() {
 	Picture::init();
 
-	if (_staticsId & 0x4000) {
-		Bitmap *bmp = _bitmap->reverseImage();
-
-		freePixelData();
-
-		_bitmap = bmp;
-		_data = bmp->_pixels;
-	}
+	if (_staticsId & 0x4000)
+		_bitmap->reverseImage();
 }
 
 Common::Point *Statics::getSomeXY(Common::Point &p) {
@@ -1765,8 +1760,8 @@ Common::Point *Movement::calcSomeXY(Common::Point &p, int idx, int dynidx) {
 
 	setOXY(x, y);
 
-	while (_currDynamicPhaseIndex != dynidx)
-		gotoNextFrame(0, 0);
+	while (_currDynamicPhaseIndex != dynidx && gotoNextFrame(0, 0))
+		;
 
 	p.x = _ox;
 	p.y = _oy;
@@ -2211,8 +2206,11 @@ DynamicPhase::DynamicPhase(DynamicPhase *src, bool reverse) {
 		_libHandle = src->_libHandle;
 
 		_bitmap = src->_bitmap;
-		if (_bitmap)
+		if (_bitmap) {
 			_field_54 = 1;
+
+			_bitmap = src->_bitmap->reverseImage(false);
+		}
 
 		_someX = src->_someX;
 		_someY = src->_someY;
