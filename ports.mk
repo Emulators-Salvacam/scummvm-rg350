@@ -247,7 +247,6 @@ win32dist: $(EXECUTABLE)
 	mkdir -p $(WIN32PATH)/doc/no-nb
 	mkdir -p $(WIN32PATH)/doc/se
 	$(STRIP) $(EXECUTABLE) -o $(WIN32PATH)/$(EXECUTABLE)
-	cp $(DIST_FILES_THEMES) $(WIN32PATH)
 	cp $(srcdir)/AUTHORS $(WIN32PATH)/AUTHORS.txt
 	cp $(srcdir)/COPYING $(WIN32PATH)/COPYING.txt
 	cp $(srcdir)/COPYING.BSD $(WIN32PATH)/COPYING.BSD.txt
@@ -314,8 +313,6 @@ else ifeq "$(CUR_BRANCH)" ""
 endif
 	@echo Creating Code::Blocks project files...
 	@cd $(srcdir)/dists/codeblocks && ../../devtools/create_project/create_project ../.. --codeblocks >/dev/null && git add -f engines/plugins_table.h *.workspace *.cbp
-	@echo Creating MSVC8 project files...
-	@cd $(srcdir)/dists/msvc8 && ../../devtools/create_project/create_project ../.. --msvc --msvc-version 8 >/dev/null && git add -f engines/plugins_table.h *.sln *.vcproj *.vsprops
 	@echo Creating MSVC9 project files...
 	@cd $(srcdir)/dists/msvc9 && ../../devtools/create_project/create_project ../.. --msvc --msvc-version 9 >/dev/null && git add -f engines/plugins_table.h *.sln *.vcproj *.vsprops
 	@echo Creating MSVC10 project files...
