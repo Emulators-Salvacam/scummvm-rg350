@@ -3,7 +3,7 @@ For a more comprehensive changelog of the latest experimental code, see:
 
 1.8.0 (????-??-??)
 
-1.7.0 (2014-07-??)
+1.7.0 (2014-07-21)
  New Games:
    - Added support for Chivalry is Not Dead.
    - Added support for Return to Ringworld.
@@ -12,7 +12,7 @@ For a more comprehensive changelog of the latest experimental code, see:
    - Added support for Voyeur.
 
  General:
-   - Updated Munt MT-32 emulation code to version 1.4.0.
+   - Updated Munt MT-32 emulation code to version 1.3.0.
    - Switched from our custom JPEG and PNG decoders to libjpeg(-turbo) and
      libpng, which are faster and can handle more images.
      (NOTE: The change to libpng was done in version 1.6.0, but it was not
@@ -49,6 +49,10 @@ For a more comprehensive changelog of the latest experimental code, see:
  Hopkins:
    - Added an option to toggle "Gore Mode" from the ScummVM GUI.
    - Fixed bug that could cause the music to stop prematurely.
+
+ Pegasus:
+   - Fixed several rare crashes and glitches.
+   - Fixed multiple bugs carried over from the original binary.
 
  SCI:
    - Added support for the more detailed RAVE lip syncing data in the Windows

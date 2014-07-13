@@ -95,13 +95,23 @@ Synth::~Synth() {
 }
 
 void ReportHandler::showLCDMessage(const char *data) {
-	debug("WRITE-LCD: %s", data);
-	debug("\n");
+	// We cannot use printf here. Since we already implement our own
+	// ReportHandler we simply disable the default implementation since it is
+	// never called anyway.
+#if 0
+	printf("WRITE-LCD: %s", data);
+	printf("\n");
+#endif
 }
 
 void ReportHandler::printDebug(const char *fmt, va_list list) {
-	debug(fmt, list);
-	debug("\n");
+	// We cannot use (v)printf here. Since we already implement our own
+	// ReportHandler we simply disable the default implementation since it is
+	// never called anyway.
+#if 0
+	vprintf(fmt, list);
+	printf("\n");
+#endif
 }
 
 void Synth::polyStateChanged(int partNum) {
@@ -236,7 +246,6 @@ bool Synth::isReversedStereoEnabled() {
 }
 
 bool Synth::loadControlROM(const ROMImage &controlROMImage) {
-	if (&controlROMImage == NULL) return false;
 	Common::File *file = controlROMImage.getFile();
 	const ROMInfo *controlROMInfo = controlROMImage.getROMInfo();
 	if ((controlROMInfo == NULL)
@@ -272,7 +281,6 @@ bool Synth::loadControlROM(const ROMImage &controlROMImage) {
 }
 
 bool Synth::loadPCMROM(const ROMImage &pcmROMImage) {
-	if (&pcmROMImage == NULL) return false;
 	Common::File *file = pcmROMImage.getFile();
 	const ROMInfo *pcmROMInfo = pcmROMImage.getROMInfo();
 	if ((pcmROMInfo == NULL)
