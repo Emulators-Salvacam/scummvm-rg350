@@ -112,6 +112,7 @@ endif
 ###SCUMM VM
 srcdir = ../../../..
 retrodir = backends/platform/libretro/
+libcodir = $(retrodir)libco/
 VPATH = $(srcdir)
 
 # Define toolset
@@ -176,8 +177,8 @@ ENABLE_TSAGE = $(ENABLED)
 
 #
 OBJS :=	$(retrodir)libretro.o \
-        $(retrodir)os.o \
-        $(retrodir)libco/libco.o
+        $(retrodir)os.o
+OBJS += $(libcodir)libco.o
 
 ifeq ($(FS_TYPE), posix)
 OBJS += backends/fs/posix/posix-fs.o \
