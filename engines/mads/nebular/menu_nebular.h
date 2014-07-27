@@ -60,20 +60,94 @@ private:
 	int _frameIndex;
 	uint32 _delayTimeout;
 	bool _skipFlag;
+
+	/**
+	 * Currently highlighted menu item
+	 */
 	int _highlightedIndex;
 
-	int getHighlightedItem(int x, int y);
+	/**
+	 * Flag for mouse button being pressed
+	 */
+	bool _buttonDown;
+
+	/**
+	 * Stores menu item selection
+	 */
+	int _selectedIndex;
+
+	/**
+	 * Get the highlighted menu item under the cursor
+	 */
+	int getHighlightedItem(const Common::Point &pt);
+
+	/**
+	 * Un-highlight a currently highlighted item
+	 */
+	void unhighlightItem();
+
+	/**
+	 * Execute a given menuitem
+	 */
 	void handleAction(MADSGameAction action);
+
+	/**
+	 * Add a sprite slot for the current menuitem frame
+	 */
 	void addSpriteSlot();
 protected:
+	/**
+	 * Display the menu
+	 */
 	virtual void display();
 
+	/**
+	 * Handle the menu item animations
+	 */
 	virtual void doFrame();
 
+	/**
+	 * Event handler
+	 */
 	virtual bool onEvent(Common::Event &event);
 public:
 	MainMenu(MADSEngine *vm);
+
 	virtual ~MainMenu();
+};
+
+/**
+ * Scrolling text view
+ */
+class TextView : public MenuView {
+private:
+	static char _resourceName[100];
+public:
+	/**
+	 * Queue the given text resource for display
+	 */
+	static void execute(const Common::String &resName);
+
+	TextView(MADSEngine *vm) : MenuView(vm) {}
+
+	virtual ~TextView() {}
+};
+
+/**
+* Animation cutscene view
+*/
+class AnimationView : public MenuView {
+private:
+	static char _resourceName[100];
+public:
+	/**
+	* Queue the given text resource for display
+	*/
+	static void execute(const Common::String &resName);
+
+	AnimationView(MADSEngine *vm) : MenuView(vm) {}
+
+	virtual ~AnimationView() {}
 };
 
 } // End of namespace Nebular
