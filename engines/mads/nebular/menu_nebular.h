@@ -116,21 +116,87 @@ public:
 	virtual ~MainMenu();
 };
 
+class AdvertView : public EventTarget {
+private:
+	/**
+	 * Engine reference
+	 */
+	MADSEngine *_vm;
+
+	/**
+	 * Signals when to close the dialog
+	 */
+	bool _breakFlag;
+protected:
+	/**
+	* Event handler
+	*/
+	virtual bool onEvent(Common::Event &event);
+public:
+	AdvertView(MADSEngine *vm);
+
+	virtual ~AdvertView() {}
+
+	/**
+	 * Show the dialog
+	 */
+	void show();
+};
+
 /**
  * Scrolling text view
  */
 class TextView : public MenuView {
 private:
 	static char _resourceName[100];
+
+	bool _animating;
+	Common::Point _pan;
+	int _panSpeed;
+	int _spareScreens[10];
+	int _scrollCount;
+	int _lineY;
+	uint32 _scrollTimeout;
+	int _panCountdown;
+	int _translationX;
+	Common::File _script;
+	char _currentLine[80];
+	MSurface _textSurface;
+	MSurface *_spareScreen;
+private:
+	/**
+	 * Load the text resource
+	 */
+	void load();
+
+	/**
+	 * Process the lines
+	 */
+	void processLines();
+
+	/**
+	 * Process a command from the script file
+	 */
+	void processCommand();
+
+	/**
+	 * Process text from the script file
+	 */
+	void processText();
+
+	/**
+	 * Get a parameter from line
+	 */
+	int getParameter(const char **paramP);
 public:
 	/**
 	 * Queue the given text resource for display
 	 */
-	static void execute(const Common::String &resName);
+	static void execute(MADSEngine *vm, const Common::String &resName);
 
-	TextView(MADSEngine *vm) : MenuView(vm) {}
+	TextView(MADSEngine *vm);
 
-	virtual ~TextView() {}
+	virtual ~TextView();
 };
 
 /**
@@ -139,13 +205,31 @@ public:
 class AnimationView : public MenuView {
 private:
 	static char _resourceName[100];
+
+	Common::File _script;
+	uint32 _previousUpdate;
+	char _currentLine[80];
+	char _currentFile[10];
+	bool _soundDriverLoaded;
+private:
+	void load();
+
+	void processLines();
+
+	void processCommand();
+
+	void scriptDone();
+
+	void doFrame();
+protected:
+	virtual bool onEvent(Common::Event &event);
 public:
 	/**
 	* Queue the given text resource for display
 	*/
-	static void execute(const Common::String &resName);
+	static void execute(MADSEngine *vm, const Common::String &resName);
 
-	AnimationView(MADSEngine *vm) : MenuView(vm) {}
+	AnimationView(MADSEngine *vm);
 
 	virtual ~AnimationView() {}
 };
