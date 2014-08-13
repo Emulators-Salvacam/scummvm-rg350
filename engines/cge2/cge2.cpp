@@ -95,17 +95,18 @@ CGE2Engine::CGE2Engine(OSystem *syst, const ADGameDescription *gameDescription)
 	_req = 1;
 	_midiNotify = nullptr;
 	_spriteNotify = nullptr;
+	_startGameSlot = 0;
 	
 	_sayCap = ConfMan.getBool("subtitles");
 	_sayVox = !ConfMan.getBool("speech_mute");
-	if (ConfMan.getBool("mute")) {
+	_muteAll = ConfMan.getBool("mute");
+	if (_muteAll) {
 		_oldMusicVolume = _oldSfxVolume = 0;
-		_music = _sfx = false;
+		_music = _sayVox = false;
 	} else {
 		_oldMusicVolume = ConfMan.getInt("music_volume");
 		_oldSfxVolume = ConfMan.getInt("sfx_volume");
 		_music = _oldMusicVolume != 0;
-		_sfx = _oldSfxVolume != 0;
 	}
 }
 

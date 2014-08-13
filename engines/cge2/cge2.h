@@ -224,7 +224,8 @@ public:
 	void switchVox();
 	void switchSay();
 	void initToolbar();
-	void initVolumeSwitch(Sprite *volSwitch);
+	void initVolumeSwitch(Sprite *volSwitch, int val);
+	void checkMute();
 
 	void checkSounds();
 
@@ -306,7 +307,7 @@ public:
 	int _oldMusicVolume;
 	int _oldSfxVolume;
 	bool _music;
-	bool _sfx;
+	bool _muteAll;
 
 	ResourceManager *_resman;
 	Vga *_vga;

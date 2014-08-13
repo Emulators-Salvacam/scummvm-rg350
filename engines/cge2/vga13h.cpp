@@ -252,7 +252,7 @@ int Sprite::labVal(Action snq, int lab) {
 				error("Bad SPR [%s]", tmpStr);
 
 			int cnt = 0;
-			int section = kIdPhase;
+			ID section = kIdPhase;
 			ID id;
 			Common::String line;
 
@@ -267,7 +267,7 @@ int Sprite::labVal(Action snq, int lab) {
 				p = _vm->token(tmpStr);
 
 				if (*p == '@') {
-					if (section == snq && atoi(p + 1) == lab)
+					if ((int)section == (int)snq && atoi(p + 1) == lab)
 						lv = cnt;
 				} else {
 					id = _vm->ident(p);
@@ -280,7 +280,7 @@ int Sprite::labVal(Action snq, int lab) {
 						section = id;
 						break;
 					default:
-						if (id < 0 && section == snq)
+						if (id < 0 && (int)section == (int)snq)
 							++cnt;
 						break;
 					}
@@ -516,7 +516,7 @@ void Sprite::step(int nr) {
 	if (nr >= 0)
 		_seqPtr = nr;
 
-	if (_ext) {
+	if (_ext && _ext->_seq) {
 		V3D p = _pos3D;
 		Seq *seq = nullptr;
 
@@ -556,13 +556,15 @@ void Sprite::step(int nr) {
 			gotoxyz(p);
 		} else {
 			seq = _ext->_seq + _seqPtr;
-			if (seq->_dz == 127 && seq->_dx != 0) {
-				_vm->_commandHandlerTurbo->addCommand(kCmdSound, -1, 256 * seq->_dy + seq->_dx, this);
-			} else {
-				p._x += seq->_dx;
-				p._y += seq->_dy;
-				p._z += seq->_dz;
-				gotoxyz(p);
+			if (seq) {
+				if (seq->_dz == 127 && seq->_dx != 0) {
+					_vm->_commandHandlerTurbo->addCommand(kCmdSound, -1, 256 * seq->_dy + seq->_dx, this);
+				} else {
+					p._x += seq->_dx;
+					p._y += seq->_dy;
+					p._z += seq->_dz;
+					gotoxyz(p);
+				}
 			}
 		}
 		if (seq && (seq->_dly >= 0))

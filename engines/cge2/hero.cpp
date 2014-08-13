@@ -33,7 +33,7 @@ namespace CGE2 {
 
 Hero::Hero(CGE2Engine *vm)
 	: Sprite(vm), _contact(nullptr), _dir(kNoDir),
-      _curDim(0), _tracePtr(-1), _ignoreMap(false) {
+      _curDim(0), _tracePtr(-1), _ignoreMap(false), _maxDist(0) {
 
 	for (int i = 0; i < kDimMax; i++) {
 		_dim[i] = nullptr;
@@ -190,14 +190,15 @@ Sprite *Hero::expand() {
 		setShapeList(_dim[0], shpcnt);
 	}
 
-	Common::String str(_vm->_text->getText(_ref + 100));
-	char text[kLineMax + 1];
-	strcpy(text, str.c_str());
+	char *tempStr = _vm->_text->getText(_ref + 100);
+	char *text = new char[strlen(tempStr) + 1];
+	strcpy(text, tempStr);
 	_reachStart = atoi(_vm->token(text));
 	_reachCycle = atoi(_vm->token(nullptr));
 	_sayStart = atoi(_vm->token(nullptr));
 	_funStart = atoi(_vm->token(nullptr));
 	_funDel = _funDel0 = (72 / _ext->_seq[0]._dly) * atoi(_vm->token(nullptr));
+	delete[] text;
 
 	int i = stepSize() / 2;
 	_maxDist = sqrt(double(i * i * 2));

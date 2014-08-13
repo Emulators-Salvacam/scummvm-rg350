@@ -93,13 +93,13 @@ void Sound::sndDigiStart(SmpInfo *PSmpInfo, Audio::Mixer::SoundType soundType) {
 	Audio::SoundHandle *handle = nullptr;
 	switch (soundType) {
 	case Audio::Mixer::kSFXSoundType:
-		handle = &_soundHandle;
+		handle = &_sfxHandle;
 		break;
 	case Audio::Mixer::kSpeechSoundType:
 		handle = &_speechHandle;
 		break;
 	default:
-		break;
+		error("Wrong sound type passed to sndDigiStart()");
 	}
 
 	// Start the new sound
@@ -114,13 +114,13 @@ void Sound::sndDigiStart(SmpInfo *PSmpInfo, Audio::Mixer::SoundType soundType) {
 }
 
 void Sound::stop() {
-	sndDigiStop(_soundHandle);
+	sndDigiStop(_sfxHandle);
 	sndDigiStop(_speechHandle);
 	_audioStream = nullptr;
 }
 
 void Sound::checkSoundHandles() {
-	if (!_vm->_mixer->isSoundHandleActive(_speechHandle) && !_vm->_mixer->isSoundHandleActive(_soundHandle))
+	if (!_vm->_mixer->isSoundHandleActive(_speechHandle) && !_vm->_mixer->isSoundHandleActive(_sfxHandle))
 		_smpinf._counter = 0;
 }
 

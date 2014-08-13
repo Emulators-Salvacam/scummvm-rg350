@@ -123,11 +123,11 @@ void CGE2Engine::setVolume(int idx, int cnt) {
 			int newVolume = p * kSoundStatetoNumRate;
 			switch (idx) {
 			case 0:
+				_oldSfxVolume = ConfMan.getInt("sfx_volume");
 				ConfMan.setInt("sfx_volume", newVolume);
 				break;
 			case 1:
-				if (newVolume == 0)
-					_oldMusicVolume = ConfMan.getInt("music_volume");
+				_oldMusicVolume = ConfMan.getInt("music_volume");
 				ConfMan.setInt("music_volume", newVolume);
 				break;
 			default:
@@ -143,11 +143,8 @@ void CGE2Engine::checkVolumeSwitches() {
 		_vol[1]->step(musicVolume / kSoundNumtoStateRate);
 
 	int sfxVolume = ConfMan.getInt("sfx_volume");
-	if (sfxVolume != _oldSfxVolume) {
+	if (sfxVolume != _oldSfxVolume)
 		_vol[0]->step(sfxVolume / kSoundNumtoStateRate);
-		_oldSfxVolume = sfxVolume;
-		_sfx = true;
-	}
 }
 
 void CGE2Engine::switchCap() {
@@ -159,8 +156,8 @@ void CGE2Engine::switchCap() {
 }
 
 void CGE2Engine::switchVox() {
-	_mixer->muteSoundType(Audio::Mixer::kSpeechSoundType, _sayVox);
 	_sayVox = !_sayVox;
+	_mixer->muteSoundType(Audio::Mixer::kSpeechSoundType, _sayVox);
 	if (!_sayVox)
 		_sayCap = true;
 	keyClick();
@@ -198,18 +195,31 @@ void CGE2Engine::initToolbar() {
 	_vol[0] = _vga->_showQ->locate(kDvolRef);
 	_vol[1] = _vga->_showQ->locate(kMvolRef);
 
-	if (_vol[0])
-		initVolumeSwitch(_vol[0]);
+	if (_vol[0]) {
+		int val = ConfMan.getInt("sfx_volume");
+		initVolumeSwitch(_vol[0], val);
+	}
 
-	if (_vol[1])
-		initVolumeSwitch(_vol[1]);
+	if (_vol[1]) {
+		int val = ConfMan.getInt("music_volume");
+		initVolumeSwitch(_vol[1], val);
+	}
 }
 
-void CGE2Engine::initVolumeSwitch(Sprite *volSwitch) {
+void CGE2Engine::initVolumeSwitch(Sprite *volSwitch, int val) {
 	int state = 0;
-	if (!ConfMan.getBool("mute"))
-		state = ConfMan.getInt("sfx_volume") / kSoundNumtoStateRate;
+	state = val / kSoundNumtoStateRate;
 	volSwitch->step(state);
+}
+
+void CGE2Engine::checkMute() {
+	bool mute = ConfMan.getBool("mute");
+	bool mutedChanged = mute != _muteAll;
+	if (mutedChanged) {
+		switchMusic();
+		switchVox();
+		_muteAll = mute;
+	}
 }
 
 } // End of namespace CGE2
