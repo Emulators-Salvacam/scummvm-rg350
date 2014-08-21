@@ -570,7 +570,7 @@ msgid "8 kHz"
 msgstr "8 кГц"
 
 #: gui/options.cpp:87
-msgid "11kHz"
+msgid "11 kHz"
 msgstr "11 кГц"
 
 #: gui/options.cpp:87
@@ -699,9 +699,9 @@ msgid "SoundFont:"
 msgstr "SoundFont:"
 
 #: gui/options.cpp:856 gui/options.cpp:858 gui/options.cpp:859
-msgid "SoundFont is supported by some audio cards, Fluidsynth and Timidity"
+msgid "SoundFont is supported by some audio cards, FluidSynth and Timidity"
 msgstr ""
-"SoundFont підтримується деякими звуковими картами, Fluidsynth та Timidity"
+"SoundFont підтримується деякими звуковими картами, FluidSynth та Timidity"
 
 #: gui/options.cpp:858
 msgctxt "lowres"
@@ -2438,10 +2438,6 @@ msgstr "Показати/Сховати інфоекран"
 msgid "Display/Hide Pause Menu"
 msgstr "Показувати/Сховати меню паузи"
 
-#: engines/pegasus/pegasus.cpp:2517
-msgid "???"
-msgstr "???"
-
 #: engines/sci/detection.cpp:374
 msgid "EGA undithering"
 msgstr "EGA без растрування"
@@ -3232,7 +3228,7 @@ msgid ""
 msgstr "Знайдені PSX ролики, але ScummVM був зібраний без підтримки RGB кольорів"
 
 #: engines/sword2/animation.cpp:461
-"MPEG-2 cutscenes found but ScummVM has been built without MPEG-2 support"
+msgid "MPEG-2 cutscenes found but ScummVM has been built without MPEG-2 support"
 msgstr "Знайдено ролики MPEG-2, але ScummVM був побудований без підтримки MPEG-2"
 
 #: engines/sword2/sword2.cpp:79
