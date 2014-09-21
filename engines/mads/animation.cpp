@@ -32,10 +32,8 @@ void AAHeader::load(Common::SeekableReadStream *f) {
 	_miscEntriesCount = f->readUint16LE();
 	_frameEntriesCount = f->readUint16LE();
 	_messagesCount = f->readUint16LE();
-	f->skip(1);
-	_flags = f->readByte();
-
-	f->skip(2);
+	_loadFlags = f->readUint16LE();
+	_charSpacing = f->readSint16LE();
 	_bgType = (AnimBgType)f->readUint16LE();
 	_roomNumber = f->readUint16LE();
 	f->skip(2);
@@ -49,7 +47,7 @@ void AAHeader::load(Common::SeekableReadStream *f) {
 	char buffer[FILENAME_SIZE];
 	f->read(buffer, FILENAME_SIZE);
 	buffer[FILENAME_SIZE - 1] = '\0';
-	_interfaceFile = Common::String(buffer);
+	_backgroundFile = Common::String(buffer);
 
 	for (int i = 0; i < 50; ++i) {
 		f->read(buffer, FILENAME_SIZE);
@@ -134,7 +132,8 @@ void AnimMiscEntry::load(Common::SeekableReadStream *f) {
 	_numTicks = f->readUint16LE();
 	_posAdjust.x = f->readSint16LE();
 	_posAdjust.y = f->readSint16LE();
-	_field8 = f->readUint16LE();
+	_scroll.x = f->readSByte();
+	_scroll.y = f->readSByte();
 }
 
 /*------------------------------------------------------------------------*/
@@ -189,7 +188,7 @@ Animation::~Animation() {
 	}
 }
 
-void Animation::load(UserInterface &interfaceSurface, DepthSurface &depthSurface,
+void Animation::load(MSurface &backSurface, DepthSurface &depthSurface,
 		const Common::String &resName, int flags, Common::Array<PaletteCycle> *palCycles,
 		SceneInfo *sceneInfo) {
 	Common::String resourceName = resName;
@@ -207,7 +206,7 @@ void Animation::load(UserInterface &interfaceSurface, DepthSurface &depthSurface
 		flags |= PALFLAG_RESERVED;
 
 	if (flags & ANIMFLAG_LOAD_BACKGROUND) {
-		loadInterface(interfaceSurface, depthSurface, _header, flags, palCycles, sceneInfo);
+		loadBackground(backSurface, depthSurface, _header, flags, palCycles, sceneInfo);
 	}
 	if (flags & ANIMFLAG_LOAD_BACKGROUND_ONLY) {
 		// No data
@@ -275,7 +274,7 @@ void Animation::load(UserInterface &interfaceSurface, DepthSurface &depthSurface
 
 	// If the animation specifies a font, then load it for access
 	delete _font;
-	if (_header._flags & ANIMFLAG_CUSTOM_FONT) {
+	if (_header._loadFlags & ANIMFLAG_CUSTOM_FONT) {
 		Common::String fontName = "*" + _header._fontResource;
 		_font = _vm->_font->getFont(fontName.c_str());
 	} else {
@@ -385,12 +384,12 @@ bool Animation::drawFrame(SpriteAsset &spriteSet, const Common::Point &pt, int f
 	return 0;
 }
 
-void Animation::loadInterface(UserInterface &interfaceSurface, DepthSurface &depthSurface,
+void Animation::loadBackground(MSurface &backSurface, DepthSurface &depthSurface,
 		AAHeader &header, int flags, Common::Array<PaletteCycle> *palCycles, SceneInfo *sceneInfo) {
 	_scene->_depthStyle = 0;
 	if (header._bgType <= ANIMBG_FULL_SIZE) {
 		_vm->_palette->_paletteUsage.setEmpty();
-		sceneInfo->load(header._roomNumber, flags, header._interfaceFile, 0, depthSurface, interfaceSurface);
+		sceneInfo->load(header._roomNumber, 0, header._backgroundFile, flags, depthSurface, backSurface);
 		_scene->_depthStyle = sceneInfo->_depthStyle == 2 ? 1 : 0;
 		if (palCycles) {
 			palCycles->clear();
@@ -399,8 +398,8 @@ void Animation::loadInterface(UserInterface &interfaceSurface, DepthSurface &dep
 		}
 	} else if (header._bgType == ANIMBG_INTERFACE) {
 		// Load a scene interface
-		Common::String resourceName = "*" + header._interfaceFile;
-		interfaceSurface.load(resourceName);
+		Common::String resourceName = "*" + header._backgroundFile;
+		backSurface.load(resourceName);
 
 		if (palCycles)
 			palCycles->clear();

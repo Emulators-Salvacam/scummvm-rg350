@@ -49,13 +49,13 @@ void System::touch(uint16 mask, V2D pos, Common::KeyCode keyCode) {
 			// The original was calling keyClick()
 			// The sound is uselessly annoying and noisy, so it has been removed
 			_vm->killText();
-			if (_vm->_startupMode == 1) {
+			if (_vm->_gamePhase == kPhaseIntro) {
 				_vm->_commandHandler->addCommand(kCmdClear, -1, 0, nullptr);
 				return;
 			}
 		}
 	} else {
-		if (_vm->_startupMode)
+		if (_vm->_gamePhase != kPhaseInGame)
 			return;
 		_vm->_infoLine->setText(nullptr);
 		
@@ -450,7 +450,7 @@ void CGE2Engine::sceneUp(int cav) {
 
 	_dark = false;
 
-	if (!_startupMode)
+	if (_gamePhase == kPhaseInGame)
 		_mouse->on();
 
 	feedSnail(_vga->_showQ->locate(bakRef + 255), kNear, _heroTab[_sex]->_ptr);
@@ -522,7 +522,7 @@ void CGE2Engine::showBak(int ref) {
 }
 
 void CGE2Engine::mainLoop() {
-	if (_startupMode == 0)
+	if (_gamePhase == kPhaseInGame)
 		checkSounds();
 
 	_vga->show();
@@ -722,10 +722,9 @@ void CGE2Engine::loadTab() {
 
 	if  (_resman->exist(kTabName)) {
 		EncryptedStream f(this, kTabName);
-		uint32 v;
 
 		for (int i = 0; i < kSceneMax; i++) {
-			v = f.readUint32LE();
+			uint32 v = f.readUint32LE();
 			_eyeTab[i]->_x = FXP(v >> 8, static_cast<int>((int8)(v & 0xff)));
 
 			v = f.readUint32LE();
@@ -751,7 +750,7 @@ void CGE2Engine::cge2_main() {
 
 		if (_text->getText(255) != nullptr) {
 			runGame();
-			_startupMode = 2;
+			_gamePhase = kPhaseOver;
 		}
 		
 		_vga->sunset();
@@ -850,7 +849,7 @@ void Sprite::touch(uint16 mask, V2D pos, Common::KeyCode keyCode) {
 	if ((mask & kEventAttn) != 0)
 		return;
 
-	if (!_vm->_startupMode)
+	if (_vm->_gamePhase == kPhaseInGame)
 		_vm->_infoLine->setText(name());
 
 	if (_ref < 0)

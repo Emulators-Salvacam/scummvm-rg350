@@ -26,6 +26,7 @@
  */
 
 #include "cge2/cge2.h"
+#include "cge2/fileio.h"
 #include "engines/advancedDetector.h"
 #include "common/translation.h"
 #include "graphics/surface.h"
@@ -49,6 +50,27 @@ static const ADGameDescription gameDescriptions[] = {
 			},
 			Common::PL_POL, Common::kPlatformDOS, ADGF_NO_FLAGS, GUIO1(GAMEOPTION_COLOR_BLIND_DEFAULT_OFF)
 		},
+
+		{
+			"sfinx", "Freeware v1.0",
+			{
+				{"vol.cat", 0, "aa402aed24a72c53a4d1211c456b79dd", 129024},
+				{"vol.dat", 0, "5966ac26d91d664714349669f9dd09b5", 34180164},
+				AD_LISTEND
+			},
+			Common::PL_POL, Common::kPlatformDOS, ADGF_NO_FLAGS, GUIO1(GAMEOPTION_COLOR_BLIND_DEFAULT_OFF)
+		},
+
+		{
+			"sfinx", "Freeware v0.3",
+			{
+				{"vol.cat", 0, "f158e469dccbebc5a632eb848df89779", 129024},
+				{"vol.dat", 0, "d40a6b4ae173d6930be54ba56bee15d5", 34183430},
+				AD_LISTEND
+			},
+			Common::EN_ANY, Common::kPlatformDOS, ADGF_NO_FLAGS, GUIO1(GAMEOPTION_COLOR_BLIND_DEFAULT_OFF)
+		},
+
 		AD_TABLE_END_MARKER
 };
 
@@ -80,15 +102,54 @@ public:
 		return "Sfinx (c) 1994-1997 Janus B. Wisniewski and L.K. Avalon";
 	}
 
+	virtual const ADGameDescription *fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const;
 	virtual bool createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const;
 	virtual bool hasFeature(MetaEngineFeature f) const;
 	virtual int getMaximumSaveSlot() const;
 	virtual SaveStateList listSaves(const char *target) const;
 	SaveStateDescriptor querySaveMetaInfos(const char *target, int slot) const;
 	virtual void removeSaveState(const char *target, int slot) const;
-
-	const ADGameDescription *fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const;
 };
+
+static const ADFileBasedFallback fileBasedFallback[] = {
+	{ &gameDescriptions[0], { "vol.cat", "vol.dat", 0 } },
+	{ 0, { 0 } }
+};
+
+static ADGameDescription s_fallbackDesc = {
+	"Sfinx",
+	"Unknown version",
+	AD_ENTRY1(0, 0), // This should always be AD_ENTRY1(0, 0) in the fallback descriptor
+	Common::UNK_LANG,
+	Common::kPlatformDOS,
+	ADGF_NO_FLAGS,
+	GUIO1(GAMEOPTION_COLOR_BLIND_DEFAULT_OFF)
+};
+
+// This fallback detection looks identical to the one used for CGE. In fact, the difference resides
+// in the ResourceManager which handles a different archive format. The rest of the detection is identical.
+const ADGameDescription *CGE2MetaEngine::fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const {
+	ADFilePropertiesMap filesProps;
+
+	const ADGameDescription *game;
+	game = detectGameFilebased(allFiles, fslist, CGE2::fileBasedFallback, &filesProps);
+
+	if (!game)
+		return 0;
+
+	SearchMan.clear();
+	SearchMan.addDirectory(fslist.begin()->getParent().getPath(), fslist.begin()->getParent());
+	ResourceManager *resman;
+	resman = new ResourceManager();
+	bool result = resman->exist("CGE.SAY");
+	delete resman;
+
+	if (!result)
+		return 0;
+
+	reportUnknown(fslist.begin()->getParent(), filesProps);
+	return &s_fallbackDesc;
+}
 
 bool CGE2MetaEngine::createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const {
 	if (desc)
@@ -105,31 +166,6 @@ bool CGE2MetaEngine::hasFeature(MetaEngineFeature f) const {
 		(f == kSavesSupportCreationDate) ||
 		(f == kSupportsListSaves) ||
 		(f == kSupportsLoadingDuringStartup);
-}
-
-const ADGameDescription *CGE2MetaEngine::fallbackDetect(const FileMap &allFiles, const Common::FSList &fslist) const {
-	static ADGameDescription desc;
-
-	for (Common::FSList::const_iterator file = fslist.begin(); file != fslist.end(); ++file) {
-		if (file->isDirectory())
-			continue;
-
-		if (file->getName().equalsIgnoreCase("lang.eng")) {
-			Common::File dataFile;
-			if (!dataFile.open(*file))
-				continue;
-			
-			desc.gameid = "sfinx";
-			desc.extra = "Translation Alpha v0.2";
-			desc.language = Common::EN_ANY;
-			desc.platform = Common::kPlatformDOS;
-			desc.flags = ADGF_NO_FLAGS;
-			desc.guioptions = GUIO1(GAMEOPTION_COLOR_BLIND_DEFAULT_OFF);
-			
-			return (const ADGameDescription *)&desc;
-		}
-	}
-	return 0;
 }
 
 int CGE2MetaEngine::getMaximumSaveSlot() const {

@@ -3,6 +3,13 @@ For a more comprehensive changelog of the latest experimental code, see:
 
 1.8.0 (????-??-??)
 
+Broken Sword 1:
+   - Fix speech endianness detection on big endian systems for the mac
+     version (bug #6720).
+   - Fix crash when reloading a game from the Main Menu while in the bull's
+     head scene (bug #6728). It may have been happening in other scenes as
+     well.
+
 1.7.0 (2014-07-21)
  New Games:
    - Added support for Chivalry is Not Dead.
@@ -308,7 +315,7 @@ For a more comprehensive changelog of the latest experimental code, see:
 
  SCI:
    - Added better handling of digital vs. synthesized sound effects. If the
-     "Mixed Adlib / MIDI mode" checkbox is checked, the engine will prefer
+     "Mixed AdLib / MIDI mode" checkbox is checked, the engine will prefer
      digital sound effects, otherwise their synthesized counterparts will be
      preferred instead, if both versions of the same effect exist.
 

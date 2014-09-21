@@ -24,6 +24,7 @@
 #include "mads/game.h"
 #include "mads/mads.h"
 #include "mads/resources.h"
+#include "mads/scene.h"
 #include "mads/screen.h"
 #include "mads/nebular/menu_nebular.h"
 
@@ -42,8 +43,11 @@ MenuView::MenuView(MADSEngine *vm) : FullScreenDialog(vm) {
 }
 
 void MenuView::show() {
-	Scene &scene = _vm->_game->_scene;	
+ 	Scene &scene = _vm->_game->_scene;	
 	EventsManager &events = *_vm->_events;
+	_vm->_screenFade = SCREEN_FADE_FAST;
+
+	scene._spriteSlots.reset(true);
 	display();
 
 	events.setEventTarget(this);
@@ -51,9 +55,7 @@ void MenuView::show() {
 
 	while (!_breakFlag && !_vm->shouldQuit()) {
 		if (_redrawFlag) {
-			scene.drawElements(_vm->_game->_fx, _vm->_game->_fx);
-
-			_vm->_screen.copyRectToScreen(Common::Rect(0, 0, 320, 200));
+			_vm->_game->_scene.drawElements(_vm->_game->_fx, _vm->_game->_fx);
 			_redrawFlag = false;
 		}
 
@@ -63,12 +65,23 @@ void MenuView::show() {
 	}
 
 	events.setEventTarget(nullptr);
+	_vm->_sound->stop();
 }
 
 void MenuView::display() {
 	_vm->_palette->resetGamePalette(4, 8);
 
 	FullScreenDialog::display();
+}
+
+bool MenuView::onEvent(Common::Event &event) {
+	if (event.type == Common::EVENT_KEYDOWN || event.type == Common::EVENT_LBUTTONDOWN) {
+		_breakFlag = true;
+		_vm->_dialogs->_pendingDialog = DIALOG_MAIN_MENU;
+		return true;
+	}
+
+	return false;
 }
 
 /*------------------------------------------------------------------------*/
@@ -89,6 +102,13 @@ MainMenu::MainMenu(MADSEngine *vm): MenuView(vm) {
 }
 
 MainMenu::~MainMenu() {
+	Scene &scene = _vm->_game->_scene;
+	for (int i = 0; i < 7; ++i) {
+		if (_menuItemIndexes[i] != -1)
+			scene._sprites.remove(_menuItemIndexes[i]);
+	}
+
+	scene._spriteSlots.reset();
 }
 
 void MainMenu::display() {
@@ -107,10 +127,10 @@ void MainMenu::display() {
 		// Register the menu item area in the screen objects
 		MSprite *frame0 = _menuItems[i]->getFrame(0);
 		Common::Point pt(frame0->_offset.x - (frame0->w / 2),
-			frame0->_offset.y - frame0->h + _vm->_screen._offset.y);
+			frame0->_offset.y - frame0->h);
 		screenObjects.add(
-			Common::Rect(pt.x, pt.y, pt.x + frame0->w, pt.y + frame0->h),
-			LAYER_GUI, CAT_COMMAND, i);
+			Common::Rect(pt.x, pt.y + DIALOG_TOP, pt.x + frame0->w, 
+			pt.y + frame0->h + DIALOG_TOP), LAYER_GUI, CAT_COMMAND, i);
 	}
 
 	// Set the cursor for when it's shown
@@ -338,7 +358,7 @@ void MainMenu::handleAction(MADSGameAction action) {
 		return;
 
 	case SHOW_INTRO:
-		AnimationView::execute(_vm, "@rexopen");
+		AnimationView::execute(_vm, "rexopen");
 		break;
 
 	case CREDITS:
@@ -375,6 +395,8 @@ void AdvertView::show() {
 	sceneInfo->load(screenId, 0, Common::String(), 0, _vm->_game->_scene._depthSurface,
 		_vm->_screen);
 	_vm->_screen.copyRectToScreen(_vm->_screen.getBounds());
+	_vm->_palette->setFullPalette(_vm->_palette->_mainPalette);
+
 	delete sceneInfo;
 
 	EventsManager &events = *_vm->_events;
@@ -390,6 +412,7 @@ void AdvertView::show() {
 
 	events.setEventTarget(nullptr);
 	_vm->quitGame();
+	events.pollEvents();
 }
 
 bool AdvertView::onEvent(Common::Event &event) {
@@ -415,25 +438,30 @@ void TextView::execute(MADSEngine *vm, const Common::String &resName) {
 	vm->_dialogs->_pendingDialog = DIALOG_TEXTVIEW;
 }
 
-TextView::TextView(MADSEngine *vm) : MenuView(vm),
-		_textSurface(MADS_SCREEN_WIDTH, MADS_SCREEN_HEIGHT + _vm->_font->getHeight()) {
+TextView::TextView(MADSEngine *vm) : MenuView(vm) {
 	_animating = false;
 	_panSpeed = 0;
-	Common::fill(&_spareScreens[0], &_spareScreens[10], 0);
 	_spareScreen = nullptr;
 	_scrollCount = 0;
 	_lineY = -1;
 	_scrollTimeout = 0;
 	_panCountdown = 0;
 	_translationX = 0;
+	_screenId = -1;
+
+	_font = _vm->_font->getFont(FONT_CONVERSATION);
+	_vm->_palette->resetGamePalette(4, 0);
+	load();
 }
 
 TextView::~TextView() {
-	delete _spareScreen;
 }
 
 void TextView::load() {
-	if (!_script.open(_resourceName))
+	Common::String scriptName(_resourceName);
+	scriptName += ".txr";
+
+	if (!_script.open(scriptName))
 		error("Could not open resource %s", _resourceName);
 
 	processLines();
@@ -444,7 +472,11 @@ void TextView::processLines() {
 		error("Attempted to read past end of response file");
 
 	while (!_script.eos()) {
+		// Read in the next line
 		_script.readLine(_currentLine, 79);
+		char *p = _currentLine + strlen(_currentLine) - 1;
+		if (*p == '\n')
+			*p = '\0';
 
 		// Commented out line, so go loop for another
 		if (_currentLine[0] == '#')
@@ -490,29 +522,16 @@ void TextView::processCommand() {
 	if (!strncmp(commandStr, "BACKGROUND", 10)) {
 		// Set the background
 		paramP = commandStr + 10;
+		resetPalette();
 		int screenId = getParameter(&paramP);
 		
 		SceneInfo *sceneInfo = SceneInfo::init(_vm);
-		sceneInfo->load(screenId, 0, Common::String(), 0, scene._depthSurface,
-			scene._backgroundSurface);
-	
+		sceneInfo->load(screenId, 0, "", 0, scene._depthSurface, scene._backgroundSurface);
+		scene._spriteSlots.fullRefresh();
+		_redrawFlag = true;
+
 	} else if (!strncmp(commandStr, "GO", 2)) {
 		_animating = true;
-
-		// Grab what the final palete will be
-		byte destPalette[PALETTE_SIZE];
-		_vm->_palette->grabPalette(destPalette, 0, 256);
-
-		// Copy the loaded background, if any, to the view surface
-		//int yp = 22;
-		//scene._backgroundSurface.copyTo(this, 0, 22);
-
-		// Handle fade-in
-		//byte srcPalette[768];
-		//Common::fill(&srcPalette[0], &srcPalette[PALETTE_SIZE], 0);
-		//_vm->_palette->fadeIn(srcPalette, destPalette, 0, PALETTE_COUNT, 0, 0,
-		//	TV_FADE_DELAY_MILLI, TV_NUM_FADE_STEPS);
-		_vm->_game->_fx = kTransitionFadeIn;
 
 	} else if (!strncmp(commandStr, "PAN", 3)) {
 		// Set panning values
@@ -528,10 +547,12 @@ void TextView::processCommand() {
 
 	} else if (!strncmp(commandStr, "DRIVER", 6)) {
 		// Set the driver to use
-		paramP = commandStr + 6;
-		int driverNum = getParameter(&paramP);
-		_vm->_sound->init(driverNum);
+		paramP = commandStr + 7;
 
+		if (!strncmp(paramP, "#SOUND.00", 9)) {
+			int driverNum = paramP[9] - '0';
+			_vm->_sound->init(driverNum);
+		}
 	} else if (!strncmp(commandStr, "SOUND", 5)) {
 		// Set sound number
 		paramP = commandStr + 5;
@@ -544,21 +565,27 @@ void TextView::processCommand() {
 		int index = commandStr[5] - '0';
 		paramP = commandStr + 6;
 
-		byte palEntry[3];
-		palEntry[0] = getParameter(&paramP) << 2;
-		palEntry[1] = getParameter(&paramP) << 2;
-		palEntry[2] = getParameter(&paramP) << 2;
-		_vm->_palette->setPalette(&palEntry[0], 5 + index, 1);
+		byte r = getParameter(&paramP);
+		byte g = getParameter(&paramP);
+		byte b = getParameter(&paramP);
+
+		_vm->_palette->setEntry(5 + index, r, g, b);
 
 	} else if (!strncmp(commandStr, "SPARE", 5)) {
 		// Sets a secondary background number that can be later switched in with a PAGE command
 		paramP = commandStr + 6;
 		int spareIndex = commandStr[5] - '0';
-		if ((spareIndex >= 0) && (spareIndex <= 9)) {
-			int screenId = getParameter(&paramP);
+		assert(spareIndex < 4);
+		int screenId = getParameter(&paramP);
 
-			_spareScreens[spareIndex] = screenId;
-		}
+		// Load the spare background
+		SceneInfo *sceneInfo = SceneInfo::init(_vm);
+		sceneInfo->_width = MADS_SCREEN_WIDTH;
+		sceneInfo->_height = MADS_SCENE_HEIGHT;
+		_spareScreens[spareIndex].setSize(MADS_SCREEN_WIDTH, MADS_SCENE_HEIGHT);
+		sceneInfo->loadMadsV1Background(screenId, "", SCENEFLAG_TRANSLATE, 
+			_spareScreens[spareIndex]);
+		delete sceneInfo;
 
 	} else if (!strncmp(commandStr, "PAGE", 4)) {
 		// Signals to change to a previous specified secondary background
@@ -566,10 +593,8 @@ void TextView::processCommand() {
 		int spareIndex = getParameter(&paramP);
 
 		// Only allow background switches if one isn't currently in progress
-		if (!_spareScreen && (_spareScreens[spareIndex] != 0)) {
-			_spareScreen = new MSurface(MADS_SCREEN_WIDTH, MADS_SCREEN_HEIGHT);
-			//_spareScreen->loadBackground(_spareScreens[spareIndex], &_bgSpare);
-
+		if (!_spareScreen && _spareScreens[spareIndex].getPixels() != nullptr) {
+			_spareScreen = &_spareScreens[spareIndex];
 			_translationX = 0;
 		}
 
@@ -597,7 +622,7 @@ void TextView::processText() {
 
 	if (!strcmp(_currentLine, "***")) {
 		// Special signifier for end of script
-		_scrollCount = _vm->_font->getHeight() * 13;
+		_scrollCount = _font->getHeight() * 13;
 		_lineY = -1;
 		return;
 	}
@@ -609,7 +634,7 @@ void TextView::processText() {
 	char *centerP = strchr(_currentLine, '@');
 	if (centerP) {
 		*centerP = '\0';
-		xStart = (MADS_SCREEN_WIDTH / 2) - _vm->_font->getWidth(_currentLine);
+		xStart = (MADS_SCREEN_WIDTH / 2) - _font->getWidth(_currentLine);
 
 		// Delete the @ character and shift back the remainder of the string
 		char *p = centerP + 1;
@@ -617,15 +642,144 @@ void TextView::processText() {
 		strcpy(centerP, p);
 
 	} else {
-		lineWidth = _vm->_font->getWidth(_currentLine);
+		lineWidth = _font->getWidth(_currentLine);
 		xStart = (MADS_SCREEN_WIDTH - lineWidth) / 2;
 	}
 
-	// Copy the text line onto the bottom of the textSurface surface, which will allow it
-	// to gradually scroll onto the screen
-	int yp = _textSurface.h - _vm->_font->getHeight() - TEXTVIEW_LINE_SPACING;
-	_textSurface.fillRect(Common::Rect(0, yp, MADS_SCREEN_WIDTH, _textSurface.h), 0);
-	_vm->_font->writeString(&_textSurface, _currentLine, Common::Point(xStart, yp));
+	// Add the new line to the list of pending lines
+	TextLine tl;
+	tl._pos = Common::Point(xStart, MADS_SCENE_HEIGHT);
+	tl._line = _currentLine;
+	tl._textDisplayIndex = -1;
+	_textLines.push_back(tl);
+}
+
+void TextView::display() {
+	FullScreenDialog::display();
+	_sceneChanged = true;
+}
+
+void TextView::resetPalette() {
+	_vm->_palette->resetGamePalette(8, 8);
+	_vm->_palette->setEntry(5, 0, 63, 63);
+	_vm->_palette->setEntry(6, 0, 45, 45);
+}
+
+void TextView::doFrame() {
+	Scene &scene = _vm->_game->_scene;
+	if (!_animating)
+		return;
+
+	// Only update state if wait period has expired
+	uint32 currTime = g_system->getMillis();
+
+	// If a screen transition is in progress and it's time for another column, handle it
+	if (_spareScreen) {
+		byte *srcP = _spareScreen->getBasePtr(_translationX, 0);
+		byte *bgP = scene._backgroundSurface.getBasePtr(_translationX, 0);
+		byte *screenP = (byte *)_vm->_screen.getBasePtr(_translationX, 0);
+
+		for (int y = 0; y < MADS_SCENE_HEIGHT; ++y, srcP += MADS_SCREEN_WIDTH,
+			bgP += MADS_SCREEN_WIDTH, screenP += MADS_SCREEN_WIDTH) {
+			*bgP = *srcP;
+			*screenP = *srcP;
+		}
+
+		// Flag the column of the screen is modified
+		_vm->_screen.copyRectToScreen(Common::Rect(_translationX, 0,
+			_translationX + 1, MADS_SCENE_HEIGHT));
+
+		// Keep moving the column to copy to the right
+		if (++_translationX == MADS_SCREEN_WIDTH) {
+			// Surface transition is complete
+			_spareScreen = nullptr;
+		}
+	}
+
+	// Make sure it's time for an update
+	if (currTime < _scrollTimeout)
+		return;
+	_scrollTimeout = g_system->getMillis() + TEXT_ANIMATION_DELAY;
+	_redrawFlag = true;
+
+	// If any panning values are set, pan the background surface
+	if ((_pan.x != 0) || (_pan.y != 0)) {
+		if (_panCountdown > 0) {
+			--_panCountdown;
+			return;
+		}
+
+		// Handle horizontal panning
+		if (_pan.x != 0) {
+			byte *lineTemp = new byte[_pan.x];
+			for (int y = 0; y < MADS_SCENE_HEIGHT; ++y) {
+				byte *pixelsP = (byte *)scene._backgroundSurface.getBasePtr(0, y);
+
+				// Copy the first X pixels into temp buffer, move the rest of the line
+				// to the start of the line, and then move temp buffer pixels to end of line
+				Common::copy(pixelsP, pixelsP + _pan.x, lineTemp);
+				Common::copy(pixelsP + _pan.x, pixelsP + MADS_SCREEN_WIDTH, pixelsP);
+				Common::copy(lineTemp, lineTemp + _pan.x, pixelsP + MADS_SCREEN_WIDTH - _pan.x);
+			}
+
+			delete[] lineTemp;
+		}
+
+		// Handle vertical panning
+		if (_pan.y != 0) {
+			// Store the bottom Y lines into a temp buffer, move the rest of the lines down,
+			// and then copy the stored lines back to the top of the screen
+			byte *linesTemp = new byte[_pan.y * MADS_SCREEN_WIDTH];
+			byte *pixelsP = (byte *)scene._backgroundSurface.getBasePtr(0, MADS_SCENE_HEIGHT - _pan.y);
+			Common::copy(pixelsP, pixelsP + MADS_SCREEN_WIDTH * _pan.y, linesTemp);
+
+			for (int y = MADS_SCENE_HEIGHT - 1; y >= _pan.y; --y) {
+				byte *destP = (byte *)scene._backgroundSurface.getBasePtr(0, y);
+				byte *srcP = (byte *)scene._backgroundSurface.getBasePtr(0, y - _pan.y);
+				Common::copy(srcP, srcP + MADS_SCREEN_WIDTH, destP);
+			}
+
+			Common::copy(linesTemp, linesTemp + _pan.y * MADS_SCREEN_WIDTH, 
+				(byte *)scene._backgroundSurface.getPixels());
+			delete[] linesTemp;
+		}
+
+		// Flag for a full screen refresh
+		scene._spriteSlots.fullRefresh();
+	}
+
+	// Scroll all active text lines up
+	for (int i = _textLines.size() - 1; i >= 0; --i) {
+		TextLine &tl = _textLines[i];
+		if (tl._textDisplayIndex != -1)
+			// Expire the text line that's already on-screen
+			scene._textDisplay.expire(tl._textDisplayIndex);
+
+		tl._pos.y--;
+		if (tl._pos.y < 0) {
+			_textLines.remove_at(i);
+		} else {
+			tl._textDisplayIndex = scene._textDisplay.add(tl._pos.x, tl._pos.y, 
+				0x605, -1, tl._line, _font);
+		}
+	}
+
+	if (_scrollCount > 0) {
+		// Handling final scrolling of text off of screen
+		if (--_scrollCount == 0) {
+			scriptDone();
+			return;
+		}
+	} else {
+		// Handling a text row
+		if (++_lineY == (_font->getHeight() + TEXTVIEW_LINE_SPACING))
+			processLines();
+	}
+}
+
+void TextView::scriptDone() {
+	_breakFlag = true;
+	_vm->_dialogs->_pendingDialog = DIALOG_MAIN_MENU;
 }
 
 /*------------------------------------------------------------------------*/
@@ -641,6 +795,30 @@ void AnimationView::execute(MADSEngine *vm, const Common::String &resName) {
 AnimationView::AnimationView(MADSEngine *vm) : MenuView(vm) {
 	_soundDriverLoaded = false;
 	_previousUpdate = 0;
+	_screenId = -1;
+	_resetPalette = false;
+	_resyncMode = NEVER;
+	_v1 = 0;
+	_v2 = -1;
+	_resourceIndex = -1;
+	_currentAnimation = nullptr;
+	_sfx = 0;
+	_soundFlag = _bgLoadFlag = true;
+	_showWhiteBars = true;
+	_manualFrameNumber = 0;
+	_manualSpriteSet = nullptr;
+	_manualStartFrame = _manualEndFrame = 0;
+	_manualFrame2 = 0;
+	_hasManual = false;
+	_animFrameNumber = 0;
+	_sceneInfo = SceneInfo::init(_vm);
+
+	load();
+}
+
+AnimationView::~AnimationView() {
+	delete _currentAnimation;
+	delete _sceneInfo;
 }
 
 void AnimationView::load() {
@@ -652,6 +830,17 @@ void AnimationView::load() {
 		error("Could not open resource %s", resName.c_str());
 
 	processLines();
+}
+
+void AnimationView::display() {
+	_vm->_palette->initPalette();
+	Common::fill(&_vm->_palette->_cyclingPalette[0], &_vm->_palette->_cyclingPalette[PALETTE_SIZE], 0);
+
+	_vm->_palette->resetGamePalette(1, 8);
+	_vm->_game->_scene._spriteSlots.reset();
+	_vm->_game->_scene._paletteCycles.clear();
+
+	MenuView::display();
 }
 
 bool AnimationView::onEvent(Common::Event &event) {
@@ -666,41 +855,69 @@ bool AnimationView::onEvent(Common::Event &event) {
 }
 
 void AnimationView::doFrame() {
+//	Scene &scene = _vm->_game->_scene;
+	
+	// TODO: Or when current animation is finished
+	if (_resourceIndex == -1) {
+		if (++_resourceIndex == (int)_resources.size())
+			scriptDone();
+		else
+			loadNextResource();
+	}
+}
+
+void AnimationView::loadNextResource() {
 	Scene &scene = _vm->_game->_scene;
-	int bgNumber = 0;
+	ResourceEntry &resEntry = _resources[_resourceIndex];
 
-	// Only update state if wait period has expired
-	if (_previousUpdate > 0) {
-		if (g_system->getMillis() - _previousUpdate < 3000) {
-			return;
-		} else {
-			// time for an update
-			_previousUpdate = g_system->getMillis();
+	if (resEntry._bgFlag)
+		_vm->_palette->resetGamePalette(1, 8);
+
+	delete _currentAnimation;
+	_currentAnimation = Animation::init(_vm, &scene);
+	_currentAnimation->load(scene._backgroundSurface, scene._depthSurface, 
+		resEntry._resourceName, resEntry._bgFlag ? 0x100 : 0,
+		nullptr, _sceneInfo);
+
+	// If a sound driver has been specified, then load the correct one
+	if (!_currentAnimation->_header._soundName.empty()) {
+		const char *chP = strchr(_currentAnimation->_header._soundName.c_str(), '.');
+		assert(chP);
+
+		int driverNum = atoi(chP + 1);
+		_vm->_sound->init(driverNum);
+	}
+
+	// Handle any manual setup
+	if (_currentAnimation->_header._manualFlag) {
+		_manualFrameNumber = _currentAnimation->_header._spritesIndex;
+		_manualSpriteSet = _currentAnimation->getSpriteSet(_manualFrameNumber);
+		_hasManual = true;
+	}
+
+	// Set the sound data for the animation
+	_vm->_sound->setEnabled(resEntry._soundFlag);
+
+	Common::String dsrName = _currentAnimation->_header._dsrName;
+	if (!dsrName.empty())
+		_vm->_audio->setSoundGroup(dsrName);
+
+	// Initial frames scan loop
+	bool foundFrame = false;
+	for (int frameCtr = 0; frameCtr < (int)_currentAnimation->_frameEntries.size(); ++frameCtr) {
+		int spritesIdx = _currentAnimation->_spriteListIndexes[_manualFrameNumber];
+		AnimFrameEntry &frame = _currentAnimation->_frameEntries[frameCtr];
+		
+		if (frame._spriteSlot._spritesIndex == spritesIdx) {
+			_animFrameNumber = frame._frameNumber;
+			_manualStartFrame = _animFrameNumber;
+			_manualEndFrame = _manualSpriteSet->getCount() - 1;
+			_manualFrame2 = _manualStartFrame - 1;
+			break;
 		}
-	} else {
-		_previousUpdate = g_system->getMillis();
-		return;
 	}
-
-	char bgFile[10];
-	strncpy(bgFile, _currentFile, 5);
-	bgFile[0] = bgFile[2];
-	bgFile[1] = bgFile[3];
-	bgFile[2] = bgFile[4];
-	bgFile[3] = '\0';
-	bgNumber = atoi(bgFile);
-	sprintf(bgFile, "rm%i.art", bgNumber);
-
-	// Not all scenes have a background. If there is one, refresh it
-	if (Common::File::exists(bgFile)) {
-		_vm->_palette->resetGamePalette(4, 8);
-		SceneInfo *sceneInfo = SceneInfo::init(_vm);
-		sceneInfo->load(bgNumber, 0, Common::String(), 0, scene._depthSurface,
-			scene._backgroundSurface);
-	}
-
-	// Read next line
-	processLines();
+	if (!foundFrame)
+		_hasManual = false;
 }
 
 void AnimationView::scriptDone() {
@@ -715,65 +932,152 @@ void AnimationView::processLines() {
 		return;
 	}
 
+	char c;
 	while (!_script.eos()) {
-		_script.readLine(_currentLine, 79);
-
+		// Get in next line
+		_currentLine.empty();
+		while (!_script.eos() && (c = _script.readByte()) != '\n') {
+			if (c != '\r')
+				_currentLine += c;
+		}
+		
 		// Process the line
-		char *cStart = strchr(_currentLine, '-');
-		if (cStart) {
-			while (cStart) {
-				// Loop for possible multiple commands on one line
-				char *cEnd = strchr(_currentLine, ' ');
-				if (!cEnd)
-					error("Unterminated command '%s' in response file", _currentLine);
+		while (!_currentLine.empty()) {
+			if (_currentLine.hasPrefix("-")) {
+				_currentLine.deleteChar(0);
 
-				*cEnd = '\0';
 				processCommand();
+			} else {
+				// Get resource name
+				Common::String resName;
+				while (!_currentLine.empty() && (c = _currentLine[0]) != ' ') {
+					_currentLine.deleteChar(0);
+					resName += c;
+				}
 
-				// Copy rest of line (if any) to start of buffer
-				// Don't use strcpy() here, because if the
-				// rest of the line is the longer of the two
-				// strings, the memory areas will overlap.
-				memmove(_currentLine, cEnd + 1, strlen(cEnd + 1) + 1);
-
-				cStart = strchr(_currentLine, '-');
+				_resources.push_back(ResourceEntry(resName, _sfx, _soundFlag, 
+					_bgLoadFlag, _showWhiteBars));
 			}
 
-			if (_currentLine[0]) {
-				sprintf(_currentFile, "%s", _currentLine);
-				//printf("File: %s\n", _currentLine);
-				break;
-			}
-
-		} else {
-			sprintf(_currentFile, "%s", _currentLine);
-			warning("File: %s\n", _currentLine);
-			break;
+			// Skip any spaces
+			while (_currentLine.hasPrefix(" "))
+				_currentLine.deleteChar(0);
 		}
 	}
 }
 
 void AnimationView::processCommand() {
-	Common::String commandLine(_currentLine + 1);
-	commandLine.toUppercase();
-	const char *commandStr = commandLine.c_str();
-	const char *param = commandStr;
+	// Get the command character
+	char commandChar = toupper(_currentLine[0]);
+	_currentLine.deleteChar(0);
 
-	if (!strncmp(commandStr, "X", 1)) {
-		//printf("X ");
-	} else if (!strncmp(commandStr, "W", 1)) {
-		//printf("W ");
-	} else if (!strncmp(commandStr, "R", 1)) {
-		param = param + 2;
-		//printf("R:%s ", param);
-	} else if (!strncmp(commandStr, "O", 1)) {
-		// Set the transition effect
-		param = param + 2;
-		_vm->_game->_fx = (ScreenTransition)atoi(param);
-	} else {
-		error("Unknown response command: '%s'", commandStr);
+	// Handle the command
+	switch (commandChar) {
+	case 'B':
+		_soundFlag = !_soundFlag;
+		break;
+	case 'H':
+		// -h[:ex]  Disable EMS / XMS high memory support
+		if (_currentLine.hasPrefix(":"))
+			_currentLine.deleteChar(0);
+		while (_currentLine.hasPrefix("e") || _currentLine.hasPrefix("x"))
+			_currentLine.deleteChar(0);
+		break;
+	case 'O':
+		// -o:xxx  Specify opening special effect
+		assert(_currentLine[0] == ':');
+		_currentLine.deleteChar(0);
+		_sfx = getParameter();
+		break;
+	case 'P':
+		// Switch to CONCAT mode, which is ignored anyway
+		break;
+	case 'R': {
+		// Resynch timer (always, beginning, never)
+		assert(_currentLine[0] == ':');
+		_currentLine.deleteChar(0);
+
+		char v = toupper(_currentLine[0]);
+		_currentLine.deleteChar(0);
+		if (v == 'N')
+			_resyncMode = NEVER;
+		else if (v == 'A')
+			_resyncMode = ALWAYS;
+		else if (v == 'B')
+			_resyncMode = BEGINNING;
+		else
+			error("Unknown parameter");
+		break;
+	}
+	case 'W':
+		// Switch white bars being visible
+		_showWhiteBars = !_showWhiteBars;
+		break;
+	case 'X':
+		// Exit after animation finishes. Ignore
+		break;
+	case 'Y':
+		// Reset palette on startup
+		_resetPalette = true;
+		break;
+	default:
+		error("Unknown command char: '%c'", commandChar);
 	}
 }
+
+int AnimationView::getParameter() {
+	int result = 0;
+
+	while (!_currentLine.empty()) {
+		char c = _currentLine[0];
+		
+		if (c >= '0' && c <= '9') {
+			_currentLine.deleteChar(0);
+			result = result * 10 + (c - '0');
+		} else {
+			break;
+		}
+	}
+
+	return result;
+}
+
+void AnimationView::checkResource(const Common::String &resourceName) {
+	//bool hasSuffix = false;
+	
+}
+
+int AnimationView::scanResourceIndex(const Common::String &resourceName) {
+	int foundIndex = -1;
+
+	if (_v1) {
+		const char *chP = strchr(resourceName.c_str(), '\\');
+		if (!chP) {
+			chP = strchr(resourceName.c_str(), '*');
+		}
+
+		Common::String resName = chP ? Common::String(chP + 1) : resourceName;
+
+		if (_v2 != 3) {
+			assert(_resIndex.size() == 0);
+		}
+
+		// Scan for the resource name
+		for (uint resIndex = 0; resIndex < _resIndex.size(); ++resIndex) {
+			ResIndexEntry &resEntry = _resIndex[resIndex];
+			if (resEntry._resourceName.compareToIgnoreCase(resourceName)) {
+				foundIndex = resIndex;
+				break;
+			}
+		}
+	}
+
+	if (foundIndex >= 0) {
+		// TODO
+	}
+	return -1;
+}
+
 
 } // End of namespace Nebular
 
