@@ -31,13 +31,14 @@
 
 namespace CGE2 {
 
-Hero::Hero(CGE2Engine *vm)
-	: Sprite(vm), _contact(nullptr), _dir(kNoDir),
-      _curDim(0), _tracePtr(-1), _ignoreMap(false), _maxDist(0) {
+Hero::Hero(CGE2Engine *vm) : Sprite(vm), _contact(nullptr), _dir(kNoDir),
+	_curDim(0), _tracePtr(-1), _ignoreMap(false), _maxDist(0) {
 
-	for (int i = 0; i < kDimMax; i++) {
+	for (int i = 0; i < kDimMax; i++)
 		_dim[i] = nullptr;
-	}
+
+	_reachStart = _reachCycle = _sayStart = _funStart = 0;
+	_funDel0 = _funDel = 0;
 }
 
 Hero::~Hero() {
@@ -120,7 +121,8 @@ Sprite *Hero::expand() {
 				break;
 			case kIdName:
 				Common::strlcpy(tmpStr, line.c_str(), sizeof(tmpStr));
-				for (p = tmpStr; *p != '='; p++); // We search for the =
+				for (p = tmpStr; *p != '='; p++) // We search for the =
+					;
 				setName(_vm->tail(p));
 				break;
 			default:
@@ -201,7 +203,7 @@ Sprite *Hero::expand() {
 	delete[] text;
 
 	int i = stepSize() / 2;
-	_maxDist = sqrt(double(i * i * 2));
+	_maxDist = (int)sqrt(double(i * i * 2));
 	setCurrent();
 	
 	return this;
@@ -413,7 +415,7 @@ void Hero::fun() {
 }
 
 int Hero::len(V2D v) {
-	return sqrt(double(v.x * v.x + v.y * v.y));
+	return (int)sqrt(double(v.x * v.x + v.y * v.y));
 }
 
 bool Hero::findWay(){

@@ -434,7 +434,7 @@ char TextView::_resourceName[100];
 
 void TextView::execute(MADSEngine *vm, const Common::String &resName) {
 	assert(resName.size() < 100);
-	strncpy(_resourceName, resName.c_str(), sizeof(_resourceName));
+	Common::strlcpy(_resourceName, resName.c_str(), sizeof(_resourceName));
 	vm->_dialogs->_pendingDialog = DIALOG_TEXTVIEW;
 }
 
@@ -451,6 +451,7 @@ TextView::TextView(MADSEngine *vm) : MenuView(vm) {
 
 	_font = _vm->_font->getFont(FONT_CONVERSATION);
 	_vm->_palette->resetGamePalette(4, 0);
+
 	load();
 }
 
@@ -495,7 +496,7 @@ void TextView::processLines() {
 				processCommand();
 
 				// Copy rest of line (if any) to start of buffer
-				strncpy(_currentLine, cEnd + 1, sizeof(_currentLine));
+				Common::strlcpy(_currentLine, cEnd + 1, sizeof(_currentLine));
 
 				cStart = strchr(_currentLine, '[');
 			}
@@ -656,7 +657,6 @@ void TextView::processText() {
 
 void TextView::display() {
 	FullScreenDialog::display();
-	_sceneChanged = true;
 }
 
 void TextView::resetPalette() {
@@ -788,7 +788,7 @@ char AnimationView::_resourceName[100];
 
 void AnimationView::execute(MADSEngine *vm, const Common::String &resName) {
 	assert(resName.size() < 100);
-	strncpy(_resourceName, resName.c_str(), sizeof(_resourceName));
+	Common::strlcpy(_resourceName, resName.c_str(), sizeof(_resourceName));
 	vm->_dialogs->_pendingDialog = DIALOG_ANIMVIEW;
 }
 
@@ -833,12 +833,13 @@ void AnimationView::load() {
 }
 
 void AnimationView::display() {
+	Scene &scene = _vm->_game->_scene;
 	_vm->_palette->initPalette();
 	Common::fill(&_vm->_palette->_cyclingPalette[0], &_vm->_palette->_cyclingPalette[PALETTE_SIZE], 0);
 
 	_vm->_palette->resetGamePalette(1, 8);
-	_vm->_game->_scene._spriteSlots.reset();
-	_vm->_game->_scene._paletteCycles.clear();
+	scene._spriteSlots.reset();
+	scene._paletteCycles.clear();
 
 	MenuView::display();
 }
@@ -855,29 +856,42 @@ bool AnimationView::onEvent(Common::Event &event) {
 }
 
 void AnimationView::doFrame() {
-//	Scene &scene = _vm->_game->_scene;
+	Scene &scene = _vm->_game->_scene;
 	
-	// TODO: Or when current animation is finished
-	if (_resourceIndex == -1) {
-		if (++_resourceIndex == (int)_resources.size())
+	if (_resourceIndex == -1 || _currentAnimation->freeFlag()) {
+		if (++_resourceIndex == (int)_resources.size()) {
 			scriptDone();
-		else
+		} else {
+			scene._frameStartTime = 0;
 			loadNextResource();
+		}
+	}
+
+	if (_currentAnimation) {
+		++scene._frameStartTime;
+		_currentAnimation->update();
+		_redrawFlag = true;
 	}
 }
 
 void AnimationView::loadNextResource() {
 	Scene &scene = _vm->_game->_scene;
+	Palette &palette = *_vm->_palette;
 	ResourceEntry &resEntry = _resources[_resourceIndex];
 
 	if (resEntry._bgFlag)
-		_vm->_palette->resetGamePalette(1, 8);
+		palette.resetGamePalette(1, 8);
 
+	// Load the new animation
 	delete _currentAnimation;
 	_currentAnimation = Animation::init(_vm, &scene);
 	_currentAnimation->load(scene._backgroundSurface, scene._depthSurface, 
-		resEntry._resourceName, resEntry._bgFlag ? 0x100 : 0,
+		resEntry._resourceName, resEntry._bgFlag ? ANIMFLAG_LOAD_BACKGROUND : 0,
 		nullptr, _sceneInfo);
+
+	// Signal for a screen refresh
+	scene._spriteSlots.fullRefresh();
+	palette.setFullPalette(palette._mainPalette);
 
 	// If a sound driver has been specified, then load the correct one
 	if (!_currentAnimation->_header._soundName.empty()) {
@@ -903,6 +917,7 @@ void AnimationView::loadNextResource() {
 		_vm->_audio->setSoundGroup(dsrName);
 
 	// Initial frames scan loop
+	/*
 	bool foundFrame = false;
 	for (int frameCtr = 0; frameCtr < (int)_currentAnimation->_frameEntries.size(); ++frameCtr) {
 		int spritesIdx = _currentAnimation->_spriteListIndexes[_manualFrameNumber];
@@ -917,7 +932,11 @@ void AnimationView::loadNextResource() {
 		}
 	}
 	if (!foundFrame)
-		_hasManual = false;
+	*/
+	_hasManual = false;
+
+	// Start the new animation
+	_currentAnimation->startAnimation(0);
 }
 
 void AnimationView::scriptDone() {
@@ -935,7 +954,7 @@ void AnimationView::processLines() {
 	char c;
 	while (!_script.eos()) {
 		// Get in next line
-		_currentLine.empty();
+		_currentLine.clear();
 		while (!_script.eos() && (c = _script.readByte()) != '\n') {
 			if (c != '\r')
 				_currentLine += c;

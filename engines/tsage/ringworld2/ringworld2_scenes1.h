@@ -312,8 +312,8 @@ public:
 	int _availableCardsPile[100];
 	int _cardsAvailableNumb;
 	int _currentPlayerNumb;
-	int _actionIdx1;
-	int _actionIdx2;
+	int _actionPlayerIdx;
+	int _actionVictimIdx;
 	int _winnerId;
 	int _instructionsWaitCount;
 	int _cursorCurRes;
@@ -372,7 +372,7 @@ public:
 	void discardCard(Card *card);
 	void subC4CD2();
 	void subC4CEC();
-	void subC51A0(Card *subObj1, Card *subObj2);
+	void playInterceptorCard(Card *subObj1, Card *subObj2);
 	void displayDialog(int dialogNumb);
 	void subPostInit();
 	void displayInstructions();

@@ -2210,7 +2210,11 @@ Scene1337::Card::Card() {
 }
 
 void Scene1337::Card::synchronize(Serializer &s) {
-	warning("STUBBED: Card::synchronize()");
+	_card.synchronize(s);
+
+	s.syncAsSint16LE(_cardId);
+	s.syncAsSint16LE(_stationPos.x);
+	s.syncAsSint16LE(_stationPos.y);
 }
 
 bool Scene1337::Card::isIn(Common::Point pt) {
@@ -2232,7 +2236,26 @@ Scene1337::GameBoardSide::GameBoardSide() {
 }
 
 void Scene1337::GameBoardSide::synchronize(Serializer &s) {
-	warning("STUBBED: GameBoardSide::synchronize()");
+	SceneHotspot::synchronize(s);
+
+	for (int i = 0; i < 4; i++)
+		_handCard[i].synchronize(s);
+
+	for (int i = 0; i < 8; i++)
+		_outpostStation[i].synchronize(s);
+
+	_delayCard.synchronize(s);
+	_emptyStationPos.synchronize(s);
+
+	s.syncAsSint16LE(_card1Pos.x);
+	s.syncAsSint16LE(_card1Pos.y);
+	s.syncAsSint16LE(_card2Pos.x);
+	s.syncAsSint16LE(_card2Pos.y);
+	s.syncAsSint16LE(_card3Pos.x);
+	s.syncAsSint16LE(_card3Pos.y);
+	s.syncAsSint16LE(_card4Pos.x);
+	s.syncAsSint16LE(_card4Pos.y);
+	s.syncAsSint16LE(_frameNum);
 }
 
 Scene1337::Scene1337() {
@@ -2245,8 +2268,8 @@ Scene1337::Scene1337() {
 
 	_shuffleEndedFl = false;
 	_currentPlayerNumb = 0;
-	_actionIdx1 = 0;
-	_actionIdx2 = 0;
+	_actionPlayerIdx = 0;
+	_actionVictimIdx = 0;
 	_showPlayerTurn = false;
 	_displayHelpFl = false;
 	_winnerId = -1;
@@ -2264,7 +2287,50 @@ Scene1337::Scene1337() {
 }
 
 void Scene1337::synchronize(Serializer &s) {
-	warning("STUBBED: Scene1337::synchronize()");
+	_actionCard1->synchronize(s);
+	_actionCard2->synchronize(s);
+	_actionCard3->synchronize(s);
+	_animatedCard.synchronize(s);
+	_shuffleAnimation.synchronize(s);
+	_discardedPlatformCard.synchronize(s);
+	_selectedCard.synchronize(s);
+	_discardPile.synchronize(s);
+	_stockCard.synchronize(s);
+	_aSound1.synchronize(s);
+	_aSound2.synchronize(s);
+	_helpIcon.synchronize(s);
+	_stockPile.synchronize(s);
+	_actionItem.synchronize(s);
+	_currentPlayerArrow.synchronize(s);
+
+	for (int i = 0; i < 4; i++)
+		_gameBoardSide[i].synchronize(s);
+
+	for (int i = 0; i < 8; i++) {
+		_upperDisplayCard[i].synchronize(s);
+		_lowerDisplayCard[i].synchronize(s);
+	}
+
+	// TODO s.syncPointer(_delayedFunction);
+	s.syncAsByte(_autoplay);
+	s.syncAsByte(_shuffleEndedFl);
+	s.syncAsByte(_showPlayerTurn);
+	s.syncAsByte(_displayHelpFl);
+	s.syncAsByte(_instructionsDisplayedFl);
+	s.syncAsSint16LE(_currentDiscardIndex);
+	s.syncAsSint16LE(_cardsAvailableNumb);
+	s.syncAsSint16LE(_currentPlayerNumb);
+	s.syncAsSint16LE(_actionPlayerIdx);
+	s.syncAsSint16LE(_actionVictimIdx);
+	s.syncAsSint16LE(_winnerId);
+	s.syncAsSint16LE(_instructionsWaitCount);
+	s.syncAsSint16LE(_cursorCurRes);
+	s.syncAsSint16LE(_cursorCurStrip);
+	s.syncAsSint16LE(_cursorCurFrame);
+
+	for (int i = 0; i < 100; i++)
+		s.syncAsSint16LE(_availableCardsPile[i]);
+
 }
 
 void Scene1337::Action1337::waitFrames(int32 frameCount) {
@@ -2458,7 +2524,7 @@ void Scene1337::Action1::signal() {
 		scene->_gameBoardSide[0]._outpostStation[1]._card.remove();
 
 		scene->_stockPile.setup(1332, 5, 1);
-		scene->_stockPile.setPosition(Common::Point(165, 95));
+		scene->_stockPile.setPosition(Common::Point(162, 95));
 		scene->_stockPile.setPriority(110);
 		scene->_stockPile._effect = EFFECT_SHADED;
 		scene->_stockPile.show();
@@ -3412,7 +3478,7 @@ void Scene1337::Action4::signal() {
 			scene->setAnimationInfo(&scene->_gameBoardSide[scene->_currentPlayerNumb]._handCard[0]);
 
 		scene->_animatedCard._card.hide();
-		if ( (scene->_gameBoardSide[scene->_currentPlayerNumb]._handCard[0]._cardId == 0)
+		if ( (scene->_gameBoardSide[scene->_currentPlayerNumb]._handCard[1]._cardId == 0)
 		  && (!scene->isStationCard(scene->_gameBoardSide[scene->_currentPlayerNumb]._delayCard._cardId))) {
 			if (scene->_cardsAvailableNumb < 0)
 				scene->shuffleCards();
@@ -3666,6 +3732,7 @@ void Scene1337::Action7::signal() {
 	}
 }
 
+// Remove a delay card
 void Scene1337::Action8::signal() {
 	Scene1337 *scene = (Scene1337 *)R2_GLOBALS._sceneManager._scene;
 
@@ -3775,7 +3842,7 @@ void Scene1337::Action10::signal() {
 		bool found = false;
 		int indexFound = -1;
 
-		switch (scene->_actionIdx1) {
+		switch (scene->_actionPlayerIdx) {
 		case 0:
 			for (indexFound = 0; indexFound < 3; indexFound++) {
 				if (scene->_gameBoardSide[0]._handCard[indexFound]._cardId == 29) {
@@ -3815,13 +3882,13 @@ void Scene1337::Action10::signal() {
 		bool found2 = false;
 
 		if (found) {
-			switch (scene->_actionIdx1) {
+			switch (scene->_actionPlayerIdx) {
 			case 0:
-				scene->subC51A0(&scene->_gameBoardSide[0]._handCard[indexFound], scene->_actionCard3);
+				scene->playInterceptorCard(&scene->_gameBoardSide[0]._handCard[indexFound], scene->_actionCard3);
 				found2 = true;
 				break;
 			case 1:
-				scene->subC51A0(&scene->_gameBoardSide[1]._handCard[indexFound], scene->_actionCard3);
+				scene->playInterceptorCard(&scene->_gameBoardSide[1]._handCard[indexFound], scene->_actionCard3);
 				found2 = true;
 				break;
 			case 2:
@@ -3829,12 +3896,12 @@ void Scene1337::Action10::signal() {
 				if (MessageDialog::show(USE_INTERCEPTOR, NO_MSG, YES_MSG) == 0)
 					scene->subC4CEC();
 				else {
-					scene->subC51A0(&scene->_gameBoardSide[2]._handCard[indexFound], scene->_actionCard3);
+					scene->playInterceptorCard(&scene->_gameBoardSide[2]._handCard[indexFound], scene->_actionCard3);
 					found2 = true;
 				}
 				break;
 			case 3:
-				scene->subC51A0(&scene->_gameBoardSide[3]._handCard[indexFound], scene->_actionCard3);
+				scene->playInterceptorCard(&scene->_gameBoardSide[3]._handCard[indexFound], scene->_actionCard3);
 				found2 = true;
 				break;
 			default:
@@ -3845,7 +3912,7 @@ void Scene1337::Action10::signal() {
 		if (!found2)
 			break;
 
-		if (scene->_actionIdx1 == 2) {
+		if (scene->_actionPlayerIdx == 2) {
 			int j = 0;
 			for (int i = 0; i <= 7; i++) {
 				if (scene->_gameBoardSide[2]._outpostStation[i]._cardId != 0)
@@ -3909,7 +3976,7 @@ void Scene1337::Action10::signal() {
 	}
 }
 
-// Use trick (card #25 - thieft ?) and pick a card from the opponent
+// Use Thief card (#25) and pick a card from the opponent
 void Scene1337::Action11::signal() {
 	Scene1337 *scene = (Scene1337 *)R2_GLOBALS._sceneManager._scene;
 
@@ -3922,7 +3989,7 @@ void Scene1337::Action11::signal() {
 		scene->_actionCard2->_card.fixPriority(170);
 		scene->_actionCard2->_cardId = 25;
 
-		if (scene->_actionIdx1 == 2) {
+		if (scene->_actionPlayerIdx == 2) {
 			scene->_animatedCard._card.setPosition(scene->_actionCard2->_stationPos, 0);
 			scene->setCursorData(5, 1, 4);
 		} else {
@@ -3946,7 +4013,7 @@ void Scene1337::Action11::signal() {
 
 		int i = -1;
 
-		switch (scene->_actionIdx2) {
+		switch (scene->_actionVictimIdx) {
 		case 0:
 			for (i = 0; i <= 3; i++) {
 				if (scene->_gameBoardSide[0]._handCard[i]._cardId == 27) {
@@ -3955,12 +4022,12 @@ void Scene1337::Action11::signal() {
 				}
 			}
 
-			if ((found) && (scene->getFreeHandCard(scene->_actionIdx1) != -1)) {
+			if ((found) && (scene->getFreeHandCard(scene->_actionPlayerIdx) != -1)) {
 				scene->_actionCard1 = &scene->_gameBoardSide[0]._handCard[i];
 				scene->_actionCard2 = &scene->_gameBoardSide[0]._emptyStationPos;
-				if (scene->_actionIdx1 != 0) {
-					int tmpVal = scene->getFreeHandCard(scene->_actionIdx1);
-					scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionIdx1]._handCard[tmpVal];
+				if (scene->_actionPlayerIdx != 0) {
+					int tmpVal = scene->getFreeHandCard(scene->_actionPlayerIdx);
+					scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionPlayerIdx]._handCard[tmpVal];
 				}
 				scene->_actionItem.setAction(&scene->_action12);
 				noAction = false;
@@ -3974,12 +4041,12 @@ void Scene1337::Action11::signal() {
 				}
 			}
 
-			if ((found) && (scene->getFreeHandCard(scene->_actionIdx1) != -1)) {
+			if ((found) && (scene->getFreeHandCard(scene->_actionPlayerIdx) != -1)) {
 				scene->_actionCard1 = &scene->_gameBoardSide[1]._handCard[i];
 				scene->_actionCard2 = &scene->_gameBoardSide[1]._emptyStationPos;
-				if (scene->_actionIdx1 != 1) {
-					int tmpVal = scene->getFreeHandCard(scene->_actionIdx1);
-					scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionIdx1]._handCard[tmpVal];
+				if (scene->_actionPlayerIdx != 1) {
+					int tmpVal = scene->getFreeHandCard(scene->_actionPlayerIdx);
+					scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionPlayerIdx]._handCard[tmpVal];
 				}
 				scene->_actionItem.setAction(&scene->_action12);
 				noAction = false;
@@ -3993,7 +4060,7 @@ void Scene1337::Action11::signal() {
 				}
 			}
 
-			if ((found) && (scene->getFreeHandCard(scene->_actionIdx1) != -1)) {
+			if ((found) && (scene->getFreeHandCard(scene->_actionPlayerIdx) != -1)) {
 				scene->subC4CD2();
 				if (MessageDialog::show(USE_DOUBLE_AGENT, NO_MSG, YES_MSG) == 0)
 					scene->subC4CEC();
@@ -4001,9 +4068,9 @@ void Scene1337::Action11::signal() {
 					scene->subC4CEC();
 					scene->_actionCard1 = &scene->_gameBoardSide[2]._handCard[i];
 					scene->_actionCard2 = &scene->_gameBoardSide[2]._emptyStationPos;
-					if (scene->_actionIdx1 != 2) {
-						int tmpVal = scene->getFreeHandCard(scene->_actionIdx1);
-						scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionIdx1]._handCard[tmpVal];
+					if (scene->_actionPlayerIdx != 2) {
+						int tmpVal = scene->getFreeHandCard(scene->_actionPlayerIdx);
+						scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionPlayerIdx]._handCard[tmpVal];
 					}
 					scene->_actionItem.setAction(&scene->_action12);
 					noAction = false;
@@ -4018,12 +4085,12 @@ void Scene1337::Action11::signal() {
 				}
 			}
 
-			if ((found) && (scene->getFreeHandCard(scene->_actionIdx1) != -1)) {
+			if ((found) && (scene->getFreeHandCard(scene->_actionPlayerIdx) != -1)) {
 				scene->_actionCard1 = &scene->_gameBoardSide[3]._handCard[i];
 				scene->_actionCard2 = &scene->_gameBoardSide[3]._emptyStationPos;
-				if (scene->_actionIdx1 != 3) {
-					int tmpVal = scene->getFreeHandCard(scene->_actionIdx1);
-					scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionIdx1]._handCard[tmpVal];
+				if (scene->_actionPlayerIdx != 3) {
+					int tmpVal = scene->getFreeHandCard(scene->_actionPlayerIdx);
+					scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionPlayerIdx]._handCard[tmpVal];
 				}
 				scene->_actionItem.setAction(&scene->_action12);
 				noAction = false;
@@ -4036,11 +4103,11 @@ void Scene1337::Action11::signal() {
 		if (!noAction)
 			return;
 
-		if (scene->_actionIdx1 == 2) {
+		if (scene->_actionPlayerIdx == 2) {
 			int count = 0;
-			if (scene->_actionIdx2 != 2) {
+			if (scene->_actionVictimIdx != 2) {
 				for (i = 0; i <= 3; i++) {
-					if (scene->_gameBoardSide[scene->_actionIdx2]._handCard[i]._cardId == 0)
+					if (scene->_gameBoardSide[scene->_actionVictimIdx]._handCard[i]._cardId != 0)
 						++count;
 				}
 			}
@@ -4050,7 +4117,7 @@ void Scene1337::Action11::signal() {
 
 				found = false;
 				while (!found) {
-					switch (scene->_actionIdx2) {
+					switch (scene->_actionVictimIdx) {
 					case 0:
 						scene->actionDisplay(1330, 131, 159, 10, 1, 200, 0, 7, 0, 154, 154);
 						break;
@@ -4075,10 +4142,10 @@ void Scene1337::Action11::signal() {
 
 					found = false;
 
-					if (scene->_actionIdx2 != 2) {
+					if (scene->_actionVictimIdx != 2) {
 						for (i = 0; i <= 3; i++) {
-							if (scene->_gameBoardSide[scene->_actionIdx2]._handCard[i].isIn(scene->_selectedCard._stationPos) && (scene->_gameBoardSide[scene->_actionIdx2]._handCard[i]._cardId != 0)) {
-								scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionIdx2]._handCard[i];
+							if (scene->_gameBoardSide[scene->_actionVictimIdx]._handCard[i].isIn(scene->_selectedCard._stationPos) && (scene->_gameBoardSide[scene->_actionVictimIdx]._handCard[i]._cardId != 0)) {
+								scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionVictimIdx]._handCard[i];
 								found = true;
 								break;
 							}
@@ -4087,9 +4154,9 @@ void Scene1337::Action11::signal() {
 				} // while
 				scene->_displayHelpFl = true;
 				scene->subC4CEC();
-			} else if (scene->_actionIdx2 != 2) {
-				int tmpVal = scene->getFreeHandCard(scene->_actionIdx2);
-				scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionIdx2]._handCard[tmpVal];
+			} else if (scene->_actionVictimIdx != 2) {
+				int tmpVal = scene->getFreeHandCard(scene->_actionVictimIdx);
+				scene->_actionCard3 = &scene->_gameBoardSide[scene->_actionVictimIdx]._handCard[tmpVal];
 			}
 		}
 
@@ -4113,7 +4180,7 @@ void Scene1337::Action11::signal() {
 		break;
 	case 2:
 		scene->_animatedCard._card.hide();
-		switch (scene->_actionIdx1) {
+		switch (scene->_actionPlayerIdx) {
 		case 0:
 			scene->_actionCard1->_card.setFrame2(2);
 			scene->_actionCard1->_card.show();
@@ -4165,10 +4232,10 @@ void Scene1337::Action12::signal() {
 		scene->_animatedCard._card.hide();
 		scene->setAnimationInfo(scene->_actionCard2);
 		scene->_aSound1.play(58);
-		if (scene->_actionIdx2 == 2) {
+		if (scene->_actionVictimIdx == 2) {
 			int count = 0;
 			int i = -1;
-			switch (scene->_actionIdx1) {
+			switch (scene->_actionPlayerIdx) {
 			case 0:
 				for (i = 0; i <= 3; i++) {
 					if (scene->_gameBoardSide[0]._handCard[i]._cardId != 0)
@@ -4198,7 +4265,7 @@ void Scene1337::Action12::signal() {
 				bool found = false;
 
 				while (!found) {
-					switch (scene->_actionIdx1) {
+					switch (scene->_actionPlayerIdx) {
 					case 0:
 						scene->actionDisplay(1330, 131, 159, 10, 1, 200, 0, 7, 0, 154, 154);
 						break;
@@ -4221,7 +4288,7 @@ void Scene1337::Action12::signal() {
 
 					scene->_selectedCard._stationPos = event.mousePos;
 
-					if (scene->_actionIdx1 == 0) {
+					if (scene->_actionPlayerIdx == 0) {
 						for (i = 0; i <= 3; i++) {
 							if (scene->_gameBoardSide[0]._handCard[i].isIn(scene->_selectedCard._stationPos) && (scene->_gameBoardSide[0]._handCard[i]._cardId != 0)) {
 								found = true;
@@ -4231,7 +4298,7 @@ void Scene1337::Action12::signal() {
 						}
 					}
 
-					if (scene->_actionIdx1 == 3) {
+					if (scene->_actionPlayerIdx == 3) {
 						for (i = 0; i <= 3; i++) {
 							if (scene->_gameBoardSide[3]._handCard[i].isIn(scene->_selectedCard._stationPos) && (scene->_gameBoardSide[3]._handCard[i]._cardId != 0)) {
 								found = true;
@@ -4241,7 +4308,7 @@ void Scene1337::Action12::signal() {
 						}
 					}
 
-					if (scene->_actionIdx1 == 1) {
+					if (scene->_actionPlayerIdx == 1) {
 						for (i = 0; i <= 3; i++) {
 							if (scene->_gameBoardSide[1]._handCard[i].isIn(scene->_selectedCard._stationPos) && (scene->_gameBoardSide[1]._handCard[i]._cardId != 0)) {
 								found = true;
@@ -4252,8 +4319,8 @@ void Scene1337::Action12::signal() {
 					}
 				}
 				scene->subC4CEC();
-			} else if (scene->_actionIdx1 != 1) {
-				switch (scene->_actionIdx1) {
+			} else if (scene->_actionPlayerIdx != 1) {
+				switch (scene->_actionPlayerIdx) {
 				case 0:
 					scene->_actionCard3 = &scene->_gameBoardSide[0]._handCard[scene->getFreeHandCard(0)];
 					break;
@@ -4288,7 +4355,7 @@ void Scene1337::Action12::signal() {
 		break;
 	case 3:
 		scene->_animatedCard._card.hide();
-		switch (scene->_actionIdx2) {
+		switch (scene->_actionVictimIdx) {
 		case 0:
 			scene->_actionCard1->_card.setFrame2(2);
 			scene->_actionCard1->_card.show();
@@ -4313,6 +4380,7 @@ void Scene1337::Action12::signal() {
 	}
 }
 
+// Handle the animations of the interceptor card
 void Scene1337::Action13::signal() {
 	Scene1337 *scene = (Scene1337 *)R2_GLOBALS._sceneManager._scene;
 
@@ -4877,8 +4945,8 @@ void Scene1337::handlePlayer01Discard(int playerId) {
 }
 
 void Scene1337::playThieftCard(int playerId, Card *card, int victimId) {
-	_actionIdx1 = playerId;
-	_actionIdx2 = victimId;
+	_actionPlayerIdx = playerId;
+	_actionVictimIdx = victimId;
 
 	int randIndx;
 
@@ -5044,7 +5112,7 @@ void Scene1337::playCounterTrickCard(Card *card, int playerId) {
 	_actionCard1 = card;
 	_actionCard2 = getStationCard(playerId);
 	_actionCard3 = &_gameBoardSide[playerId]._emptyStationPos;
-	_actionIdx1 = playerId;
+	_actionPlayerIdx = playerId;
 	_actionItem.setAction(&_action10);
 	handleNextTurn();
 }
@@ -5069,7 +5137,8 @@ void Scene1337::subC4CEC() {
 	}
 }
 
-void Scene1337::subC51A0(Card *subObj1, Card *subObj2) {
+// Play Interceptor card
+void Scene1337::playInterceptorCard(Card *subObj1, Card *subObj2) {
 	_actionCard1 = subObj1;
 	_actionCard2 = subObj2;
 
@@ -5938,10 +6007,10 @@ void Scene1337::handlePlayer1() {
 	}
 
 	int card13Id = findCard13InHand(1);
-	int tmpVal2 = getPlayerWithOutpost(1);
+	int victimId = getPlayerWithOutpost(1);
 
-	if ((card13Id != -1) && (tmpVal2 != -1)) {
-		playCounterTrickCard(&_gameBoardSide[1]._handCard[card13Id], tmpVal2);
+	if ((card13Id != -1) && (victimId != -1)) {
+		playCounterTrickCard(&_gameBoardSide[1]._handCard[card13Id], victimId);
 		return;
 	}
 
@@ -5954,7 +6023,7 @@ void Scene1337::handlePlayer1() {
 				if (  (_gameBoardSide[rndVal]._handCard[0]._cardId != 0)
 					|| (_gameBoardSide[rndVal]._handCard[1]._cardId != 0)
 					|| (_gameBoardSide[rndVal]._handCard[2]._cardId != 0)
-					|| (_gameBoardSide[rndVal]._handCard[3]._cardId == 0)) {
+					|| (_gameBoardSide[rndVal]._handCard[3]._cardId != 0)) {
 						playerIdFound = rndVal;
 						break;
 				}
@@ -5972,29 +6041,20 @@ void Scene1337::handlePlayer1() {
 		}
 	}
 
-	int count = -1;
-	int i;
-	for (i = 0; i <= 3; i++) {
+	for (int i = 0; i <= 3; i++) {
 		int tmpVal = isDelayCard(_gameBoardSide[1]._handCard[i]._cardId);
 		if (tmpVal != -1) {
+			victimId = -1;
 			int rndVal = R2_GLOBALS._randomSource.getRandomNumber(3);
 
 			for (int j = 0; j <= 3; j++) {
-				//CHECKME: tmpVal or rndVal?
-				// FIXME: This is probably meant to be rndVal, but not clear...
-				if (tmpVal < 0 || tmpVal >= ARRAYSIZE(_gameBoardSide))
-					error("Scene1337::handlePlayer1() tmpVal:%d out of range 0 to %d", tmpVal, ARRAYSIZE(_gameBoardSide)-1);
-
-				if (tmpVal != 1) {
-					if ((_gameBoardSide[tmpVal]._delayCard._cardId == 0) && isAttackPossible(tmpVal, _gameBoardSide[1]._handCard[i]._cardId))
-						count = tmpVal;
+				if (rndVal != 1) {
+					if ((_gameBoardSide[rndVal]._delayCard._cardId == 0) && isAttackPossible(rndVal, _gameBoardSide[1]._handCard[i]._cardId))
+						victimId = rndVal;
 				}
 
-				if (count < 0 || count >= ARRAYSIZE(_gameBoardSide))
-					error("Scene1337::handlePlayer1() count:%d out of range 0 to %d", count, ARRAYSIZE(_gameBoardSide)-1);
-
-				if (count != -1) {
-					playDelayCard(&_gameBoardSide[1]._handCard[i], &_gameBoardSide[count]._delayCard);
+				if (victimId != -1) {
+					playDelayCard(&_gameBoardSide[1]._handCard[i], &_gameBoardSide[victimId]._delayCard);
 					return;
 				} else {
 					rndVal--;
@@ -6005,18 +6065,17 @@ void Scene1337::handlePlayer1() {
 		}
 	}
 
-	int j;
-	for (j = 0; j <= 3; j++) {
+	for (int j = 0; j <= 3; j++) {
 		if (getStationCardId(_gameBoardSide[1]._handCard[j]._cardId) != -1) {
-			count = -1;
+			victimId = -1;
 			int rndVal = R2_GLOBALS._randomSource.getRandomNumber(3);
 			for (int l = 0; l <= 3; l++) {
 				if (rndVal != 1) {
 					if ((_gameBoardSide[rndVal]._delayCard._cardId == 0) && (_gameBoardSide[1]._handCard[j]._cardId == 1))
-						count = rndVal;
+						victimId = rndVal;
 				}
-				if (count != -1) {
-					playDelayCard(&_gameBoardSide[1]._handCard[j], &_gameBoardSide[count]._delayCard);
+				if (victimId != -1) {
+					playDelayCard(&_gameBoardSide[1]._handCard[j], &_gameBoardSide[victimId]._delayCard);
 					return;
 				} else {
 					rndVal--;
@@ -6062,7 +6121,6 @@ void Scene1337::handlePlayer3() {
 	}
 
 	int randIndx = R2_GLOBALS._randomSource.getRandomNumber(3);
-
 	if (_gameBoardSide[3]._handCard[randIndx]._cardId == 1) {
 		for (int i = 0; i <= 7; i++) {
 			if ((_gameBoardSide[3]._outpostStation[i]._cardId == 0) && !isStopConstructionCard(_gameBoardSide[3]._delayCard._cardId)) {
@@ -6216,7 +6274,6 @@ void Scene1337::handlePlayer2() {
 				//warning("_selectedCard._field0 = handcard->_field0;");
 				_selectedCard._card._updateStartFrame = handcard->_card._updateStartFrame;
 				_selectedCard._card._walkStartFrame = handcard->_card._walkStartFrame;
-				// _field2E is named _field3C in R2R
 				_selectedCard._card._oldPosition = handcard->_card._oldPosition;
 				_selectedCard._card._percent = handcard->_card._percent;
 				_selectedCard._card._priority = handcard->_card._priority;
@@ -6232,7 +6289,6 @@ void Scene1337::handlePlayer2() {
 				_selectedCard._card._animateMode = handcard->_card._animateMode;
 				_selectedCard._card._frame = handcard->_card._frame;
 				_selectedCard._card._endFrame = handcard->_card._endFrame;
-				// _field68 is named _field76 in R2R
 				_selectedCard._card._loopCount = handcard->_card._loopCount;
 				_selectedCard._card._frameChange = handcard->_card._frameChange;
 				_selectedCard._card._numFrames = handcard->_card._numFrames;
@@ -6649,7 +6705,7 @@ void Scene1337::setCursorData(int resNum, int rlbNum, int frameNum) {
 		// FIXME: Use another cursor when possible
 		R2_GLOBALS._events.setCursor(CURSOR_CROSSHAIRS);
 	} else {
-		// TODO: The original was using some ressource caching, which was useless and complex
+		// TODO: The original was using some resource caching, which was useless and complex
 		// and which has been removed. This cursor behavior clearly made intensive use of this caching...
 		// We now have to find a way to cache these cursor pointers and avoid loading them multiple times per seconds
 		uint size;
@@ -6668,7 +6724,9 @@ void Scene1337::setCursorData(int resNum, int rlbNum, int frameNum) {
 
 void Scene1337::subD18F5() {
 	if (R2_GLOBALS._v57709 == 0)
-		R2_GLOBALS._events.setCursor(CURSOR_CROSSHAIRS);
+		// The original restores a copy of the default cursor (the hand), which isn't possible with our implementation
+		// We reload that cursor instead.
+		setCursorData(5, 1, 4);
 
 	++R2_GLOBALS._v57709;
 }
@@ -6676,7 +6734,7 @@ void Scene1337::subD18F5() {
 void Scene1337::subD1917() {
 	if (R2_GLOBALS._v57709 != 0) {
 		R2_GLOBALS._v57709--;
-		if (R2_GLOBALS._v57709 != 0) {
+		if (R2_GLOBALS._v57709 == 0) {
 			// The original was using an intermediate function to call setCursorData.
 			// It has been removed to improve readability
 			setCursorData(5, _cursorCurStrip, _cursorCurFrame);
@@ -6692,7 +6750,7 @@ void Scene1337::subD1940(bool flag) {
 }
 
 void Scene1337::subD1975(int arg1, int arg2) {
-	warning("STUBBED lvl2 Scene1337::subD1975()");
+	// No implementation required in ScummVM: Mouse handling with tons of caching 
 }
 
 void Scene1337::OptionsDialog::show() {
