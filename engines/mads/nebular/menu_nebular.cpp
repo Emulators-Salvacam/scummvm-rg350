@@ -619,7 +619,7 @@ int TextView::getParameter(const char **paramP) {
 }
 
 void TextView::processText() {
-	int lineWidth, xStart;
+	int xStart;
 
 	if (!strcmp(_currentLine, "***")) {
 		// Special signifier for end of script
@@ -643,7 +643,7 @@ void TextView::processText() {
 		strcpy(centerP, p);
 
 	} else {
-		lineWidth = _font->getWidth(_currentLine);
+		int lineWidth = _font->getWidth(_currentLine);
 		xStart = (MADS_SCREEN_WIDTH - lineWidth) / 2;
 	}
 
@@ -793,6 +793,8 @@ void AnimationView::execute(MADSEngine *vm, const Common::String &resName) {
 }
 
 AnimationView::AnimationView(MADSEngine *vm) : MenuView(vm) {
+	_redrawFlag = false;
+
 	_soundDriverLoaded = false;
 	_previousUpdate = 0;
 	_screenId = -1;
@@ -809,8 +811,8 @@ AnimationView::AnimationView(MADSEngine *vm) : MenuView(vm) {
 	_manualSpriteSet = nullptr;
 	_manualStartFrame = _manualEndFrame = 0;
 	_manualFrame2 = 0;
-	_hasManual = false;
 	_animFrameNumber = 0;
+	_nextCyclingActive = false;
 	_sceneInfo = SceneInfo::init(_vm);
 
 	load();
@@ -865,6 +867,8 @@ void AnimationView::doFrame() {
 			scene._frameStartTime = 0;
 			loadNextResource();
 		}
+	} else if (_currentAnimation->getCurrentFrame() == 1) {
+		scene._cyclingActive = _nextCyclingActive;
 	}
 
 	if (_currentAnimation) {
@@ -878,6 +882,7 @@ void AnimationView::loadNextResource() {
 	Scene &scene = _vm->_game->_scene;
 	Palette &palette = *_vm->_palette;
 	ResourceEntry &resEntry = _resources[_resourceIndex];
+	Common::Array<PaletteCycle> paletteCycles;
 
 	if (resEntry._bgFlag)
 		palette.resetGamePalette(1, 8);
@@ -885,13 +890,12 @@ void AnimationView::loadNextResource() {
 	// Load the new animation
 	delete _currentAnimation;
 	_currentAnimation = Animation::init(_vm, &scene);
+	int flags = ANIMFLAG_ANIMVIEW | (resEntry._bgFlag ? ANIMFLAG_LOAD_BACKGROUND : 0);
 	_currentAnimation->load(scene._backgroundSurface, scene._depthSurface, 
-		resEntry._resourceName, resEntry._bgFlag ? ANIMFLAG_LOAD_BACKGROUND : 0,
-		nullptr, _sceneInfo);
+		resEntry._resourceName, flags, &paletteCycles, _sceneInfo);
 
 	// Signal for a screen refresh
 	scene._spriteSlots.fullRefresh();
-	palette.setFullPalette(palette._mainPalette);
 
 	// If a sound driver has been specified, then load the correct one
 	if (!_currentAnimation->_header._soundName.empty()) {
@@ -906,7 +910,6 @@ void AnimationView::loadNextResource() {
 	if (_currentAnimation->_header._manualFlag) {
 		_manualFrameNumber = _currentAnimation->_header._spritesIndex;
 		_manualSpriteSet = _currentAnimation->getSpriteSet(_manualFrameNumber);
-		_hasManual = true;
 	}
 
 	// Set the sound data for the animation
@@ -916,27 +919,21 @@ void AnimationView::loadNextResource() {
 	if (!dsrName.empty())
 		_vm->_audio->setSoundGroup(dsrName);
 
-	// Initial frames scan loop
-	/*
-	bool foundFrame = false;
-	for (int frameCtr = 0; frameCtr < (int)_currentAnimation->_frameEntries.size(); ++frameCtr) {
-		int spritesIdx = _currentAnimation->_spriteListIndexes[_manualFrameNumber];
-		AnimFrameEntry &frame = _currentAnimation->_frameEntries[frameCtr];
-		
-		if (frame._spriteSlot._spritesIndex == spritesIdx) {
-			_animFrameNumber = frame._frameNumber;
-			_manualStartFrame = _animFrameNumber;
-			_manualEndFrame = _manualSpriteSet->getCount() - 1;
-			_manualFrame2 = _manualStartFrame - 1;
-			break;
-		}
-	}
-	if (!foundFrame)
-	*/
-	_hasManual = false;
-
 	// Start the new animation
 	_currentAnimation->startAnimation(0);
+
+	// Handle the palette and cycling palette
+	scene._cyclingActive = false;
+	Common::copy(&palette._mainPalette[0], &palette._mainPalette[PALETTE_SIZE],
+		&palette._cyclingPalette[0]);
+
+	_vm->_game->_fx = (ScreenTransition)resEntry._fx;
+	_nextCyclingActive = paletteCycles.size() > 0;
+	if (!_vm->_game->_fx) {
+		palette.setFullPalette(palette._mainPalette);
+	}
+
+	scene.initPaletteAnimation(paletteCycles, _nextCyclingActive && !_vm->_game->_fx);
 }
 
 void AnimationView::scriptDone() {
@@ -951,12 +948,12 @@ void AnimationView::processLines() {
 		return;
 	}
 
-	char c;
 	while (!_script.eos()) {
 		// Get in next line
 		_currentLine.clear();
+		char c;
 		while (!_script.eos() && (c = _script.readByte()) != '\n') {
-			if (c != '\r')
+			if (c != '\r' && c != '\0')
 				_currentLine += c;
 		}
 		
@@ -974,8 +971,12 @@ void AnimationView::processLines() {
 					resName += c;
 				}
 
+				// Add resource into list along with any set state information
 				_resources.push_back(ResourceEntry(resName, _sfx, _soundFlag, 
 					_bgLoadFlag, _showWhiteBars));
+
+				// Fx resets between resource entries
+				_sfx = 0;
 			}
 
 			// Skip any spaces
@@ -1034,6 +1035,9 @@ void AnimationView::processCommand() {
 		break;
 	case 'X':
 		// Exit after animation finishes. Ignore
+		break;
+	case 'D':
+		// Unimplemented and ignored in the original. Ignore as well
 		break;
 	case 'Y':
 		// Reset palette on startup

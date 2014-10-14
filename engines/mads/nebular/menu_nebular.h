@@ -281,8 +281,8 @@ private:
 	SpriteAsset *_manualSpriteSet;
 	int _manualStartFrame, _manualEndFrame;
 	int _manualFrame2;
-	bool _hasManual;
 	int _animFrameNumber;
+	bool _nextCyclingActive;
 private:
 	void checkResource(const Common::String &resourceName);
 
