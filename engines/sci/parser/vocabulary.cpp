@@ -535,10 +535,7 @@ bool Vocabulary::tokenizeString(ResultWordListList &retval, const char *sentence
 		if (Common::isAlnum(c) || (c == '-' && wordLen) || (c >= 0x80)) {
 			currentWord[wordLen] = lowerCaseMap[c];
 			++wordLen;
-		} else if (c == '\'' && wordLen && (sentence[pos_in_sentence] == 's' || sentence[pos_in_sentence] == 'S')) {
-			// Skip apostrophe-s at the end of the word, if it exists
-			pos_in_sentence++;	// skip the 's'
-		} else {
+		} else if (c == ' ' || c == '\0') {
 			// Continue on this word. Words may contain a '-', but may not start with
 			// one.
 

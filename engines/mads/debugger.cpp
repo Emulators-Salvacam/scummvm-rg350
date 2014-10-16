@@ -362,7 +362,7 @@ bool Debugger::Cmd_PlayAnim(int argc, const char **argv) {
 
 		Common::File f;
 		if (f.exists(resName) || f.exists(resName + ".res")) {
-			Nebular::AnimationView::execute(_vm, resName);
+			AnimationView::execute(_vm, resName);
 			return false;
 		} else {
 			debugPrintf("Could not find resource file\n");
@@ -381,8 +381,8 @@ bool Debugger::Cmd_PlayText(int argc, const char **argv) {
 			resName.deleteChar(0);
 
 		Common::File f;
-		if (f.exists(resName) || f.exists(resName + ".res")) {
-			Nebular::TextView::execute(_vm, resName);
+		if (f.exists(resName) || f.exists(resName + ".txr")) {
+			TextView::execute(_vm, resName);
 			return false;
 		} else {
 			debugPrintf("Could not find resource file\n");
