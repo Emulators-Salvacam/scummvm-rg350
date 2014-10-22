@@ -80,6 +80,15 @@ bool MenuView::onEvent(Common::Event &event) {
 	return false;
 }
 
+Common::String MenuView::getResourceName() {
+	Common::String s(_filename);
+	s.toLowercase();
+	while (s.contains('.'))
+		s.deleteLastChar();
+
+	return s;
+}
+
 /*------------------------------------------------------------------------*/
 
 char TextView::_resourceName[100];
@@ -112,12 +121,17 @@ TextView::TextView(MADSEngine *vm) : MenuView(vm) {
 }
 
 TextView::~TextView() {
+	// Turn off palette cycling as well as any playing sound
+	Scene &scene = _vm->_game->_scene;
+	scene._cyclingActive = false;
+	_vm->_sound->stop();
 }
 
 void TextView::load() {
 	Common::String scriptName(_resourceName);
 	scriptName += ".txr";
 
+	_filename = scriptName;
 	if (!_script.open(scriptName))
 		error("Could not open resource %s", _resourceName);
 
@@ -475,6 +489,13 @@ AnimationView::AnimationView(MADSEngine *vm) : MenuView(vm) {
 }
 
 AnimationView::~AnimationView() {
+	// Turn off palette cycling as well as any playing sound
+	Scene &scene = _vm->_game->_scene;
+	scene._cyclingActive = false;
+	_vm->_sound->stop();
+	_vm->_audio->stop();
+
+	// Delete data
 	delete _currentAnimation;
 	delete _sceneInfo;
 }
@@ -484,6 +505,7 @@ void AnimationView::load() {
 	if (!resName.hasSuffix("."))
 		resName += ".res";
 
+	_filename = resName;
 	if (!_script.open(resName))
 		error("Could not open resource %s", resName.c_str());
 
@@ -505,7 +527,7 @@ void AnimationView::display() {
 bool AnimationView::onEvent(Common::Event &event) {
 	// Wait for the Escape key or a mouse press
 	if (((event.type == Common::EVENT_KEYDOWN) && (event.kbd.keycode == Common::KEYCODE_ESCAPE)) ||
-			(event.type == Common::EVENT_RBUTTONUP)) {
+			(event.type == Common::EVENT_LBUTTONUP)) {
 		scriptDone();
 		return true;
 	}
@@ -741,42 +763,6 @@ int AnimationView::getParameter() {
 	}
 
 	return result;
-}
-
-void AnimationView::checkResource(const Common::String &resourceName) {
-	//bool hasSuffix = false;
-	
-}
-
-int AnimationView::scanResourceIndex(const Common::String &resourceName) {
-	int foundIndex = -1;
-
-	if (_v1) {
-		const char *chP = strchr(resourceName.c_str(), '\\');
-		if (!chP) {
-			chP = strchr(resourceName.c_str(), '*');
-		}
-
-		Common::String resName = chP ? Common::String(chP + 1) : resourceName;
-
-		if (_v2 != 3) {
-			assert(_resIndex.size() == 0);
-		}
-
-		// Scan for the resource name
-		for (uint resIndex = 0; resIndex < _resIndex.size(); ++resIndex) {
-			ResIndexEntry &resEntry = _resIndex[resIndex];
-			if (resEntry._resourceName.compareToIgnoreCase(resourceName)) {
-				foundIndex = resIndex;
-				break;
-			}
-		}
-	}
-
-	if (foundIndex >= 0) {
-		// TODO
-	}
-	return -1;
 }
 
 } // End of namespace MADS

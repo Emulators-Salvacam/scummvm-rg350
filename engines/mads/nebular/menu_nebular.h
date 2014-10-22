@@ -80,6 +80,8 @@ private:
 	 * Add a sprite slot for the current menuitem frame
 	 */
 	void addSpriteSlot();
+
+	bool shouldShowQuotes();
 protected:
 	/**
 	 * Display the menu
@@ -126,6 +128,18 @@ public:
 	 * Show the dialog
 	 */
 	void show();
+};
+
+class RexAnimationView : public AnimationView {
+protected:
+	virtual void scriptDone();
+public:
+	RexAnimationView(MADSEngine *vm) : AnimationView(vm) {}
+};
+
+class RexTextView : public TextView {
+public:
+	RexTextView(MADSEngine *vm) : TextView(vm) {}
 };
 
 } // End of namespace Nebular

@@ -314,13 +314,13 @@ void DialogsNebular::showDialog() {
 			break;
 		}
 		case DIALOG_TEXTVIEW: {
-			TextView *dlg = new TextView(_vm);
+			TextView *dlg = new RexTextView(_vm);
 			dlg->show();
 			delete dlg;
 			break;
 		}
 		case DIALOG_ANIMVIEW: {
-			AnimationView *dlg = new AnimationView(_vm);
+			AnimationView *dlg = new RexAnimationView(_vm);
 			dlg->show();
 			delete dlg;
 			break;
@@ -594,6 +594,9 @@ GameDialog::GameDialog(MADSEngine *vm) : FullScreenDialog(vm) {
 	_vm->_events->waitCursor();
 	scene.clearVocab();
 	scene._dynamicHotspots.clear();
+	// Clear scene sprites and objects
+	scene._spriteSlots.reset();
+	_vm->_game->_screenObjects.clear();
 	_vm->_dialogs->_defaultPosition = Common::Point(-1, -1);
 	_menuSpritesIndex = 0;
 }
@@ -1061,6 +1064,14 @@ void OptionsDialog::display() {
 
 void OptionsDialog::show() {
 	Nebular::GameNebular &game = *(Nebular::GameNebular *)_vm->_game;
+
+	// Previous options, restored when cancel is selected
+	bool prevEasyMouse = _vm->_easyMouse;
+	bool prevInvObjectsAnimated = _vm->_invObjectsAnimated;
+	bool prevTextWindowStill = _vm->_textWindowStill;
+	ScreenFade prevScreenFade = _vm->_screenFade;
+	StoryMode prevStoryMode = game._storyMode;
+
 	do {
 		_selectedLine = 0;
 		GameDialog::show();
@@ -1105,10 +1116,15 @@ void OptionsDialog::show() {
 
 	switch (_selectedLine) {
 	case 8:	// Done
-		// TODO: Copy from temporary config
+		// New options will be applied
 		break;
 	case 9:	// Cancel
-		// TODO: Ignore all changes to temporary config
+		// Revert all options from the saved ones
+		_vm->_easyMouse = prevEasyMouse;
+		_vm->_invObjectsAnimated = prevInvObjectsAnimated;
+		_vm->_textWindowStill = prevTextWindowStill;
+		_vm->_screenFade = prevScreenFade;
+		game._storyMode = prevStoryMode;
 		break;
 	default:
 		break;
