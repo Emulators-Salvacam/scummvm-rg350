@@ -46,6 +46,11 @@ else ifeq ($(platform), ios)
    TARGET  := $(TARGET_NAME)_libretro_ios.dylib
    DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
    LDFLAGS += -dynamiclib -fPIC
+
+ifeq ($(IOSSDK),)
+   IOSSDK := $(shell xcrun -sdk iphoneos -show-sdk-path)
+endif
+
    CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
 else ifeq ($(platform), qnx)
    TARGET  := $(TARGET_NAME)_libretro_qnx.so
