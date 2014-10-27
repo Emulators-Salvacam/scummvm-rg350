@@ -391,10 +391,10 @@ bool Script::loadAllMasks(Common::Array<Mask> &maskList, int offset) {
 			debug("Can't load %s", msStreamName.c_str());
 			delete msStream;
 		} else {
-			uint32 dataSize = msStream->size();
+			int32 dataSize = msStream->size();
 			if (dataSize != -1) {
 				tempMask._data = (byte *)malloc(dataSize);
-				if (msStream->read(tempMask._data, dataSize) != dataSize) {
+				if (msStream->read(tempMask._data, dataSize) != (uint32)dataSize) {
 					free(tempMask._data);
 					delete msStream;
 					return false;
@@ -477,7 +477,7 @@ uint32 Interpreter::step(uint32 opcodePC) {
 		// Get the current opcode
 		_lastOpcode = readScript16();
 
-		if (_lastOpcode > kNumOpcodes)
+		if (_lastOpcode >= kNumOpcodes)
 			error(
 				"Trying to execute unknown opcode @0x%04X: %02d", 
 				_currentInstruction, 

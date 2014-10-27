@@ -730,8 +730,8 @@ bool PrinceEngine::loadSample(uint32 sampleSlot, const Common::String &streamNam
 bool PrinceEngine::loadVoice(uint32 slot, uint32 sampleSlot, const Common::String &streamName) {
 	debugEngine("Loading wav %s slot %d", streamName.c_str(), slot);
 
-	if (slot > kMaxTexts) {
-		error("Text slot bigger than MAXTEXTS %d", kMaxTexts);
+	if (slot >= kMaxTexts) {
+		error("Text slot bigger than MAXTEXTS %d", kMaxTexts - 1);
 		return false;
 	}
 
@@ -1901,29 +1901,29 @@ void PrinceEngine::blackPalette() {
 
 void PrinceEngine::setPalette(const byte *palette) {
 	if (palette != nullptr) {
-		byte *blackPalette = (byte *)malloc(256 * 3);
+		byte *blackPalette_ = (byte *)malloc(256 * 3);
 		int fadeStep = 0;
 		for (int i = 0; i <= kFadeStep; i++) {
 			for (int j = 0; j < 256; j++) {
-				blackPalette[3 * j] = palette[3 * j] * fadeStep / 4;
-				blackPalette[3 * j + 1] = palette[3 * j + 1] * fadeStep / 4;
-				blackPalette[3 * j + 2] = palette[3 * j + 2] * fadeStep / 4;
+				blackPalette_[3 * j] = palette[3 * j] * fadeStep / 4;
+				blackPalette_[3 * j + 1] = palette[3 * j + 1] * fadeStep / 4;
+				blackPalette_[3 * j + 2] = palette[3 * j + 2] * fadeStep / 4;
 			}
 			fadeStep++;
-			_graph->setPalette(blackPalette);
+			_graph->setPalette(blackPalette_);
 			_system->updateScreen();
 			Common::Event event;
 			Common::EventManager *eventMan = _system->getEventManager();
 			eventMan->pollEvent(event);
 			if (shouldQuit()) {
 				_graph->setPalette(palette);
-				free(blackPalette);
+				free(blackPalette_);
 				return;
 			}
 			pause();
 		}
 		_graph->setPalette(palette);
-		free(blackPalette);
+		free(blackPalette_);
 	}
 }
 
