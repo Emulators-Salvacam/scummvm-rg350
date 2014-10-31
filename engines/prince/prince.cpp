@@ -61,6 +61,7 @@
 #include "prince/animation.h"
 #include "prince/option_text.h"
 #include "prince/curve_values.h"
+#include "prince/detection.h"
 
 namespace Prince {
 
@@ -95,7 +96,8 @@ PrinceEngine::PrinceEngine(OSystem *syst, const PrinceGameDescription *gameDesc)
 	_tracePointFirstPointFlag(false), _coordsBuf2(nullptr), _coords2(nullptr), _coordsBuf3(nullptr), _coords3(nullptr),
 	_shanLen(0), _directionTable(nullptr), _currentMidi(0), _lightX(0), _lightY(0), _curveData(nullptr), _curvPos(0),
 	_creditsData(nullptr), _creditsDataSize(0), _currentTime(0), _zoomBitmap(nullptr), _shadowBitmap(nullptr), _transTable(nullptr),
-	_flcFrameSurface(nullptr), _shadScaleValue(0), _shadLineLen(0), _scaleValue(0), _dialogImage(nullptr) {
+	_flcFrameSurface(nullptr), _shadScaleValue(0), _shadLineLen(0), _scaleValue(0), _dialogImage(nullptr), _mobTranslationData(nullptr),
+	_mobTranslationSize(0) {
 
 	// Debug/console setup
 	DebugMan.addDebugChannel(DebugChannel::kScript, "script", "Prince Script debug channel");
@@ -204,6 +206,8 @@ PrinceEngine::~PrinceEngine() {
 		_dialogImage->free();
 		delete _dialogImage;
 	}
+
+	free(_mobTranslationData);
 }
 
 GUI::Debugger *PrinceEngine::getDebugger() {
@@ -213,11 +217,11 @@ GUI::Debugger *PrinceEngine::getDebugger() {
 void PrinceEngine::init() {
 
 	const Common::FSNode gameDataDir(ConfMan.get("path"));
-	
+
 	debugEngine("Adding all path: %s", gameDataDir.getPath().c_str());
 
 	PtcArchive *all = new PtcArchive();
-	if (!all->open("all/databank.ptc")) 
+	if (!all->open("all/databank.ptc"))
 		error("Can't open all/databank.ptc");
 
 	PtcArchive *voices = new PtcArchive();
@@ -228,11 +232,20 @@ void PrinceEngine::init() {
 	if (!sound->open("sound/databank.ptc"))
 		error("Can't open sound/databank.ptc");
 
+	PtcArchive *translation = new PtcArchive();
+	if (getLanguage() != Common::PL_POL && getLanguage() != Common::DE_DEU) {
+		if (!translation->openTranslation("all/prince_translation.dat"))
+			error("Can't open prince_translation.dat");
+	}
+
 	SearchMan.addSubDirectoryMatching(gameDataDir, "all");
 
 	SearchMan.add("all", all);
 	SearchMan.add("voices", voices);
 	SearchMan.add("sound", sound);
+	if (getLanguage() != Common::PL_POL && getLanguage() != Common::DE_DEU) {
+		SearchMan.add("translation", translation);
+	}
 
 	_graph = new GraphicsMan(this);
 
@@ -261,14 +274,24 @@ void PrinceEngine::init() {
 
 	_variaTxt = new VariaTxt();
 	Resource::loadResource(_variaTxt, "variatxt.dat", true);
-	
+	if (getLanguage() == Common::PL_POL || getLanguage() == Common::DE_DEU) {
+		Resource::loadResource(_variaTxt, "variatxt.dat", true);
+	} else {
+		Resource::loadResource(_variaTxt, "variatxt_translate.dat", true);
+	}
+
 	_cursor1 = new Cursor();
 	Resource::loadResource(_cursor1, "mouse1.cur", true);
 
 	_cursor3 = new Cursor();
 	Resource::loadResource(_cursor3, "mouse2.cur", true);
 
-	Common::SeekableReadStream *talkTxtStream = SearchMan.createReadStreamForMember("talktxt.dat");
+	Common::SeekableReadStream *talkTxtStream;
+	if (getLanguage() == Common::PL_POL || getLanguage() == Common::DE_DEU) {
+		talkTxtStream = SearchMan.createReadStreamForMember("talktxt.dat");
+	} else {
+		talkTxtStream = SearchMan.createReadStreamForMember("talktxt_translate.dat");
+	}
 	if (!talkTxtStream) {
 		error("Can't load talkTxtStream");
 		return;
@@ -279,7 +302,12 @@ void PrinceEngine::init() {
 
 	delete talkTxtStream;
 
-	Common::SeekableReadStream *invTxtStream = SearchMan.createReadStreamForMember("invtxt.dat");
+	Common::SeekableReadStream *invTxtStream;
+	if (getLanguage() == Common::PL_POL || getLanguage() == Common::DE_DEU) {
+		invTxtStream = SearchMan.createReadStreamForMember("invtxt.dat");
+	} else {
+		invTxtStream = SearchMan.createReadStreamForMember("invtxt_translate.dat");
+	}
 	if (!invTxtStream) {
 		error("Can't load invTxtStream");
 		return;
@@ -354,7 +382,12 @@ void PrinceEngine::init() {
 
 	_shadowLine = (byte *)malloc(kShadowLineArraySize);
 
-	Common::SeekableReadStream *creditsDataStream = SearchMan.createReadStreamForMember("credits.dat");
+	Common::SeekableReadStream *creditsDataStream;
+	if (getLanguage() == Common::PL_POL || getLanguage() == Common::DE_DEU) {
+		creditsDataStream = SearchMan.createReadStreamForMember("credits.dat");
+	} else {
+		creditsDataStream = SearchMan.createReadStreamForMember("credits_translate.dat");
+	}
 	if (!creditsDataStream) {
 		error("Can't load creditsDataStream");
 		return;
@@ -363,6 +396,10 @@ void PrinceEngine::init() {
 	_creditsData = (byte *)malloc(_creditsDataSize);
 	creditsDataStream->read(_creditsData, _creditsDataSize);
 	delete creditsDataStream;
+
+	if (getLanguage() != Common::PL_POL && getLanguage() != Common::DE_DEU) {
+		loadMobTranslationTexts();
+	}
 }
 
 void PrinceEngine::showLogo() {
@@ -469,12 +506,16 @@ bool PrinceEngine::loadLocation(uint16 locationNr) {
 	loadMobPriority("mobpri");
 
 	_mobList.clear();
-	if (getLanguage() == Common::DE_DEU) {
+	if (getGameType() == kPrinceDataDE) {
 		const Common::String mobLstName = Common::String::format("mob%02d.lst", _locationNr);
 		debug("name: %s", mobLstName.c_str());
 		Resource::loadResource(_mobList, mobLstName.c_str(), false);
-	} else {
+	} else if (getGameType() == kPrinceDataPL) {
 		Resource::loadResource(_mobList, "mob.lst", false);
+	}
+	if (getLanguage() != Common::PL_POL && getLanguage() != Common::DE_DEU) {
+		// update Mob texts for translated version
+		setMobTranslationTexts();
 	}
 
 	_animList.clear();
@@ -705,7 +746,7 @@ void PrinceEngine::freeAllSamples() {
 }
 
 bool PrinceEngine::loadSample(uint32 sampleSlot, const Common::String &streamName) {
-	// FIXME: This is just a workaround streamName is a path 
+	// FIXME: This is just a workaround streamName is a path
 	// SOUND\\SCIERKA1.WAV for now only last path component is used
 	Common::String normalizedPath = lastPathComponent(streamName, '\\');
 
@@ -756,7 +797,7 @@ bool PrinceEngine::loadVoice(uint32 slot, uint32 sampleSlot, const Common::Strin
 	}
 
 	id = sampleStream->readUint32LE();
-	debugEngine("SetVoice slot %d time %04x", slot, id); 
+	debugEngine("SetVoice slot %d time %04x", slot, id);
 	id <<= 3;
 	id /= 22050;
 	id += 2;
@@ -768,7 +809,7 @@ bool PrinceEngine::loadVoice(uint32 slot, uint32 sampleSlot, const Common::Strin
 		_secondHero->_talkTime = id;
 	}
 
-	debugEngine("SetVoice slot %d time %04x", slot, id); 
+	debugEngine("SetVoice slot %d time %04x", slot, id);
 	sampleStream->seek(SEEK_SET);
 	_audioStream[sampleSlot] = Audio::makeWAVStream(sampleStream, DisposeAfterUse::NO);
 	delete sampleStream;
@@ -945,6 +986,45 @@ bool PrinceEngine::loadMobPriority(const char *resourceName) {
 	}
 	delete stream;
 	return true;
+}
+
+void PrinceEngine::loadMobTranslationTexts() {
+	Common::SeekableReadStream *mobTranslationStream = SearchMan.createReadStreamForMember("mob_translate.dat");
+	if (!mobTranslationStream) {
+		error("Can't load mob_translate.dat");
+	}
+	_mobTranslationSize = mobTranslationStream->size();
+	_mobTranslationData = (byte *)malloc(_mobTranslationSize);
+	mobTranslationStream->read(_mobTranslationData, _mobTranslationSize);
+	delete mobTranslationStream;
+}
+
+void PrinceEngine::setMobTranslationTexts() {
+	int locationOffset = READ_UINT16(_mobTranslationData + (_locationNr - 1) * 2);
+	if (locationOffset) {
+		byte *locationText = _mobTranslationData + locationOffset;
+		for (uint i = 0; i < _mobList.size(); i++) {
+			byte c;
+			locationText++;
+			_mobList[i]._name.clear();
+			while ((c = *locationText)) {
+				_mobList[i]._name += c;
+				locationText++;
+			}
+			locationText++;
+			_mobList[i]._examText.clear();
+			c = *locationText;
+			locationText++;
+			if (c) {
+				_mobList[i]._examText += c;
+				do {
+					c = *locationText;
+					_mobList[i]._examText += c;
+					locationText++;
+				} while (c != 255);
+			}
+		}
+	}
 }
 
 void PrinceEngine::keyHandler(Common::Event event) {
@@ -4321,7 +4401,7 @@ int PrinceEngine::scanDirectionsFindNext(byte *tempCoordsBuf, int xDiff, int yDi
 		tempCoordsBuf += 4;
 
 		if (tempCoordsBuf == _coords) {
-			direction = tempX; 
+			direction = tempX;
 			break;
 		}
 
