@@ -273,7 +273,6 @@ void PrinceEngine::init() {
 	_debugger = new Debugger(this, _flags);
 
 	_variaTxt = new VariaTxt();
-	Resource::loadResource(_variaTxt, "variatxt.dat", true);
 	if (getLanguage() == Common::PL_POL || getLanguage() == Common::DE_DEU) {
 		Resource::loadResource(_variaTxt, "variatxt.dat", true);
 	} else {
@@ -404,7 +403,6 @@ void PrinceEngine::init() {
 
 void PrinceEngine::showLogo() {
 	MhwanhDecoder logo;
-	_system->delayMillis(1000 / kFPS * 20);
 	if (Resource::loadResource(&logo, "logo.raw", true)) {
 		loadSample(0, "LOGO.WAV");
 		playSample(0, 0);
@@ -412,19 +410,56 @@ void PrinceEngine::showLogo() {
 		_graph->change();
 		_graph->update(_graph->_frontScreen);
 		setPalette(logo.getPalette());
-		_system->delayMillis(1000 / kFPS * 70);
+
+		uint32 logoStart = _system->getMillis();
+		while (_system->getMillis() < logoStart + 5000) {
+			Common::Event event;
+			Common::EventManager *eventMan = _system->getEventManager();
+			while (eventMan->pollEvent(event)) {
+				switch (event.type) {
+				case Common::EVENT_KEYDOWN:
+					if (event.kbd.keycode == Common::KEYCODE_ESCAPE) {
+						stopSample(0);
+						return;
+					}
+					break;
+				case Common::EVENT_LBUTTONDOWN:
+					stopSample(0);
+					return;
+				default:
+					break;
+				}
+			}
+
+			if (shouldQuit()) {
+				return;
+			}
+		}
 	}
 }
 
 Common::Error PrinceEngine::run() {
-
+	syncSoundSettings();
+	int startGameSlot = ConfMan.hasKey("save_slot") ? ConfMan.getInt("save_slot") : -1;
 	init();
-
-	showLogo();
-
+	if (startGameSlot == -1) {
+		showLogo();
+	} else {
+		loadLocation(59); // load intro location - easiest way to set everything up
+		loadGame(startGameSlot);
+	}
 	mainLoop();
-
 	return Common::kNoError;
+}
+
+void PrinceEngine::pauseEngineIntern(bool pause) {
+	Engine::pauseEngineIntern(pause);
+	if (pause) {
+		_midiPlayer->pause();
+	}
+	else {
+		_midiPlayer->resume();
+	}
 }
 
 bool AnimListItem::loadFromStream(Common::SeekableReadStream &stream) {
@@ -719,7 +754,11 @@ void PrinceEngine::playSample(uint16 sampleId, uint16 loopType) {
 			return;
 		}
 		_audioStream[sampleId]->rewind();
-		_mixer->playStream(Audio::Mixer::kSFXSoundType, &_soundHandle[sampleId], _audioStream[sampleId], sampleId, Audio::Mixer::kMaxChannelVolume, 0, DisposeAfterUse::NO);
+		if (sampleId < 28) {
+			_mixer->playStream(Audio::Mixer::kSFXSoundType, &_soundHandle[sampleId], _audioStream[sampleId], sampleId, Audio::Mixer::kMaxChannelVolume, 0, DisposeAfterUse::NO);
+		} else {
+			_mixer->playStream(Audio::Mixer::kSpeechSoundType, &_soundHandle[sampleId], _audioStream[sampleId], sampleId, Audio::Mixer::kMaxChannelVolume, 0, DisposeAfterUse::NO);
+		}
 	}
 }
 
@@ -1586,7 +1625,7 @@ void PrinceEngine::setBackAnim(Anim &backAnim) {
 }
 
 void PrinceEngine::showBackAnims() {
-	for (uint i = 0; i < kMaxBackAnims; i++) {
+	for (int i = 0; i < kMaxBackAnims; i++) {
 		BAS &seq = _backAnimList[i]._seq;
 		int activeSubAnim = seq._currRelative;
 		if (!_backAnimList[i].backAnims.empty()) {
@@ -1973,7 +2012,7 @@ void PrinceEngine::blackPalette() {
 			free(blackPalette1);
 			return;
 		}
-		pause();
+		pausePrinceEngine();
 	}
 	free(paletteBackup);
 	free(blackPalette1);
@@ -2000,22 +2039,15 @@ void PrinceEngine::setPalette(const byte *palette) {
 				free(blackPalette_);
 				return;
 			}
-			pause();
+			pausePrinceEngine();
 		}
 		_graph->setPalette(palette);
 		free(blackPalette_);
 	}
 }
 
-void PrinceEngine::pause() {
-	int delay = 1000 / kFPS - int32(_system->getMillis() - _currentTime);
-	delay = delay < 0 ? 0 : delay;
-	_system->delayMillis(delay);
-	_currentTime = _system->getMillis();
-}
-
-void PrinceEngine::pause2() {
-	int delay = 1000 / (kFPS * 2) - int32(_system->getMillis() - _currentTime);
+void PrinceEngine::pausePrinceEngine(int fps) {
+	int delay = 1000 / fps - int32(_system->getMillis() - _currentTime);
 	delay = delay < 0 ? 0 : delay;
 	_system->delayMillis(delay);
 	_currentTime = _system->getMillis();
@@ -2128,7 +2160,7 @@ void PrinceEngine::addInvObj() {
 			if (shouldQuit()) {
 				return;
 			}
-			pause();
+			pausePrinceEngine();
 		}
 		while (_mst_shadow2 > 256) {
 			rememberScreenInv();
@@ -2142,7 +2174,7 @@ void PrinceEngine::addInvObj() {
 			if (shouldQuit()) {
 				return;
 			}
-			pause();
+			pausePrinceEngine();
 		}
 	} else {
 		//CURSEBLINK:
@@ -2160,7 +2192,7 @@ void PrinceEngine::addInvObj() {
 				if (shouldQuit()) {
 					return;
 				}
-				pause();
+				pausePrinceEngine();
 			}
 			while (_mst_shadow2 > 256) {
 				rememberScreenInv();
@@ -2174,7 +2206,7 @@ void PrinceEngine::addInvObj() {
 				if (shouldQuit()) {
 					return;
 				}
-				pause();
+				pausePrinceEngine();
 			}
 		}
 	}
@@ -2190,7 +2222,7 @@ void PrinceEngine::addInvObj() {
 		if (shouldQuit()) {
 			return;
 		}
-		pause();
+		pausePrinceEngine();
 	}
 }
 
@@ -2385,6 +2417,7 @@ void PrinceEngine::moveRunHero(int heroId, int x, int y, int dir, bool runHeroFl
 }
 
 void PrinceEngine::leftMouseButton() {
+	_flags->setFlagValue(Flags::ESCAPED2, 1); // skip intro animation
 	_flags->setFlagValue(Flags::LMOUSE, 1);
 	if (_flags->getFlagValue(Flags::POWERENABLED)) {
 		_flags->setFlagValue(Flags::MBFLAG, 1);
@@ -2818,7 +2851,7 @@ void PrinceEngine::displayInventory() {
 
 		getDebugger()->onFrame();
 		_graph->update(_graph->_screenForInventory);
-		pause();
+		pausePrinceEngine();
 	}
 
 	if (_currentPointerNumber == 2) {
@@ -2943,7 +2976,7 @@ void PrinceEngine::dialogRun() {
 
 		getDebugger()->onFrame();
 		_graph->update(_graph->_frontScreen);
-		pause();
+		pausePrinceEngine();
 	}
 	_dialogImage->free();
 	delete _dialogImage;
@@ -3202,7 +3235,7 @@ void PrinceEngine::scrollCredits() {
 			}
 			_graph->change();
 			_graph->update(_graph->_frontScreen);
-			pause2();
+			pausePrinceEngine(kFPS * 2);
 		}
 		char letter2;
 		byte *scan2 = scrollAdress;
@@ -4186,7 +4219,7 @@ int PrinceEngine::checkRightUpDir() {
 }
 
 bool PrinceEngine::tracePath(int x1, int y1, int x2, int y2) {
-	for (int i = 0; i < kPathBitmapLen; i++) {
+	for (uint i = 0; i < kPathBitmapLen; i++) {
 		_roomPathBitmapTemp[i] = 0;
 	}
 	if (x1 != x2 || y1 != y2) {
@@ -4806,7 +4839,7 @@ void PrinceEngine::mainLoop() {
 
 		openInventoryCheck();
 
-		pause();
+		pausePrinceEngine();
 	}
 }
 

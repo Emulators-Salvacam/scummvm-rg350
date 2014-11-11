@@ -172,14 +172,34 @@ void PrinceMetaEngine::removeSaveState(const char *target, int slot) const {
 	g_system->getSavefileManager()->removeSavefile(fileName);
 }
 
-// TODO
 bool PrinceEngine::canSaveGameStateCurrently() {
-	return true;
+	if (_mouseFlag && _mouseFlag != 3) {
+		if (_mainHero->_visible) {
+			// 29 - Basement
+			if (_locationNr != 29) {
+				// No dialog box and not in inventory
+				if (!_dialogFlag && !_showInventoryFlag) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
-// TODO
 bool PrinceEngine::canLoadGameStateCurrently() {
-	return true;
+	if (_mouseFlag && _mouseFlag != 3) {
+		if (_mainHero->_visible) {
+			// 29 - Basement
+			if (_locationNr != 29) {
+				// No dialog box and not in inventory
+				if (!_dialogFlag && !_showInventoryFlag) {
+					return true;
+				}
+			}
+		}
+	}
+	return false;
 }
 
 Common::Error PrinceEngine::saveGameState(int slot, const Common::String &desc) {
@@ -504,9 +524,6 @@ bool PrinceEngine::loadGame(int slotNumber) {
 	// Get in the savegame
 	syncGame(readStream, nullptr);
 	delete readStream;
-
-	// TODO
-	//syncSpeechSettings();
 
 	return true;
 }
