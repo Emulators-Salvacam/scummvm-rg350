@@ -21,20 +21,16 @@
  */
 
 #include "common/scummsys.h"
-
 #include "zvision/graphics/render_table.h"
-
 #include "common/rect.h"
-
 #include "graphics/colormasks.h"
-
 
 namespace ZVision {
 
 RenderTable::RenderTable(uint numColumns, uint numRows)
-		: _numRows(numRows),
-		  _numColumns(numColumns),
-		  _renderState(FLAT) {
+	: _numRows(numRows),
+	  _numColumns(numColumns),
+	  _renderState(FLAT) {
 	assert(numRows != 0 && numColumns != 0);
 
 	_internalBuffer = new Common::Point[numRows * numColumns];
@@ -52,10 +48,11 @@ void RenderTable::setRenderState(RenderState newState) {
 		_panoramaOptions.fieldOfView = 27.0f;
 		_panoramaOptions.linearScale = 0.55f;
 		_panoramaOptions.reverse = false;
+		_panoramaOptions.zeroPoint = 0;
 		break;
 	case TILT:
 		_tiltOptions.fieldOfView = 27.0f;
-		_tiltOptions.linearScale = 0.55f;
+		_tiltOptions.linearScale = 0.65f;
 		_tiltOptions.reverse = false;
 		break;
 	case FLAT:
@@ -97,12 +94,12 @@ uint16 mixTwoRGB(uint16 colorOne, uint16 colorTwo, float percentColorOne) {
 
 	uint16 returnColor = (byte(rFinal + 0.5f) << Graphics::ColorMasks<555>::kRedShift) |
 	                     (byte(gFinal + 0.5f) << Graphics::ColorMasks<555>::kGreenShift) |
-						 (byte(bFinal + 0.5f) << Graphics::ColorMasks<555>::kBlueShift);
+	                     (byte(bFinal + 0.5f) << Graphics::ColorMasks<555>::kBlueShift);
 
 	return returnColor;
 }
 
-void RenderTable::mutateImage(uint16 *sourceBuffer, uint16* destBuffer, uint32 destWidth, const Common::Rect &subRect) {
+void RenderTable::mutateImage(uint16 *sourceBuffer, uint16 *destBuffer, uint32 destWidth, const Common::Rect &subRect) {
 	uint32 destOffset = 0;
 
 	for (int16 y = subRect.top; y < subRect.bottom; ++y) {
@@ -120,6 +117,28 @@ void RenderTable::mutateImage(uint16 *sourceBuffer, uint16* destBuffer, uint32 d
 		}
 
 		destOffset += destWidth;
+	}
+}
+
+void RenderTable::mutateImage(Graphics::Surface *dstBuf, Graphics::Surface *srcBuf) {
+	uint32 destOffset = 0;
+
+	uint16 *sourceBuffer = (uint16 *)srcBuf->getPixels();
+	uint16 *destBuffer = (uint16 *)dstBuf->getPixels();
+
+	for (int16 y = 0; y < srcBuf->h; ++y) {
+		uint32 sourceOffset = y * _numColumns;
+
+		for (int16 x = 0; x < srcBuf->w; ++x) {
+			uint32 index = sourceOffset + x;
+
+			// RenderTable only stores offsets from the original coordinates
+			uint32 sourceYIndex = y + _internalBuffer[index].y;
+			uint32 sourceXIndex = x + _internalBuffer[index].x;
+
+			destBuffer[destOffset] = sourceBuffer[sourceYIndex * _numColumns + sourceXIndex];
+			destOffset++;
+		}
 	}
 }
 
@@ -177,6 +196,7 @@ void RenderTable::generateTiltLookupTable() {
 
 	float fovInRadians = (_tiltOptions.fieldOfView * M_PI / 180.0f);
 	float cylinderRadius = halfWidth / tan(fovInRadians);
+	_tiltOptions.gap = cylinderRadius * atan2((float)(halfHeight / cylinderRadius), 1.0f) * _tiltOptions.linearScale;
 
 	for (uint y = 0; y < _numRows; ++y) {
 
@@ -221,6 +241,18 @@ void RenderTable::setPanoramaReverse(bool reverse) {
 	_panoramaOptions.reverse = reverse;
 }
 
+bool RenderTable::getPanoramaReverse() {
+	return _panoramaOptions.reverse;
+}
+
+void RenderTable::setPanoramaZeroPoint(uint16 point) {
+	_panoramaOptions.zeroPoint = point;
+}
+
+uint16 RenderTable::getPanoramaZeroPoint() {
+	return _panoramaOptions.zeroPoint;
+}
+
 void RenderTable::setTiltFoV(float fov) {
 	assert(fov > 0.0f);
 
@@ -235,6 +267,28 @@ void RenderTable::setTiltScale(float scale) {
 
 void RenderTable::setTiltReverse(bool reverse) {
 	_tiltOptions.reverse = reverse;
+}
+
+float RenderTable::getTiltGap() {
+	return _tiltOptions.gap;
+}
+
+float RenderTable::getAngle() {
+	if (_renderState == TILT)
+		return _tiltOptions.fieldOfView;
+	else if (_renderState == PANORAMA)
+		return _panoramaOptions.fieldOfView;
+	else
+		return 1.0;
+}
+
+float RenderTable::getLinscale() {
+	if (_renderState == TILT)
+		return _tiltOptions.linearScale;
+	else if (_renderState == PANORAMA)
+		return _panoramaOptions.linearScale;
+	else
+		return 1.0;
 }
 
 } // End of namespace ZVision
