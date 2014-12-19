@@ -20,28 +20,49 @@
  *
  */
 
-#ifndef ZVISION_UTILITY_H
-#define ZVISION_UTILITY_H
+#include "common/scummsys.h"
 
-#include "common/array.h"
+#include "zvision/core/clock.h"
 
-namespace Common {
-class String;
-}
+#include "common/system.h"
 
 namespace ZVision {
 
-class ZVision;
+Clock::Clock(OSystem *system)
+	: _system(system),
+	  _lastTime(0),
+	  _deltaTime(0),
+	  _pausedTime(0),
+	  _paused(false) {
+}
 
-/**
- * Removes any line comments using '#' as a sequence start.
- * Then removes any trailing and leading 'whitespace' using String::trim()
- * Note: String::trim uses isspace() to determine what is whitespace and what is not.
- *
- * @param string    The string to modify. It is modified in place
- */
-void trimCommentsAndWhiteSpace(Common::String *string);
+void Clock::update() {
+	uint32 currentTime = _system->getMillis();
+
+	_deltaTime = (currentTime - _lastTime);
+	if (_paused) {
+		_deltaTime -= (currentTime - _pausedTime);
+	}
+
+	if (_deltaTime < 0) {
+		_deltaTime = 0;
+	}
+
+	_lastTime = currentTime;
+}
+
+void Clock::start() {
+	if (_paused) {
+		_lastTime = _system->getMillis();
+		_paused = false;
+	}
+}
+
+void Clock::stop() {
+	if (!_paused) {
+		_pausedTime = _system->getMillis();
+		_paused = true;
+	}
+}
 
 } // End of namespace ZVision
-
-#endif

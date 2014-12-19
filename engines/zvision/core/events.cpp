@@ -25,10 +25,9 @@
 #include "zvision/zvision.h"
 
 #include "zvision/core/console.h"
-#include "zvision/cursors/cursor_manager.h"
+#include "zvision/graphics/cursors/cursor_manager.h"
 #include "zvision/graphics/render_manager.h"
 #include "zvision/scripting/script_manager.h"
-#include "zvision/animation/rlf_animation.h"
 #include "zvision/core/menu.h"
 #include "zvision/sound/zork_raw.h"
 

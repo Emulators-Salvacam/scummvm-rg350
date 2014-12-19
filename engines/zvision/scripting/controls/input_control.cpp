@@ -23,17 +23,17 @@
 #include "common/scummsys.h"
 
 #include "zvision/scripting/controls/input_control.h"
-#include "zvision/cursors/cursor_manager.h"
+#include "zvision/graphics/cursors/cursor_manager.h"
 
 #include "zvision/zvision.h"
 #include "zvision/scripting/script_manager.h"
 #include "zvision/text/string_manager.h"
 #include "zvision/graphics/render_manager.h"
-#include "zvision/utility/utility.h"
 
 #include "common/str.h"
 #include "common/stream.h"
 #include "common/rect.h"
+#include "video/video_decoder.h"
 
 namespace ZVision {
 
@@ -49,7 +49,7 @@ InputControl::InputControl(ZVision *engine, uint32 key, Common::SeekableReadStre
 	  _animation(NULL) {
 	// Loop until we find the closing brace
 	Common::String line = stream.readLine();
-	trimCommentsAndWhiteSpace(&line);
+	_engine->getScriptManager()->trimCommentsAndWhiteSpace(&line);
 	Common::String param;
 	Common::String values;
 	getParams(line, param, values);
@@ -96,7 +96,7 @@ InputControl::InputControl(ZVision *engine, uint32 key, Common::SeekableReadStre
 
 			sscanf(values.c_str(), "%25s %*u", fileName);
 
-			_animation = new MetaAnimation(fileName, _engine);
+			_animation = _engine->loadAnimation(fileName);
 			_frame = -1;
 			_frameDelay = 0;
 		} else if (param.matchString("focus", true)) {
@@ -107,7 +107,7 @@ InputControl::InputControl(ZVision *engine, uint32 key, Common::SeekableReadStre
 		}
 
 		line = stream.readLine();
-		trimCommentsAndWhiteSpace(&line);
+		_engine->getScriptManager()->trimCommentsAndWhiteSpace(&line);
 		getParams(line, param, values);
 	}
 }
@@ -213,16 +213,17 @@ bool InputControl::process(uint32 deltaTimeInMillis) {
 		bool needDraw = true;// = _textChanged;
 		_frameDelay -= deltaTimeInMillis;
 		if (_frameDelay <= 0) {
-			_frame = (_frame + 1) % _animation->frameCount();
-			_frameDelay = _animation->frameTime();
+			_frame = (_frame + 1) % _animation->getFrameCount();
+			_frameDelay = 1000.0 / _animation->getDuration().framerate();
 			needDraw = true;
 		}
 
 		if (needDraw) {
-			const Graphics::Surface *srf = _animation->getFrameData(_frame);
+			_animation->seekToFrame(_frame);
+			const Graphics::Surface *srf = _animation->decodeNextFrame();
 			uint32 xx = _textRectangle.left + _txtWidth;
-			if (xx >= _textRectangle.left + (_textRectangle.width() - _animation->width()))
-				xx = _textRectangle.left + _textRectangle.width() - _animation->width();
+			if (xx >= _textRectangle.left + (_textRectangle.width() - (int16)_animation->getWidth()))
+				xx = _textRectangle.left + _textRectangle.width() - (int16)_animation->getWidth();
 			_engine->getRenderManager()->blitSurfaceToBkg(*srf, xx, _textRectangle.top);
 		}
 	}

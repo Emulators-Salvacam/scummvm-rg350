@@ -27,16 +27,14 @@
 #include "zvision/zvision.h"
 #include "zvision/scripting/script_manager.h"
 #include "zvision/graphics/render_manager.h"
-#include "zvision/cursors/cursor_manager.h"
-#include "zvision/animation/meta_animation.h"
-#include "zvision/utility/utility.h"
+#include "zvision/graphics/cursors/cursor_manager.h"
 
 #include "common/stream.h"
 #include "common/file.h"
 #include "common/tokenizer.h"
 #include "common/system.h"
-
 #include "graphics/surface.h"
+#include "video/video_decoder.h"
 
 namespace ZVision {
 
@@ -54,7 +52,7 @@ LeverControl::LeverControl(ZVision *engine, uint32 key, Common::SeekableReadStre
 
 	// Loop until we find the closing brace
 	Common::String line = stream.readLine();
-	trimCommentsAndWhiteSpace(&line);
+	_engine->getScriptManager()->trimCommentsAndWhiteSpace(&line);
 
 	Common::String param;
 	Common::String values;
@@ -74,7 +72,7 @@ LeverControl::LeverControl(ZVision *engine, uint32 key, Common::SeekableReadStre
 		}
 
 		line = stream.readLine();
-		trimCommentsAndWhiteSpace(&line);
+		_engine->getScriptManager()->trimCommentsAndWhiteSpace(&line);
 		getParams(line, param, values);
 	}
 
@@ -106,7 +104,7 @@ void LeverControl::parseLevFile(const Common::String &fileName) {
 		if (param.matchString("animation_id", true)) {
 			// Not used
 		} else if (param.matchString("filename", true)) {
-			_animation = new MetaAnimation(values, _engine);
+			_animation = _engine->loadAnimation(values);
 		} else if (param.matchString("skipcolor", true)) {
 			// Not used
 		} else if (param.matchString("anim_coords", true)) {
@@ -374,7 +372,8 @@ void LeverControl::renderFrame(uint frameNumber) {
 
 	const Graphics::Surface *frameData;
 
-	frameData = _animation->getFrameData(frameNumber);
+	_animation->seekToFrame(frameNumber);
+	frameData = _animation->decodeNextFrame();
 	if (frameData)
 		_engine->getRenderManager()->blitSurfaceToBkgScaled(*frameData, _animationCoords);
 }

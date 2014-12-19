@@ -34,7 +34,6 @@
 #include "zvision/sound/zork_raw.h"
 #include "zvision/zvision.h"
 #include "zvision/detection.h"
-#include "zvision/utility/utility.h"
 
 namespace ZVision {
 

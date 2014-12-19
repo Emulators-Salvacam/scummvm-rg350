@@ -26,8 +26,7 @@
 
 #include "zvision/zvision.h"
 #include "zvision/scripting/script_manager.h"
-#include "zvision/cursors/cursor_manager.h"
-#include "zvision/utility/utility.h"
+#include "zvision/graphics/cursors/cursor_manager.h"
 
 #include "common/stream.h"
 
@@ -42,7 +41,7 @@ PushToggleControl::PushToggleControl(ZVision *engine, uint32 key, Common::Seekab
 
 	// Loop until we find the closing brace
 	Common::String line = stream.readLine();
-	trimCommentsAndWhiteSpace(&line);
+	_engine->getScriptManager()->trimCommentsAndWhiteSpace(&line);
 	Common::String param;
 	Common::String values;
 	getParams(line, param, values);
@@ -78,7 +77,7 @@ PushToggleControl::PushToggleControl(ZVision *engine, uint32 key, Common::Seekab
 		}
 
 		line = stream.readLine();
-		trimCommentsAndWhiteSpace(&line);
+		_engine->getScriptManager()->trimCommentsAndWhiteSpace(&line);
 		getParams(line, param, values);
 	}
 

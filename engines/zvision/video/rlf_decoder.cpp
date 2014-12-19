@@ -22,7 +22,7 @@
 
 #include "common/scummsys.h"
 
-#include "zvision/animation/rlf_animation.h"
+#include "zvision/video/rlf_decoder.h"
 
 #include "common/str.h"
 #include "common/file.h"
@@ -34,75 +34,46 @@
 
 namespace ZVision {
 
-RlfAnimation::RlfAnimation(const Common::String &fileName, bool stream)
-	: _stream(stream),
-	  _readStream(NULL),
+RLFDecoder::~RLFDecoder() {
+	close();
+}
+
+bool RLFDecoder::loadStream(Common::SeekableReadStream *stream) {
+	close();
+
+	addTrack(new RLFVideoTrack(stream));
+
+	return true;
+}
+
+RLFDecoder::RLFVideoTrack::RLFVideoTrack(Common::SeekableReadStream *stream)
+	: _readStream(stream),
 	  _lastFrameRead(0),
 	  _frameCount(0),
 	  _width(0),
 	  _height(0),
 	  _frameTime(0),
 	  _frames(0),
-	  _nextFrame(0),
+	  _curFrame(0),
 	  _frameBufferByteSize(0) {
 
-	Common::File *_file = new Common::File;
-	if (!_file->open(fileName)) {
-		warning("RLF animation file %s could not be opened", fileName.c_str());
-		return;
-	}
-
-	_readStream = _file;
-
 	if (!readHeader()) {
-		warning("%s is not a RLF animation file. Wrong magic number", fileName.c_str());
+		warning("Not a RLF animation file. Wrong magic number");
 		return;
 	}
 
 	_currentFrameBuffer.create(_width, _height, Graphics::createPixelFormat<565>());
 	_frameBufferByteSize = _width * _height * sizeof(uint16);
 
-	if (!stream) {
-		_frames = new Frame[_frameCount];
+	_frames = new Frame[_frameCount];
 
-		// Read in each frame
-		for (uint i = 0; i < _frameCount; ++i) {
-			_frames[i] = readNextFrame();
-		}
+	// Read in each frame
+	for (uint i = 0; i < _frameCount; ++i) {
+		_frames[i] = readNextFrame();
 	}
 }
 
-RlfAnimation::RlfAnimation(Common::SeekableReadStream *rstream, bool stream)
-	: _stream(stream),
-	  _readStream(rstream),
-	  _lastFrameRead(0),
-	  _frameCount(0),
-	  _width(0),
-	  _height(0),
-	  _frameTime(0),
-	  _frames(0),
-	  _nextFrame(0),
-	  _frameBufferByteSize(0) {
-
-	if (!readHeader()) {
-		warning("Stream is not a RLF animation. Wrong magic number");
-		return;
-	}
-
-	_currentFrameBuffer.create(_width, _height, Graphics::createPixelFormat<565>());
-	_frameBufferByteSize = _width * _height * sizeof(uint16);
-
-	if (!stream) {
-		_frames = new Frame[_frameCount];
-
-		// Read in each frame
-		for (uint i = 0; i < _frameCount; ++i) {
-			_frames[i] = readNextFrame();
-		}
-	}
-}
-
-RlfAnimation::~RlfAnimation() {
+RLFDecoder::RLFVideoTrack::~RLFVideoTrack() {
 	for (uint i = 0; i < _frameCount; ++i) {
 		delete[] _frames[i].encodedData;
 	}
@@ -111,7 +82,7 @@ RlfAnimation::~RlfAnimation() {
 	_currentFrameBuffer.free();
 }
 
-bool RlfAnimation::readHeader() {
+bool RLFDecoder::RLFVideoTrack::readHeader() {
 	if (_readStream->readUint32BE() != MKTAG('F', 'E', 'L', 'R')) {
 		return false;
 	}
@@ -160,8 +131,8 @@ bool RlfAnimation::readHeader() {
 	return true;
 }
 
-RlfAnimation::Frame RlfAnimation::readNextFrame() {
-	RlfAnimation::Frame frame;
+RLFDecoder::RLFVideoTrack::Frame RLFDecoder::RLFVideoTrack::readNextFrame() {
+	RLFDecoder::RLFVideoTrack::Frame frame;
 
 	_readStream->readUint32BE();                        // Magic number MARF
 	uint32 size = _readStream->readUint32LE();          // Size
@@ -188,30 +159,30 @@ RlfAnimation::Frame RlfAnimation::readNextFrame() {
 	return frame;
 }
 
-void RlfAnimation::seekToFrame(int frameNumber) {
-	assert(!_stream);
-	assert(frameNumber < (int)_frameCount || frameNumber >= -1);
+bool RLFDecoder::RLFVideoTrack::seek(const Audio::Timestamp &time) {
+	uint frame = getFrameAtTime(time);
+	assert(frame < (int)_frameCount);
 
-	if (_nextFrame == frameNumber)
-		return;
+	if ((uint)_curFrame == frame)
+		return true;
 
-	if (frameNumber < 0) {
-		_nextFrame = 0;
-		return;
+	if (frame < 0) {
+		_curFrame = 0;
+		return false;
 	}
 
-	int closestFrame = _nextFrame;
-	int distance = (int)frameNumber - _nextFrame;
+	int closestFrame = _curFrame;
+	int distance = (int)frame - _curFrame;
 
 	if (distance < 0) {
 		for (uint i = 0; i < _completeFrames.size(); ++i) {
-			if ((int)_completeFrames[i] > frameNumber)
+			if ((int)_completeFrames[i] > frame)
 				break;
 			closestFrame = _completeFrames[i];
 		}
 	} else {
 		for (uint i = 0; i < _completeFrames.size(); ++i) {
-			int newDistance = (int)frameNumber - (int)(_completeFrames[i]);
+			int newDistance = (int)frame - (int)(_completeFrames[i]);
 			if (newDistance < 0)
 				break;
 			if (newDistance < distance) {
@@ -221,43 +192,27 @@ void RlfAnimation::seekToFrame(int frameNumber) {
 		}
 	}
 
-	for (int i = closestFrame; i < frameNumber; ++i) {
+	for (uint i = closestFrame; i < frame; ++i) {
 		applyFrameToCurrent(i);
 	}
 
-	_nextFrame = frameNumber;
+	_curFrame = frame;
+
+	return true;
 }
 
-const Graphics::Surface *RlfAnimation::getFrameData(uint frameNumber) {
-	assert(!_stream);
-	assert(frameNumber < _frameCount);
+const Graphics::Surface *RLFDecoder::RLFVideoTrack::decodeNextFrame() {
+	// When an animation ends, rewind
+	if (_curFrame == (int)_frameCount)
+		seek(Audio::Timestamp(0, getFrameRate().toInt()));
+	
+	applyFrameToCurrent(_curFrame);
 
-	// Since this method is so expensive, first check to see if we can use
-	// decodeNextFrame() it's cheap.
-	if ((int)frameNumber == _nextFrame - 1) {
-		return &_currentFrameBuffer;
-	} else if (_nextFrame == (int)frameNumber) {
-		return decodeNextFrame();
-	}
-
-	seekToFrame(frameNumber);
-	return decodeNextFrame();
-}
-
-const Graphics::Surface *RlfAnimation::decodeNextFrame() {
-	assert(_nextFrame < (int)_frameCount);
-
-	if (_stream) {
-		applyFrameToCurrent(readNextFrame());
-	} else {
-		applyFrameToCurrent(_nextFrame);
-	}
-
-	_nextFrame++;
+	_curFrame++;
 	return &_currentFrameBuffer;
 }
 
-void RlfAnimation::applyFrameToCurrent(uint frameNumber) {
+void RLFDecoder::RLFVideoTrack::applyFrameToCurrent(uint frameNumber) {
 	if (_frames[frameNumber].type == Masked) {
 		decodeMaskedRunLengthEncoding(_frames[frameNumber].encodedData, (int8 *)_currentFrameBuffer.getPixels(), _frames[frameNumber].encodedSize, _frameBufferByteSize);
 	} else if (_frames[frameNumber].type == Simple) {
@@ -265,15 +220,7 @@ void RlfAnimation::applyFrameToCurrent(uint frameNumber) {
 	}
 }
 
-void RlfAnimation::applyFrameToCurrent(const RlfAnimation::Frame &frame) {
-	if (frame.type == Masked) {
-		decodeMaskedRunLengthEncoding(frame.encodedData, (int8 *)_currentFrameBuffer.getPixels(), frame.encodedSize, _frameBufferByteSize);
-	} else if (frame.type == Simple) {
-		decodeSimpleRunLengthEncoding(frame.encodedData, (int8 *)_currentFrameBuffer.getPixels(), frame.encodedSize, _frameBufferByteSize);
-	}
-}
-
-void RlfAnimation::decodeMaskedRunLengthEncoding(int8 *source, int8 *dest, uint32 sourceSize, uint32 destSize) const {
+void RLFDecoder::RLFVideoTrack::decodeMaskedRunLengthEncoding(int8 *source, int8 *dest, uint32 sourceSize, uint32 destSize) const {
 	uint32 sourceOffset = 0;
 	uint32 destOffset = 0;
 	int16 numberOfCopy = 0;
@@ -320,7 +267,7 @@ void RlfAnimation::decodeMaskedRunLengthEncoding(int8 *source, int8 *dest, uint3
 	}
 }
 
-void RlfAnimation::decodeSimpleRunLengthEncoding(int8 *source, int8 *dest, uint32 sourceSize, uint32 destSize) const {
+void RLFDecoder::RLFVideoTrack::decodeSimpleRunLengthEncoding(int8 *source, int8 *dest, uint32 sourceSize, uint32 destSize) const {
 	uint32 sourceOffset = 0;
 	uint32 destOffset = 0;
 	int16 numberOfCopy = 0;

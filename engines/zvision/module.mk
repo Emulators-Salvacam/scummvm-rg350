@@ -1,17 +1,17 @@
 MODULE := engines/zvision
 
 MODULE_OBJS := \
-	animation/meta_animation.o \
-	animation/rlf_animation.o \
 	core/console.o \
+	core/clock.o \
 	core/events.o \
 	core/menu.o \
-	core/midi.o \
 	core/save_manager.o \
-	core/search_manager.o \
-	cursors/cursor_manager.o \
-	cursors/cursor.o \
 	detection.o \
+	file/lzss_read_stream.o \
+	file/search_manager.o \
+	file/zfs_archive.o \
+	graphics/cursors/cursor_manager.o \
+	graphics/cursors/cursor.o \
 	graphics/effects/fog.o \
 	graphics/effects/light.o \
 	graphics/effects/wave.o \
@@ -41,13 +41,11 @@ MODULE_OBJS := \
 	scripting/sidefx/syncsound_node.o \
 	scripting/sidefx/timer_node.o \
 	scripting/sidefx/ttytext_node.o \
+	sound/midi.o \
 	sound/zork_raw.o \
 	text/string_manager.o \
 	text/text.o \
-	utility/clock.o \
-	utility/lzss_read_stream.o \
-	utility/utility.o \
-	utility/zfs_archive.o \
+	video/rlf_decoder.o \
 	video/video.o \
 	video/zork_avi_decoder.o \
 	zvision.o
