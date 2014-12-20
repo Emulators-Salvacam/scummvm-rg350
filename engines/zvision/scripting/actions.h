@@ -210,7 +210,7 @@ public:
 	ActionInventory(ZVision *engine, int32 slotkey, const Common::String &line);
 	bool execute();
 private:
-	uint8 _type;
+	int8 _type;
 	int32 _key;
 };
 
@@ -239,7 +239,6 @@ public:
 	bool execute();
 
 private:
-	uint32 _key;
 	Common::String _fileName;
 	bool _loop;
 	byte _volume;
@@ -267,7 +266,6 @@ public:
 	bool execute();
 
 private:
-	uint32 _key;
 	Common::String _fileName;
 	uint32 _x;
 	uint32 _y;
@@ -304,7 +302,6 @@ public:
 	bool execute();
 
 private:
-	uint32 _key;
 	Common::String _fileName;
 	int32 _mask;
 	int32 _framerate;
@@ -357,7 +354,6 @@ public:
 	bool execute();
 
 private:
-	uint32 _key;
 	ValueSlot *_max;
 };
 
@@ -454,7 +450,6 @@ public:
 	~ActionTimer();
 	bool execute();
 private:
-	uint32 _key;
 	ValueSlot *_time;
 };
 
