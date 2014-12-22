@@ -148,7 +148,7 @@ void CampScene::mWhileDoOpen() {
 		_vm->_animation->animate(0);
 		_vm->_animation->animate(1);
 		pan();
-		_vm->_buffer2.blitFrom(_vm->_buffer1);
+		_vm->_buffer2.copyFrom(_vm->_buffer1);
 		_vm->_newRects.clear();
 		_vm->plotList();
 		_vm->copyBlocks();
@@ -176,8 +176,8 @@ void CampScene::mWhileDoOpen() {
 	}
 
 	events.showCursor();
-	_vm->_buffer2.blitFrom(*_vm->_screen);
-	_vm->_buffer1.blitFrom(*_vm->_screen);
+	_vm->_buffer2.copyFrom(*_vm->_screen);
+	_vm->_buffer1.copyFrom(*_vm->_screen);
 
 	_vm->freeCells();
 	_vm->_oldRects.clear();
@@ -323,8 +323,8 @@ void Opening::doTitle() {
 		_vm->_files->_setPaletteFlag = false;
 		_vm->_files->loadScreen(0, 3);
 
-		_vm->_buffer2.blitFrom(*_vm->_screen);
-		_vm->_buffer1.blitFrom(*_vm->_screen);
+		_vm->_buffer2.copyFrom(*_vm->_screen);
+		_vm->_buffer1.copyFrom(*_vm->_screen);
 		screen.forceFadeIn();
 		_vm->_sound->playSound(1);
 
@@ -347,8 +347,8 @@ void Opening::doTitle() {
 		_vm->_files->loadScreen(0, 4);
 		_vm->_sound->playSound(1);
 
-		_vm->_buffer2.blitFrom(*_vm->_screen);
-		_vm->_buffer1.blitFrom(*_vm->_screen);
+		_vm->_buffer2.copyFrom(*_vm->_screen);
+		_vm->_buffer1.copyFrom(*_vm->_screen);
 		_vm->_sound->playSound(1);
 
 		const int COUNTDOWN[6] = { 2, 0x80, 1, 0x7d, 0, 0x87 };
@@ -1035,7 +1035,7 @@ void Guard::setHorizontalCode() {
 
 	if (_bottomRight.x < screen._orgX1)
 		_gCode2 |= 8;
-	else if (_bottomRight.y > screen._orgX2)
+	else if (_bottomRight.x > screen._orgX2)
 		_gCode2 |= 2;
 }
 
@@ -1492,11 +1492,11 @@ void River::initRiver() {
 	_maxHits = 2 - _vm->_riverFlag;
 	_saveRiver = false;
 
-	Font &font2 = _vm->_fonts._font2;
-	font2._fontColors[0] = 0;
-	font2._fontColors[1] = 33;
-	font2._fontColors[2] = 34;
-	font2._fontColors[3] = 35;
+	// Set font colors for drawing using font2
+	Font::_fontColors[0] = 0;
+	Font::_fontColors[1] = 33;
+	Font::_fontColors[2] = 34;
+	Font::_fontColors[3] = 35;
 }
 
 void River::resetPositions() {
@@ -1522,8 +1522,6 @@ void River::checkRiverPan() {
 }
 
 bool River::riverJumpTest() {
-	Screen &screen = *_vm->_screen;
-
 	if (_vm->_scrollCol == 120 || _vm->_scrollCol == 60 || _vm->_scrollCol == 0) {
 		int val = *++_mapPtr;
 		if (val == 0xFF)
@@ -1921,7 +1919,6 @@ void River::synchronize(Common::Serializer &s) {
 	if (_vm->_player->_roomNumber == 45) {
 		if (s.isSaving()) {
 			// Set river properties to be saved out
-			Screen &screen = *_vm->_screen;
 			_rScrollRow = _vm->_scrollRow;
 			_rScrollCol = _vm->_scrollCol;
 			_rScrollX = _vm->_scrollX;
