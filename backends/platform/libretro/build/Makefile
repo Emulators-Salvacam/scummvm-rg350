@@ -206,5 +206,6 @@ endif
 MODULE_DIRS += $(retrodir) $(retrodir)libco
 
 BACKEND := libretro
+USE_MT32EMU = 1
 
 include $(srcdir)/Makefile.common.libretro
