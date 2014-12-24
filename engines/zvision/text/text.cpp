@@ -33,7 +33,7 @@
 
 #include "zvision/text/text.h"
 #include "zvision/graphics/render_manager.h"
-#include "zvision/graphics/truetype_font.h"
+#include "zvision/text/truetype_font.h"
 #include "zvision/scripting/script_manager.h"
 
 namespace ZVision {
@@ -44,12 +44,16 @@ cTxtStyle::cTxtStyle() {
 	_green = 255;
 	_red = 255;
 	_bold = false;
+#if 0
+	_newline = false;
 	_escapement = 0;
+#endif
 	_italic = false;
 	_justify = TXT_JUSTIFY_LEFT;
-	_newline = false;
 	_size = 12;
+#if 0
 	_skipcolor = false;
+#endif
 	_strikeout = false;
 	_underline = false;
 	_statebox = 0;
@@ -115,10 +119,12 @@ txtReturn cTxtStyle::parseStyle(const Common::String &strin, int16 ln) {
 				}
 			}
 		} else if (token.matchString("newline", true)) {
+#if 0
 			if ((retval & TXT_RET_NEWLN) == 0)
 				_newline = 0;
 
 			_newline++;
+#endif
 			retval |= TXT_RET_NEWLN;
 		} else if (token.matchString("point", true)) {
 			if (!tokenizer.empty()) {
@@ -132,8 +138,10 @@ txtReturn cTxtStyle::parseStyle(const Common::String &strin, int16 ln) {
 		} else if (token.matchString("escapement", true)) {
 			if (!tokenizer.empty()) {
 				token = tokenizer.nextToken();
+#if 0
 				int32 tmp = atoi(token.c_str());
 				_escapement = tmp;
+#endif
 			}
 		} else if (token.matchString("italic", true)) {
 			if (!tokenizer.empty()) {
@@ -198,11 +206,13 @@ txtReturn cTxtStyle::parseStyle(const Common::String &strin, int16 ln) {
 		} else if (token.matchString("skipcolor", true)) {
 			if (!tokenizer.empty()) {
 				token = tokenizer.nextToken();
+#if 0
 				if (token.matchString("on", true)) {
 					_skipcolor = true;
 				} else if (token.matchString("off", true)) {
 					_skipcolor = false;
 				}
+#endif
 			}
 		} else if (token.matchString("image", true)) {
 			// Not used
@@ -495,10 +505,12 @@ Common::String readWideLine(Common::SeekableReadStream &stream) {
 		} else if (value >= 0x80 && value < 0x800) {
 			asciiString += (char)(0xC0 | ((value >> 6) & 0x1F));
 			asciiString += (char)(0x80 | (value & 0x3F));
-		} else if (value >= 0x800 && value < 0x10000) {
+		} else if (value >= 0x800 && value < 0x10000 && value != 0xCCCC) {
 			asciiString += (char)(0xE0 | ((value >> 12) & 0xF));
 			asciiString += (char)(0x80 | ((value >> 6) & 0x3F));
 			asciiString += (char)(0x80 | (value & 0x3F));
+		} else if (value == 0xCCCC) {
+			// Ignore, this character is used as newline sometimes
 		} else if (value >= 0x10000 && value < 0x200000) {
 			asciiString += (char)(0xF0);
 			asciiString += (char)(0x80 | ((value >> 12) & 0x3F));

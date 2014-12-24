@@ -29,7 +29,7 @@
 #include "zvision/zvision.h"
 #include "zvision/core/clock.h"
 #include "zvision/graphics/render_manager.h"
-#include "zvision/graphics/subtitles.h"
+#include "zvision/text/subtitles.h"
 #include "zvision/video/rlf_decoder.h"
 #include "zvision/video/zork_avi_decoder.h"
 
@@ -48,7 +48,12 @@ Video::VideoDecoder *ZVision::loadAnimation(const Common::String &fileName) {
 		error("Unknown suffix for animation %s", fileName.c_str());
 
 	Common::File *_file = getSearchManager()->openFile(tmpFileName);
-	animation->loadStream(_file);
+	if (!_file)
+		error("Error opening %s", tmpFileName.c_str());
+
+	bool loaded = animation->loadStream(_file);
+	if (!loaded)
+		error("Error loading animation %s", tmpFileName.c_str());
 	
 	return animation;
 }

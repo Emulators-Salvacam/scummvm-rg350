@@ -25,7 +25,7 @@
 #define ZVISION_TEXT_H
 
 #include "zvision/detection.h"
-#include "zvision/graphics/truetype_font.h"
+#include "zvision/text/truetype_font.h"
 #include "zvision/zvision.h"
 
 namespace ZVision {
@@ -61,13 +61,17 @@ public:
 	uint8 _red;     // 0-255
 	uint8 _green;   // 0-255
 	uint8 _blue;    // 0-255
+#if  0
 	int8 _newline;
 	int8 _escapement;
+#endif
 	bool _italic;
 	bool _bold;
 	bool _underline;
 	bool _strikeout;
+#if 0
 	bool _skipcolor;
+#endif
 	int32 _statebox;
 	bool _sharp;
 	// char image ??
