@@ -136,59 +136,16 @@ RM_REC        = rm -rf
 # Define build flags
 DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_COMMAND_LINE -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565 -Wno-multichar
 INCLUDES      += -I$(srcdir)/$(retrodir) -I. -I$(srcdir) -I$(srcdir)/engines
-EXECUTABLE    = $(TARGET)
 DEPDIR        = .deps
 HAVE_GCC3     = true
 USE_RGB_COLOR = true
 
-# Define enabled modules
-ENABLED=STATIC_PLUGIN
-ENABLE_SCUMM = $(ENABLED)
-ENABLE_SCUMM_7_8 = $(ENABLED)
-ENABLE_SKY = $(ENABLED)
-ENABLE_CINE = $(ENABLED)
-ENABLE_SWORD1 = $(ENABLED)
-ENABLE_SWORD2 = $(ENABLED)
-#ENABLE_SWORD25 = $(ENABLED)
-ENABLE_AGOS = $(ENABLED)
-ENABLE_AGOS2 = $(ENABLED)
-ENABLE_KYRA = $(ENABLED)
-ENABLE_AGI = $(ENABLED)
-ENABLE_SCI = $(ENABLED)
-ENABLE_MADE = $(ENABLED)
-ENABLE_EOB = $(ENABLED)
-ENABLE_LOL = $(ENABLED)
-ENABLE_LURE = $(ENABLED)
-ENABLE_GOB = $(ENABLED)
-ENABLE_TOON = $(ENABLED)
-ENABLE_MOHAWK = $(ENABLED)
-ENABLE_MYST = $(ENABLED)
-ENABLE_CRUISE = $(ENABLED)
-ENABLE_BBVS = $(ENABLED)
-ENABLE_RIVEN = $(ENABLED)
-ENABLE_LASTEXPRESS = $(ENABLED)
-ENABLE_GROOVIE = $(ENABLED)
-ENABLE_GROOVIE2 = $(ENABLED)
-ENABLE_TINSEL = $(ENABLED)
-ENABLE_VOYEUR = $(ENABLED)
-ENABLE_NEVERHOOD = $(ENABLED)
-ENABLE_QUEEN = $(ENABLED)
-ENABLE_SAGA = $(ENABLED)
-ENABLE_SAGA2 = $(ENABLED)
-ENABLE_IHNM = $(ENABLED)
-ENABLE_TOUCHE = $(ENABLED)
-#ENABLE_ZVISION = $(ENABLED)
-ENABLE_TSAGE = $(ENABLED)
-ENABLE_DREAMWEB=$(ENABLED)
-
-#
-OBJS :=	$(retrodir)libretro.o \
-        $(retrodir)os.o
-OBJS += $(libcodir)libco.o
+OBJS := $(retrodir)libretro.o \
+        $(retrodir)os.o \
+		  $(libcodir)libco.o
 
 ifeq ($(FS_TYPE), posix)
-OBJS += backends/fs/posix/posix-fs.o \
-        backends/fs/posix/posix-fs-factory.o
+POSIX = 1
 DEFINES += -DFS_TYPE_POSIX
 else ifeq ($(FS_TYPE), ps3)
 
@@ -208,4 +165,4 @@ MODULE_DIRS += $(retrodir) $(retrodir)libco
 BACKEND := libretro
 USE_MT32EMU = 1
 
-include $(srcdir)/Makefile.common.libretro
+include Makefile.common

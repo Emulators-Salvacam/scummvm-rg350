@@ -1,0 +1,103 @@
+# Define enabled modules
+ENABLED=STATIC_PLUGIN
+ENABLE_SCUMM = $(ENABLED)
+ENABLE_SCUMM_7_8 = $(ENABLED)
+ENABLE_SKY = $(ENABLED)
+ENABLE_CINE = $(ENABLED)
+ENABLE_SWORD1 = $(ENABLED)
+ENABLE_SWORD2 = $(ENABLED)
+#ENABLE_SWORD25 = $(ENABLED)
+ENABLE_AGOS = $(ENABLED)
+ENABLE_AGOS2 = $(ENABLED)
+ENABLE_KYRA = $(ENABLED)
+ENABLE_AGI = $(ENABLED)
+ENABLE_SCI = $(ENABLED)
+ENABLE_MADE = $(ENABLED)
+ENABLE_EOB = $(ENABLED)
+ENABLE_LOL = $(ENABLED)
+ENABLE_LURE = $(ENABLED)
+ENABLE_GOB = $(ENABLED)
+ENABLE_TOON = $(ENABLED)
+ENABLE_MOHAWK = $(ENABLED)
+ENABLE_MYST = $(ENABLED)
+ENABLE_CRUISE = $(ENABLED)
+ENABLE_BBVS = $(ENABLED)
+ENABLE_RIVEN = $(ENABLED)
+ENABLE_LASTEXPRESS = $(ENABLED)
+ENABLE_GROOVIE = $(ENABLED)
+ENABLE_GROOVIE2 = $(ENABLED)
+ENABLE_TINSEL = $(ENABLED)
+ENABLE_VOYEUR = $(ENABLED)
+ENABLE_NEVERHOOD = $(ENABLED)
+ENABLE_QUEEN = $(ENABLED)
+ENABLE_SAGA = $(ENABLED)
+ENABLE_SAGA2 = $(ENABLED)
+ENABLE_IHNM = $(ENABLED)
+ENABLE_TOUCHE = $(ENABLED)
+#ENABLE_ZVISION = $(ENABLED)
+ENABLE_TSAGE = $(ENABLED)
+ENABLE_DREAMWEB=$(ENABLED)
+
+all: $(TARGET)
+
+######################################################################
+# Module settings
+######################################################################
+
+MODULES := test devtools base $(MODULES)
+
+-include $(srcdir)/engines/engines.mk
+
+# After the game specific modules follow the shared modules
+MODULES += \
+	gui \
+	backends \
+	engines \
+	video \
+	image \
+	graphics \
+	audio \
+	common \
+	po
+
+ifdef USE_MT32EMU
+MODULES += audio/softsynth/mt32
+endif
+
+######################################################################
+# The build rules follow - normally you should have no need to
+# touch whatever comes after here.
+######################################################################
+
+# Concat DEFINES and INCLUDES to form the CPPFLAGS
+CPPFLAGS := $(DEFINES) $(INCLUDES)
+
+# Include the build instructions for all modules
+-include $(addprefix $(srcdir)/, $(addsuffix /module.mk,$(MODULES)))
+
+# Depdir information
+DEPDIRS = $(addsuffix $(DEPDIR),$(MODULE_DIRS))
+
+$(TARGET): $(OBJS)
+	$(CXX) $(LDFLAGS) $+ $(LIBS) -o $@
+
+# Dumb compile rule, for C++ compilers that don't allow dependency tracking or
+# where it is broken (such as GCC 2.95).
+.cpp.o:
+	$(MKDIR) $(*D)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(<) -o $*.o
+
+clean:
+	$(RM_REC) $(DEPDIRS)
+	$(RM) $(OBJS) $(TARGET)
+
+# Include the dependency tracking files.
+-include $(wildcard $(addsuffix /*.d,$(DEPDIRS)))
+
+# Mark *.d files and most *.mk files as PHONY. This stops make from trying to
+# recreate them (which it can't), and in particular from looking for potential
+# source files. This can save quite a bit of disk access time.
+.PHONY: $(wildcard $(addsuffix /*.d,$(DEPDIRS))) $(addprefix $(srcdir)/, $(addsuffix /module.mk,$(MODULES))) \
+	$(srcdir)/$(port_mk) $(srcdir)/rules.mk $(srcdir)/engines/engines.mk
+
+.PHONY: all clean
