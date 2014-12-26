@@ -29,6 +29,7 @@
 #include "zvision/graphics/render_manager.h"
 #include "zvision/sound/zork_raw.h"
 #include "zvision/video/zork_avi_decoder.h"
+#include "zvision/file/save_manager.h"
 #include "zvision/scripting/sidefx/timer_node.h"
 #include "zvision/scripting/sidefx/music_node.h"
 #include "zvision/scripting/sidefx/syncsound_node.h"
@@ -42,7 +43,6 @@
 #include "zvision/graphics/effects/fog.h"
 #include "zvision/graphics/effects/light.h"
 #include "zvision/graphics/effects/wave.h"
-#include "zvision/core/save_manager.h"
 #include "zvision/graphics/cursors/cursor_manager.h"
 
 #include "common/file.h"
@@ -477,7 +477,9 @@ ActionMusic::ActionMusic(ZVision *engine, int32 slotkey, const Common::String &l
 
 	sscanf(line.c_str(), "%u %24s %u %u", &type, fileNameBuffer, &loop, &volume);
 
-	// type 4 are midi sound effect files
+	// Type 4 actions are MIDI commands, not files. These are only used by
+	// Zork: Nemesis, for the flute and piano puzzles (tj4e and ve6f, as well
+	// as vr)
 	if (type == 4) {
 		_midi = true;
 		int note;
@@ -580,12 +582,6 @@ ActionPreloadAnimation::ActionPreloadAnimation(ZVision *engine, int32 slotkey, c
 	// The two %*u are usually 0 and dont seem to have a use
 	sscanf(line.c_str(), "%24s %*u %*u %d %d", fileName, &_mask, &_framerate);
 
-	if (_mask > 0) {
-		byte r, g, b;
-		Graphics::PixelFormat(2, 5, 5, 5, 0, 10, 5, 0, 0).colorToRGB(_mask, r, g, b);
-		_mask = _engine->_pixelFormat.RGBToColor(r, g, b);
-	}
-
 	_fileName = Common::String(fileName);
 }
 
@@ -647,12 +643,6 @@ ActionPlayAnimation::ActionPlayAnimation(ZVision *engine, int32 slotkey, const C
 	sscanf(line.c_str(),
 	       "%24s %u %u %u %u %u %u %d %*u %*u %d %d",
 	       fileName, &_x, &_y, &_x2, &_y2, &_start, &_end, &_loopCount, &_mask, &_framerate);
-
-	if (_mask > 0) {
-		byte r, g, b;
-		Graphics::PixelFormat(2, 5, 5, 5, 0, 10, 5, 0, 0).colorToRGB(_mask, r, g, b);
-		_mask = _engine->_pixelFormat.RGBToColor(r, g, b);
-	}
 
 	_fileName = Common::String(fileName);
 }
@@ -716,7 +706,7 @@ bool ActionQuit::execute() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ActionRegion
+// ActionRegion - only used by Zork: Nemesis
 //////////////////////////////////////////////////////////////////////////////
 
 ActionRegion::ActionRegion(ZVision *engine, int32 slotkey, const Common::String &line) :
@@ -861,21 +851,12 @@ ActionSetPartialScreen::ActionSetPartialScreen(ZVision *engine, int32 slotkey, c
 	_y = 0;
 
 	char fileName[25];
-	int color;
 
-	sscanf(line.c_str(), "%u %u %24s %*u %d", &_x, &_y, fileName, &color);
+	sscanf(line.c_str(), "%u %u %24s %*u %d", &_x, &_y, fileName, &_backgroundColor);
 
 	_fileName = Common::String(fileName);
 
-	if (color >= 0) {
-		byte r, g, b;
-		Graphics::PixelFormat(2, 5, 5, 5, 0, 10, 5, 0, 0).colorToRGB(color, r, g, b);
-		_backgroundColor = _engine->_pixelFormat.RGBToColor(r, g, b);
-	} else {
-		_backgroundColor = color;
-	}
-
-	if (color > 65535) {
+	if (_backgroundColor > 65535) {
 		warning("Background color for ActionSetPartialScreen is bigger than a uint16");
 	}
 }

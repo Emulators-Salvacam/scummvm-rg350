@@ -45,7 +45,7 @@ private:
 
 		uint16 getWidth() const { return _width; }
 		uint16 getHeight() const { return _height; }
-		Graphics::PixelFormat getPixelFormat() const { return Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0); /*RGB 565*/ }
+		Graphics::PixelFormat getPixelFormat() const { return Graphics::PixelFormat(2, 5, 5, 5, 0, 10, 5, 0, 0); /* RGB 555 */ }
 		int getCurFrame() const { return _curFrame; }
 		int getFrameCount() const { return _frameCount; }
 		const Graphics::Surface *decodeNextFrame();
@@ -53,7 +53,7 @@ private:
 		bool seek(const Audio::Timestamp &time);
 
 	protected:
-		Common::Rational getFrameRate() const { return Common::Rational(60, _frameTime); }
+		Common::Rational getFrameRate() const { return Common::Rational(1000, _frameTime); }
 
 	private:
 		enum EncodingType {

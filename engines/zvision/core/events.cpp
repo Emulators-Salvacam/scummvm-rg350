@@ -28,7 +28,7 @@
 #include "zvision/graphics/cursors/cursor_manager.h"
 #include "zvision/graphics/render_manager.h"
 #include "zvision/scripting/script_manager.h"
-#include "zvision/core/menu.h"
+#include "zvision/scripting/menu.h"
 #include "zvision/sound/zork_raw.h"
 
 #include "common/events.h"
@@ -43,19 +43,19 @@ void ZVision::shortKeys(Common::Event event) {
 	if (event.kbd.hasFlags(Common::KBD_CTRL)) {
 		switch (event.kbd.keycode) {
 		case Common::KEYCODE_s:
-			if (getMenuBarEnable() & menuBar_Save)
+			if (getMenuBarEnable() & kMenubarSave)
 				_scriptManager->changeLocation('g', 'j', 's', 'e', 0);
 			break;
 		case Common::KEYCODE_r:
-			if (getMenuBarEnable() & menuBar_Restore)
+			if (getMenuBarEnable() & kMenubarRestore)
 				_scriptManager->changeLocation('g', 'j', 'r', 'e', 0);
 			break;
 		case Common::KEYCODE_p:
-			if (getMenuBarEnable() & menuBar_Settings)
+			if (getMenuBarEnable() & kMenubarSettings)
 				_scriptManager->changeLocation('g', 'j', 'p', 'e', 0);
 			break;
 		case Common::KEYCODE_q:
-			if (getMenuBarEnable() & menuBar_Exit)
+			if (getMenuBarEnable() & kMenubarExit)
 				ifQuit();
 			break;
 		default:

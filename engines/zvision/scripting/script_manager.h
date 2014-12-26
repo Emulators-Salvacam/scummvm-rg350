@@ -94,7 +94,12 @@ enum StateKey {
 	StateKey_Inv_Cnt_Slot = 100,
 	StateKey_Inv_1_Slot = 101,
 	StateKey_Inv_49_Slot = 149,
-	StateKey_Inv_TotalSlots = 150
+	// ZGI only
+	StateKey_Inv_TotalSlots = 150,
+	StateKey_Inv_StartSlot = 151,
+	StateKey_Spell_1 = 191,
+	StateKey_Active_Spell = 205,
+	StateKey_Reversed_Spellbooc = 206
 };
 
 struct Location {
@@ -282,7 +287,7 @@ public:
 	void inventoryDrop(int16 item);
 	void inventoryCycle();
 
-	// TODO: Make this private. It was only made public so Console::cmdParseAllScrFiles() could use it
+private:
 	/**
 	 * Parses a script file into triggers and events
 	 *
@@ -291,7 +296,6 @@ public:
 	 */
 	void parseScrFile(const Common::String &fileName, ScriptScope &scope);
 
-private:
 	/**
 	 * Parses the stream into a Puzzle object
 	 * Helper method for parseScrFile.

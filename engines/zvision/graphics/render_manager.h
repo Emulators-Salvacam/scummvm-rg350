@@ -146,6 +146,8 @@ public:
 	 */
 	void renderSceneToScreen();
 
+	void copyToScreen(const Graphics::Surface &surface, Common::Rect &rect, int16 srcLeft, int16 srcTop);
+
 	/**
 	 * Blits the image or a portion of the image to the background.
 	 *
@@ -328,8 +330,10 @@ public:
 	// Mark whole background surface as dirty
 	void markDirty();
 
-	// Fille background surface by color
+#if 0
+	// Fill background surface by color
 	void bkgFill(uint8 r, uint8 g, uint8 b);
+#endif
 };
 
 } // End of namespace ZVision

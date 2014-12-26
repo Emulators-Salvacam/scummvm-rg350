@@ -40,7 +40,11 @@ AnimationNode::AnimationNode(ZVision *engine, uint32 controlKey, const Common::S
 	  _animation(NULL) {
 
 	_animation = engine->loadAnimation(fileName);
-	_frmDelay = 1000.0 / _animation->getDuration().framerate();
+
+	if (fileName.hasSuffix(".rlf"))
+		_frmDelay = _animation->getTimeToNextFrame();
+	else
+		_frmDelay = Common::Rational(1000, _animation->getDuration().framerate()).toInt();
 
 	if (frate > 0)
 		_frmDelay = 1000.0 / frate;
@@ -61,8 +65,10 @@ AnimationNode::~AnimationNode() {
 	if (it != _playList.end()) {
 		_engine->getScriptManager()->setStateValue((*it).slot, 2);
 
-		if ((*it)._scaled)
+		if ((*it)._scaled) {
+			(*it)._scaled->free();
 			delete(*it)._scaled;
+		}
 	}
 
 	_playList.clear();
@@ -97,8 +103,10 @@ bool AnimationNode::process(uint32 deltaTimeInMillis) {
 					if (nod->loop == 0) {
 						if (nod->slot >= 0)
 							_engine->getScriptManager()->setStateValue(nod->slot, 2);
-						if (nod->_scaled)
+						if (nod->_scaled) {
+							nod->_scaled->free();
 							delete nod->_scaled;
+						}
 						_playList.erase(it);
 						return _DisposeAfterUse;
 					}
@@ -130,6 +138,7 @@ bool AnimationNode::process(uint32 deltaTimeInMillis) {
 				if (frame->w > dstw || frame->h > dsth || (frame->w == dstw / 2 && frame->h == dsth / 2)) {
 					if (nod->_scaled)
 						if (nod->_scaled->w != dstw || nod->_scaled->h != dsth) {
+							nod->_scaled->free();
 							delete nod->_scaled;
 							nod->_scaled = NULL;
 						}
@@ -149,6 +158,7 @@ bool AnimationNode::process(uint32 deltaTimeInMillis) {
 						_engine->getRenderManager()->blitSurfaceToBkg(*transposed, nod->pos.left, nod->pos.top, _mask);
 					else
 						_engine->getRenderManager()->blitSurfaceToBkg(*transposed, nod->pos.left, nod->pos.top);
+					transposed->free();
 					delete transposed;
 				} else {
 					if (_mask > 0)
@@ -184,18 +194,16 @@ bool AnimationNode::stop() {
 	PlayNodes::iterator it = _playList.begin();
 	if (it != _playList.end()) {
 		_engine->getScriptManager()->setStateValue((*it).slot, 2);
-		if ((*it)._scaled)
+		if ((*it)._scaled) {
+			(*it)._scaled->free();
 			delete(*it)._scaled;
+		}
 	}
 
 	_playList.clear();
 
 	// We don't need to delete, it's may be reused
 	return false;
-}
-
-int32 AnimationNode::getFrameDelay() {
-	return _frmDelay;
 }
 
 } // End of namespace ZVision
