@@ -41,6 +41,17 @@ namespace Video {
 class VideoDecoder;
 }
 
+/**
+ * This is the namespace of the ZVision engine.
+ *
+ * Status of this engine: complete
+ *
+ * Games using this engine:
+ * - Zork Nemesis: The Forbidden Lands
+ * - Zork: Grand Inquisitor
+ *
+ */
+
 namespace ZVision {
 
 struct ZVisionGameDescription;
@@ -119,9 +130,11 @@ private:
 	Common::Event _event;
 
 	int _frameRenderDelay;
+	int _renderedFrameCount;
+	int _fps;
 	int16 _mouseVelocity;
 	int16 _keyboardVelocity;
-	bool _halveDelay;
+	bool _doubleFPS;
 	bool _videoIsPlaying;
 
 	uint8 _cheatBuffer[KEYBUF_SIZE];
@@ -155,14 +168,31 @@ public:
 	MidiManager *getMidiManager() const {
 		return _midiManager;
 	}
+	MenuHandler *getMenuHandler() const {
+		return _menu;
+	}
 	Common::RandomSource *getRandomSource() const {
 		return _rnd;
 	}
 	ZVisionGameId getGameId() const {
 		return _gameDescription->gameId;
 	}
+	int16 getKeyboardVelocity() const {
+		return _keyboardVelocity;
+	}
+	int16 getMouseVelocity() const {
+		return _mouseVelocity;
+	}
 
 	uint8 getZvisionKey(Common::KeyCode scummKeyCode);
+
+	void startClock() {
+		_clock.start();
+	}
+
+	void stopClock() {
+		_clock.stop();
+	}
 
 	/**
 	 * Play a video until it is finished. This is a blocking call. It will call
@@ -176,28 +206,23 @@ public:
 	void playVideo(Video::VideoDecoder &videoDecoder, const Common::Rect &destRect = Common::Rect(0, 0, 0, 0), bool skippable = true, Subtitle *sub = NULL);
 	Video::VideoDecoder *loadAnimation(const Common::String &fileName);
 
-	void rotateTo(int16 to, int16 time);
-
 	Common::String generateSaveFileName(uint slot);
-	Common::String generateAutoSaveFileName();
-
-	bool askQuestion(const Common::String &str);
-	void delayedMessage(const Common::String &str, uint16 milsecs);
-	void timedMessage(const Common::String &str, uint16 milsecs);
 
 	void setRenderDelay(uint);
 	bool canRender();
+	static void fpsTimerCallback(void *refCon);
+	void fpsTimer();
+	int getFPS() const {
+		return _fps;
+	}
+
+	GUI::Debugger *getDebugger();
+	void syncSoundSettings();
 
 	void loadSettings();
 	void saveSettings();
 
-	void menuBarEnable(uint16 menus);
-	uint16 getMenuBarEnable();
-
 	bool ifQuit();
-
-	void checkBorders();
-	void showDebugMsg(const Common::String &msg, int16 delay = 3000);
 
 	// Engine features
 	bool hasFeature(EngineFeature f) const;
@@ -215,7 +240,6 @@ private:
 	void processEvents();
 
 	void onMouseMove(const Common::Point &pos);
-	void updateRotation();
 
 	void registerDefaultSettings();
 	void shortKeys(Common::Event);

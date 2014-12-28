@@ -39,7 +39,7 @@
 
 namespace ZVision {
 
-RenderManager::RenderManager(ZVision *engine, uint32 windowWidth, uint32 windowHeight, const Common::Rect workingWindow, const Graphics::PixelFormat pixelFormat)
+RenderManager::RenderManager(ZVision *engine, uint32 windowWidth, uint32 windowHeight, const Common::Rect workingWindow, const Graphics::PixelFormat pixelFormat, bool doubleFPS)
 	: _engine(engine),
 	  _system(engine->_system),
 	  _workingWidth(workingWindow.width()),
@@ -51,7 +51,8 @@ RenderManager::RenderManager(ZVision *engine, uint32 windowWidth, uint32 windowH
 	  _backgroundWidth(0),
 	  _backgroundHeight(0),
 	  _backgroundOffset(0),
-	  _renderTable(_workingWidth, _workingHeight) {
+	  _renderTable(_workingWidth, _workingHeight),
+	  _doubleFPS(doubleFPS) {
 
 	_backgroundSurface.create(_workingWidth, _workingHeight, _pixelFormat);
 	_effectSurface.create(_workingWidth, _workingHeight, _pixelFormat);
@@ -103,7 +104,8 @@ void RenderManager::renderSceneToScreen() {
 					post = (*it)->draw(_currentBackgroundImage.getSubArea(rect));
 				else
 					post = (*it)->draw(_effectSurface.getSubArea(rect));
-				blitSurfaceToSurface(*post, _effectSurface, screenSpaceLocation.left, screenSpaceLocation.top);
+				Common::Rect empty;
+				blitSurfaceToSurface(*post, empty, _effectSurface, screenSpaceLocation.left, screenSpaceLocation.top);
 				screenSpaceLocation.clip(windowRect);
 				if (_backgroundSurfaceDirtyRect .isEmpty()) {
 					_backgroundSurfaceDirtyRect = screenSpaceLocation;
@@ -207,13 +209,17 @@ void RenderManager::readImageToSurface(const Common::String &fileName, Graphics:
 		isTGZ = true;
 
 		// TGZ files have a header and then Bitmap data that is compressed with LZSS
-		uint32 decompressedSize = file.readSint32LE();
+		uint32 decompressedSize = file.readSint32LE() / 2;
 		imageWidth = file.readSint32LE();
 		imageHeight = file.readSint32LE();
 
 		LzssReadStream lzssStream(&file);
 		buffer = (uint16 *)(new uint16[decompressedSize]);
-		lzssStream.read(buffer, decompressedSize);
+		lzssStream.read(buffer, 2 * decompressedSize);
+#ifndef SCUMM_LITTLE_ENDIAN
+		for (uint32 i = 0; i < decompressedSize; ++i)
+			buffer[i] = FROM_LE_16(buffer[i]);
+#endif
 	} else {
 		isTGZ = false;
 
@@ -510,19 +516,12 @@ void RenderManager::blitSurfaceToSurface(const Graphics::Surface &src, const Com
 	delete srcAdapted;
 }
 
-void RenderManager::blitSurfaceToSurface(const Graphics::Surface &src, Graphics::Surface &dst, int x, int y) {
+void RenderManager::blitSurfaceToBkg(const Graphics::Surface &src, int x, int y, int32 colorkey) {
 	Common::Rect empt;
-	blitSurfaceToSurface(src, empt, dst, x, y);
-}
-
-void RenderManager::blitSurfaceToSurface(const Graphics::Surface &src, Graphics::Surface &dst, int x, int y, uint32 colorkey) {
-	Common::Rect empt;
-	blitSurfaceToSurface(src, empt, dst, x, y, colorkey);
-}
-
-void RenderManager::blitSurfaceToBkg(const Graphics::Surface &src, int x, int y) {
-	Common::Rect empt;
-	blitSurfaceToSurface(src, empt, _currentBackgroundImage, x, y);
+	if (colorkey >= 0)
+		blitSurfaceToSurface(src, empt, _currentBackgroundImage, x, y, colorkey);
+	else
+		blitSurfaceToSurface(src, empt, _currentBackgroundImage, x, y);
 	Common::Rect dirty(src.w, src.h);
 	dirty.translate(x, y);
 	if (_backgroundDirtyRect.isEmpty())
@@ -531,34 +530,10 @@ void RenderManager::blitSurfaceToBkg(const Graphics::Surface &src, int x, int y)
 		_backgroundDirtyRect.extend(dirty);
 }
 
-void RenderManager::blitSurfaceToBkg(const Graphics::Surface &src, int x, int y, uint32 colorkey) {
-	Common::Rect empt;
-	blitSurfaceToSurface(src, empt, _currentBackgroundImage, x, y, colorkey);
-	Common::Rect dirty(src.w, src.h);
-	dirty.translate(x, y);
-	if (_backgroundDirtyRect.isEmpty())
-		_backgroundDirtyRect = dirty;
-	else
-		_backgroundDirtyRect.extend(dirty);
-}
-
-void RenderManager::blitSurfaceToBkgScaled(const Graphics::Surface &src, const Common::Rect &_dstRect) {
-	if (src.w == _dstRect.width() && src.h == _dstRect.height())
-		blitSurfaceToBkg(src, _dstRect.left, _dstRect.top);
-	else {
-		Graphics::Surface *tmp = new Graphics::Surface;
-		tmp->create(_dstRect.width(), _dstRect.height(), src.format);
-		scaleBuffer(src.getPixels(), tmp->getPixels(), src.w, src.h, src.format.bytesPerPixel, _dstRect.width(), _dstRect.height());
-		blitSurfaceToBkg(*tmp, _dstRect.left, _dstRect.top);
-		tmp->free();
-		delete tmp;
-	}
-}
-
-void RenderManager::blitSurfaceToBkgScaled(const Graphics::Surface &src, const Common::Rect &_dstRect, uint32 colorkey) {
-	if (src.w == _dstRect.width() && src.h == _dstRect.height())
+void RenderManager::blitSurfaceToBkgScaled(const Graphics::Surface &src, const Common::Rect &_dstRect, int32 colorkey) {
+	if (src.w == _dstRect.width() && src.h == _dstRect.height()) {
 		blitSurfaceToBkg(src, _dstRect.left, _dstRect.top, colorkey);
-	else {
+	} else {
 		Graphics::Surface *tmp = new Graphics::Surface;
 		tmp->create(_dstRect.width(), _dstRect.height(), src.format);
 		scaleBuffer(src.getPixels(), tmp->getPixels(), src.w, src.h, src.format.bytesPerPixel, _dstRect.width(), _dstRect.height());
@@ -568,20 +543,12 @@ void RenderManager::blitSurfaceToBkgScaled(const Graphics::Surface &src, const C
 	}
 }
 
-void RenderManager::blitSurfaceToMenu(const Graphics::Surface &src, int x, int y) {
+void RenderManager::blitSurfaceToMenu(const Graphics::Surface &src, int x, int y, int32 colorkey) {
 	Common::Rect empt;
-	blitSurfaceToSurface(src, empt, _menuSurface, x, y);
-	Common::Rect dirty(src.w, src.h);
-	dirty.translate(x, y);
-	if (_menuSurfaceDirtyRect.isEmpty())
-		_menuSurfaceDirtyRect = dirty;
+	if (colorkey >= 0)
+		blitSurfaceToSurface(src, empt, _menuSurface, x, y, colorkey);
 	else
-		_menuSurfaceDirtyRect.extend(dirty);
-}
-
-void RenderManager::blitSurfaceToMenu(const Graphics::Surface &src, int x, int y, uint32 colorkey) {
-	Common::Rect empt;
-	blitSurfaceToSurface(src, empt, _menuSurface, x, y, colorkey);
+		blitSurfaceToSurface(src, empt, _menuSurface, x, y);
 	Common::Rect dirty(src.w, src.h);
 	dirty.translate(x, y);
 	if (_menuSurfaceDirtyRect.isEmpty())
@@ -605,26 +572,16 @@ Graphics::Surface *RenderManager::getBkgRect(Common::Rect &rect) {
 	return srf;
 }
 
-Graphics::Surface *RenderManager::loadImage(Common::String &file) {
+Graphics::Surface *RenderManager::loadImage(Common::String file) {
 	Graphics::Surface *tmp = new Graphics::Surface;
 	readImageToSurface(file, *tmp);
 	return tmp;
 }
 
-Graphics::Surface *RenderManager::loadImage(const char *file) {
-	Common::String str = Common::String(file);
-	return loadImage(str);
-}
-
-Graphics::Surface *RenderManager::loadImage(Common::String &file, bool transposed) {
+Graphics::Surface *RenderManager::loadImage(Common::String file, bool transposed) {
 	Graphics::Surface *tmp = new Graphics::Surface;
 	readImageToSurface(file, *tmp, transposed);
 	return tmp;
-}
-
-Graphics::Surface *RenderManager::loadImage(const char *file, bool transposed) {
-	Common::String str = Common::String(file);
-	return loadImage(str, transposed);
 }
 
 void RenderManager::prepareBackground() {
@@ -745,18 +702,9 @@ uint16 RenderManager::createSubArea(const Common::Rect &area) {
 }
 
 uint16 RenderManager::createSubArea() {
-	_subid++;
-
-	OneSubtitle sub;
-	sub.redraw = false;
-	sub.timer = -1;
-	sub.todelete = false;
-	sub.r = Common::Rect(_subtitleArea.left, _subtitleArea.top, _subtitleArea.right, _subtitleArea.bottom);
-	sub.r.translate(-_workingWindow.left, -_workingWindow.top);
-
-	_subsList[_subid] = sub;
-
-	return _subid;
+	Common::Rect r(_subtitleArea.left, _subtitleArea.top, _subtitleArea.right, _subtitleArea.bottom);
+	r.translate(-_workingWindow.left, -_workingWindow.top);
+	return createSubArea(r);
 }
 
 void RenderManager::deleteSubArea(uint16 id) {
@@ -793,7 +741,7 @@ void RenderManager::processSubs(uint16 deltatime) {
 		}
 	}
 
-	if (redraw) {
+	if (redraw && _engine->getScriptManager()->getStateValue(StateKey_Subtitles) == 1) {
 		_subtitleSurface.fillRect(Common::Rect(_subtitleSurface.w, _subtitleSurface.h), 0);
 
 		for (SubtitleMap::iterator it = _subsList.begin(); it != _subsList.end(); it++) {
@@ -802,7 +750,8 @@ void RenderManager::processSubs(uint16 deltatime) {
 				Graphics::Surface *rndr = new Graphics::Surface();
 				rndr->create(sub->r.width(), sub->r.height(), _engine->_resourcePixelFormat);
 				_engine->getTextRenderer()->drawTxtInOneLine(sub->txt, *rndr);
-				blitSurfaceToSurface(*rndr, _subtitleSurface, sub->r.left - _subtitleArea.left + _workingWindow.left, sub->r.top - _subtitleArea.top + _workingWindow.top);
+				Common::Rect empty;
+				blitSurfaceToSurface(*rndr, empty, _subtitleSurface, sub->r.left - _subtitleArea.left + _workingWindow.left, sub->r.top - _subtitleArea.top + _workingWindow.top);
 				rndr->free();
 				delete rndr;
 			}
@@ -1012,5 +961,215 @@ void RenderManager::bkgFill(uint8 r, uint8 g, uint8 b) {
 	markDirty();
 }
 #endif
+
+void RenderManager::timedMessage(const Common::String &str, uint16 milsecs) {
+	uint16 msgid = createSubArea();
+	updateSubArea(msgid, str);
+	processSubs(0);
+	renderSceneToScreen();
+	deleteSubArea(msgid, milsecs);
+}
+
+bool RenderManager::askQuestion(const Common::String &str) {
+	uint16 msgid = createSubArea();
+	updateSubArea(msgid, str);
+	processSubs(0);
+	renderSceneToScreen();
+	_engine->stopClock();
+
+	int result = 0;
+
+	while (result == 0) {
+		Common::Event evnt;
+		while (_engine->getEventManager()->pollEvent(evnt)) {
+			if (evnt.type == Common::EVENT_KEYDOWN) {
+				switch (evnt.kbd.keycode) {
+				case Common::KEYCODE_y:
+					result = 2;
+					break;
+				case Common::KEYCODE_n:
+					result = 1;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		_system->updateScreen();
+		if (_doubleFPS)
+			_system->delayMillis(33);
+		else
+			_system->delayMillis(66);
+	}
+	deleteSubArea(msgid);
+	_engine->startClock();
+	return result == 2;
+}
+
+void RenderManager::delayedMessage(const Common::String &str, uint16 milsecs) {
+	uint16 msgid = createSubArea();
+	updateSubArea(msgid, str);
+	processSubs(0);
+	renderSceneToScreen();
+	_engine->stopClock();
+
+	uint32 stopTime = _system->getMillis() + milsecs;
+	while (_system->getMillis() < stopTime) {
+		Common::Event evnt;
+		while (_engine->getEventManager()->pollEvent(evnt)) {
+			if (evnt.type == Common::EVENT_KEYDOWN &&
+			        (evnt.kbd.keycode == Common::KEYCODE_SPACE ||
+			         evnt.kbd.keycode == Common::KEYCODE_RETURN ||
+			         evnt.kbd.keycode == Common::KEYCODE_ESCAPE))
+				break;
+		}
+		_system->updateScreen();
+		if (_doubleFPS)
+			_system->delayMillis(33);
+		else
+			_system->delayMillis(66);
+	}
+	deleteSubArea(msgid);
+	_engine->startClock();
+}
+
+void RenderManager::showDebugMsg(const Common::String &msg, int16 delay) {
+	uint16 msgid = createSubArea();
+	updateSubArea(msgid, msg);
+	deleteSubArea(msgid, delay);
+}
+
+void RenderManager::updateRotation() {
+	int16 _velocity = _engine->getMouseVelocity() + _engine->getKeyboardVelocity();
+	ScriptManager *scriptManager = _engine->getScriptManager();
+
+	if (_doubleFPS)
+		_velocity /= 2;
+
+	if (_velocity) {
+		RenderTable::RenderState renderState = _renderTable.getRenderState();
+		if (renderState == RenderTable::PANORAMA) {
+			int16 startPosition = scriptManager->getStateValue(StateKey_ViewPos);
+
+			int16 newPosition = startPosition + (_renderTable.getPanoramaReverse() ? -_velocity : _velocity);
+
+			int16 zeroPoint = _renderTable.getPanoramaZeroPoint();
+			if (startPosition >= zeroPoint && newPosition < zeroPoint)
+				scriptManager->setStateValue(StateKey_Rounds, scriptManager->getStateValue(StateKey_Rounds) - 1);
+			if (startPosition <= zeroPoint && newPosition > zeroPoint)
+				scriptManager->setStateValue(StateKey_Rounds, scriptManager->getStateValue(StateKey_Rounds) + 1);
+
+			int16 screenWidth = getBkgSize().x;
+			if (screenWidth)
+				newPosition %= screenWidth;
+
+			if (newPosition < 0)
+				newPosition += screenWidth;
+
+			setBackgroundPosition(newPosition);
+		} else if (renderState == RenderTable::TILT) {
+			int16 startPosition = scriptManager->getStateValue(StateKey_ViewPos);
+
+			int16 newPosition = startPosition + _velocity;
+
+			int16 screenHeight = getBkgSize().y;
+			int16 tiltGap = _renderTable.getTiltGap();
+
+			if (newPosition >= (screenHeight - tiltGap))
+				newPosition = screenHeight - tiltGap;
+			if (newPosition <= tiltGap)
+				newPosition = tiltGap;
+
+			setBackgroundPosition(newPosition);
+		}
+	}
+}
+
+void RenderManager::checkBorders() {
+	RenderTable::RenderState renderState = _renderTable.getRenderState();
+	if (renderState == RenderTable::PANORAMA) {
+		int16 startPosition = _engine->getScriptManager()->getStateValue(StateKey_ViewPos);
+
+		int16 newPosition = startPosition;
+
+		int16 screenWidth = getBkgSize().x;
+
+		if (screenWidth)
+			newPosition %= screenWidth;
+
+		if (newPosition < 0)
+			newPosition += screenWidth;
+
+		if (startPosition != newPosition)
+			setBackgroundPosition(newPosition);
+	} else if (renderState == RenderTable::TILT) {
+		int16 startPosition = _engine->getScriptManager()->getStateValue(StateKey_ViewPos);
+
+		int16 newPosition = startPosition;
+
+		int16 screenHeight = getBkgSize().y;
+		int16 tiltGap = _renderTable.getTiltGap();
+
+		if (newPosition >= (screenHeight - tiltGap))
+			newPosition = screenHeight - tiltGap;
+		if (newPosition <= tiltGap)
+			newPosition = tiltGap;
+
+		if (startPosition != newPosition)
+			setBackgroundPosition(newPosition);
+	}
+}
+
+void RenderManager::rotateTo(int16 _toPos, int16 _time) {
+	if (_renderTable.getRenderState() != RenderTable::PANORAMA)
+		return;
+
+	if (_time == 0)
+		_time = 1;
+
+	int32 maxX = getBkgSize().x;
+	int32 curX = getCurrentBackgroundOffset();
+	int32 dx = 0;
+
+	if (curX == _toPos)
+		return;
+
+	if (curX > _toPos) {
+		if (curX - _toPos > maxX / 2)
+			dx = (_toPos + (maxX - curX)) / _time;
+		else
+			dx = -(curX - _toPos) / _time;
+	} else {
+		if (_toPos - curX > maxX / 2)
+			dx = -((maxX - _toPos) + curX) / _time;
+		else
+			dx = (_toPos - curX) / _time;
+	}
+
+	_engine->stopClock();
+
+	for (int16 i = 0; i <= _time; i++) {
+		if (i == _time)
+			curX = _toPos;
+		else
+			curX += dx;
+
+		if (curX < 0)
+			curX = maxX - curX;
+		else if (curX >= maxX)
+			curX %= maxX;
+
+		setBackgroundPosition(curX);
+
+		prepareBackground();
+		renderSceneToScreen();
+
+		_system->updateScreen();
+
+		_system->delayMillis(500 / _time);
+	}
+
+	_engine->startClock();
+}
 
 } // End of namespace ZVision

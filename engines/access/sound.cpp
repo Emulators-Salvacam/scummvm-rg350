@@ -22,7 +22,6 @@
 
 #include "common/algorithm.h"
 #include "audio/mixer.h"
-#include "audio/audiostream.h"
 #include "audio/decoders/raw.h"
 #include "audio/decoders/wave.h"
 #include "access/access.h"
@@ -31,8 +30,6 @@
 namespace Access {
 
 SoundManager::SoundManager(AccessEngine *vm, Audio::Mixer *mixer) : _vm(vm), _mixer(mixer) {
-	_playingSound = false;
-	_isVoice = false;
 }
 
 SoundManager::~SoundManager() {
@@ -44,11 +41,23 @@ void SoundManager::clearSounds() {
 
 	for (uint i = 0; i < _soundTable.size(); ++i)
 		delete _soundTable[i]._res;
+
 	_soundTable.clear();
+
+	if (_mixer->isSoundHandleActive(_effectsHandle))
+		_mixer->stopHandle(_effectsHandle);
+
+	if (_queue.size())
+		_queue.remove_at(0);
+
+	while (_queue.size()) {
+		delete _queue[0];
+		_queue.remove_at(0);
+	}
 }
 
-void SoundManager::queueSound(int idx, int fileNum, int subfile) {
-	debugC(1, kDebugSound, "queueSound(%d, %d, %d)", idx, fileNum, subfile);
+void SoundManager::loadSoundTable(int idx, int fileNum, int subfile, int priority) {
+	debugC(1, kDebugSound, "loadSoundTable(%d, %d, %d)", idx, fileNum, subfile);
 
 	Resource *soundResource;
 
@@ -58,7 +67,7 @@ void SoundManager::queueSound(int idx, int fileNum, int subfile) {
 	delete _soundTable[idx]._res;
 	soundResource = _vm->_files->loadFile(fileNum, subfile);
 	_soundTable[idx]._res = soundResource;
-	_soundTable[idx]._priority = 1;
+	_soundTable[idx]._priority = priority;
 }
 
 Resource *SoundManager::loadSound(int fileNum, int subfile) {
@@ -77,19 +86,14 @@ void SoundManager::playSound(Resource *res, int priority) {
 	debugC(1, kDebugSound, "playSound");
 
 	byte *resourceData = res->data();
-	Audio::SoundHandle audioHandle;
-	Audio::RewindableAudioStream *audioStream = 0;
 
 	assert(res->_size >= 32);
-
-	// HACK: Simulates queueing for the rare sounds played one after the other
-	while (_mixer->hasActiveChannelOfType(Audio::Mixer::kSFXSoundType))
-		;
 
 	if (READ_BE_UINT32(resourceData) == MKTAG('R','I','F','F')) {
 		// CD version uses WAVE-files
 		Common::SeekableReadStream *waveStream = new Common::MemoryReadStream(resourceData, res->_size, DisposeAfterUse::NO);
-		audioStream = Audio::makeWAVStream(waveStream, DisposeAfterUse::YES);
+		Audio::RewindableAudioStream *audioStream = Audio::makeWAVStream(waveStream, DisposeAfterUse::YES);
+		_queue.push_back(audioStream);
 
 	} else if (READ_BE_UINT32(resourceData) == MKTAG('S', 'T', 'E', 'V')) {
 		// sound files have a fixed header of 32 bytes in total
@@ -130,22 +134,34 @@ void SoundManager::playSound(Resource *res, int priority) {
 			return;
 		}
 
-		audioStream = Audio::makeRawStream(resourceData + 32, sampleSize, sampleRate, 0);
+		Audio::RewindableAudioStream *audioStream = Audio::makeRawStream(resourceData + 32, sampleSize, sampleRate, 0);
+		_queue.push_back(audioStream);
 
 	} else
 		error("Unknown format");
 
-	audioHandle = Audio::SoundHandle();
-	_mixer->playStream(Audio::Mixer::kSFXSoundType, &audioHandle,
-						audioStream, -1, _mixer->kMaxChannelVolume, 0,
+	if (!_mixer->isSoundHandleActive(_effectsHandle))
+		_mixer->playStream(Audio::Mixer::kSFXSoundType, &_effectsHandle,
+						_queue[0], -1, _mixer->kMaxChannelVolume, 0,
 						DisposeAfterUse::NO);
+}
 
-	/*
-	Audio::QueuingAudioStream *audioStream = Audio::makeQueuingAudioStream(22050, false);
-	audioStream->queueBuffer(data, size, DisposeAfterUse::YES, 0);
-	_mixer->playStream(Audio::Mixer::kPlainSoundType, &_soundHandle, audioStream, -1,
-		Audio::Mixer::kMaxChannelVolume, 0, DisposeAfterUse::YES, false);
-		*/
+void SoundManager::checkSoundQueue() {
+	debugC(5, kDebugSound, "checkSoundQueue");
+
+	if (_queue.empty() || _mixer->isSoundHandleActive(_effectsHandle))
+		return;
+
+	_queue.remove_at(0);
+
+	if (_queue.size())
+		_mixer->playStream(Audio::Mixer::kSFXSoundType, &_effectsHandle,
+		   _queue[0], -1, _mixer->kMaxChannelVolume, 0,
+		   DisposeAfterUse::YES);
+}
+
+bool SoundManager::isSFXPlaying() {
+	return _mixer->isSoundHandleActive(_effectsHandle);
 }
 
 void SoundManager::loadSounds(Common::Array<RoomInfo::SoundIdent> &sounds) {

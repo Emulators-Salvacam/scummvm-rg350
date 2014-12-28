@@ -30,6 +30,7 @@
 #include "zvision/sound/zork_raw.h"
 #include "zvision/video/zork_avi_decoder.h"
 #include "zvision/file/save_manager.h"
+#include "zvision/scripting/menu.h"
 #include "zvision/scripting/sidefx/timer_node.h"
 #include "zvision/scripting/sidefx/music_node.h"
 #include "zvision/scripting/sidefx/syncsound_node.h"
@@ -439,7 +440,7 @@ ActionMenuBarEnable::ActionMenuBarEnable(ZVision *engine, int32 slotkey, const C
 }
 
 bool ActionMenuBarEnable::execute() {
-	_engine->menuBarEnable(_menus);
+	_engine->getMenuHandler()->setEnable(_menus);
 	return true;
 }
 
@@ -565,6 +566,12 @@ ActionPreloadAnimation::ActionPreloadAnimation(ZVision *engine, int32 slotkey, c
 	// The two %*u are usually 0 and dont seem to have a use
 	sscanf(line.c_str(), "%24s %*u %*u %d %d", fileName, &_mask, &_framerate);
 
+	// Mask 0 means "no transparency" in this case. Since we use a common blitting
+	// code for images and animations, we set it to -1 to avoid confusion with
+	// color 0, which is used as a mask in some images
+	if (_mask == 0)
+		_mask = -1;
+
 	_fileName = Common::String(fileName);
 }
 
@@ -626,6 +633,12 @@ ActionPlayAnimation::ActionPlayAnimation(ZVision *engine, int32 slotkey, const C
 	sscanf(line.c_str(),
 	       "%24s %u %u %u %u %u %u %d %*u %*u %d %d",
 	       fileName, &_x, &_y, &_x2, &_y2, &_start, &_end, &_loopCount, &_mask, &_framerate);
+
+	// Mask 0 means "no transparency" in this case. Since we use a common blitting
+	// code for images and animations, we set it to -1 to avoid confusion with
+	// color 0, which is used as a mask in some images
+	if (_mask == 0)
+		_mask = -1;
 
 	_fileName = Common::String(fileName);
 }
@@ -819,7 +832,7 @@ ActionRotateTo::ActionRotateTo(ZVision *engine, int32 slotkey, const Common::Str
 }
 
 bool ActionRotateTo::execute() {
-	_engine->rotateTo(_toPos, _time);
+	_engine->getRenderManager()->rotateTo(_toPos, _time);
 
 	return true;
 }

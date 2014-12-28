@@ -48,7 +48,7 @@ namespace ZVision {
 
 class RenderManager {
 public:
-	RenderManager(ZVision *engine, uint32 windowWidth, uint32 windowHeight, const Common::Rect workingWindow, const Graphics::PixelFormat pixelFormat);
+	RenderManager(ZVision *engine, uint32 windowWidth, uint32 windowHeight, const Common::Rect workingWindow, const Graphics::PixelFormat pixelFormat, bool doubleFPS);
 	~RenderManager();
 
 private:
@@ -137,6 +137,7 @@ private:
 	// Visual effects list
 	EffectsList _effects;
 
+	bool _doubleFPS;
 	
 public:
 	void initialize();
@@ -229,20 +230,15 @@ public:
 	// Blitting surface-to-surface methods
 	void blitSurfaceToSurface(const Graphics::Surface &src, const Common::Rect &_srcRect , Graphics::Surface &dst, int x, int y);
 	void blitSurfaceToSurface(const Graphics::Surface &src, const Common::Rect &_srcRect , Graphics::Surface &dst, int _x, int _y, uint32 colorkey);
-	void blitSurfaceToSurface(const Graphics::Surface &src, Graphics::Surface &dst, int x, int y);
-	void blitSurfaceToSurface(const Graphics::Surface &src, Graphics::Surface &dst, int x, int y, uint32 colorkey);
 
 	// Blitting surface-to-background methods
-	void blitSurfaceToBkg(const Graphics::Surface &src, int x, int y);
-	void blitSurfaceToBkg(const Graphics::Surface &src, int x, int y, uint32 colorkey);
+	void blitSurfaceToBkg(const Graphics::Surface &src, int x, int y, int32 colorkey = -1);
 
 	// Blitting surface-to-background methods with scale
-	void blitSurfaceToBkgScaled(const Graphics::Surface &src, const Common::Rect &_dstRect);
-	void blitSurfaceToBkgScaled(const Graphics::Surface &src, const Common::Rect &_dstRect, uint32 colorkey);
+	void blitSurfaceToBkgScaled(const Graphics::Surface &src, const Common::Rect &_dstRect, int32 colorkey = -1);
 
 	// Blitting surface-to-menu methods
-	void blitSurfaceToMenu(const Graphics::Surface &src, int x, int y);
-	void blitSurfaceToMenu(const Graphics::Surface &src, int x, int y, uint32 colorkey);
+	void blitSurfaceToMenu(const Graphics::Surface &src, int x, int y, int32 colorkey = -1);
 
 	// Subtitles methods
 
@@ -267,10 +263,8 @@ public:
 	Graphics::Surface *getBkgRect(Common::Rect &rect);
 
 	// Load image into new surface
-	Graphics::Surface *loadImage(const char *file);
-	Graphics::Surface *loadImage(Common::String &file);
-	Graphics::Surface *loadImage(const char *file, bool transposed);
-	Graphics::Surface *loadImage(Common::String &file, bool transposed);
+	Graphics::Surface *loadImage(Common::String file);
+	Graphics::Surface *loadImage(Common::String file, bool transposed);
 
 	// Clear whole/area of menu surface
 	void clearMenuSurface();
@@ -334,6 +328,15 @@ public:
 	// Fill background surface by color
 	void bkgFill(uint8 r, uint8 g, uint8 b);
 #endif
+
+	bool askQuestion(const Common::String &str);
+	void delayedMessage(const Common::String &str, uint16 milsecs);
+	void timedMessage(const Common::String &str, uint16 milsecs);
+	void showDebugMsg(const Common::String &msg, int16 delay = 3000);
+
+	void checkBorders();
+	void rotateTo(int16 to, int16 time);
+	void updateRotation();
 };
 
 } // End of namespace ZVision

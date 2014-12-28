@@ -30,6 +30,7 @@
 #include "zvision/scripting/script_manager.h"
 #include "zvision/scripting/menu.h"
 #include "zvision/sound/zork_raw.h"
+#include "zvision/text/string_manager.h"
 
 #include "common/events.h"
 #include "common/system.h"
@@ -39,23 +40,50 @@
 
 namespace ZVision {
 
+void ZVision::pushKeyToCheatBuf(uint8 key) {
+	for (int i = 0; i < KEYBUF_SIZE - 1; i++)
+		_cheatBuffer[i] = _cheatBuffer[i + 1];
+
+	_cheatBuffer[KEYBUF_SIZE - 1] = key;
+}
+
+bool ZVision::checkCode(const char *code) {
+	int codeLen = strlen(code);
+
+	if (codeLen > KEYBUF_SIZE)
+		return false;
+
+	for (int i = 0; i < codeLen; i++)
+		if (code[i] != _cheatBuffer[KEYBUF_SIZE - codeLen + i] && code[i] != '?')
+			return false;
+
+	return true;
+}
+
+uint8 ZVision::getBufferedKey(uint8 pos) {
+	if (pos >= KEYBUF_SIZE)
+		return 0;
+	else
+		return _cheatBuffer[KEYBUF_SIZE - pos - 1];
+}
+
 void ZVision::shortKeys(Common::Event event) {
 	if (event.kbd.hasFlags(Common::KBD_CTRL)) {
 		switch (event.kbd.keycode) {
 		case Common::KEYCODE_s:
-			if (getMenuBarEnable() & kMenubarSave)
+			if (_menu->getEnable() & kMenubarSave)
 				_scriptManager->changeLocation('g', 'j', 's', 'e', 0);
 			break;
 		case Common::KEYCODE_r:
-			if (getMenuBarEnable() & kMenubarRestore)
+			if (_menu->getEnable() & kMenubarRestore)
 				_scriptManager->changeLocation('g', 'j', 'r', 'e', 0);
 			break;
 		case Common::KEYCODE_p:
-			if (getMenuBarEnable() & kMenubarSettings)
+			if (_menu->getEnable() & kMenubarSettings)
 				_scriptManager->changeLocation('g', 'j', 'p', 'e', 0);
 			break;
 		case Common::KEYCODE_q:
-			if (getMenuBarEnable() & kMenubarExit)
+			if (_menu->getEnable() & kMenubarExit)
 				ifQuit();
 			break;
 		default:
@@ -70,11 +98,11 @@ void ZVision::cheatCodes(uint8 key) {
 	if (getGameId() == GID_GRANDINQUISITOR) {
 		if (checkCode("IMNOTDEAF")) {
 			// Unknown cheat
-			showDebugMsg(Common::String::format("IMNOTDEAF cheat or debug, not implemented"));
+			_renderManager->showDebugMsg(Common::String::format("IMNOTDEAF cheat or debug, not implemented"));
 		}
 
 		if (checkCode("3100OPB")) {
-			showDebugMsg(Common::String::format("Current location: %c%c%c%c",
+			_renderManager->showDebugMsg(Common::String::format("Current location: %c%c%c%c",
 			                                    _scriptManager->getStateValue(StateKey_World),
 			                                    _scriptManager->getStateValue(StateKey_Room),
 			                                    _scriptManager->getStateValue(StateKey_Node),
@@ -91,9 +119,9 @@ void ZVision::cheatCodes(uint8 key) {
 		}
 
 		// There are 3 more cheats in script files:
-		// - "EAT ME": gjcr.scr
-		// - "WHOAMI": hp1e.scr
-		// - "HUISOK": uh1f.scr
+		// - "WHOAMI": gjcr.scr
+		// - "HUISOK": hp1e.scr
+		// - "EAT ME": uh1f.scr
 	} else if (getGameId() == GID_NEMESIS) {
 		if (checkCode("CHLOE")) {
 			_scriptManager->changeLocation('t', 'm', '2', 'g', 0);
@@ -101,7 +129,7 @@ void ZVision::cheatCodes(uint8 key) {
 		}
 
 		if (checkCode("77MASSAVE")) {
-			showDebugMsg(Common::String::format("Current location: %c%c%c%c",
+			_renderManager->showDebugMsg(Common::String::format("Current location: %c%c%c%c",
 			                                    _scriptManager->getStateValue(StateKey_World),
 			                                    _scriptManager->getStateValue(StateKey_Room),
 			                                    _scriptManager->getStateValue(StateKey_Node),
@@ -130,14 +158,17 @@ void ZVision::cheatCodes(uint8 key) {
 		}
 	}
 
-	if (checkCode("FRAME"))
-		showDebugMsg(Common::String::format("FPS: ???, not implemented"));
-
-	if (checkCode("XYZZY"))
-		_scriptManager->setStateValue(StateKey_DebugCheats, 1 - _scriptManager->getStateValue(StateKey_DebugCheats));
+	if (checkCode("FRAME")) {
+		Common::String fpsStr = Common::String::format("FPS: %d", getFPS());
+		_renderManager->showDebugMsg(fpsStr);
+	}
 
 	if (checkCode("COMPUTERARCH"))
-		showDebugMsg(Common::String::format("COMPUTERARCH: var-viewer not implemented"));
+		_renderManager->showDebugMsg("COMPUTERARCH: var-viewer not implemented");
+
+	// This cheat essentially toggles the GOxxxx cheat below
+	if (checkCode("XYZZY"))
+		_scriptManager->setStateValue(StateKey_DebugCheats, 1 - _scriptManager->getStateValue(StateKey_DebugCheats));
 
 	if (_scriptManager->getStateValue(StateKey_DebugCheats) == 1)
 		if (checkCode("GO????"))
@@ -212,6 +243,11 @@ void ZVision::processEvents() {
 					                     _scriptManager->getStateValue(StateKey_KbdRotateSpeed)) * 2;
 				break;
 
+			case Common::KEYCODE_F10: {
+				Common::String fpsStr = Common::String::format("FPS: %d", getFPS());
+				_renderManager->showDebugMsg(fpsStr);
+				}
+				break;
 			default:
 				break;
 			}
@@ -453,6 +489,14 @@ uint8 ZVision::getZvisionKey(Common::KeyCode scummKeyCode) {
 	}
 
 	return 0;
+}
+
+bool ZVision::ifQuit() {
+	if (_renderManager->askQuestion(_stringManager->getTextLine(StringManager::ZVISION_STR_EXITPROMT))) {
+		quitGame();
+		return true;
+	}
+	return false;
 }
 
 } // End of namespace ZVision

@@ -24,6 +24,7 @@
 #define ACCESS_SOUND_H
 
 #include "common/scummsys.h"
+#include "audio/audiostream.h"
 #include "audio/mixer.h"
 #include "access/files.h"
 #include "audio/midiplayer.h"
@@ -47,22 +48,23 @@ class SoundManager {
 private:
 	AccessEngine *_vm;
 	Audio::Mixer *_mixer;
-	Audio::SoundHandle _soundHandle;
+	Audio::SoundHandle _effectsHandle;
+	Common::Array<Audio::RewindableAudioStream *> _queue;
 
 	void clearSounds();
 
 	void playSound(Resource *res, int priority);
 public:
 	Common::Array<SoundEntry> _soundTable;
-	bool _playingSound;
-	bool _isVoice;
 public:
 	SoundManager(AccessEngine *vm, Audio::Mixer *mixer);
 	~SoundManager();
 
-	void queueSound(int idx, int fileNum, int subfile);
+	void loadSoundTable(int idx, int fileNum, int subfile, int priority = 1);
 
 	void playSound(int soundIndex);
+	void checkSoundQueue();
+	bool isSFXPlaying();
 
 	Resource *loadSound(int fileNum, int subfile);
 	void loadSounds(Common::Array<RoomInfo::SoundIdent> &sounds);
