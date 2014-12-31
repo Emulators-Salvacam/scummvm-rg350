@@ -20,37 +20,44 @@
  *
  */
 
-#include "common/scummsys.h"
+#ifndef ZVISION_DISTORT_NODE_H
+#define ZVISION_DISTORT_NODE_H
 
-#include "zvision/scripting/sidefx/region_node.h"
-
-#include "zvision/zvision.h"
-#include "zvision/scripting/script_manager.h"
-#include "zvision/graphics/render_manager.h"
+#include "zvision/scripting/scripting_effect.h"
 
 namespace ZVision {
 
-RegionNode::RegionNode(ZVision *engine, uint32 key, Effect *effect, uint32 delay)
-	: SideFX(engine, key, SIDEFX_REGION) {
-	_effect = effect;
-	_delay = delay;
-	_timeLeft = 0;
-}
+class ZVision;
 
-RegionNode::~RegionNode() {
-	_engine->getRenderManager()->deleteEffect(_key);
-}
+class DistortNode : public ScriptingEffect {
+public:
+	DistortNode(ZVision *engine, uint32 key, int16 speed, float startAngle, float endAngle, float startLineScale, float endLineScale);
+	~DistortNode();
 
-bool RegionNode::process(uint32 deltaTimeInMillis) {
-	_timeLeft -= deltaTimeInMillis;
+	bool process(uint32 deltaTimeInMillis);
 
-	if (_timeLeft <= 0) {
-		_timeLeft = _delay;
-		if (_effect)
-			_effect->update();
-	}
+private:
+	int16 _speed;
+	float _startAngle;
+	float _endAngle;
+	float _startLineScale;
+	float _endLineScale;
 
-	return false;
-}
+	float _frmSpeed;
+	float _diffAngle;
+	float _diffLinScale;
+	bool _incr;
+	int16 _frames;
+
+	float _curFrame;
+
+	float _angle;
+	float _linScale;
+
+private:
+	void setParams(float angl, float linScale);
+};
 
 } // End of namespace ZVision
+
+#endif

@@ -20,22 +20,19 @@
  *
  */
 
-#ifndef ZVISION_SYNCSOUND_NODE_H
-#define ZVISION_SYNCSOUND_NODE_H
+#ifndef ZVISION_TIMER_NODE_H
+#define ZVISION_TIMER_NODE_H
 
-#include "audio/mixer.h"
-#include "zvision/scripting/sidefx.h"
-#include "zvision/text/subtitles.h"
-
-namespace Common {
-class String;
-}
+#include "zvision/scripting/scripting_effect.h"
 
 namespace ZVision {
-class SyncSoundNode : public SideFX {
+
+class ZVision;
+
+class TimerNode : public ScriptingEffect {
 public:
-	SyncSoundNode(ZVision *engine, uint32 key, Common::String &file, int32 syncto);
-	~SyncSoundNode();
+	TimerNode(ZVision *engine, uint32 key, uint timeInSeconds);
+	~TimerNode();
 
 	/**
 	 * Decrement the timer by the delta time. If the timer is finished, set the status
@@ -45,10 +42,16 @@ public:
 	 * @return                     If true, the node can be deleted after process() finishes
 	 */
 	bool process(uint32 deltaTimeInMillis);
+	void serialize(Common::WriteStream *stream);
+	void deserialize(Common::SeekableReadStream *stream);
+	inline bool needsSerialization() {
+		return true;
+	}
+
+	bool stop();
+
 private:
-	int32 _syncto;
-	Audio::SoundHandle _handle;
-	Subtitle *_sub;
+	int32 _timeLeft;
 };
 
 } // End of namespace ZVision

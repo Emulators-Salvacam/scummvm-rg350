@@ -22,7 +22,7 @@
 
 #include "common/scummsys.h"
 
-#include "zvision/scripting/sidefx/animation_node.h"
+#include "zvision/scripting/effects/animation_effect.h"
 
 #include "zvision/zvision.h"
 #include "zvision/graphics/render_manager.h"
@@ -33,14 +33,13 @@
 
 namespace ZVision {
 
-AnimationNode::AnimationNode(ZVision *engine, uint32 controlKey, const Common::String &fileName, int32 mask, int32 frate, bool DisposeAfterUse)
-	: SideFX(engine, controlKey, SIDEFX_ANIM),
-	  _DisposeAfterUse(DisposeAfterUse),
+AnimationEffect::AnimationEffect(ZVision *engine, uint32 controlKey, const Common::String &fileName, int32 mask, int32 frate, bool disposeAfterUse)
+	: ScriptingEffect(engine, controlKey, SCRIPTING_EFFECT_ANIM),
+	  _disposeAfterUse(disposeAfterUse),
 	  _mask(mask),
 	  _animation(NULL) {
 
 	_animation = engine->loadAnimation(fileName);
-	_animation->start();
 
 	if (frate > 0) {
 		_frmDelayOverride = (int32)(1000.0 / frate);
@@ -54,7 +53,7 @@ AnimationNode::AnimationNode(ZVision *engine, uint32 controlKey, const Common::S
 	}
 }
 
-AnimationNode::~AnimationNode() {
+AnimationEffect::~AnimationEffect() {
 	if (_animation)
 		delete _animation;
 
@@ -73,7 +72,7 @@ AnimationNode::~AnimationNode() {
 	_playList.clear();
 }
 
-bool AnimationNode::process(uint32 deltaTimeInMillis) {
+bool AnimationEffect::process(uint32 deltaTimeInMillis) {
 	ScriptManager *scriptManager = _engine->getScriptManager();
 	RenderManager *renderManager = _engine->getRenderManager();
 	RenderTable::RenderState renderState = renderManager->getRenderTable()->getRenderState();
@@ -93,6 +92,7 @@ bool AnimationNode::process(uint32 deltaTimeInMillis) {
 			// The node is just beginning playback
 			nod->_curFrame = nod->start;
 
+			_animation->start();
 			_animation->seekToFrame(nod->start);
 			_animation->setEndFrame(nod->stop);
 
@@ -111,7 +111,7 @@ bool AnimationNode::process(uint32 deltaTimeInMillis) {
 					delete nod->_scaled;
 				}
 				_playList.erase(it);
-				return _DisposeAfterUse;
+				return _disposeAfterUse;
 			}
 
 			nod->_curFrame = nod->start;
@@ -185,16 +185,12 @@ bool AnimationNode::process(uint32 deltaTimeInMillis) {
 	return false;
 }
 
-void AnimationNode::addPlayNode(int32 slot, int x, int y, int x2, int y2, int startFrame, int endFrame, int loops) {
+void AnimationEffect::addPlayNode(int32 slot, int x, int y, int x2, int y2, int startFrame, int endFrame, int loops) {
 	playnode nod;
 	nod.loop = loops;
 	nod.pos = Common::Rect(x, y, x2 + 1, y2 + 1);
 	nod.start = startFrame;
-	nod.stop = endFrame;
-
-	if (nod.stop >= (int)_animation->getFrameCount())
-		nod.stop = _animation->getFrameCount() - 1;
-
+	nod.stop = CLIP<int>(endFrame, 0, _animation->getFrameCount() - 1);
 	nod.slot = slot;
 	nod._curFrame = -1;
 	nod._delay = 0;
@@ -202,7 +198,7 @@ void AnimationNode::addPlayNode(int32 slot, int x, int y, int x2, int y2, int st
 	_playList.push_back(nod);
 }
 
-bool AnimationNode::stop() {
+bool AnimationEffect::stop() {
 	PlayNodes::iterator it = _playList.begin();
 	if (it != _playList.end()) {
 		_engine->getScriptManager()->setStateValue((*it).slot, 2);

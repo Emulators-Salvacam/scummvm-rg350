@@ -20,40 +20,64 @@
  *
  */
 
-#ifndef ZVISION_TIMER_NODE_H
-#define ZVISION_TIMER_NODE_H
+#ifndef GRAPHICS_EFFECT_H_INCLUDED
+#define GRAPHICS_EFFECT_H_INCLUDED
 
-#include "zvision/scripting/sidefx.h"
+#include "common/rect.h"
+#include "common/list.h"
+#include "graphics/surface.h"
+
+#include "zvision/zvision.h"
 
 namespace ZVision {
 
 class ZVision;
 
-class TimerNode : public SideFX {
+class GraphicsEffect {
 public:
-	TimerNode(ZVision *engine, uint32 key, uint timeInSeconds);
-	~TimerNode();
 
-	/**
-	 * Decrement the timer by the delta time. If the timer is finished, set the status
-	 * in _globalState and let this node be deleted
-	 *
-	 * @param deltaTimeInMillis    The number of milliseconds that have passed since last frame
-	 * @return                     If true, the node can be deleted after process() finishes
-	 */
-	bool process(uint32 deltaTimeInMillis);
-	void serialize(Common::WriteStream *stream);
-	void deserialize(Common::SeekableReadStream *stream);
-	inline bool needsSerialization() {
-		return true;
+	GraphicsEffect(ZVision *engine, uint32 key, Common::Rect region, bool ported) : _engine(engine), _key(key), _region(region), _ported(ported) {
+		_surface.create(_region.width(), _region.height(), _engine->_resourcePixelFormat);
+	}
+	virtual ~GraphicsEffect() {}
+
+	uint32 getKey() {
+		return _key;
 	}
 
-	bool stop();
+	Common::Rect getRegion() {
+		return _region;
+	}
 
-private:
-	int32 _timeLeft;
+	bool isPort() {
+		return _ported;
+	}
+
+	virtual const Graphics::Surface *draw(const Graphics::Surface &srcSubRect) {
+		return &_surface;
+	}
+
+	virtual void update() {}
+
+protected:
+	ZVision *_engine;
+	uint32 _key;
+	Common::Rect _region;
+	bool _ported;
+	Graphics::Surface _surface;
+
+// Static member functions
+public:
+
 };
+
+struct EffectMapUnit {
+	uint32 count;
+	bool inEffect;
+};
+
+typedef Common::List<EffectMapUnit> EffectMap;
 
 } // End of namespace ZVision
 
-#endif
+#endif // GRAPHICS_EFFECT_H_INCLUDED
