@@ -1,4 +1,9 @@
 /* ScummVM - Graphic Adventure Engine
+ * Copyright (C) 2003-2005 Andreas 'Sprawl' Karlsson - Original EPOC port, ESDL
+ * Copyright (C) 2003-2005 Lars 'AnotherGuest' Persson - Original EPOC port, Audio System
+ * Copyright (C) 2005 Jurgen 'SumthinWicked' Braam - EPOC/CVS maintainer
+ * Copyright (C) 2005-2013 The ScummVM project
+ * Copyright (C) 2014 Strizniou Fedor
  *
  * ScummVM is the legal property of its developers, whose names
  * are too numerous to list here. Please refer to the COPYRIGHT
@@ -20,49 +25,28 @@
  *
  */
 
-/*
- * This code is based on Broken Sword 2.5 engine
- *
- * Copyright (c) Malte Thiesen, Daniel Queteschiner and Michael Elsdoerfer
- *
- * Licensed under GNU GPL v2
- *
- */
+//
+// EPOC MMP makefile project for ScummVM
+//
 
-#ifndef SWORD25_OUTPUTPERSISTENCEBLOCK_H
-#define SWORD25_OUTPUTPERSISTENCEBLOCK_H
+// *** Definitions
 
-#include "sword25/kernel/common.h"
-#include "sword25/kernel/persistenceblock.h"
+TARGET          scummvm_prince.lib
+TARGETTYPE      lib
+#include "config.mmh"
 
-namespace Sword25 {
+//START_AUTO_MACROS_SLAVE//
 
-class OutputPersistenceBlock : public PersistenceBlock {
-public:
-	OutputPersistenceBlock();
+	// empty base file, will be updated by Perl build scripts
 
-	void write(const void *data, uint32 size);
-	void write(int32 value);
-	void write(uint32 value);
-	void write(float value);
-	void write(bool value);
-	void writeString(const Common::String &string);
-	void writeByteArray(Common::Array<byte> &value);
+//STOP_AUTO_MACROS_SLAVE//
 
-	const void *getData() const {
-		return &_data[0];
-	}
-	uint getDataSize() const {
-		return _data.size();
-	}
+// *** SOURCE files
 
-private:
-	void writeMarker(byte marker);
-	void rawWrite(const void *dataPtr, size_t size);
+SOURCEPATH ..\..\..\..\engines\prince
 
-	Common::Array<byte> _data;
-};
+//START_AUTO_OBJECTS_PRINCE_//
 
-} // End of namespace Sword25
+	// empty base file, will be updated by Perl build scripts
 
-#endif
+//STOP_AUTO_OBJECTS_PRINCE_//
