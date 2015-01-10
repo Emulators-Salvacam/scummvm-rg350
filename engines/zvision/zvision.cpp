@@ -52,7 +52,7 @@
 
 namespace ZVision {
 
-#define ZVISION_SETTINGS_KEYS_COUNT 11
+#define ZVISION_SETTINGS_KEYS_COUNT 12
 
 struct zvisionIniSettings {
 	const char *name;
@@ -73,7 +73,8 @@ struct zvisionIniSettings {
 	{"panarotatespeed", StateKey_RotateSpeed, 540, false, true},	// checked by universe.scr
 	{"noanimwhileturning", StateKey_NoTurnAnim, -1, false, true},	// toggle playing animations during pana rotation
 	{"venusenabled", StateKey_VenusEnable, -1, true, true},
-	{"subtitles", StateKey_Subtitles, -1, true, true}
+	{"subtitles", StateKey_Subtitles, -1, true, true},
+	{"mpegmovies", StateKey_MPEGMovies, -1, true, true}		// Zork: Grand Inquisitor DVD hi-res MPEG movies (0 = normal, 1 = hires, 2 = disable option)
 };
 
 ZVision::ZVision(OSystem *syst, const ZVisionGameDescription *gameDesc)
@@ -104,15 +105,6 @@ ZVision::ZVision(OSystem *syst, const ZVisionGameDescription *gameDesc)
 	  _fps(0) {
 
 	debug(1, "ZVision::ZVision");
-
-	uint16 workingWindowWidth  = (gameDesc->gameId == GID_NEMESIS) ? ZNM_WORKING_WINDOW_WIDTH  : ZGI_WORKING_WINDOW_WIDTH;
-	uint16 workingWindowHeight = (gameDesc->gameId == GID_NEMESIS) ? ZNM_WORKING_WINDOW_HEIGHT : ZGI_WORKING_WINDOW_HEIGHT;
-	_workingWindow = Common::Rect(
-						 (WINDOW_WIDTH  -  workingWindowWidth) / 2,
-						 (WINDOW_HEIGHT - workingWindowHeight) / 2,
-						((WINDOW_WIDTH  -  workingWindowWidth) / 2) + workingWindowWidth,
-						((WINDOW_HEIGHT - workingWindowHeight) / 2) + workingWindowHeight
-					 );
 
 	memset(_cheatBuffer, 0, sizeof(_cheatBuffer));
 }
@@ -193,25 +185,17 @@ void ZVision::initialize() {
 	_searchManager->addDir("addon");
 
 	if (_gameDescription->gameId == GID_GRANDINQUISITOR) {
-		_searchManager->loadZix("INQUIS.ZIX");
-		_searchManager->addPatch("C000H01Q.RAW", "C000H01Q.SRC");
-		_searchManager->addPatch("CM00H01Q.RAW", "CM00H01Q.SRC");
-		_searchManager->addPatch("DM00H01Q.RAW", "DM00H01Q.SRC");
-		_searchManager->addPatch("E000H01Q.RAW", "E000H01Q.SRC");
-		_searchManager->addPatch("EM00H50Q.RAW", "EM00H50Q.SRC");
-		_searchManager->addPatch("GJNPH65P.RAW", "GJNPH65P.SRC");
-		_searchManager->addPatch("GJNPH72P.RAW", "GJNPH72P.SRC");
-		_searchManager->addPatch("H000H01Q.RAW", "H000H01Q.SRC");
-		_searchManager->addPatch("M000H01Q.RAW", "M000H01Q.SRC");
-		_searchManager->addPatch("P000H01Q.RAW", "P000H01Q.SRC");
-		_searchManager->addPatch("Q000H01Q.RAW", "Q000H01Q.SRC");
-		_searchManager->addPatch("SW00H01Q.RAW", "SW00H01Q.SRC");
-		_searchManager->addPatch("T000H01Q.RAW", "T000H01Q.SRC");
-		_searchManager->addPatch("U000H01Q.RAW", "U000H01Q.SRC");
-	} else if (_gameDescription->gameId == GID_NEMESIS)
-		_searchManager->loadZix("NEMESIS.ZIX");
+		if (!_searchManager->loadZix("INQUIS.ZIX"))
+			error("Unable to load the game ZIX file");
+	} else if (_gameDescription->gameId == GID_NEMESIS) {
+		if (!_searchManager->loadZix("NEMESIS.ZIX")) {
+			// The game might not be installed, try MEDIUM.ZIX instead
+			if (!_searchManager->loadZix("ZNEMSCR/MEDIUM.ZIX"))
+				error("Unable to load the game ZIX file");
+		}
+	}
 
-	initGraphics(WINDOW_WIDTH, WINDOW_HEIGHT, true, &_screenPixelFormat);
+	initScreen();
 
 	// Register random source
 	_rnd = new Common::RandomSource("zvision");
@@ -238,6 +222,11 @@ void ZVision::initialize() {
 	registerDefaultSettings();
 
 	loadSettings();
+
+#ifndef USE_MPEG2
+	// libmpeg2 not loaded, disable the MPEG2 movies option
+	_scriptManager->setStateValue(StateKey_MPEGMovies, 2);
+#endif
 
 	// Create debugger console. It requires GFX to be initialized
 	_console = new Console(this);
@@ -356,6 +345,19 @@ void ZVision::fpsTimerCallback(void *refCon) {
 void ZVision::fpsTimer() {
 	_fps = _renderedFrameCount;
 	_renderedFrameCount = 0;
+}
+
+void ZVision::initScreen() {
+	uint16 workingWindowWidth  = (_gameDescription->gameId == GID_NEMESIS) ? ZNM_WORKING_WINDOW_WIDTH  : ZGI_WORKING_WINDOW_WIDTH;
+	uint16 workingWindowHeight = (_gameDescription->gameId == GID_NEMESIS) ? ZNM_WORKING_WINDOW_HEIGHT : ZGI_WORKING_WINDOW_HEIGHT;
+	_workingWindow = Common::Rect(
+						 (WINDOW_WIDTH  -  workingWindowWidth) / 2,
+						 (WINDOW_HEIGHT - workingWindowHeight) / 2,
+						((WINDOW_WIDTH  -  workingWindowWidth) / 2) + workingWindowWidth,
+						((WINDOW_HEIGHT - workingWindowHeight) / 2) + workingWindowHeight
+					 );
+
+	initGraphics(WINDOW_WIDTH, WINDOW_HEIGHT, true, &_screenPixelFormat);
 }
 
 } // End of namespace ZVision

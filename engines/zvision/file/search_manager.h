@@ -39,13 +39,12 @@ public:
 
 	void addFile(const Common::String &name, Common::Archive *arch);
 	void addDir(const Common::String &name);
-	void addPatch(const Common::String &src, const Common::String &dst);
 
 	Common::File *openFile(const Common::String &name);
 	bool openFile(Common::File &file, const Common::String &name);
 	bool hasFile(const Common::String &name);
 
-	void loadZix(const Common::String &name);
+	bool loadZix(const Common::String &name);
 
 	struct Node {
 		Common::String name;

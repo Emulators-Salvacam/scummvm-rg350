@@ -59,6 +59,7 @@ namespace ZVision {
 #define GAMEOPTION_DOUBLE_FPS                 GUIO_GAMEOPTIONS2
 #define GAMEOPTION_ENABLE_VENUS               GUIO_GAMEOPTIONS3
 #define GAMEOPTION_DISABLE_ANIM_WHILE_TURNING GUIO_GAMEOPTIONS4
+#define GAMEOPTION_USE_HIRES_MPEG_MOVIES      GUIO_GAMEOPTIONS5
 
 static const ZVisionGameDescription gameDescriptions[] = {
 
@@ -69,6 +70,20 @@ static const ZVisionGameDescription gameDescriptions[] = {
 			0,
 			AD_ENTRY1s("CSCR.ZFS", "88226e51a205d2e50c67a5237f3bd5f2", 2397741),
 			Common::EN_ANY,
+			Common::kPlatformDOS,
+			ADGF_NO_FLAGS,
+			GUIO4(GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_DOUBLE_FPS, GAMEOPTION_ENABLE_VENUS, GAMEOPTION_DISABLE_ANIM_WHILE_TURNING)
+		},
+		GID_NEMESIS
+	},
+
+	{
+		// Zork Nemesis French version
+		{
+			"znemesis",
+			0,
+			AD_ENTRY1s("CSCR.ZFS", "f04113357b4748c13efcb58b4629887c", 2577873),
+			Common::FR_FRA,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
 			GUIO4(GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_DOUBLE_FPS, GAMEOPTION_ENABLE_VENUS, GAMEOPTION_DISABLE_ANIM_WHILE_TURNING)
@@ -113,7 +128,7 @@ static const ZVisionGameDescription gameDescriptions[] = {
 			Common::EN_ANY,
 			Common::kPlatformWindows,
 			ADGF_NO_FLAGS,
-			GUIO3(GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_DOUBLE_FPS, GAMEOPTION_DISABLE_ANIM_WHILE_TURNING)
+			GUIO4(GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_DOUBLE_FPS, GAMEOPTION_DISABLE_ANIM_WHILE_TURNING, GAMEOPTION_USE_HIRES_MPEG_MOVIES)
 		},
 		GID_GRANDINQUISITOR
 	},
@@ -160,7 +175,7 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 		GAMEOPTION_DOUBLE_FPS,
 		{
 			_s("Double FPS"),
-			_s("Halve the update delay"),
+			_s("Increase game FPS from 30 to 60"),
 			"doublefps",
 			false
 		}
@@ -183,6 +198,16 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 			_s("Disable animation while turning in panoramic mode"),
 			"noanimwhileturning",
 			false
+		}
+	},
+
+	{
+		GAMEOPTION_USE_HIRES_MPEG_MOVIES,
+		{
+			_s("Use the hires MPEG movies"),
+			_s("Use the hires MPEG movies of the DVD version, instead of the lowres AVI ones"),
+			"mpegmovies",
+			true
 		}
 	},
 
@@ -236,7 +261,7 @@ Common::Error ZVision::ZVision::loadGameState(int slot) {
 }
 
 Common::Error ZVision::ZVision::saveGameState(int slot, const Common::String &desc) {
-	_saveManager->saveGame(slot, desc);
+	_saveManager->saveGame(slot, desc, false);
 	return Common::kNoError;
 }
 

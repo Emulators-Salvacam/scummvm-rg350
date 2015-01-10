@@ -21,15 +21,13 @@
  */
 
 #include "common/scummsys.h"
-
-#include "zvision/scripting/actions.h"
+#include "video/video_decoder.h"
 
 #include "zvision/zvision.h"
 #include "zvision/scripting/script_manager.h"
 #include "zvision/graphics/render_manager.h"
-#include "zvision/sound/zork_raw.h"
-#include "zvision/video/zork_avi_decoder.h"
 #include "zvision/file/save_manager.h"
+#include "zvision/scripting/actions.h"
 #include "zvision/scripting/menu.h"
 #include "zvision/scripting/effects/timer_effect.h"
 #include "zvision/scripting/effects/music_effect.h"
@@ -45,10 +43,6 @@
 #include "zvision/graphics/effects/light.h"
 #include "zvision/graphics/effects/wave.h"
 #include "zvision/graphics/cursors/cursor_manager.h"
-
-#include "common/file.h"
-
-#include "audio/decoders/wave.h"
 
 namespace ZVision {
 
@@ -804,22 +798,6 @@ bool ActionRandom::execute() {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// ActionRestoreGame
-//////////////////////////////////////////////////////////////////////////////
-
-ActionRestoreGame::ActionRestoreGame(ZVision *engine, int32 slotkey, const Common::String &line) :
-	ResultAction(engine, slotkey) {
-	char buf[128];
-	sscanf(line.c_str(), "%s", buf);
-	_fileName = Common::String(buf);
-}
-
-bool ActionRestoreGame::execute() {
-	_engine->getSaveManager()->loadGame(_fileName);
-	return false;
-}
-
-//////////////////////////////////////////////////////////////////////////////
 // ActionRotateTo
 //////////////////////////////////////////////////////////////////////////////
 
@@ -932,35 +910,46 @@ ActionStreamVideo::ActionStreamVideo(ZVision *engine, int32 slotkey, const Commo
 }
 
 bool ActionStreamVideo::execute() {
-	ZorkAVIDecoder decoder;
-	Common::File *_file = _engine->getSearchManager()->openFile(_fileName);
+	Video::VideoDecoder *decoder;
+	Common::Rect destRect = Common::Rect(_x1, _y1, _x2 + 1, _y2 + 1);
 
-	if (_file) {
-		if (!decoder.loadStream(_file)) {
-			return true;
-		}
+#ifdef USE_MPEG2
+	Common::String hiresFileName = _fileName;
+	hiresFileName.setChar('d', hiresFileName.size() - 8);
+	hiresFileName.setChar('v', hiresFileName.size() - 3);
+	hiresFileName.setChar('o', hiresFileName.size() - 2);
+	hiresFileName.setChar('b', hiresFileName.size() - 1);
 
-		_engine->getCursorManager()->showMouse(false);
+	if (_engine->getScriptManager()->getStateValue(StateKey_MPEGMovies) == 1 &&_engine->getSearchManager()->hasFile(hiresFileName))
+		// TODO: Enable once VOB + AC3 support is implemented
+		//_fileName = hiresFileName;
+		warning("The hires videos of the DVD version of ZGI aren't supported yet, using lowres");
+#endif
 
-		Common::Rect destRect = Common::Rect(_x1, _y1, _x2 + 1, _y2 + 1);
+	Common::String subname = _fileName;
+	subname.setChar('s', subname.size() - 3);
+	subname.setChar('u', subname.size() - 2);
+	subname.setChar('b', subname.size() - 1);
 
-		Common::String subname = _fileName;
-		subname.setChar('s', subname.size() - 3);
-		subname.setChar('u', subname.size() - 2);
-		subname.setChar('b', subname.size() - 1);
+	if (!_engine->getSearchManager()->hasFile(_fileName))
+		return true;
 
-		Subtitle *sub = NULL;
+	decoder = _engine->loadAnimation(_fileName);
 
-		if (_engine->getSearchManager()->hasFile(subname))
-			sub = new Subtitle(_engine, subname);
+	_engine->getCursorManager()->showMouse(false);
 
-		_engine->playVideo(decoder, destRect, _skippable, sub);
+	Subtitle *sub = NULL;
 
-		_engine->getCursorManager()->showMouse(true);
+	if (_engine->getSearchManager()->hasFile(subname))
+		sub = new Subtitle(_engine, subname);
 
-		if (sub)
-			delete sub;
-	}
+	_engine->playVideo(*decoder, destRect, _skippable, sub);
+	delete decoder;
+
+	_engine->getCursorManager()->showMouse(true);
+
+	if (sub)
+		delete sub;
 
 	return true;
 }

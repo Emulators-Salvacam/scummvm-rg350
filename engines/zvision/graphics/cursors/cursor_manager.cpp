@@ -37,7 +37,7 @@ const char *CursorManager::_cursorNames[NUM_CURSORS] = { "active", "arrow", "bac
                                                          "hright", "hup", "idle", "leftarrow", "rightarrow", "suggest_surround", "suggest_tilt", "turnaround", "zuparrow"
                                                        };
 
-const char *CursorManager::_zgiCursorFileNames[NUM_CURSORS] = { "g0gbc011.zcr", "g0gac001.zcr", "g0gac021.zcr", "g0gac031.zcr", "g0gac041.zcr", "g0gac051.zcr", "g0gac061.zcr", "g0gac071.zcr", "g0gac081.zcr",
+const char *CursorManager::_zgiCursorFileNames[NUM_CURSORS] = { "g0gbc011.zcr", "g0gac011.zcr", "g0gac021.zcr", "g0gac031.zcr", "g0gac041.zcr", "g0gac051.zcr", "g0gac061.zcr", "g0gac071.zcr", "g0gac081.zcr",
                                                                 "g0gac091.zcr", "g0gac101.zcr", "g0gac011.zcr", "g0gac111.zcr", "g0gac121.zcr", "g0gac131.zcr", "g0gac141.zcr", "g0gac151.zcr", "g0gac161.zcr"
                                                               };
 
@@ -55,6 +55,11 @@ CursorManager::CursorManager(ZVision *engine, const Graphics::PixelFormat pixelF
 	for (int i = 0; i < NUM_CURSORS; i++) {
 		if (_engine->getGameId() == GID_NEMESIS) {
 			Common::String name;
+			if (i == 1) {
+				// Cursors "arrowa.zcr" and "arrowb.zcr" are missing
+				_cursors[i][0] = _cursors[i][1] = ZorkCursor();
+				continue;
+			}
 			name = Common::String::format("%sa.zcr", _zNemCursorFileNames[i]);
 			_cursors[i][0] = ZorkCursor(_engine, name); // Up cursor
 			name = Common::String::format("%sb.zcr", _zNemCursorFileNames[i]);
