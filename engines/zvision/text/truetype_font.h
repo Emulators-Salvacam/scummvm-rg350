@@ -34,6 +34,16 @@ struct Surface;
 
 namespace ZVision {
 
+struct FontStyle {
+	const char *zorkFont;
+	const char *fontBase;
+	const char *freeFontBase;
+	const char *freeFontItalicName;
+	const char *liberationFontBase;
+};
+
+#define FONT_COUNT 9
+
 class ZVision;
 
 // Styled TTF
