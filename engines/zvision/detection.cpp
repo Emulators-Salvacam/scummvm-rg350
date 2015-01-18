@@ -140,6 +140,48 @@ static const ZVisionGameDescription gameDescriptions[] = {
 	},
 
 	{
+		// Zork Grand Inquisitor French CD version, reported by ulrichh on IRC
+		{
+			"zgi",
+			"CD",
+			AD_ENTRY1s("SCRIPTS.ZFS", "4d1ec4ade7ecc9ee9ec591d43ca3d213", 8338133),
+			Common::FR_FRA,
+			Common::kPlatformWindows,
+			ADGF_NO_FLAGS,
+			GUIO3(GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_DOUBLE_FPS, GAMEOPTION_DISABLE_ANIM_WHILE_TURNING)
+		},
+		GID_GRANDINQUISITOR
+	},
+
+	{
+		// Zork Grand Inquisitor German CD version, reported by breit in bug #6760
+		{
+			"zgi",
+			"CD",
+			AD_ENTRY1s("SCRIPTS.ZFS", "b7ac7e331b9b7f884590b0b325b560c8", 8338133),
+			Common::DE_DEU,
+			Common::kPlatformWindows,
+			ADGF_NO_FLAGS,
+			GUIO3(GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_DOUBLE_FPS, GAMEOPTION_DISABLE_ANIM_WHILE_TURNING)
+		},
+		GID_GRANDINQUISITOR
+	},
+
+	{
+		// Zork Grand Inquisitor Spanish CD version, reported by dianiu in bug #6764
+		{
+			"zgi",
+			"CD",
+			AD_ENTRY1s("SCRIPTS.ZFS", "5cdc4b99c1134053af135aae71326fd1", 8338141),
+			Common::ES_ESP,
+			Common::kPlatformWindows,
+			ADGF_NO_FLAGS,
+			GUIO3(GAMEOPTION_ORIGINAL_SAVELOAD, GAMEOPTION_DOUBLE_FPS, GAMEOPTION_DISABLE_ANIM_WHILE_TURNING)
+		},
+		GID_GRANDINQUISITOR
+	},
+
+	{
 		// Zork Grand Inquisitor English DVD version
 		{
 			"zgi",
