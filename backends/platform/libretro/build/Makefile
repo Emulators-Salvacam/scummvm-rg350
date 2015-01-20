@@ -76,8 +76,8 @@ else ifeq ($(platform), wii)
    LD = ./fake-link.sh $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
    AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT) cru
    DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float -D__ppc__ -I$(DEVKITPRO)/libogc/include
-else ifeq ($(platform), android)
-   TARGET  := $(TARGET_NAME)_libretro_android_arm.so
+else ifeq ($(platform), android-armv7)
+   TARGET  := $(TARGET_NAME)_libretro_android.so
    DEFINES += -fPIC -Wno-multichar
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
