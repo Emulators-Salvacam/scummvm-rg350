@@ -79,8 +79,7 @@ ActionAssign::ActionAssign(ZVision *engine, int32 slotkey, const Common::String 
 }
 
 ActionAssign::~ActionAssign() {
-	if (_value)
-		delete _value;
+	delete _value;
 }
 
 bool ActionAssign::execute() {
@@ -103,8 +102,8 @@ ActionAttenuate::ActionAttenuate(ZVision *engine, int32 slotkey, const Common::S
 bool ActionAttenuate::execute() {
 	ScriptingEffect *fx = _engine->getScriptManager()->getSideFX(_key);
 	if (fx && fx->getType() == ScriptingEffect::SCRIPTING_EFFECT_AUDIO) {
-		MusicNode *mus = (MusicNode *)fx;
-		mus->setVolume(255 - (abs(_attenuation) >> 7));
+		MusicNodeBASE *mus = (MusicNodeBASE *)fx;
+		mus->setVolume(255 * (10000 - abs(_attenuation)) / 10000 );
 	}
 	return true;
 }
@@ -154,7 +153,7 @@ bool ActionCrossfade::execute() {
 	if (_keyOne) {
 		ScriptingEffect *fx = _engine->getScriptManager()->getSideFX(_keyOne);
 		if (fx && fx->getType() == ScriptingEffect::SCRIPTING_EFFECT_AUDIO) {
-			MusicNode *mus = (MusicNode *)fx;
+			MusicNodeBASE *mus = (MusicNodeBASE *)fx;
 			if (_oneStartVolume >= 0)
 				mus->setVolume((_oneStartVolume * 255) / 100);
 
@@ -165,7 +164,7 @@ bool ActionCrossfade::execute() {
 	if (_keyTwo) {
 		ScriptingEffect *fx = _engine->getScriptManager()->getSideFX(_keyTwo);
 		if (fx && fx->getType() == ScriptingEffect::SCRIPTING_EFFECT_AUDIO) {
-			MusicNode *mus = (MusicNode *)fx;
+			MusicNodeBASE *mus = (MusicNodeBASE *)fx;
 			if (_twoStartVolume >= 0)
 				mus->setVolume((_twoStartVolume * 255) / 100);
 
@@ -445,16 +444,18 @@ bool ActionMenuBarEnable::execute() {
 
 ActionMusic::ActionMusic(ZVision *engine, int32 slotkey, const Common::String &line, bool global) :
 	ResultAction(engine, slotkey),
-	_volume(255),
 	_note(0),
 	_prog(0),
 	_universe(global) {
 	uint type = 0;
 	char fileNameBuffer[25];
 	uint loop = 0;
-	uint volume = 255;
+	char volumeBuffer[15];
 
-	sscanf(line.c_str(), "%u %24s %u %u", &type, fileNameBuffer, &loop, &volume);
+	// Volume is optional. If it doesn't appear, assume full volume
+	strcpy(volumeBuffer, "100");
+
+	sscanf(line.c_str(), "%u %24s %u %14s", &type, fileNameBuffer, &loop, volumeBuffer);
 
 	// Type 4 actions are MIDI commands, not files. These are only used by
 	// Zork: Nemesis, for the flute and piano puzzles (tj4e and ve6f, as well
@@ -463,26 +464,28 @@ ActionMusic::ActionMusic(ZVision *engine, int32 slotkey, const Common::String &l
 		_midi = true;
 		int note;
 		int prog;
-		sscanf(line.c_str(), "%u %d %d %u", &type, &prog, &note, &volume);
-		_volume = volume;
+		sscanf(line.c_str(), "%u %d %d %14s", &type, &prog, &note, volumeBuffer);
+		_volume = new ValueSlot(_engine->getScriptManager(), volumeBuffer);
 		_note = note;
 		_prog = prog;
 	} else {
 		_midi = false;
 		_fileName = Common::String(fileNameBuffer);
 		_loop = loop == 1 ? true : false;
-
-		// Volume is optional. If it doesn't appear, assume full volume
-		if (volume != 255) {
-			// Volume in the script files is mapped to [0, 100], but the ScummVM mixer uses [0, 255]
-			_volume = volume * 255 / 100;
+		if (volumeBuffer[0] != '[' && atoi(volumeBuffer) > 100) {
+			// I thought I saw a case like this in Zork Nemesis, so
+			// let's guard against it.
+			warning("ActionMusic: Adjusting volume for %s from %s to 100", _fileName.c_str(), volumeBuffer);
+			strcpy(volumeBuffer, "100");
 		}
+		_volume = new ValueSlot(engine->getScriptManager(), volumeBuffer);
 	}
 }
 
 ActionMusic::~ActionMusic() {
 	if (!_universe)
 		_engine->getScriptManager()->killSideFx(_slotKey);
+	delete _volume;
 }
 
 bool ActionMusic::execute() {
@@ -491,13 +494,16 @@ bool ActionMusic::execute() {
 		_engine->getScriptManager()->setStateValue(_slotKey, 2);
 	}
 
+	uint volume = _volume->getValue();
+
 	if (_midi) {
-		_engine->getScriptManager()->addSideFX(new MusicMidiNode(_engine, _slotKey, _prog, _note, _volume));
+		_engine->getScriptManager()->addSideFX(new MusicMidiNode(_engine, _slotKey, _prog, _note, volume));
 	} else {
 		if (!_engine->getSearchManager()->hasFile(_fileName))
 			return true;
 
-		_engine->getScriptManager()->addSideFX(new MusicNode(_engine, _slotKey, _fileName, _loop, _volume));
+		// Volume in the script files is mapped to [0, 100], but the ScummVM mixer uses [0, 255]
+		_engine->getScriptManager()->addSideFX(new MusicNode(_engine, _slotKey, _fileName, _loop, volume * 255 / 100));
 	}
 
 	return true;
@@ -797,8 +803,7 @@ ActionRandom::ActionRandom(ZVision *engine, int32 slotkey, const Common::String 
 }
 
 ActionRandom::~ActionRandom() {
-	if (_max)
-		delete _max;
+	delete _max;
 }
 
 bool ActionRandom::execute() {
@@ -1037,8 +1042,7 @@ ActionTimer::ActionTimer(ZVision *engine, int32 slotkey, const Common::String &l
 }
 
 ActionTimer::~ActionTimer() {
-	if (_time)
-		delete _time;
+	delete _time;
 	_engine->getScriptManager()->killSideFx(_slotKey);
 }
 

@@ -224,7 +224,7 @@ public:
 private:
 	Common::String _fileName;
 	bool _loop;
-	byte _volume;
+	ValueSlot *_volume;
 	bool _universe;
 	bool _midi;
 	int8 _note;

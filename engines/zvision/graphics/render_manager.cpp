@@ -57,7 +57,7 @@ RenderManager::RenderManager(ZVision *engine, uint32 windowWidth, uint32 windowH
 	_effectSurface.create(_workingWindow.width(), _workingWindow.height(), _pixelFormat);
 	_warpedSceneSurface.create(_workingWindow.width(), _workingWindow.height(), _pixelFormat);
 	_menuSurface.create(windowWidth, workingWindow.top, _pixelFormat);
-	
+
 	_menuArea = Common::Rect(0, 0, windowWidth, workingWindow.top);
 
 	initSubArea(windowWidth, windowHeight, workingWindow);
@@ -601,7 +601,7 @@ void RenderManager::prepareBackground() {
 		_backgroundSurfaceDirtyRect = _backgroundDirtyRect;
 		_backgroundSurfaceDirtyRect.translate(_screenCenterX - _backgroundOffset, 0);
 
-		// Panorama mode allows the user to spin in circles. Therefore, we need to render 
+		// Panorama mode allows the user to spin in circles. Therefore, we need to render
 		// the portion of the image that wrapped to the other side of the screen
 		if (_backgroundOffset < _screenCenterX) {
 			viewPort.moveTo(-(_screenCenterX - (_backgroundOffset + _backgroundWidth)), 0);
@@ -989,14 +989,38 @@ bool RenderManager::askQuestion(const Common::String &str) {
 		Common::Event evnt;
 		while (_engine->getEventManager()->pollEvent(evnt)) {
 			if (evnt.type == Common::EVENT_KEYDOWN) {
+				// English: yes/no
+				// German: ja/nein
+				// Spanish: si/no
+				// French Nemesis: F4/any other key
+				// French ZGI: oui/non
 				switch (evnt.kbd.keycode) {
 				case Common::KEYCODE_y:
-					result = 2;
+					if (_engine->getLanguage() == Common::EN_ANY)
+						result = 2;
+					break;
+				case Common::KEYCODE_j:
+					if (_engine->getLanguage() == Common::DE_DEU)
+						result = 2;
+					break;
+				case Common::KEYCODE_s:
+					if (_engine->getLanguage() == Common::ES_ESP)
+						result = 2;
+					break;
+				case Common::KEYCODE_o:
+					if (_engine->getLanguage() == Common::FR_FRA && _engine->getGameId() == GID_GRANDINQUISITOR)
+						result = 2;
+					break;
+				case Common::KEYCODE_F4:
+					if (_engine->getLanguage() == Common::FR_FRA && _engine->getGameId() == GID_NEMESIS)
+						result = 2;
 					break;
 				case Common::KEYCODE_n:
 					result = 1;
 					break;
 				default:
+					if (_engine->getLanguage() == Common::FR_FRA && _engine->getGameId() == GID_NEMESIS)
+						result = 1;
 					break;
 				}
 			}
