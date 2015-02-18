@@ -308,6 +308,9 @@ void MSurface::copyFrom(MSurface *src, const Common::Point &destPos, int depth,
 		if (!copyRect.isValidRect())
 			return;
 
+		if (flipped)
+			copyRect.moveTo(0, copyRect.top);
+
 		byte *data = src->getData();
 		byte *srcPtr = data + (src->getWidth() * copyRect.top + copyRect.left);
 		byte *destPtr = (byte *)pixels + (destY * pitch) + destX;
@@ -397,12 +400,14 @@ void MSurface::copyFrom(MSurface *src, const Common::Point &destPos, int depth,
 		const byte *srcP = srcPixelsP;
 		byte *destP = destPixelsP;
 
-		for (int xp = 0, sprX = 0; xp < frameWidth; ++xp, ++srcP) {
-			if (xp < spriteLeft)
-				// Not yet reached start of display area
-				continue;
-			if (!lineDist[sprX++])
+		for (int xp = 0, sprX = -1; xp < frameWidth; ++xp, ++srcP) {
+			if (!lineDist[xp])
 				// Not a display pixel
+				continue;
+
+			++sprX;
+			if (sprX < spriteLeft || sprX >= spriteRight)
+				// Skip pixel if it's not in horizontal display portion
 				continue;
 
 			// Get depth of current output pixel in depth surface

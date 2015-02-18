@@ -612,9 +612,12 @@ GameDialog::GameDialog(MADSEngine *vm) : FullScreenDialog(vm) {
 }
 
 void GameDialog::display() {
+	Palette &palette = *_vm->_palette;
+	palette.initPalette();
+	palette.resetGamePalette(18, 10);
+
 	FullScreenDialog::display();
 
-	Palette &palette = *_vm->_palette;
 	palette.setEntry(10, 0, 63, 0);
 	palette.setEntry(11, 0, 45, 0);
 	palette.setEntry(12, 63, 63, 0);
@@ -804,7 +807,7 @@ void GameDialog::show() {
 
 	Scene &scene = _vm->_game->_scene;
 
-	while (_selectedLine < 1 && !_vm->shouldQuit()) {
+	while (_selectedLine == -1 && !_vm->shouldQuit()) {
 		handleEvents();
 		if (_redrawFlag) {
 			if (!_tempLine)
@@ -831,7 +834,17 @@ void GameDialog::handleEvents() {
 		_lines[i]._state = DLGSTATE_UNSELECTED;
 
 	// Process pending events
-	_vm->_events->pollEvents();
+	events.pollEvents();
+
+	if (events.isKeyPressed()) {
+		switch (events.getKey().keycode) {
+		case Common::KEYCODE_ESCAPE:
+			_selectedLine = 0;
+			break;
+		default:
+			break;
+		}
+	}
 
 	// Scan for objects in the dialog
 	Common::Point mousePos = events.currentPos() - Common::Point(0, DIALOG_TOP);
@@ -1010,12 +1023,13 @@ void GameMenuDialog::show() {
 		_vm->_dialogs->_pendingDialog = DIALOG_OPTIONS;
 		_vm->_dialogs->showDialog();
 		break;
+	case 5:
+		_vm->quitGame();
+		break;
 	case 4:
+	default:
 		// Resume game
 		break;
-	case 5:
-	default:
-		_vm->quitGame();
 	}
 }
 
@@ -1083,7 +1097,7 @@ void OptionsDialog::show() {
 	StoryMode prevStoryMode = game._storyMode;
 
 	do {
-		_selectedLine = 0;
+		_selectedLine = -1;
 		GameDialog::show();
 
 		switch (_selectedLine) {
@@ -1122,22 +1136,16 @@ void OptionsDialog::show() {
 		clearLines();
 		setLines();
 		setClickableLines();
-	} while (_selectedLine <= 7);
+	} while (!_vm->shouldQuit() && _selectedLine != 0 && _selectedLine <= 7);
 
-	switch (_selectedLine) {
-	case 8:	// Done
-		// New options will be applied
-		break;
-	case 9:	// Cancel
+	// If Done button not pressed, reset settings
+	if (_selectedLine != 8) {
 		// Revert all options from the saved ones
 		_vm->_easyMouse = prevEasyMouse;
 		_vm->_invObjectsAnimated = prevInvObjectsAnimated;
 		_vm->_textWindowStill = prevTextWindowStill;
 		_vm->_screenFade = prevScreenFade;
 		game._storyMode = prevStoryMode;
-		break;
-	default:
-		break;
 	}
 }
 
