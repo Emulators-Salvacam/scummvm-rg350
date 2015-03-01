@@ -654,17 +654,37 @@ public:
 	}
 
 	virtual void getTimeAndDate(TimeDate &t) const
-	{
-        time_t curTime = time(0);
-        struct tm lt = *localtime(&curTime);
-        t.tm_sec = lt.tm_sec;
-        t.tm_min = lt.tm_min;
-        t.tm_hour = lt.tm_hour;
-        t.tm_mday = lt.tm_mday;
-        t.tm_mon = lt.tm_mon;
-        t.tm_year = lt.tm_year;
-        t.tm_wday = lt.tm_wday;
-	}
+   {
+      time_t curTime = time(NULL);
+
+#define YEAR0 1900
+#define EPOCH_YR 1970
+#define SECS_DAY (24L * 60L * 60L)
+#define LEAPYEAR(year) (!((year) % 4) && (((year) % 100) || !((year) % 400)))
+#define YEARSIZE(year) (LEAPYEAR(year) ? 366 : 365)
+      const int _ytab[2][12] = {
+         {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+         {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+      };
+      int year = EPOCH_YR;
+      unsigned long dayclock = (unsigned long)curTime % SECS_DAY;
+      unsigned long dayno = (unsigned long)curTime / SECS_DAY;
+      t.tm_sec = dayclock % 60;
+      t.tm_min = (dayclock % 3600) / 60;
+      t.tm_hour = dayclock / 3600;
+      t.tm_wday = (dayno + 4) % 7; /* day 0 was a thursday */
+      while (dayno >= YEARSIZE(year)) {
+         dayno -= YEARSIZE(year);
+         year++;
+      }
+      t.tm_year = year - YEAR0;
+      t.tm_mon = 0;
+      while (dayno >= _ytab[LEAPYEAR(year)][t.tm_mon]) {
+         dayno -= _ytab[LEAPYEAR(year)][t.tm_mon];
+         t.tm_mon++;
+      }
+      t.tm_mday = dayno + 1;
+   }
 
 	virtual Audio::Mixer *getMixer()
 	{
