@@ -432,7 +432,7 @@ void SceneTeleporter::teleporterHandleKey() {
 	case 0: {
 		_game._player._stepEnabled = false;
 		Common::Point msgPos = teleporterComputeLocation();
-		_handSequenceId = _scene->_sequences.startReverseCycle(_handSpriteId, false, 4, 2, 0, 0);
+		_handSequenceId = _scene->_sequences.startPingPongCycle(_handSpriteId, false, 4, 2, 0, 0);
 		_scene->_sequences.setPosition(_handSequenceId, msgPos);
 		_scene->_sequences.setDepth(_handSequenceId, 2);
 		_scene->_sequences.addSubEntry(_handSequenceId, SEQUENCE_TRIGGER_LOOP, 0, 1);
@@ -451,7 +451,10 @@ void SceneTeleporter::teleporterHandleKey() {
 				_curCode *= 10;
 				_curCode += _buttonTyped;
 				_digitCount++;
-				_msgText = Common::String::format("%d", _curCode);
+
+				Common::String format = "%01d";
+				format.setChar('0' + _digitCount, 2);
+				_msgText = Common::String::format(format.c_str(), _curCode);
 				if (_digitCount < 4)
 					_msgText += "_";
 
