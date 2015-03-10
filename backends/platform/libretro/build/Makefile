@@ -48,7 +48,7 @@ else ifeq ($(platform), ios)
    LDFLAGS += -dynamiclib -fPIC
 
 ifeq ($(IOSSDK),)
-   IOSSDK := $(shell xcrun -sdk iphoneos -show-sdk-path)
+   IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
 endif
 
    CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
