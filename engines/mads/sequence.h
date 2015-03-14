@@ -101,8 +101,9 @@ public:
 		int extraTicks, int numTicks, int msgX, int msgY, bool nonFixed, int scale, int depth,
 		int frameInc, SpriteAnimType animType, int numSprites, int frameStart);
 
-	int addTimer(int timeout, int abortVal);
+	int addTimer(int timeout, int endTrigger);
 	void remove(int seqIndex);
+	int findByTrigger(int trigger);
 	void setSpriteSlot(int seqIndex, SpriteSlot &spriteSlot);
 	bool loadSprites(int seqIndex);
 	void tick();
@@ -119,7 +120,7 @@ public:
 	int startCycle(int srcSpriteIdx, bool flipped, int cycleIndex);
 	int startPingPongCycle(int srcSpriteIndex, bool flipped, int numTicks,
 		int triggerCountdown = 0, int timeoutTicks = 0, int extraTicks = 0);
-	void updateTimeout(int spriteIdx, int seqIndex);
+	void updateTimeout(int destSeqIndex, int srcSeqIndex);
 	void setScale(int spriteIdx, int scale);
 	void setMsgLayout(int seqIndex);
 	void setDone(int seqIndex);

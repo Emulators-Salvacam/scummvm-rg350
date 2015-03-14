@@ -521,11 +521,11 @@ void Scene307::setup() {
 	setPlayerSpritesPrefix();
 	setAAName();
 	_scene->addActiveVocab(NOUN_AIR_VENT);
-	_scene->addActiveVocab(NOUN_CLIMB_INTO);
+	_scene->addActiveVocab(VERB_CLIMB_INTO);
 }
 
 void Scene307::handleRexDialog(int quote) {
-	Common::String curQuote = _game.getQuote(_action._activeAction._verbId);
+	Common::String curQuote = _game.getQuote(quote);
 	if (_vm->_font->getWidth(curQuote, _scene->_textSpacing) > 200) {
 		Common::String subQuote1;
 		_game.splitQuote(curQuote, subQuote1, _subQuote2);
@@ -769,7 +769,7 @@ void Scene307::enter() {
 		_dialog2.write(0x11E, true);
 
 
-	if (_scene->_priorSceneId == -2) {
+	if (_scene->_priorSceneId == RETURNING_FROM_DIALOG) {
 		if (_grateOpenedFl)
 			_vm->_sound->command(10);
 		else
@@ -992,7 +992,7 @@ void Scene307::actions() {
 			_scene->_sequences.remove(_globals._sequenceIndexes[5]);
 			_grateOpenedFl = true;
 			_scene->_hotspots.activate(17, false);
-			int idx = _scene->_dynamicHotspots.add(17, NOUN_CLIMB_INTO, -1, Common::Rect(117, 67, 117 + 19, 67 + 13));
+			int idx = _scene->_dynamicHotspots.add(17, VERB_CLIMB_INTO, -1, Common::Rect(117, 67, 117 + 19, 67 + 13));
 			int hotspotId = _scene->_dynamicHotspots.setPosition(idx, Common::Point(129, 104), FACING_NORTH);
 			_scene->_dynamicHotspots.setCursor(hotspotId, CURSOR_GO_UP);
 			_game._objects.removeFromInventory(OBJ_SCALPEL, NOWHERE);
@@ -1618,7 +1618,7 @@ void Scene311::enter() {
 	else if (_scene->_priorSceneId == 320) {
 		_game._player._playerPos = Common::Point(129, 113);
 		_game._player._facing = FACING_SOUTH;
-	} else if (_scene->_priorSceneId != -2) {
+	} else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._visible = false;
 		_game._player._stepEnabled = false;
 		_scene->loadAnimation(formAnimName('a', -1), 70);
@@ -1749,7 +1749,7 @@ void Scene311::actions() {
 	else if (_checkGuardFl) {
 		_checkGuardFl = false;
 		_scene->_kernelMessages.reset();
-		_scene->_kernelMessages.addQuote(0xFA, 120, 0);
+		_scene->_kernelMessages.addQuote(250, 0, 240);
 	} else if (_action.isAction(VERB_SIT_AT, NOUN_DESK))
 		_scene->_nextSceneId = 320;
 	else if (_action.isAction(VERB_CLIMB_INTO, NOUN_AIR_VENT)) {
@@ -1896,7 +1896,7 @@ void Scene313::enter() {
 	} else if (_scene->_priorSceneId == 388) {
 		_game._player._playerPos = Common::Point(199, 70);
 		_game._player._facing = FACING_WEST;
-	} else if (_scene->_priorSceneId != -2) {
+	} else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(234, 70);
 		_game._player._facing = FACING_WEST;
 	}
@@ -2215,7 +2215,7 @@ void Scene316::enter() {
 		_globals._sequenceIndexes[1] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[spriteIdx], false, 6, 1, 0, 0);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[1], 2);
 		_scene->_sequences.addSubEntry(_globals._sequenceIndexes[1], SEQUENCE_TRIGGER_EXPIRE, 0, 60);
-	} else if (_scene->_priorSceneId != -2)
+	} else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(291, 126);
 
 	sceneEntrySound();
@@ -2523,7 +2523,7 @@ void Scene318::handleDialog() {
 		case 0x19C:
 		case 0x19D:
 			_scene->_sequences.remove(_globals._sequenceIndexes[2]);
-			_globals._sequenceIndexes[2] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[2], false, 8, 1, 0, 0);
+			_globals._sequenceIndexes[2] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[2], false, 8, 1, 0, 0);
 			_scene->_sequences.setDepth(_globals._sequenceIndexes[2], 1);
 			_scene->_sequences.setPosition(_globals._sequenceIndexes[2], Common::Point(142, 121));
 			_scene->_sequences.setAnimRange(_globals._sequenceIndexes[2], 6, 8);
@@ -2581,6 +2581,12 @@ void Scene318::handleInternDialog(int quoteId, int quoteNum, uint32 timeout) {
 	_scene->_kernelMessages.reset();
 	_internTalkingFl = true;
 
+	// WORKAROUND: In case the player launches multiple talk selections with the
+	// intern before previous ones have finished, take care of removing any
+	int seqIndex;
+	while ((seqIndex = _scene->_sequences.findByTrigger(63)) != -1)
+		_scene->_sequences.remove(seqIndex);
+
 	for (int i = 0; i < quoteNum; i++) {
 		_game._triggerSetupMode = SEQUENCE_TRIGGER_DAEMON;
 		_scene->_sequences.addTimer(180, 63);
@@ -2611,7 +2617,7 @@ void Scene318::enter() {
 
 	if (_scene->_priorSceneId == 357)
 		_game._player._playerPos = Common::Point(15, 110);
-	else if (_scene->_priorSceneId != -2)
+	else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(214, 152);
 
 	_dialog1.setup(0x47, 0x191, 0x192, 0x193, 0x194, 0x195, 0x196, 0x197, 0x198, 0x199, 0x19A, 0x19B, 0x19C, 0x19D, 0);
@@ -2632,7 +2638,7 @@ void Scene318::enter() {
 	_lastFrame = 0;
 	_scene->_hotspots.activate(NOUN_INTERN, false);
 
-	if (_scene->_priorSceneId != -2) {
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_dialogFl = false;
 		_internWalkingFl = false;
 		_counter= 0;
@@ -2649,7 +2655,8 @@ void Scene318::enter() {
 		0x1C8, 0x1C9, 0x1CA, 0x1CB, 0x1CC, 0x1CD, 0x1CE, 0x1CF, 0x1D0, 0x1D1, 0x1D2, 0x1D3,
 		0x190, 0x19D, 0);
 
-	if ((_scene->_priorSceneId== -2) || (((_scene->_priorSceneId == 318) || (_scene->_priorSceneId == -1)) && (!_globals[kAfterHavoc]))) {
+	if ((_scene->_priorSceneId == RETURNING_FROM_DIALOG) || (((_scene->_priorSceneId == 318) || 
+			(_scene->_priorSceneId == RETURNING_FROM_LOADING)) && (!_globals[kAfterHavoc]))) {
 		if (!_globals[kAfterHavoc]) {
 			_game._player._visible = false;
 			_globals._spriteIndexes[2] = _scene->_sprites.addSprites(formAnimName('g', -1));
@@ -3113,7 +3120,7 @@ void Scene319::enter() {
 	_dialog2.setup(0x44, 0x171, 0x172, 0x173, 0x174, 0x175, 0x176, 0);
 	_dialog3.setup(0x45, 0x17D, 0x17E, 0x17F, 0x180, 0x181, 0x182, 0x183, 0);
 
-	if (_scene->_priorSceneId != -2) {
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_dialog1.set(0x165, 0x166, 0x167, 0x168, 0);
 		_dialog2.set(0x171, 0x172, 0x173, 0x174, 0);
 		_dialog3.set(0x17D, 0x17E, 0x17F, 0x180, 0);
@@ -3136,7 +3143,7 @@ void Scene319::enter() {
 
 	_scene->loadAnimation(formAnimName('b', 0));
 
-	if (_scene->_priorSceneId != -2) {
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_animMode = 1;
 		_nextAction1 = 2;
 		_nextAction2 = 2;
@@ -3588,7 +3595,7 @@ void Scene320::setLeftView(int view) {
 		_scene->_sequences.remove(_globals._sequenceIndexes[0]);
 
 	if (view != 10) {
-		_globals._sequenceIndexes[0] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[view], false, 6, 0, 0, 18);
+		_globals._sequenceIndexes[0] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[view], false, 6, 0, 0, 18);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[0], 0);
 		if (!_blinkFl)
 			_scene->_sequences.setAnimRange(_globals._sequenceIndexes[0], 2, 2);
@@ -3825,7 +3832,7 @@ void Scene320::actions() {
 	else if (_action.isAction(VERB_LOOK, NOUN_DOUGHNUT))
 		_vm->_dialogs->show(32006);
 	else if (_action.isAction(VERB_LOOK, NOUN_MAGAZINE))
-		_vm->_dialogs->show(32006);
+		_vm->_dialogs->show(32007);
 	else if (_action.isAction(VERB_LOOK, NOUN_PAPER_FOOTBALL))
 		_vm->_dialogs->show(32008);
 	else if (_action.isAction(VERB_LOOK, NOUN_NEWSPAPER))
@@ -3975,7 +3982,7 @@ void Scene351::enter() {
 
 	if (_scene->_priorSceneId == 352)
 		_game._player._playerPos = Common::Point(148, 152);
-	else if (_scene->_priorSceneId != -2) {
+	else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(207, 81);
 		_game._player._facing = FACING_NORTH;
 	}
@@ -4152,7 +4159,7 @@ void Scene352::setup() {
 void Scene352::putArmDown(bool corridorExit, bool doorwayExit) {
 	switch (_game._trigger) {
 	case 0:
-		_scene->_kernelMessages.add(Common::Point(0, 0), 0x1110, 34, 0, 60, _game.getQuote(0xFF));
+		_scene->_kernelMessages.add(Common::Point(0, 0), 0x1110, 34, 0, 120, _game.getQuote(0xFF));
 		_scene->_sequences.addTimer(48, 1);
 		break;
 
@@ -4197,7 +4204,6 @@ void Scene352::putArmDown(bool corridorExit, bool doorwayExit) {
 
 	case 4:
 		_game._player.walk(Common::Point(116, 107), FACING_NORTH);
-		_game._player._stepEnabled = true;
 		_mustPutArmDownFl = false;
 		_scene->_sequences.addTimer(180, 5);
 		_leaveRoomFl = true;
@@ -4261,7 +4267,7 @@ void Scene352::enter() {
 
 	_vaultOpenFl = false;
 
-	if (_scene->_priorSceneId != -2) {
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_mustPutArmDownFl = false;
 		if (!_game._visitedScenes._sceneRevisited)
 			_globals[kHaveYourStuff] = false;
@@ -4276,7 +4282,7 @@ void Scene352::enter() {
 
 	if (_scene->_priorSceneId == 353)
 		_game._player._playerPos = Common::Point(171, 155);
-	else if (_scene->_priorSceneId != -2)
+	else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(116, 107);
 
 	sceneEntrySound();
@@ -4305,7 +4311,7 @@ void Scene352::preActions() {
 				_game._player._stepEnabled = false;
 				_scene->_sequences.remove(_commonSequenceIdx);
 				_vm->_sound->command(20);
-				_commonSequenceIdx = _scene->_sequences.startPingPongCycle(_commonSpriteIndex, false, 6, 1, 0, 0);
+				_commonSequenceIdx = _scene->_sequences.addReverseSpriteCycle(_commonSpriteIndex, false, 6, 1, 0, 0);
 				_scene->_sequences.addSubEntry(_commonSequenceIdx, SEQUENCE_TRIGGER_EXPIRE, 0, 1);
 				_scene->_sequences.setDepth(_commonSequenceIdx, 15);
 			}
@@ -4490,7 +4496,7 @@ void Scene352::actions() {
 			case 2:
 				_vm->_sound->command(23);
 				_scene->_sequences.remove(_commonSequenceIdx);
-				_commonSequenceIdx = _scene->_sequences.startPingPongCycle(_commonSpriteIndex, false, 8, 1, 0, 0);
+				_commonSequenceIdx = _scene->_sequences.addReverseSpriteCycle(_commonSpriteIndex, false, 8, 1, 0, 0);
 				_scene->_sequences.setAnimRange(_commonSequenceIdx, 1, 4);
 				_scene->_sequences.addSubEntry(_commonSequenceIdx, SEQUENCE_TRIGGER_EXPIRE, 0, 3);
 				break;
@@ -4745,7 +4751,7 @@ void Scene354::enter() {
 		_game._player._facing = FACING_NORTH;
 	} else if (_scene->_priorSceneId == 316)
 		_game._player._playerPos = Common::Point(71, 107);
-	else if (_scene->_priorSceneId != -2)
+	else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(167, 57);
 
 	sceneEntrySound();
@@ -4812,7 +4818,7 @@ void Scene357::enter() {
 		_game._player._playerPos = Common::Point(298, 142);
 	else if (_scene->_priorSceneId == 313)
 		_game._player._playerPos = Common::Point(127, 101);
-	else if (_scene->_priorSceneId != -2)
+	else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(15, 148);
 
 	sceneEntrySound();
@@ -4876,7 +4882,7 @@ void Scene358::enter() {
 
 	if (_scene->_priorSceneId == 357)
 		_game._player._playerPos = Common::Point(305, 142);
-	else if (_scene->_priorSceneId != -2)
+	else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(12, 141);
 
 	sceneEntrySound();
@@ -4952,7 +4958,7 @@ void Scene359::enter() {
 
 	if (_scene->_priorSceneId == 358)
 		_game._player._playerPos = Common::Point(301, 141);
-	else if (_scene->_priorSceneId != -2)
+	else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(15, 148);
 
 	sceneEntrySound();
@@ -5075,7 +5081,7 @@ void Scene360::enter() {
 
 	if (_scene->_priorSceneId == 359)
 		_game._player._playerPos = Common::Point(304, 143);
-	else if (_scene->_priorSceneId != -2)
+	else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(13, 141);
 
 	sceneEntrySound();
@@ -5341,7 +5347,7 @@ void Scene361::enter() {
 	else if (_scene->_priorSceneId == 320) {
 		_game._player._playerPos = Common::Point(129, 113);
 		_game._player._facing = FACING_SOUTH;
-	} else if (_scene->_priorSceneId != -2)
+	} else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(13, 145);
 
 	_game.loadQuoteSet(0xFB, 0xFC, 0);
@@ -5466,7 +5472,7 @@ void Scene361::actions() {
 		_vm->_dialogs->show(36119);
 	else if (_action.isAction(VERB_SIT_AT, NOUN_DESK)) {
 		_scene->_kernelMessages.reset();
-		_scene->_kernelMessages.addQuote(0xFC, 120, 0);
+		_scene->_kernelMessages.addQuote(252, 0, 120);
 	} else if (_action.isAction(VERB_CLIMB_INTO, NOUN_AIR_VENT)) {
 		if (_globals[kSexOfRex] == REX_FEMALE)
 			handleRoxAction();

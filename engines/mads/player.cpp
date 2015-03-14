@@ -664,7 +664,7 @@ void Player::startMovement() {
 	_deltaDistance = (majorChange == 0) ? 0 : _totalDistance / majorChange;
 
 	if (_playerPos.x > _targetPos.x)
-		_pixelAccum = MAX(_posChange.x, _posChange.y);
+		_pixelAccum = MIN(_posChange.x, _posChange.y);
 	else
 		_pixelAccum = 0;
 
@@ -709,7 +709,7 @@ void Player::releasePlayerSprites() {
 	_spritesLoaded = false;
 	_spritesChanged = true;
 
-	if (scene._sprites._assetCount > 0) {
+	if (scene._sprites.size() > 0) {
 		warning("Player::releasePlayerSprites(): leftover sprites remain, clearing list");
 		scene._sprites.clear();
 	}

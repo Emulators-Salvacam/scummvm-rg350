@@ -265,7 +265,7 @@ ScreenObjects::ScreenObjects(MADSEngine *vm) : _vm(vm) {
 	_baseTime = 0;
 }
 
-void ScreenObjects::add(const Common::Rect &bounds, ScreenMode mode, ScrCategory category, int descId) {
+ScreenObject *ScreenObjects::add(const Common::Rect &bounds, ScreenMode mode, ScrCategory category, int descId) {
 	ScreenObject so;
 	so._bounds = bounds;
 	so._category = category;
@@ -274,6 +274,8 @@ void ScreenObjects::add(const Common::Rect &bounds, ScreenMode mode, ScrCategory
 	so._active = true;
 
 	push_back(so);
+
+	return &(*this)[size()];
 }
 
 void ScreenObjects::check(bool scanFlag) {
@@ -306,10 +308,10 @@ void ScreenObjects::check(bool scanFlag) {
 		}
 
 		//_released = _vm->_events->_mouseReleased;
-		if (_vm->_events->_vD2 || (_vm->_easyMouse && !_vm->_events->_mouseStatusCopy))
+		if (_vm->_events->_mouseButtons || (_vm->_easyMouse && !_vm->_events->_mouseStatusCopy))
 			scene._userInterface._category = _category;
 
-		if (!_vm->_events->_mouseButtons || _vm->_easyMouse) {
+		if (_vm->_events->_mouseButtons || _vm->_easyMouse) {
 			if (userInterface._category >= CAT_COMMAND && userInterface._category <= CAT_TALK_ENTRY) {
 				elementHighlighted();
 			}
@@ -524,7 +526,7 @@ void ScreenObjects::elementHighlighted() {
 	action._pickedWord = newIndex;
 
 	if (_category == CAT_INV_LIST || _category == CAT_INV_ANIM) {
-		if (action._interAwaiting == 1 && newIndex >= 0 && _released &&
+		if (action._interAwaiting == AWAITING_COMMAND && newIndex >= 0 && _released &&
 				(!_vm->_events->_mouseReleased || !_vm->_easyMouse))
 			newIndex = -1;
 	}
@@ -538,7 +540,7 @@ void ScreenObjects::elementHighlighted() {
 }
 
 void ScreenObjects::setActive(ScrCategory category, int descId, bool active) {
-	for (uint idx = 1; idx < size(); ++idx) {
+	for (uint idx = 1; idx <= size(); ++idx) {
 		ScreenObject &sObj = (*this)[idx];
 		if (sObj._category == category && sObj._descId == descId)
 			sObj._active = active;
@@ -685,7 +687,6 @@ void ScreenSurface::panTransition(MSurface &newScreen, byte *palData, int entryS
 	int y1, y2;
 	int startX = 0;
 	int deltaX;
-	int sizeY;
 	int xAt;
 	int loopStart;
 //	uint32 baseTicks, currentTicks;
@@ -712,7 +713,7 @@ void ScreenSurface::panTransition(MSurface &newScreen, byte *palData, int entryS
 
 	y1 = 0;
 	y2 = size.y - 1;
-	sizeY = y2 - y1 + 1;
+//	sizeY = y2 - y1 + 1;
 
 	if (throughBlack == THROUGH_BLACK2)
 		swapForeground(palData, &paletteMap[0]);

@@ -410,13 +410,21 @@ void UserInterface::setup(InputMode inputMode) {
 }
 
 void UserInterface::drawTextElements() {
-	if (_vm->_game->_screenObjects._inputMode) {
-		drawConversationList();
-	} else {
+	switch (_vm->_game->_screenObjects._inputMode) {
+	case kInputBuildingSentences:
 		// Draw the actions
 		drawActions();
 		drawInventoryList();
 		drawItemVocabList();
+		break;
+
+	case kInputConversation:
+		drawConversationList();
+		break;
+
+	case kInputLimitedSentences:
+	default:
+		break;
 	}
 }
 
@@ -514,7 +522,7 @@ void UserInterface::updateInventoryScroller() {
 				uint32 timeInc = _scrollbarQuickly ? 100 : 380;
 
 				if (_vm->_events->_mouseStatus && (_scrollbarMilliTime + timeInc) <= currentMilli) {
-					_scrollbarQuickly = _vm->_events->_vD2 < 1;
+					_scrollbarQuickly = _vm->_events->_strokeGoing < 1;
 					_scrollbarMilliTime = currentMilli;
 
 					// Change the scrollbar and visible inventory list
@@ -724,7 +732,9 @@ void UserInterface::loadElements() {
 		_categoryIndexes[CAT_HOTSPOT - 1] = _vm->_game->_screenObjects.size() + 1;
 		for (int hotspotIdx = scene._hotspots.size() - 1; hotspotIdx >= 0; --hotspotIdx) {
 			Hotspot &hs = scene._hotspots[hotspotIdx];
-			_vm->_game->_screenObjects.add(hs._bounds, SCREENMODE_VGA, CAT_HOTSPOT, hotspotIdx);
+			ScreenObject *so = _vm->_game->_screenObjects.add(hs._bounds, SCREENMODE_VGA, 
+				CAT_HOTSPOT, hotspotIdx);
+			so->_active = hs._active;
 		}
 	}
 

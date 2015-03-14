@@ -666,6 +666,7 @@ void Scene::freeCurrentScene() {
 	}
 
 	_vm->_palette->_paletteUsage.load(nullptr);
+	_cyclingActive = false;
 	_hotspots.clear();
 	_backgroundSurface.free();
 	_depthSurface.free();
@@ -675,7 +676,7 @@ void Scene::freeCurrentScene() {
 }
 
 void Scene::removeSprites() {
-	for (int idx = _sprites._assetCount - 1; idx >= _spritesCount; --idx)
+	for (int idx = _sprites.size() - 1; idx >= _spritesCount; --idx)
 		_sprites.remove(idx);
 }
 

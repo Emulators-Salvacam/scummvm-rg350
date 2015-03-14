@@ -112,7 +112,7 @@ void Scene601::enter() {
 		_globals._sequenceIndexes[2] = _scene->_sequences.startCycle(_globals._spriteIndexes[2], false, -2);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[2], 3);
 		_scene->loadAnimation(formAnimName('R', 1), 70);
-	} else if (_scene->_priorSceneId != -2) {
+	} else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(229, 129);
 		_game._player._facing = FACING_SOUTHWEST;
 	}
@@ -130,7 +130,7 @@ void Scene601::step() {
 
 	case 71:
 		_scene->_sequences.remove(_globals._sequenceIndexes[2]);
-		_globals._sequenceIndexes[2] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[2], false, 6, 1, 0, 0);
+		_globals._sequenceIndexes[2] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[2], false, 6, 1, 0, 0);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[2], 3);
 		_scene->_sequences.addSubEntry(_globals._sequenceIndexes[2], SEQUENCE_TRIGGER_EXPIRE, 0, 72);
 		break;
@@ -293,7 +293,7 @@ void Scene602::enter() {
 	if (_scene->_priorSceneId == 603) {
 		_game._player._playerPos = Common::Point(228, 126);
 		_game._player._facing = FACING_WEST;
-	} else if (_scene->_priorSceneId != -2) {
+	} else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(50, 127);
 		_game._player._facing = FACING_EAST;
 	}
@@ -585,7 +585,7 @@ void Scene603::enter() {
 		_scene->_dynamicHotspots.setPosition(_noteHotspotId, Common::Point(242, 118), FACING_NORTHEAST);
 	}
 
-	if (_scene->_priorSceneId != -2)
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG)
 		_game._player._playerPos = Common::Point(113, 134);
 
 	sceneEntrySound();
@@ -750,7 +750,7 @@ void Scene604::enter() {
 	_vm->_palette->setEntry(253, 45, 24, 17);
 	_animationActiveFl = false;
 
-	if (_scene->_priorSceneId != -2) {
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(72, 149);
 		_game._player._facing = FACING_NORTHEAST;
 		_game._player._visible = false;
@@ -1106,7 +1106,7 @@ void Scene607::enter() {
 	if (_scene->_priorSceneId == 608) {
 		_game._player._playerPos = Common::Point(297, 50);
 		_game._player._facing = FACING_SOUTHEAST;
-	} else if (_scene->_priorSceneId != -2) {
+	} else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(40, 104);
 		_game._player._facing = FACING_SOUTHEAST;
 		_game._player._visible = false;
@@ -1778,7 +1778,7 @@ void Scene608::enter() {
 	_vm->_palette->setEntry(252, 63, 44, 30);
 	_vm->_palette->setEntry(253, 63, 20, 22);
 
-	if (_scene->_priorSceneId != -2) {
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(46, 132);
 		_game._player._facing = FACING_EAST;
 		if (_game._difficulty == DIFFICULTY_HARD) {
@@ -2535,7 +2535,7 @@ void Scene609::enter() {
 		_game._player._facing = FACING_EAST;
 		_scene->_sequences.addTimer(60, 60);
 		_game._player._stepEnabled = false;
-	} else if (_scene->_priorSceneId != -2) {
+	} else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(86, 136);
 		_game._player._facing = FACING_NORTHEAST;
 		_game._player._visible = false;
@@ -2574,7 +2574,7 @@ void Scene609::step() {
 
 	case 62:
 		_scene->_sequences.remove( _globals._sequenceIndexes[2]);
-		_globals._sequenceIndexes[2] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[2], false, 7, 1, 0, 0);
+		_globals._sequenceIndexes[2] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[2], false, 7, 1, 0, 0);
 		_scene->_hotspots.activate(NOUN_VIDEO_STORE_DOOR, true);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[2], 9);
 		_scene->_sequences.addSubEntry(_globals._sequenceIndexes[2], SEQUENCE_TRIGGER_EXPIRE, 0, 63);
@@ -2690,7 +2690,7 @@ void Scene609::enterStore() {
 
 	case 7:
 		_scene->_sequences.remove(_globals._sequenceIndexes[2]);
-		_globals._sequenceIndexes[2] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[2], false, 7, 1, 0, 0);
+		_globals._sequenceIndexes[2] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[2], false, 7, 1, 0, 0);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[2], 9);
 		_scene->_sequences.addSubEntry(_globals._sequenceIndexes[2], SEQUENCE_TRIGGER_EXPIRE, 0, 8);
 		break;
@@ -2766,7 +2766,7 @@ void Scene609::actions() {
 		case 0:
 			_game._player._stepEnabled = false;
 			_scene->_sequences.remove(_globals._sequenceIndexes[1]);
-			_globals._sequenceIndexes[1] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[1], false, 6, 1, 0, 0);
+			_globals._sequenceIndexes[1] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[1], false, 6, 1, 0, 0);
 			_scene->_sequences.setDepth(_globals._sequenceIndexes[1], 5);
 			_scene->_sequences.addSubEntry(_globals._sequenceIndexes[1], SEQUENCE_TRIGGER_EXPIRE, 0, 1);
 			break;
@@ -2884,7 +2884,7 @@ void Scene610::enter() {
 	if (_scene->_roomChanged && _game._difficulty != DIFFICULTY_EASY)
 		_game._objects.addToInventory(OBJ_PENLIGHT);
 
-	if (_scene->_priorSceneId != -2) {
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(175, 152);
 		_game._player._facing = FACING_NORTHWEST;
 	}
@@ -3275,8 +3275,7 @@ void Scene611::handleSubDialog1() {
 
 		// WORKAROUND: Fix bug in the original where the option to give Hermit batteries
 		// would be given before the player even has any batteries
-		//if (!_game._objects.isInInventory(OBJ_DURAFAIL_CELLS) && !_game._objects.isInInventory(OBJ_PHONE_CELLS))
-		//	_globals[kExecuted_1_11] = true;
+		_globals[kHermitWantsBatteries] = true;
 
 		setDialogNode(1);
 		break;
@@ -3830,29 +3829,29 @@ void Scene611::displayHermitQuestions(int question) {
 		Common::String curQuote = _game.getQuote(0x2D3);
 		int width = _vm->_font->getWidth(curQuote, _scene->_textSpacing);
 		int quotePosX = _defaultDialogPos.x - (width / 2);
-		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 3), 0xFDFC, 0, 0, 9999999, curQuote);
+		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 3), 0xFDFC, 0, 0, 800, curQuote);
 
 		curQuote = _game.getQuote(0x2D4);
 		width = _vm->_font->getWidth(curQuote, _scene->_textSpacing);
 		quotePosX = _defaultDialogPos.x - (width / 2);
-		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 17), 0xFDFC, 0, 0, 9999999, curQuote);
+		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 17), 0xFDFC, 0, 0, 800, curQuote);
 
 		curQuote = _game.getQuote(0x2D5);
 		width = _vm->_font->getWidth(curQuote, _scene->_textSpacing);
 		quotePosX = _defaultDialogPos.x - (width / 2);
-		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 31), 0xFDFC, 0, 0, 9999999, curQuote);
+		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 31), 0xFDFC, 0, 0, 800, curQuote);
 
 		curQuote = _game.getQuote(0x2D6);
 		width = _vm->_font->getWidth(curQuote, _scene->_textSpacing);
 		quotePosX = _defaultDialogPos.x - (width / 2);
-		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 45), 0xFDFC, 0, 0, 9999999, curQuote);
+		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 45), 0xFDFC, 0, 0, 800, curQuote);
 
 		curQuote = _game.getQuote(0x2D7);
 		width = _vm->_font->getWidth(curQuote, _scene->_textSpacing);
 		quotePosX = _defaultDialogPos.x - (width / 2);
-		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 59), 0xFDFC, 0, 0, 9999999, curQuote);
-		 }
-		 break;
+		_scene->_kernelMessages.add(Common::Point(quotePosX, _defaultDialogPos.y + 59), 0xFDFC, 0, 0, 800, curQuote);
+		}
+		break;
 
 	case 22: {
 		Common::String curQuote = _game.getQuote(0x2D8);
@@ -3949,7 +3948,7 @@ void Scene611::enter() {
 	_alreadyTalkingFl = false;
 	_startTradingFl = false;
 
-	if (_scene->_priorSceneId != -2) {
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(22, 132);
 		_game._player._facing = FACING_EAST;
 		_duringDialogFl = false;
@@ -3968,14 +3967,11 @@ void Scene611::enter() {
 		_scene->_hotspots.activate(NOUN_HERMIT, false);
 	}
 
-	/* WORKAROUND: Pretty sure this is a debugging code fragment that should be ignored
-	if (_globals[kExecuted_1_11]) {
-		_dialog1.write(0x294, true);
-		_dialog1.write(0x292, false);
-		_globals[kExecuted_1_11] = true;
-	}*/
-	if ((_game._objects.isInInventory(OBJ_DURAFAIL_CELLS)) || (_game._objects.isInInventory(OBJ_PHONE_CELLS)))
-		_dialog1.write(0x294, true);
+	// WORKAROUND: Fix original adding 'give batteries' option even if you don't have them
+	if (_globals[kHermitWantsBatteries]) {
+		if ((_game._objects.isInInventory(OBJ_DURAFAIL_CELLS)) || (_game._objects.isInInventory(OBJ_PHONE_CELLS)))
+			_dialog1.write(0x294, true);
+	}
 
 	if (_duringDialogFl) {
 		_game._player._playerPos = Common::Point(237, 129);
@@ -4564,7 +4560,7 @@ void Scene612::enter() {
 	_globals._sequenceIndexes[2] = _scene->_sequences.startCycle(_globals._spriteIndexes[2], false, _cycleIndex);
 	_scene->_sequences.setDepth(_globals._sequenceIndexes[2], 1);
 
-	if (_scene->_priorSceneId != -2) {
+	if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(280, 75);
 		_game._player._facing = FACING_SOUTHWEST;
 		_game._player._visible = false;
@@ -4614,7 +4610,7 @@ void Scene612::actions() {
 		case 0:
 			_game._player._stepEnabled = false;
 			_scene->_sequences.remove(_globals._sequenceIndexes[1]);
-			_globals._sequenceIndexes[1] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[1], false, 6, 1, 0, 0);
+			_globals._sequenceIndexes[1] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[1], false, 6, 1, 0, 0);
 			_scene->_sequences.setDepth(_globals._sequenceIndexes[1], 2);
 			_scene->_sequences.addSubEntry(_globals._sequenceIndexes[1], SEQUENCE_TRIGGER_EXPIRE, 0, 1);
 			break;

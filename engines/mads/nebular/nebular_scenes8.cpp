@@ -121,7 +121,7 @@ void Scene801::enter() {
 		_game._player._playerPos = Common::Point(307, 111);
 		_game._player.walk(Common::Point(270, 118), FACING_WEST);
 		_game._player._visible = true;
-	} else if ((_scene->_priorSceneId != -2) && !_globals[kTeleporterCommand]) {
+	} else if ((_scene->_priorSceneId != RETURNING_FROM_DIALOG) && !_globals[kTeleporterCommand]) {
 		_game._player._playerPos = Common::Point(8, 117);
 		_game._player.walk(Common::Point(41, 115), FACING_EAST);
 		_game._player._visible = true;
@@ -145,10 +145,10 @@ void Scene801::enter() {
 		case 2:
 			_game._player._playerPos = Common::Point(8, 117);
 			_globals[kTeleporterUnderstood] = true;
-			_globals._sequenceIndexes[1] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[1], false, 8, 1, 0, 0);
+			_globals._sequenceIndexes[1] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[1], false, 8, 1, 0, 0);
 			_scene->_sequences.setAnimRange(_globals._sequenceIndexes[1], 1, 13);
 			_game._triggerSetupMode = SEQUENCE_TRIGGER_DAEMON;
-			_scene->_sequences.addSubEntry(_globals._sequenceIndexes[1], SEQUENCE_TRIGGER_EXPIRE, 0, 8090);
+			_scene->_sequences.addSubEntry(_globals._sequenceIndexes[1], SEQUENCE_TRIGGER_EXPIRE, 0, 80);
 			_vm->_sound->command(30);
 			break;
 
@@ -283,7 +283,7 @@ void Scene801::actions() {
 		_globals[kBetweenRooms] = true;
 		_game._triggerSetupMode = SEQUENCE_TRIGGER_DAEMON;
 		_scene->_sequences.remove(_globals._sequenceIndexes[2]);
-		_globals._sequenceIndexes[2] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[2], false, 4, 1, 0, 0);
+		_globals._sequenceIndexes[2] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[2], false, 4, 1, 0, 0);
 		_scene->_sequences.addSubEntry(_globals._sequenceIndexes[2], SEQUENCE_TRIGGER_EXPIRE, 0, 90);
 		_scene->_sequences.setAnimRange(_globals._sequenceIndexes[2], 1, 5);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[2], 13);
@@ -346,7 +346,7 @@ void Scene802::enter() {
 		_game._player._playerPos = Common::Point(303, 119);
 		_game._player._facing = FACING_WEST;
 
-	} else if (_scene->_priorSceneId != -2) {
+	} else if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 		_game._player._playerPos = Common::Point(15, 129);
 		_game._player._facing = FACING_EAST;
 	}
@@ -557,7 +557,7 @@ void Scene803::enter() {
 
 	if (!_globals[kFromCockpit]) {
 		if (!_globals[kReturnFromCut]) {
-			if (_scene->_priorSceneId != -2) {
+			if (_scene->_priorSceneId != RETURNING_FROM_DIALOG) {
 				_game._player._playerPos = Common::Point(15, 130);
 				_game._player._facing = FACING_EAST;
 			}
@@ -719,14 +719,14 @@ void Scene803::step() {
 			else
 				_game._winStatus = 3;
 
-			_vm->quitGame();
+			return;
 		}
 	}
 
 	if (_game._trigger == 150) {
 		_scene->_sequences.remove(_globals._sequenceIndexes[6]);
 		_vm->_sound->command(18);
-		_globals._sequenceIndexes[6] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[6], false, 8, 1, 0, 0);
+		_globals._sequenceIndexes[6] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[6], false, 8, 1, 0, 0);
 		_scene->_sequences.setAnimRange(_globals._sequenceIndexes[6], 1, 19);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[6], 4);
 		_scene->_sequences.addSubEntry(_globals._sequenceIndexes[6], SEQUENCE_TRIGGER_EXPIRE, 0, 151);
@@ -778,7 +778,7 @@ void Scene803::actions() {
 
 		case 162:
 			_scene->_sequences.remove(_globals._sequenceIndexes[9]);
-			_globals._sequenceIndexes[9] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[9], true, 6, 1, 0, 0);
+			_globals._sequenceIndexes[9] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[9], true, 6, 1, 0, 0);
 			_scene->_sequences.setAnimRange(_globals._sequenceIndexes[9], 1, 4);
 			_scene->_sequences.setMsgLayout(_globals._sequenceIndexes[9]);
 			_scene->_sequences.addSubEntry(_globals._sequenceIndexes[9], SEQUENCE_TRIGGER_EXPIRE, 0, 163);
@@ -904,10 +904,12 @@ void Scene804::enter() {
 			_game._player._stepEnabled = false;
 		}
 	} else {
-		if (_globals[kBeamIsUp] == 0)
+		if (_globals[kBeamIsUp]) {
 			_globals._sequenceIndexes[8] = _scene->_sequences.startCycle(_globals._spriteIndexes[8], false, 1);
+			_scene->_sequences.setDepth(_globals._sequenceIndexes[8], 7);
+		}
 
-		if (_globals[kWindowFixed] == 0)
+		if (_globals[kWindowFixed])
 			_globals._sequenceIndexes[4] = _scene->_sequences.startCycle(_globals._spriteIndexes[4], false, 1);
 
 		_globals._sequenceIndexes[1] = _scene->_sequences.startCycle(_globals._spriteIndexes[1], false, 1);
@@ -957,7 +959,7 @@ void Scene804::step() {
 
 				assert(!_globals[kCopyProtectFailed]);
 				_game._winStatus = 4;
-				_vm->quitGame();
+				return;
 			}
 			break;
 
@@ -969,7 +971,7 @@ void Scene804::step() {
 
 				assert(!_globals[kCopyProtectFailed]);
 				_game._winStatus = 4;
-				_vm->quitGame();
+				return;
 			}
 		}
 
@@ -1218,6 +1220,8 @@ void Scene805::enter() {
 }
 
 void Scene805::step() {
+	UserInterface &userInterface = _vm->_game->_scene._userInterface;
+
 	if (_game._trigger == 70) {
 		_scene->_hotspots.activate(OBJ_SHIELD_MODULATOR, false);
 		_globals._sequenceIndexes[1] = _scene->_sequences.startCycle(_globals._spriteIndexes[1], false, 25);
@@ -1225,6 +1229,7 @@ void Scene805::step() {
 		_scene->_dynamicHotspots.setPosition(idx, Common::Point(0, 0), FACING_DUMMY);
 		_globals[kShieldModInstalled] = true;
 		_game._objects.setRoom(OBJ_SHIELD_MODULATOR, NOWHERE);
+		userInterface._selectedInvIndex = -1;
 		_game._player._stepEnabled = true;
 		_vm->_sound->command(24);
 	}
@@ -1236,6 +1241,7 @@ void Scene805::step() {
 		_scene->_dynamicHotspots.setPosition(idx, Common::Point(0, 0), FACING_DUMMY);
 		_globals[kTargetModInstalled] = true;
 		_game._objects.setRoom(OBJ_TARGET_MODULE, NOWHERE);
+		userInterface._selectedInvIndex = -1;
 		_game._player._stepEnabled = true;
 		_vm->_sound->command(24);
 	}
@@ -1277,14 +1283,14 @@ void Scene805::actions() {
 	} else if (_action.isAction(VERB_REMOVE, NOUN_SHIELD_MODULATOR) && _globals[kShieldModInstalled]) {
 		_scene->_sequences.remove(_globals._sequenceIndexes[1]);
 		_game._triggerSetupMode = SEQUENCE_TRIGGER_DAEMON;
-		_globals._sequenceIndexes[1] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[1], false, 7, 1, 0, 0);
+		_globals._sequenceIndexes[1] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[1], false, 7, 1, 0, 0);
 		_scene->_sequences.setAnimRange(_globals._sequenceIndexes[1], -1, -2);
 		_scene->_sequences.addSubEntry(_globals._sequenceIndexes[1], SEQUENCE_TRIGGER_EXPIRE, 0, 71);
 		_game._player._stepEnabled = false;
 	} else if (_action.isAction(VERB_REMOVE, NOUN_TARGET_MODULE) && _globals[kTargetModInstalled]) {
 		_scene->_sequences.remove(_globals._sequenceIndexes[2]);
 		_game._triggerSetupMode = SEQUENCE_TRIGGER_DAEMON;
-		_globals._sequenceIndexes[2] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[2], false, 7, 1, 0, 0);
+		_globals._sequenceIndexes[2] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[2], false, 7, 1, 0, 0);
 		_scene->_sequences.setAnimRange(_globals._sequenceIndexes[2], -1, -2);
 		_scene->_sequences.addSubEntry(_globals._sequenceIndexes[2], SEQUENCE_TRIGGER_EXPIRE, 0, 81);
 		_game._player._stepEnabled = false;
@@ -1433,7 +1439,7 @@ void Scene808::actions() {
 				_vm->_sound->command(20);
 				_vm->_sound->command(25);
 			}
-			_globals._sequenceIndexes[4] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[4], false, 4, 1, 0, 0);
+			_globals._sequenceIndexes[4] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[4], false, 4, 1, 0, 0);
 			_scene->_sequences.setPosition(_globals._sequenceIndexes[4], Common::Point(248, 211));
 			_scene->_sequences.setDepth(_globals._sequenceIndexes[4], 2);
 			_scene->_sequences.addSubEntry(_globals._sequenceIndexes[4], SEQUENCE_TRIGGER_EXPIRE, 0, 71);
@@ -1468,7 +1474,7 @@ void Scene808::actions() {
 				_vm->_sound->command(20);
 			}
 			_globals[kTopButtonPushed] = false;
-			_globals._sequenceIndexes[4] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[4], false, 4, 1, 0, 0);
+			_globals._sequenceIndexes[4] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[4], false, 4, 1, 0, 0);
 			_scene->_sequences.setPosition(_globals._sequenceIndexes[4], Common::Point(248, 186));
 			_scene->_sequences.setDepth(_globals._sequenceIndexes[4], 2);
 			_scene->_sequences.addSubEntry(_globals._sequenceIndexes[4], SEQUENCE_TRIGGER_EXPIRE, 0, 91);
@@ -1499,7 +1505,7 @@ void Scene808::actions() {
 				_vm->_sound->command(20);
 			 }
 			_globals[kTopButtonPushed] = true;
-			_globals._sequenceIndexes[4] = _scene->_sequences.startPingPongCycle(_globals._spriteIndexes[4], false, 4, 1, 0, 0);
+			_globals._sequenceIndexes[4] = _scene->_sequences.addReverseSpriteCycle(_globals._spriteIndexes[4], false, 4, 1, 0, 0);
 			_scene->_sequences.setPosition(_globals._sequenceIndexes[4], Common::Point(248, 163));
 			_scene->_sequences.setDepth(_globals._sequenceIndexes[4], 2);
 			_scene->_sequences.addSubEntry(_globals._sequenceIndexes[4], SEQUENCE_TRIGGER_EXPIRE, 0, 81);
@@ -1600,7 +1606,8 @@ void Scene810::enter() {
 }
 
 void Scene810::step() {
-	if ((_scene->_activeAnimation->getCurrentFrame() == 200) && _moveAllowed) {
+	if (_scene->_activeAnimation && (_scene->_activeAnimation->getCurrentFrame() == 200) 
+			&& _moveAllowed) {
 		_scene->_sequences.addTimer(100, 70);
 		_moveAllowed = false;
 	}
