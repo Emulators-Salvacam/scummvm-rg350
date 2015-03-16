@@ -436,6 +436,7 @@ void Animation::update() {
 	if (_vm->_game->_scene._frameStartTime < _nextFrameTimer)
 		return;
 
+	// Erase any active sprites
 	eraseSprites();
 
 	// Validate the current frame

@@ -38,12 +38,13 @@ namespace MADS {
 MADSEngine::MADSEngine(OSystem *syst, const MADSGameDescription *gameDesc) :
 		_gameDescription(gameDesc), Engine(syst), _randomSource("MADS") {
 
-	// Initialize fields
+	// Initialize game/engine options
 	_easyMouse = true;
 	_invObjectsAnimated = true;
 	_textWindowStill = false;
 	_screenFade = SCREEN_FADE_SMOOTH;
 	_musicFlag = true;
+	_soundFlag = true;
 	_dithering = false;
 
 	_debugger = nullptr;
@@ -82,8 +83,6 @@ void MADSEngine::initialize() {
 	MSurface::setVm(this);
 	MSprite::setVm(this);
 
-	loadOptions();
-
 	Resources::init(this);
 	Conversation::init(this);
 	_debugger = new Debugger(this);
@@ -97,22 +96,52 @@ void MADSEngine::initialize() {
 	_audio = new AudioPlayer(_mixer, getGameID());
 	_game = Game::init(this);
 
+	loadOptions();
+
 	_screen.empty();
 }
 
 void MADSEngine::loadOptions() {
 	if (ConfMan.hasKey("EasyMouse"))
 		_easyMouse = ConfMan.getBool("EasyMouse");
-	if (ConfMan.hasKey("InvObjectsAnimated"))
-		_invObjectsAnimated = ConfMan.getBool("InvObjectsAnimated");
-	if (ConfMan.hasKey("TextWindowStill"))
-		_textWindowStill = ConfMan.getBool("TextWindowStill");
+
+	if (ConfMan.hasKey("mute") && ConfMan.getBool("mute")) {
+		_soundFlag = false;
+		_musicFlag = false;
+	} else {
+		_soundFlag = !ConfMan.hasKey("sfx_mute") || !ConfMan.getBool("sfx_mute");
+		_musicFlag = !ConfMan.hasGameDomain("music_mute") || !ConfMan.getBool("music_mute");
+	}
+
+	if (ConfMan.hasKey("ScreenFade"))
+		_screenFade = (ScreenFade)ConfMan.getInt("ScreenFade");
+	//if (ConfMan.hasKey("GraphicsDithering"))
+	//	_dithering = ConfMan.getBool("GraphicsDithering");
+
+	if (getGameID() == GType_RexNebular) {
+		if (ConfMan.hasKey("InvObjectsAnimated"))
+			_invObjectsAnimated = ConfMan.getBool("InvObjectsAnimated");
+		if (ConfMan.hasKey("TextWindowStill"))
+			_textWindowStill = !ConfMan.getBool("TextWindowAnimated");
+		if (ConfMan.hasKey("NaughtyMode"))
+			_game->setNaughtyMode(ConfMan.getBool("NaughtyMode"));
+	}
 }
 
 void MADSEngine::saveOptions() {
 	ConfMan.setBool("EasyMouse", _easyMouse);
-	ConfMan.setBool("InvObjectsAnimated", _invObjectsAnimated);
-	ConfMan.setBool("TextWindowStill", _textWindowStill);
+	ConfMan.setInt("ScreenFade", (int)_screenFade);
+	//ConfMan.setBool("GraphicsDithering", _dithering);
+
+	ConfMan.setBool("mute", !_soundFlag && !_musicFlag);
+	ConfMan.setBool("sfx_mute", !_soundFlag && _musicFlag);
+	ConfMan.setBool("music_mute", _soundFlag && !_musicFlag);
+
+	if (getGameID() == GType_RexNebular) {
+		ConfMan.setBool("InvObjectsAnimated", _invObjectsAnimated);
+		ConfMan.setBool("TextWindowAnimated", !_textWindowStill);
+		ConfMan.setBool("NaughtyMode", _game->getNaughtyMode());
+	}
 
 	ConfMan.flushToDisk();
 }
@@ -151,6 +180,12 @@ bool MADSEngine::canSaveGameStateCurrently() {
 	return !_game->_winStatus && !_game->globals()[5]
 		&& _dialogs->_pendingDialog == DIALOG_NONE
 		&& _events->_cursorId != CURSOR_WAIT;
+}
+
+void MADSEngine::syncSoundSettings() {
+	Engine::syncSoundSettings();
+
+	loadOptions();
 }
 
 /**
