@@ -2245,9 +2245,57 @@ static const uint16 qfg2PatchImportDialog[] = {
 	PATCH_END
 };
 
-//          script, description,                                      signature                  patch
+// Quest For Glory 2 character import doesn't properly set the character type
+//  in versions 1.102 and below, which makes all importerted characters a fighter.
+//
+// Sierra released an official patch. However the fix is really easy to
+//  implement on our side, so we also patch the flaw in here in case we find it.
+//
+// The version released on GOG is 1.102 without this patch applied, so us
+//  patching it is quite useful.
+//
+// Applies to at least: English Floppy
+// Responsible method: importHero::changeState
+// Fixes bug: inside versions 1.102 and below
+static const uint16 qfg2SignatureImportCharType[] = {
+	0x35, 0x04,                         // ldi 04
+	0x90, SIG_UINT16(0x023b),           // lagi global[23Bh]
+	0x02,                               // add
+	0x36,                               // push
+	0x35, 0x04,                         // ldi 04
+	0x08,                               // div
+	0x36,                               // push
+	0x35, 0x0d,                         // ldi 0D
+	0xb0, SIG_UINT16(0x023b),           // sagi global[023Bh]
+	0x8b, 0x1f,                         // lsl local[1Fh]
+	0x35, 0x05,                         // ldi 05
+	SIG_MAGICDWORD,
+	0xb0, SIG_UINT16(0x0150),           // sagi global[0150h]
+	0x8b, 0x02,                         // lsl local[02h]
+	SIG_END
+};
+
+static const uint16 qfg2PatchImportCharType[] = {
+	0x80, PATCH_UINT16(0x023f),         // lag global[23Fh] <-- patched to save 2 bytes
+	0x02,                               // add
+	0x36,                               // push
+	0x35, 0x04,                         // ldi 04
+	0x08,                               // div
+	0x36,                               // push
+	0xa8, SIG_UINT16(0x0248),           // ssg global[0248h] <-- patched to save 2 bytes
+	0x8b, 0x1f,                         // lsl local[1Fh]
+	0xa8, SIG_UINT16(0x0155),           // ssg global[0155h] <-- patched to save 2 bytes
+	// new code, directly from the official sierra patch file
+	0x83, 0x01,                         // lal local[01h]
+	0xa1, 0xbb,                         // sag global[BBh]
+	0xa1, 0x73,                         // sag global[73h]
+	PATCH_END
+};
+
+//          script, description,                                      signature                    patch
 static const SciScriptPatcherEntry qfg2Signatures[] = {
-	{  true,   944, "import dialog continuous calls",              1, qfg2SignatureImportDialog, qfg2PatchImportDialog },
+	{  true,   805, "import character type fix",                   1, qfg2SignatureImportCharType, qfg2PatchImportCharType },
+	{  true,   944, "import dialog continuous calls",              1, qfg2SignatureImportDialog,   qfg2PatchImportDialog },
 	SCI_SIGNATUREENTRY_TERMINATOR
 };
 
@@ -2344,12 +2392,130 @@ static const uint16 qfg3PatchWooDialogAlt[] = {
 	PATCH_END
 };
 
+// When exporting characters at the end of Quest for Glory 3, the underlying
+//  code has issues with values, that are above 9999.
+//  For further study: https://github.com/Blazingstix/QFGImporter/blob/master/QFGImporter/QFGImporter/QFG3.txt
+//
+// If a value is above 9999, parts or even the whole character file will get corrupted.
+//
+// We are fixing the code because of that. We are patching code, that is calculating the checksum
+//  and add extra code to lower such values to 9999.
+//
+// Applies to at least: English, French, German, Italian, Spanish floppy
+// Responsible method: saveHero::changeState
+// Fixes bug #6807
+static const uint16 qfg3SignatureExportChar[] = {
+	0x35, SIG_ADDTOOFFSET(+1),          // ldi  00 / ldi 01 (2 loops, we patch both)
+	0xa5, 0x00,                         // sat  temp[0] [contains index to data]
+	0x8d, 0x00,                         // lst  temp[0]
+	SIG_MAGICDWORD,
+	0x35, 0x2c,                         // ldi  2c
+	0x22,                               // lt?  [index above or equal 2Ch (44d)?
+	0x31, 0x23,                         // bnt  [exit loop]
+	// from this point it's actually useless code, maybe a sci compiler bug
+	0x8d, 0x00,                         // lst  temp[0]
+	0x35, 0x01,                         // ldi  01
+	0x02,                               // add
+	0x9b, 0x00,                         // lsli local[0] ---------- load local[0 + ACC] onto stack
+	0x8d, 0x00,                         // lst  temp[0]
+	0x35, 0x01,                         // ldi  01
+	0x02,                               // add
+	0xb3, 0x00,                         // sali local[0] ---------- save stack to local[0 + ACC]
+	// end of useless code
+	0x8b, SIG_ADDTOOFFSET(+1),          // lsl  local[36h/37h] ---- load local[36h/37h] onto stack
+	0x8d, 0x00,                         // lst  temp[0]
+	0x35, 0x01,                         // ldi  01
+	0x02,                               // add
+	0x93, 0x00,                         // lali local[0] ---------- load local[0 + ACC] into ACC
+	0x02,                               // add -------------------- add ACC + stack and put into ACC
+	0xa3, SIG_ADDTOOFFSET(+1),          // sal  local[36h/37h] ---- save ACC to local[36h/37h]
+	0x8d, 0x00,                         // lst temp[0] ------------ temp[0] to stack
+	0x35, 0x02,                         // ldi 02
+	0x02,                               // add -------------------- add 2 to stack
+	0xa5, 0x00,                         // sat temp[0] ------------ save ACC to temp[0]
+	0x33, 0xd6,                         // jmp [loop]
+	SIG_END
+};
 
-//          script, description,                                      signature                  patch
+static const uint16 qfg3PatchExportChar[] = {
+	PATCH_ADDTOOFFSET(+11),
+	0x85, 0x00,                         // lat  temp[0]
+	0x9b, 0x01,                         // lsli local[0] + 1 ------ load local[ ACC + 1] onto stack
+	0x3c,                               // dup
+	0x34, PATCH_UINT16(0x2710),         // ldi  2710h (10000d)
+	0x2c,                               // ult? ------------------- is value smaller than 10000?
+	0x2f, 0x0a,                         // bt   [jump over]
+	0x3a,                               // toss
+	0x38, PATCH_UINT16(0x270f),         // pushi 270fh (9999d)
+	0x3c,                               // dup
+	0x85, 0x00,                         // lat  temp[0]
+	0xba, PATCH_UINT16(0x0001),         // ssli local[0] + 1 ------ save stack to local[ ACC + 1] (UINT16 to waste 1 byte)
+	// jump offset
+	0x83, PATCH_GETORIGINALBYTE(+26),   // lal  local[37h/36h] ---- load local[37h/36h] into ACC
+	0x02,                               // add -------------------- add local[37h/36h] + data value
+	PATCH_END
+};
+
+// Quest for Glory 3 doesn't properly import the character type of Quest for Glory 1 character files.
+//  This issue was never addressed. It's caused by Sierra reading data directly from the local
+//  area, which is only set by Quest For Glory 2 import data, instead of reading the properly set global variable.
+//
+// We fix it, by also directly setting the local variable.
+//
+// Applies to at least: English, French, German, Italian, Spanish floppy
+// Responsible method: importHero::changeState(4)
+static const uint16 qfg3SignatureImportQfG1Char[] = {
+	SIG_MAGICDWORD,
+	0x82, SIG_UINT16(0x0238),           // lal local[0x0238]
+	0xa0, SIG_UINT16(0x016a),           // sag global[0x016a]
+	0xa1, 0x7d,                         // sag global[0x7d]
+	0x35, 0x01,                         // ldi 01
+	0x99, 0xfb,                         // lsgi global[0xfb]
+	SIG_END
+};
+
+static const uint16 qfg3PatchImportQfG1Char[] = {
+	PATCH_ADDTOOFFSET(+8),
+	0xa3, 0x01,                         // sal 01           -> also set local[01]
+	0x89, 0xfc,                         // lsg global[0xFD] -> save 2 bytes
+	PATCH_END
+};
+
+// The chief in his hut (room 640) is not drawn using the correct priority,
+//  which results in a graphical glitch. This is a game bug and also happens
+//  in Sierra's SCI. We adjust priority accordingly to fix it.
+//
+// Applies to at least: English, French, German, Italian, Spanish floppy
+// Responsible method: heap in script 640
+// Fixes bug #5173
+static const uint16 qfg3SignatureChiefPriority[] = {
+	SIG_MAGICDWORD,
+	SIG_UINT16(0x0002),                 // yStep     0x0002
+	SIG_UINT16(0x0281),                 // view      0x0281
+	SIG_UINT16(0x0000),                 // loop      0x0000
+	SIG_UINT16(0x0000),                 // cel       0x0000
+	SIG_UINT16(0x0000),                 // priority  0x0000
+	SIG_UINT16(0x0000),                 // underbits 0x0000
+	SIG_UINT16(0x1000),                 // signal    0x1000
+	SIG_END
+};
+
+static const uint16 qfg3PatchChiefPriority[] = {
+	PATCH_ADDTOOFFSET(+8),
+	PATCH_UINT16(0x000A),               // new priority 0x000A (10d)
+	PATCH_ADDTOOFFSET(+2),
+	PATCH_UINT16(0x1010),               // signal       0x1010 (set fixed priority flag)
+	PATCH_END
+};
+
+//          script, description,                                      signature                    patch
 static const SciScriptPatcherEntry qfg3Signatures[] = {
-	{  true,   944, "import dialog continuous calls",              1, qfg3SignatureImportDialog, qfg3PatchImportDialog },
-	{  true,   440, "dialog crash when asking about Woo",          1, qfg3SignatureWooDialog,    qfg3PatchWooDialog },
-	{  true,   440, "dialog crash when asking about Woo",          1, qfg3SignatureWooDialogAlt, qfg3PatchWooDialogAlt },
+	{  true,   944, "import dialog continuous calls",              1, qfg3SignatureImportDialog,   qfg3PatchImportDialog },
+	{  true,   440, "dialog crash when asking about Woo",          1, qfg3SignatureWooDialog,      qfg3PatchWooDialog },
+	{  true,   440, "dialog crash when asking about Woo",          1, qfg3SignatureWooDialogAlt,   qfg3PatchWooDialogAlt },
+	{  true,    52, "export character save bug",                   2, qfg3SignatureExportChar,     qfg3PatchExportChar },
+	{  true,    54, "import character from QfG1 bug",              1, qfg3SignatureImportQfG1Char, qfg3PatchImportQfG1Char },
+	{  true,   640, "chief in hut priority fix",                   1, qfg3SignatureChiefPriority, qfg3PatchChiefPriority },
 	SCI_SIGNATUREENTRY_TERMINATOR
 };
 
@@ -2758,6 +2924,7 @@ ScriptPatcher::ScriptPatcher() {
 		_selectorIdTable[selectorNr] = -1;
 
 	_runtimeTable = NULL;
+	_isMacSci11 = false;
 }
 
 ScriptPatcher::~ScriptPatcher() {
@@ -2766,7 +2933,7 @@ ScriptPatcher::~ScriptPatcher() {
 }
 
 // will actually patch previously found signature area
-void ScriptPatcher::applyPatch(const SciScriptPatcherEntry *patchEntry, byte *scriptData, const uint32 scriptSize, int32 signatureOffset, const bool isMacSci11) {
+void ScriptPatcher::applyPatch(const SciScriptPatcherEntry *patchEntry, byte *scriptData, const uint32 scriptSize, int32 signatureOffset) {
 	const uint16 *patchData = patchEntry->patchData;
 	byte orgData[PATCH_VALUELIMIT];
 	int32 offset = signatureOffset;
@@ -2830,7 +2997,7 @@ void ScriptPatcher::applyPatch(const SciScriptPatcherEntry *patchEntry, byte *sc
 			default:
 				byte1 = 0; byte2 = 0;
 			}
-			if (!isMacSci11) {
+			if (!_isMacSci11) {
 				scriptData[offset++] = byte1;
 				scriptData[offset++] = byte2;
 			} else {
@@ -2857,8 +3024,94 @@ void ScriptPatcher::applyPatch(const SciScriptPatcherEntry *patchEntry, byte *sc
 	}
 }
 
+bool ScriptPatcher::verifySignature(uint32 byteOffset, const uint16 *signatureData, const char *signatureDescription, const byte *scriptData, const uint32 scriptSize) {
+	uint16 sigSelector = 0;
+
+	uint16 sigWord = *signatureData;
+	while (sigWord != SIG_END) {
+		uint16 sigCommand = sigWord & SIG_COMMANDMASK;
+		uint16 sigValue = sigWord & SIG_VALUEMASK;
+		switch (sigCommand) {
+		case SIG_CODE_ADDTOOFFSET: {
+			// add value to offset
+			byteOffset += sigValue;
+			break;
+		}
+		case SIG_CODE_UINT16:
+		case SIG_CODE_SELECTOR16: {
+			if ((byteOffset + 1) < scriptSize) {
+				byte byte1;
+				byte byte2;
+
+				switch (sigCommand) {
+				case SIG_CODE_UINT16: {
+					byte1 = sigValue & SIG_BYTEMASK;
+					signatureData++; sigWord = *signatureData;
+					if (sigWord & SIG_COMMANDMASK)
+						error("Script-Patcher: signature inconsistent\nFaulty signature: '%s'", signatureDescription);
+					byte2 = sigWord & SIG_BYTEMASK;
+					break;
+				}
+				case SIG_CODE_SELECTOR16: {
+					sigSelector = _selectorIdTable[sigValue];
+					byte1 = sigSelector & 0xFF;
+					byte2 = sigSelector >> 8;
+					break;
+				}
+				default:
+					byte1 = 0; byte2 = 0;
+				}
+				if (!_isMacSci11) {
+					if ((scriptData[byteOffset] != byte1) || (scriptData[byteOffset + 1] != byte2))
+						sigWord = SIG_MISMATCH;
+				} else {
+					// SCI1.1+ on macintosh had uint16s in script in BE-order
+					if ((scriptData[byteOffset] != byte2) || (scriptData[byteOffset + 1] != byte1))
+						sigWord = SIG_MISMATCH;
+				}
+				byteOffset += 2;
+			} else {
+				sigWord = SIG_MISMATCH;
+			}
+			break;
+		}
+		case SIG_CODE_SELECTOR8: {
+			if (byteOffset < scriptSize) {
+				sigSelector = _selectorIdTable[sigValue];
+				if (sigSelector & 0xFF00)
+					error("Script-Patcher: 8 bit selector required, game uses 16 bit selector\nFaulty signature: '%s'", signatureDescription);
+				if (scriptData[byteOffset] != (sigSelector & 0xFF))
+					sigWord = SIG_MISMATCH;
+				byteOffset++;
+			} else {
+				sigWord = SIG_MISMATCH; // out of bounds
+			}
+			break;
+		}
+		case SIG_CODE_BYTE:
+			if (byteOffset < scriptSize) {
+				if (scriptData[byteOffset] != sigWord)
+					sigWord = SIG_MISMATCH;
+				byteOffset++;
+			} else {
+				sigWord = SIG_MISMATCH; // out of bounds
+			}
+		}
+
+		if (sigWord == SIG_MISMATCH)
+			break;
+
+		signatureData++;
+		sigWord = *signatureData;
+	}
+
+	if (sigWord == SIG_END) // signature fully matched?
+		return true;
+	return false;
+}
+
 // will return -1 if no match was found, otherwise an offset to the start of the signature match
-int32 ScriptPatcher::findSignature(const SciScriptPatcherEntry *patchEntry, SciScriptPatcherRuntimeEntry *runtimeEntry, const byte *scriptData, const uint32 scriptSize, const bool isMacSci11) {
+int32 ScriptPatcher::findSignature(const SciScriptPatcherEntry *patchEntry, SciScriptPatcherRuntimeEntry *runtimeEntry, const byte *scriptData, const uint32 scriptSize) {
 	if (scriptSize < 4) // we need to find a DWORD, so less than 4 bytes is not okay
 		return -1;
 
@@ -2870,89 +3123,8 @@ int32 ScriptPatcher::findSignature(const SciScriptPatcherEntry *patchEntry, SciS
 		if (magicDWord == READ_UINT32(scriptData + DWordOffset)) {
 			// magic DWORD found, check if actual signature matches
 			uint32 offset = DWordOffset + runtimeEntry->magicOffset;
-			uint32 byteOffset = offset;
-			const uint16 *signatureData = patchEntry->signatureData;
-			uint16 sigSelector = 0;
 
-			uint16 sigWord = *signatureData;
-			while (sigWord != SIG_END) {
-				uint16 sigCommand = sigWord & SIG_COMMANDMASK;
-				uint16 sigValue = sigWord & SIG_VALUEMASK;
-				switch (sigCommand) {
-				case SIG_CODE_ADDTOOFFSET: {
-					// add value to offset
-					byteOffset += sigValue;
-					break;
-				}
-				case SIG_CODE_UINT16:
-				case SIG_CODE_SELECTOR16: {
-					if ((byteOffset + 1) < scriptSize) {
-						byte byte1;
-						byte byte2;
-
-						switch (sigCommand) {
-						case SIG_CODE_UINT16: {
-							byte1 = sigValue & SIG_BYTEMASK;
-							signatureData++; sigWord = *signatureData;
-							if (sigWord & SIG_COMMANDMASK)
-								error("Script-Patcher: signature inconsistent\nFaulty patch: '%s'", patchEntry->description);
-							byte2 = sigWord & SIG_BYTEMASK;
-							break;
-						}
-						case SIG_CODE_SELECTOR16: {
-							sigSelector = _selectorIdTable[sigValue];
-							byte1 = sigSelector & 0xFF;
-							byte2 = sigSelector >> 8;
-							break;
-						}
-						default:
-							byte1 = 0; byte2 = 0;
-						}
-						if (!isMacSci11) {
-							if ((scriptData[byteOffset] != byte1) || (scriptData[byteOffset + 1] != byte2))
-								sigWord = SIG_MISMATCH;
-						} else {
-							// SCI1.1+ on macintosh had uint16s in script in BE-order
-							if ((scriptData[byteOffset] != byte2) || (scriptData[byteOffset + 1] != byte1))
-								sigWord = SIG_MISMATCH;
-						}
-						byteOffset += 2;
-					} else {
-						sigWord = SIG_MISMATCH;
-					}
-					break;
-				}
-				case SIG_CODE_SELECTOR8: {
-					if (byteOffset < scriptSize) {
-						sigSelector = _selectorIdTable[sigValue];
-						if (sigSelector & 0xFF00)
-							error("Script-Patcher: 8 bit selector required, game uses 16 bit selector\nFaulty patch: '%s'", patchEntry->description);
-						if (scriptData[byteOffset] != (sigSelector & 0xFF))
-							sigWord = SIG_MISMATCH;
-						byteOffset++;
-					} else {
-						sigWord = SIG_MISMATCH; // out of bounds
-					}
-					break;
-				}
-				case SIG_CODE_BYTE:
-					if (byteOffset < scriptSize) {
-						if (scriptData[byteOffset] != sigWord)
-							sigWord = SIG_MISMATCH;
-						byteOffset++;
-					} else {
-						sigWord = SIG_MISMATCH; // out of bounds
-					}
-				}
-
-				if (sigWord == SIG_MISMATCH)
-					break;
-
-				signatureData++;
-				sigWord = *signatureData;
-			}
-
-			if (sigWord == SIG_END) // signature fully matched?
+			if (verifySignature(offset, patchEntry->signatureData, patchEntry->description, scriptData, scriptSize))
 				return offset;
 		}
 		DWordOffset++;
@@ -2963,7 +3135,7 @@ int32 ScriptPatcher::findSignature(const SciScriptPatcherEntry *patchEntry, SciS
 
 // This method calculates the magic DWORD for each entry in the signature table
 //  and it also initializes the selector table for selectors used in the signatures/patches of the current game
-void ScriptPatcher::initSignature(const SciScriptPatcherEntry *patchTable, bool isMacSci11) {
+void ScriptPatcher::initSignature(const SciScriptPatcherEntry *patchTable) {
 	const SciScriptPatcherEntry *curEntry = patchTable;
 	SciScriptPatcherRuntimeEntry *curRuntimeEntry;
 	Selector curSelector = -1;
@@ -3031,7 +3203,7 @@ void ScriptPatcher::initSignature(const SciScriptPatcherEntry *patchTable, bool 
 						curData++; curWord = *curData;
 						if (curWord & SIG_COMMANDMASK)
 							error("Script-Patcher: signature entry inconsistent\nFaulty patch: '%s'", curEntry->description);
-						if (!isMacSci11) {
+						if (!_isMacSci11) {
 							byte1 = curValue;
 							byte2 = curWord & SIG_BYTEMASK;
 						} else {
@@ -3046,7 +3218,7 @@ void ScriptPatcher::initSignature(const SciScriptPatcherEntry *patchTable, bool 
 							curSelector = g_sci->getKernel()->findSelector(selectorNameTable[curValue]);
 							_selectorIdTable[curValue] = curSelector;
 						}
-						if (!isMacSci11) {
+						if (!_isMacSci11) {
 							byte1 = curSelector & 0x00FF;
 							byte2 = curSelector >> 8;
 						} else {
@@ -3208,7 +3380,7 @@ void ScriptPatcher::processScript(uint16 scriptNr, byte *scriptData, const uint3
 	}
 
 	if (signatureTable) {
-		bool isMacSci11 = (g_sci->getPlatform() == Common::kPlatformMacintosh && getSciVersion() >= SCI_VERSION_1_1);
+		_isMacSci11 = (g_sci->getPlatform() == Common::kPlatformMacintosh && getSciVersion() >= SCI_VERSION_1_1);
 
 		if (!_runtimeTable) {
 			// Abort, in case selectors are not yet initialized (happens for games w/o selector-dictionary)
@@ -3216,7 +3388,7 @@ void ScriptPatcher::processScript(uint16 scriptNr, byte *scriptData, const uint3
 				return;
 
 			// signature table needs to get initialized (Magic DWORD set, selector table set)
-			initSignature(signatureTable, isMacSci11);
+			initSignature(signatureTable);
 
 			// Do additional game-specific initialization
 			switch (gameId) {
@@ -3251,11 +3423,11 @@ void ScriptPatcher::processScript(uint16 scriptNr, byte *scriptData, const uint3
 				int32 foundOffset = 0;
 				int16 applyCount = curEntry->applyCount;
 				do {
-					foundOffset = findSignature(curEntry, curRuntimeEntry, scriptData, scriptSize, isMacSci11);
+					foundOffset = findSignature(curEntry, curRuntimeEntry, scriptData, scriptSize);
 					if (foundOffset != -1) {
 						// found, so apply the patch
 						debugC(kDebugLevelScriptPatcher, "Script-Patcher: '%s' on script %d offset %d", curEntry->description, scriptNr, foundOffset);
-						applyPatch(curEntry, scriptData, scriptSize, foundOffset, isMacSci11);
+						applyPatch(curEntry, scriptData, scriptSize, foundOffset);
 					}
 					applyCount--;
 				} while ((foundOffset != -1) && (applyCount));
