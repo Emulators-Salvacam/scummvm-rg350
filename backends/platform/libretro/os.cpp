@@ -198,17 +198,38 @@ static void blit_uint8_uint16(Graphics::Surface& aOut, const Graphics::Surface& 
             const uint8_t val = in[j];
             if(val != aKeyColor)
             {
-                if(aIn.format.bytesPerPixel == 1)
-                {
-                    unsigned char *col = aColors.getColor(val);
-                    r = *col++;
-                    g = *col++;
-                    b = *col++;
-                }
-                else
-                    aIn.format.colorToRGB(in[j], r, g, b);
-
+                unsigned char *col = aColors.getColor(val);
+                r = *col++;
+                g = *col++;
+                b = *col++;
                 out[j + aX] = aOut.format.RGBToColor(r, g, b);
+            }
+        }
+    }
+}
+
+static void blit_uint16_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
+{
+    for(int i = 0; i < aIn.h; i ++)
+    {
+        if((i + aY) < 0 || (i + aY) >= aOut.h)
+           continue;
+
+        uint16_t* const in = (uint16_t*)aIn.pixels + (i * aIn.w);
+        uint16_t* const out = (uint16_t*)aOut.pixels + ((i + aY) * aOut.w);
+
+        for(int j = 0; j < aIn.w; j ++)
+        {
+            if((j + aX) < 0 || (j + aX) >= aOut.w)
+               continue;
+
+            uint8 r, g, b;
+
+            const uint16_t val = in[j];
+            if(val != aKeyColor)
+            {
+              aIn.format.colorToRGB(in[j], r, g, b);
+              out[j + aX] = aOut.format.RGBToColor(r, g, b);
             }
         }
     }
@@ -456,7 +477,10 @@ public:
          const int x = _mouseX - _mouseHotspotX;
          const int y = _mouseY - _mouseHotspotY;
 
-         blit_uint8_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
+         if(_mouseImage.format.bytesPerPixel == 1)
+            blit_uint8_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
+         else
+            blit_uint16_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
       }
    }
 
@@ -722,9 +746,11 @@ public:
         return _screen;
 	}
 
-#define ANALOG_VALUE_X_ADD 8
-#define ANALOG_VALUE_Y_ADD 8
-#define ANALOG_THRESHOLD 0x1FFF
+  #define ANALOG_VALUE_X_ADD 1
+  #define ANALOG_VALUE_Y_ADD 1
+  #define ANALOG_THRESHOLD1 10000
+  #define ANALOG_THRESHOLD2 23000
+  #define ANALOG_THRESHOLD3 31000
 
 	void processMouse(retro_input_state_t aCallback)
     {
@@ -745,14 +771,42 @@ public:
         joy_x = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
         joy_y = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
 
-        if (joy_x > ANALOG_THRESHOLD)
+        if (joy_x > ANALOG_THRESHOLD3)
+        {
+            _mouseX += 4*ANALOG_VALUE_X_ADD;
+            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+            do_joystick = true;
+        }
+        else if (joy_x < -ANALOG_THRESHOLD3)
+        {
+            _mouseX -= 4*ANALOG_VALUE_X_ADD;
+            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+            do_joystick = true;
+        }
+        else if (joy_x > ANALOG_THRESHOLD2)
+        {
+            _mouseX += 2*ANALOG_VALUE_X_ADD;
+            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+            do_joystick = true;
+        }
+        else if (joy_x < -ANALOG_THRESHOLD2)
+        {
+            _mouseX -= 2*ANALOG_VALUE_X_ADD;
+            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+            do_joystick = true;
+        }
+        else if (joy_x > ANALOG_THRESHOLD1)
         {
            _mouseX += ANALOG_VALUE_X_ADD;
            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
             do_joystick = true;
         }
-        else if (joy_x < -ANALOG_THRESHOLD)
+        else if (joy_x < -ANALOG_THRESHOLD1)
         {
            _mouseX -= ANALOG_VALUE_X_ADD;
            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
@@ -760,14 +814,42 @@ public:
             do_joystick = true;
         }
 
-        if (joy_y > ANALOG_THRESHOLD)
+        if (joy_y > ANALOG_THRESHOLD3)
+        {
+            _mouseY += 4*ANALOG_VALUE_Y_ADD;
+            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+            do_joystick = true;
+        }
+        else if (joy_y < -ANALOG_THRESHOLD3)
+        {
+            _mouseY -= 4*ANALOG_VALUE_Y_ADD;
+            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+            do_joystick = true;
+        }
+        else if (joy_y > ANALOG_THRESHOLD2)
+        {
+            _mouseY += 2*ANALOG_VALUE_Y_ADD;
+            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+            do_joystick = true;
+        }
+        else if (joy_y < -ANALOG_THRESHOLD2)
+        {
+            _mouseY -= 2*ANALOG_VALUE_Y_ADD;
+            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+            do_joystick = true;
+        }
+        else if (joy_y > ANALOG_THRESHOLD1)
         {
             _mouseY += ANALOG_VALUE_Y_ADD; 
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
             _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
             do_joystick = true;
         }
-        else if (joy_y < -ANALOG_THRESHOLD)
+        else if (joy_y < -ANALOG_THRESHOLD1)
         {
             _mouseY -= ANALOG_VALUE_Y_ADD; 
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
@@ -778,7 +860,7 @@ public:
         {
            if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
            {
-              _mouseX -= ANALOG_VALUE_X_ADD >> 1;
+              _mouseX -= 2*ANALOG_VALUE_X_ADD;
               _mouseX = (_mouseX < 0) ? 0 : _mouseX;
               _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
               do_joystick = true;
@@ -786,7 +868,7 @@ public:
 
            if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
            {
-              _mouseX += ANALOG_VALUE_X_ADD >> 1;
+              _mouseX += 2*ANALOG_VALUE_X_ADD;
               _mouseX = (_mouseX < 0) ? 0 : _mouseX;
               _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
               do_joystick = true;
@@ -794,7 +876,7 @@ public:
 
            if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
            {
-              _mouseY -= ANALOG_VALUE_Y_ADD >> 1; 
+              _mouseY -= 2*ANALOG_VALUE_Y_ADD; 
               _mouseY = (_mouseY < 0) ? 0 : _mouseY;
               _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
               do_joystick = true;
@@ -802,14 +884,14 @@ public:
 
            if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
            {
-              _mouseY += ANALOG_VALUE_Y_ADD >> 1; 
+              _mouseY += 2*ANALOG_VALUE_Y_ADD; 
               _mouseY = (_mouseY < 0) ? 0 : _mouseY;
               _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
               do_joystick = true;
            }
         }
 
-        if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+        if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
         {
             Common::Event ev;
             ev.type = Common::EVENT_MAINMENU;
@@ -825,7 +907,7 @@ public:
             _events.push_back(ev);
         }
 
-        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B);
+        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A);
 
         if(down != _joypadmouseButtons[0])
         {
@@ -838,7 +920,7 @@ public:
            _events.push_back(ev);
         }
 
-        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A);
+        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B);
 
         if(down != _joypadmouseButtons[0])
         {
@@ -849,6 +931,12 @@ public:
            ev.mouse.x = _mouseX;
            ev.mouse.y = _mouseY;
            _events.push_back(ev);
+        }
+        
+        if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+        {
+           processKeyEvent(true, 27, 27, 0);
+           processKeyEvent(false, 27, 27, 0);
         }
 
         if(x || y)

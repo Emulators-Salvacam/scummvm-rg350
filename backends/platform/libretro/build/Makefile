@@ -134,7 +134,7 @@ RM            = rm -f
 RM_REC        = rm -rf
 
 # Define build flags
-DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_COMMAND_LINE -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565 -DUSE_MT32EMU -Wno-multichar
+DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565 -DUSE_MT32EMU -Wno-multichar
 INCLUDES      += -I$(srcdir)/$(retrodir) -I. -I$(srcdir) -I$(srcdir)/engines -I../libco
 DEPDIR        = .deps
 HAVE_GCC3     = true
