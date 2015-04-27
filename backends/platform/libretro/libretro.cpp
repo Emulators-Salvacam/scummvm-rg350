@@ -41,6 +41,9 @@ bool EMULATORexited;
 cothread_t mainThread;
 cothread_t emuThread;
 
+static char cmd_params[20][100];
+static char cmd_params_num;
+
 void retro_leave_thread(void)
 {
     co_switch(mainThread);
@@ -50,8 +53,13 @@ static void retro_start_emulator(void)
 {
     g_system = retroBuildOS();
 
-    static const char* argv[] = {"scummvm"};
-    scummvm_main(1, argv);
+    static const char* argv[20];
+    for(int i=0; i<cmd_params_num; i++)
+    {
+        argv[i] = cmd_params[i];
+    }
+
+    scummvm_main(cmd_params_num, argv);
     EMULATORexited = true;
 
     if (log_cb)
@@ -150,10 +158,68 @@ void retro_deinit(void)
     emuThread = 0;
 }
 
+void parse_command_params(char* cmdline)
+{
+  int j =0 ;
+  int cmdlen = strlen(cmdline);
+  bool quotes = false;
+    
+  // parse command line into array of arguments
+  for(int i=0; i<cmdlen; i++)
+  {
+      switch(cmdline[i])
+      {
+          case '\"' :
+              if(quotes)
+              {
+                  cmdline[i] = '\0';
+                  strcpy(cmd_params[cmd_params_num],cmdline+j);
+                  cmd_params_num++;
+                  quotes = false;
+              }
+              else
+              {
+                  quotes = true;
+              }
+              j = i + 1;
+              break;
+          case ' ' :
+          case '\n' :
+              if(!quotes)
+              {
+                  if(i != j && !quotes)
+                  {
+                      cmdline[i] = '\0';                        
+                      strcpy(cmd_params[cmd_params_num],cmdline+j);
+                      cmd_params_num++;
+                  }
+                  j = i + 1;
+              }
+              break;
+      }
+  }
+}
+
 bool retro_load_game(const struct retro_game_info *game)
 {
     const char* sysdir;
 
+    cmd_params_num = 1;
+    strcpy(cmd_params[0],"scummvm\0");
+
+    // read command line from gamefile
+    if(game)
+    {
+        FILE * gamefile;
+        char filedata[200];
+        if(gamefile = fopen ( game->path, "r"))
+        {
+            fgets (filedata , 200 , gamefile);
+            fclose(gamefile);
+            parse_command_params(filedata);
+        }
+    }
+       
    struct retro_input_descriptor desc[] = {
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Mouse Left" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Mouse Up" },
