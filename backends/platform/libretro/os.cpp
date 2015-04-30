@@ -303,6 +303,7 @@ public:
     bool _mouseDontScale;
     bool _mouseButtons[2];
     bool _joypadmouseButtons[2];
+    bool _joypadstartButton;
 
     uint32 _startTime;
     uint32 _threadExitTime;
@@ -318,6 +319,7 @@ public:
         _fsFactory = new FS_SYSTEM_FACTORY();
         memset(_mouseButtons, 0, sizeof(_mouseButtons));
         memset(_joypadmouseButtons, 0, sizeof(_joypadmouseButtons));
+        _joypadstartButton = false;
 
         _startTime = getMillis();
 
@@ -922,7 +924,7 @@ public:
 
         down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B);
 
-        if(down != _joypadmouseButtons[0])
+        if(down != _joypadmouseButtons[1])
         {
            _joypadmouseButtons[1] = down;
 
@@ -933,10 +935,12 @@ public:
            _events.push_back(ev);
         }
         
-        if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START);
+        if (down != _joypadstartButton)
         {
-           processKeyEvent(true, 27, 27, 0);
-           processKeyEvent(false, 27, 27, 0);
+          _joypadstartButton = down;
+          bool state = down ? true : false;
+          processKeyEvent(state, 27, 27, 0);
         }
 
         if(x || y)
