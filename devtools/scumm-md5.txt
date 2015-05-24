@@ -127,6 +127,7 @@ indy3	Indiana Jones and the Last Crusade
 	66236cd1aec24e1d4aff4c4cc93b7e18	-1	fr	DOS	EGA	EGA	?? v1.3, 25 Aug 89	Andrea Petrucci, Peter Eckerlein
 	89cfc425566003ff74b7dc7b3e6fd469	-1	fr	DOS	EGA	EGA	?? v1.3, 25 Aug 89	Jorpho
 	69d70269fafc4445adbb0d223e4f9a3f	5361	en	DOS	EGA	EGA	v1.4, 11/07/89 (5.25\")	Petr Maruska
+	56e8c37a0a08c3a7076f82417461a877	-1	en	DOS	EGA	EGA	v1.4, 7 Nov 89 (3.5\")	Paulo Vicente		
 	6f6ef668c608c7f534fea6e6d3878dde	-1	de	DOS	EGA	EGA	v1.4 from 19 Oct 89	dhewg, Peter Eckerlein
 	eb700bb73ca1cc44a1ad5e4b1a4bdeaf	5361	de	DOS	EGA	EGA	PC-Spiele	a.borque
 	d62d248c3df6ec177405e2cb23d923b2	-1	it	DOS	EGA	EGA	v1.4 from 25 Nov 89	Andrea Petrucci, Peter Eckerlein
@@ -293,12 +294,14 @@ atlantis	Indiana Jones and the Fate of Atlantis
 
 	035deab53b47bc43abc763560d0f8d4b	-1	en	DOS	Floppy	Demo	-	
 	98744fe66ff730e8c2b3b1f58803ab0b	-1	en	DOS	Floppy	Demo	-	Simon Krumrein, sev
+	12cdc256eae5a461bcc9a49975999841	-1	en	DOS	Floppy	Demo	-	Paulo Vicente
 	99b6f822b0b2612415407865438697d6	-1	en	DOS	-	Demo	non-interactive	
 	28d24a33448fab6795850bc9f159a4a2	11170	jp	FM-TOWNS	FM-TOWNS	Demo	non-interactive	khalek, Fingolfin
 
 tentacle	Day of the Tentacle
 	acad97ab1c6fc2a5b2d98abf6db4a190	-1	en	All?	Floppy	Floppy	Version A ?	
 	2723fea3dae0cb47768c424b145ae0e7	7932	en	DOS	Floppy	Floppy	Version B ?	Andrej Sinicyn, Andrea Petrucci, Fingolfin
+	f0ccc12a8704bf57706b42a37f877128	-1	en	DOS	Floppy	Floppy	1.6	Paulo Vicente
 	92b078d9d6d9d751da9c26b8b3075779	-1	fr	DOS	Floppy	Floppy	-	Nicolas Sauz&egrave;de, Andrea Petrucci
 	94aaedbb8f26d71ed3ad6dd34490e29e	-1	fr	DOS	Floppy	Floppy	alt?	Nicolas Joly
 	57b0d89af79befe1cabce3bece869e7f	-1	de	DOS	Floppy	Floppy	-	Andrej Sinicyn, Andrea Petrucci
@@ -311,7 +314,7 @@ tentacle	Day of the Tentacle
 	4fbbe9f64b8bc547503a379a301183ce	-1	it	All?	-	CD	-	Andrea Petrucci
 	883af4b0af4f77a92f1dcf1d0a283140	-1	es	All?	-	CD	-	Andrea Petrucci
 	cc04a076779379524ed4d9c5ee3c6fb1	282467632	en	Mac	-	CD	Mac bundle	Fingolfin, Joachim Eberhard
-	ede149fda3edfc1dbd7347e0737cb583	-1	fr	Mac	-	CD	Mac bundle	ThierryFR
+	ede149fda3edfc1dbd7347e0737cb583	282830409	fr	Mac	-	CD	Mac bundle	ThierryFR, Thierry Crozat
 	f73883f13b5a302749a5bad31d909780	-1	de	Mac	-	CD	Mac bundle	morrissey
 
 	c83079157ec765a28de445aec9768d60	7477	en	All	-	Demo	-	Fingolfin
@@ -334,7 +337,7 @@ samnmax	Sam &amp; Max Hit the Road
 	4ba7fb331296c283e73d8f5b2096e551	-1	es	All?	-	CD	-	Andrea Petrucci
 	d43352a805d78b5f4936c6d7779bf575	-1	ru	DOS	-	CD	-	
 	166553538ff320c69edafeee29525419	199195304	en	Mac	-	CD	Mac bundle	Joachim Eberhard
-	3a5d13675e9a23aedac0bac7730f0ac1	-1	fr	Mac	-	CD	Mac bundle	ThierryFR
+	3a5d13675e9a23aedac0bac7730f0ac1	228446581	fr	Mac	-	CD	Mac bundle	ThierryFR, Thierry Crozat
 
 	c3196c5349e53e387aaff1533d95e53a	-1	en	DOS	Floppy	Demo	-	
 	0e4c5d54a0ad4b26132e78b5ea76642a	6485	en	DOS	Floppy	Demo	WIP	Fingolfin
@@ -355,6 +358,7 @@ ft	Full Throttle
 	e72bb4c2b613db2cf50f89ff6350e70a	-1	es	All?	-	-	-	
 	fe381e45117878b1e942cb876b050fd6	513243679	en	Mac	-	-	Mac bundle	Fingolfin
 	04401d747f1a2c1c4b388daff71ed378	535405461	de	Mac	-	-	Mac bundle	Fingolfin
+	403d2ec4d60d3cdae925e6cbf67716d6	489436643	fr	Mac	-	-	Mac bundle	Thierry Crozat
 
 	32a433dea56b86a55b59e4ff7d755711	-1	en	DOS	Demo	Demo	-	
 	9d7b67be003fea60be4dcbd193611936	11164	en	Mac	Demo	Demo	-	Fingolfin
@@ -666,6 +670,7 @@ pajama2	Pajama Sam 2: Thunder and Lightning Aren't so Frightening
 	d4e79c3d8645b8266cd78c325bc35154	60557	us	All	-	-	-	Kirben
 	6a60d395b78b205c93a956100b1bf5ae	-1	de	All	HE 98.5	-	-	EdDammer
 	513f91a9dbe8d5490b39e56a3ac5bbdf	-1	nl	All	HE 98.5	-	-	daniel9
+	2328be0317008ef047eed7912a4b0850	-1	gb	Windows	HE 98.5	-	-	Saleck
 	55f4e9402bec2bded383843123f37c5c	-1	de	Windows	HE 98.5	-	-	WindlePoons
 	e5563c8358443c4352fcddf7402a5e0a	-1	fr	Windows	HE 98.5	-	-	gist974
 	c6907d44f1166941d982864cd42cdc89	-1	de	All	HE 99	-	-	nachbarnebenan

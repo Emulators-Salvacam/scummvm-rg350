@@ -94,6 +94,8 @@ static const char *const selectorNameTable[] = {
 	"deskSarg",     // Gabriel Knight
 	"localize",     // Freddy Pharkas
 	"put",          // Police Quest 1 VGA
+	"say",          // Quest For Glory 1 VGA
+	"contains",     // Quest For Glory 2
 	"solvePuzzle",  // Quest For Glory 3
 	"timesShownID", // Space Quest 1 VGA
 	"startText",    // King's Quest 6 CD / Laura Bow 2 CD for audio+text support
@@ -119,6 +121,8 @@ enum ScriptPatcherSelectors {
 	SELECTOR_deskSarg,
 	SELECTOR_localize,
 	SELECTOR_put,
+	SELECTOR_say,
+	SELECTOR_contains,
 	SELECTOR_solvePuzzle,
 	SELECTOR_timesShownID,
 	SELECTOR_startText,
@@ -1421,6 +1425,37 @@ static const SciScriptPatcherEntry larry2Signatures[] = {
 
 // ===========================================================================
 // Leisure Suit Larry 5
+// In Miami the player can call the green card telephone number and get
+//  green card including limo at the same time in the English 1.000 PC release.
+// This results later in a broken game in case the player doesn't read
+//  the second telephone number for the actual limousine service, because
+//  in that case it's impossible for the player to get back to the airport.
+//
+// We disable the code, that is responsible to make the limo arrive.
+//
+// This bug was fixed in the European (dual language) versions of the game.
+//
+// Applies to at least: English PC floppy (1.000)
+// Responsible method: sPhone::changeState(40)
+static const uint16 larry5SignatureGreenCardLimoBug[] = {
+	0x7a,                               // push2
+	SIG_MAGICDWORD,
+	0x39, 0x07,                         // pushi 07
+	0x39, 0x0c,                         // pushi 0Ch
+	0x45, 0x0a, 0x04,                   // call export 10 of script 0
+	0x78,                               // push1
+	0x39, 0x26,                         // pushi 26h (limo arrived flag)
+	0x45, 0x07, 0x02,                   // call export 7 of script 0 (sets flag)
+	SIG_END
+};
+
+static const uint16 larry5PatchGreenCardLimoBug[] = {
+	PATCH_ADDTOOFFSET(+8),
+	0x34, PATCH_UINT16(0),              // ldi 0000 (dummy)
+	0x34, PATCH_UINT16(0),              // ldi 0000 (dummy)
+	PATCH_END
+};
+
 // In one of the conversations near the end (to be exact - room 380 and the text
 //  about using champagne on Reverse Biaz - only used when you actually did that
 //  in the game), the German text is too large, causing the textbox to get too large.
@@ -1444,6 +1479,7 @@ static const uint16 larry5PatchGermanEndingPattiTalker[] = {
 
 //          script, description,                                      signature                               patch
 static const SciScriptPatcherEntry larry5Signatures[] = {
+	{  true,   280, "English-only: fix green card limo bug",       1, larry5SignatureGreenCardLimoBug,        larry5PatchGreenCardLimoBug },
 	{  true,   380, "German-only: Enlarge Patti Textbox",          1, larry5SignatureGermanEndingPattiTalker, larry5PatchGermanEndingPattiTalker },
 	SCI_SIGNATUREENTRY_TERMINATOR
 };
@@ -2087,21 +2123,30 @@ static const uint16 qfg1vgaPatchMoveToCrusher[] = {
 
 // Same pathfinding bug as above, where Ego is set to move to an impossible
 // spot when sneaking. In GuardsTrumpet::changeState, we change the final
-// location where Ego is moved from 111, 111 to 114, 114.
+// location where Ego is moved from 111, 111 to 116, 116.
+// target coordinate is really problematic here.
+//
+// 114, 114 works when the speed slider is all the way up, but doesn't work
+// when the speed slider is not.
+//
+// It seems that this bug was fixed by Sierra for the Macintosh version.
+//
+// Applies to at least: English PC floppy
+// Responsible method: GuardsTrumpet::changeState(8)
 // Fixes bug: #6248
 static const uint16 qfg1vgaSignatureMoveToCastleGate[] = {
+	0x51, SIG_ADDTOOFFSET(+1),          // class MoveTo
 	SIG_MAGICDWORD,
-	0x51, 0x1f,                         // class MoveTo
 	0x36,                               // push
-	0x39, 0x6f,                         // pushi 6f (111 - x)
-	0x3c,                               // dup (111 - y)
+	0x39, 0x6f,                         // pushi 6f (111d)
+	0x3c,                               // dup (111d) - coordinates 111, 111
 	0x7c,                               // pushSelf
 	SIG_END
 };
 
 static const uint16 qfg1vgaPatchMoveToCastleGate[] = {
 	PATCH_ADDTOOFFSET(+3),
-	0x39, 0x72,                         // pushi 72 (114 - x)
+	0x39, 0x74,                         // pushi 74 (116d), changes coordinates to 116, 116
 	PATCH_END
 };
 
@@ -2116,7 +2161,7 @@ static const uint16 qfg1vgaSignatureCheetaurDescription[] = {
 	0x34, SIG_UINT16(0x01b8),           // ldi 01b8
 	0x1a,                               // eq?
 	0x31, 0x16,                         // bnt 16
-	0x38, SIG_UINT16(0x0127),           // pushi 0127
+	0x38, SIG_SELECTOR16(say),          // pushi 0127h (selector "say")
 	0x39, 0x06,                         // pushi 06
 	0x39, 0x03,                         // pushi 03
 	0x78,                               // push1
@@ -2199,21 +2244,140 @@ static const uint16 qfg1vgaPatchHealerHutNoDelay[] = {
 	PATCH_END
 };
 
+// When following the white stag, you can actually enter the 2nd room from the mushroom/fairy location,
+//  which results in ego entering from the top. When you then throw a dagger at the stag, one animation
+//  frame will stay on screen, because of a script bug.
+//
+// Applies to at least: English floppy, Mac floppy
+// Responsible method: stagHurt::changeState
+// Fixes bug #6135
+static const uint16 qfg1vgaSignatureWhiteStagDagger[] = {
+	0x87, 0x01,                         // lap param[1]
+	0x65, 0x14,                         // aTop state
+	0x36,                               // push
+	0x3c,                               // dup
+	0x35, 0x00,                         // ldi 0
+	0x1a,                               // eq?
+	0x31, 0x16,                         // bnt [next parameter check]
+	0x76,                               // push0
+	0x45, 0x02, 0x00,                   // callb export 2 from script 0, 0
+	SIG_MAGICDWORD,
+	0x38, SIG_SELECTOR16(say),          // pushi 0127h (selector "say")
+	0x39, 0x05,                         // pushi 05
+	0x39, 0x03,                         // pushi 03
+	0x39, 0x51,                         // pushi 51h
+	0x76,                               // push0
+	0x76,                               // push0
+	0x7c,                               // pushSelf
+	0x81, 0x5b,                         // lag global[5Bh] -> qg1Messager
+	0x4a, 0x0e,                         // send 0Eh -> qg1Messager::say(3, 51h, 0, 0, stagHurt)
+	0x33, 0x12,                         // jmp -> [ret]
+	0x3c,                               // dup
+	0x35, 0x01,                         // ldi 1
+	0x1a,                               // eq?
+	0x31, 0x0c,                         // bnt [ret]
+	0x38,                               // pushi...
+	SIG_ADDTOOFFSET(+11),
+	0x3a,                               // toss
+	0x48,                               // ret
+	SIG_END
+};
+
+static const uint16 qfg1vgaPatchWhiteStagDagger[] = {
+	PATCH_ADDTOOFFSET(+4),
+	0x2f, 0x05,                         // bt [next check] (state != 0)
+	// state = 0 code
+	0x35, 0x01,                         // ldi 1
+	0x65, 0x1a,                         // aTop cycles
+	0x48,                               // ret
+	0x36,                               // push
+	0x35, 0x01,                         // ldi 1
+	0x1a,                               // eq?
+	0x31, 0x16,                         // bnt [state = 2 code]
+	// state = 1 code
+	0x76,                               // push0
+	0x45, 0x02, 0x00,                   // callb export 2 from script 0, 0
+	0x38, PATCH_SELECTOR16(say),        // pushi 0127h (selector "say")
+	0x39, 0x05,                         // pushi 05
+	0x39, 0x03,                         // pushi 03
+	0x39, 0x51,                         // pushi 51h
+	0x76,                               // push0
+	0x76,                               // push0
+	0x7c,                               // pushSelf
+	0x81, 0x5b,                         // lag global[5Bh] -> qg1Messager
+	0x4a, 0x0e,                         // send 0Eh -> qg1Messager::say(3, 51h, 0, 0, stagHurt)
+	0x48,                               // ret
+	// state = 2 code
+	PATCH_ADDTOOFFSET(+13),
+	0x48,                               // ret (remove toss)
+	PATCH_END
+};
+
 //          script, description,                                      signature                            patch
 static const SciScriptPatcherEntry qfg1vgaSignatures[] = {
+	{  true,    41, "moving to castle gate",                       1, qfg1vgaSignatureMoveToCastleGate,    qfg1vgaPatchMoveToCastleGate },
 	{  true,    55, "healer's hut, no delay for buy/steal",        1, qfg1vgaSignatureHealerHutNoDelay,    qfg1vgaPatchHealerHutNoDelay },
+	{  true,    77, "white stag dagger throw animation glitch",    1, qfg1vgaSignatureWhiteStagDagger,     qfg1vgaPatchWhiteStagDagger },
+	{  true,    96, "funny room script bug fixed",                 1, qfg1vgaSignatureFunnyRoomFix,        qfg1vgaPatchFunnyRoomFix },
+	{  true,   210, "cheetaur description fixed",                  1, qfg1vgaSignatureCheetaurDescription, qfg1vgaPatchCheetaurDescription },
 	{  true,   215, "fight event issue",                           1, qfg1vgaSignatureFightEvents,         qfg1vgaPatchFightEvents },
 	{  true,   216, "weapon master event issue",                   1, qfg1vgaSignatureFightEvents,         qfg1vgaPatchFightEvents },
+	{  true,   331, "moving to crusher",                           1, qfg1vgaSignatureMoveToCrusher,       qfg1vgaPatchMoveToCrusher },
 	{  true,   814, "window text temp space",                      1, qfg1vgaSignatureTempSpace,           qfg1vgaPatchTempSpace },
 	{  true,   814, "dialog header offset",                        3, qfg1vgaSignatureDialogHeader,        qfg1vgaPatchDialogHeader },
-	{  true,   331, "moving to crusher",                           1, qfg1vgaSignatureMoveToCrusher,       qfg1vgaPatchMoveToCrusher },
-	{  true,    41, "moving to castle gate",                       1, qfg1vgaSignatureMoveToCastleGate,    qfg1vgaPatchMoveToCastleGate },
-	{  true,   210, "cheetaur description fixed",                  1, qfg1vgaSignatureCheetaurDescription, qfg1vgaPatchCheetaurDescription },
-	{  true,    96, "funny room script bug fixed",                 1, qfg1vgaSignatureFunnyRoomFix,        qfg1vgaPatchFunnyRoomFix },
 	SCI_SIGNATUREENTRY_TERMINATOR
 };
 
 // ===========================================================================
+
+// This is a very complicated bug.
+// When the player encounters an enemy in the desert while riding a saurus and later
+//  tries to get back on it by entering "ride", the game will not give control back
+//  to the player.
+//
+// This is caused by script mountSaurus getting triggered twice.
+//  Once by entering the command "ride" and then a second time by a proximity check.
+//
+// Both are calling mountSaurus::init() in script 20, this one disables controls
+//  then mountSaurus::changeState() from script 660 is triggered
+//  mountSaurus::changeState(5) finally calls mountSaurus::dispose(), which is also in script 20
+//  which finally re-enables controls
+//
+// A fix is difficult to implement. The code in script 20 is generic and used by multiple objects
+//
+// Originally I decided to change the responsible globals (66h and A1h) during mountSaurus::changeState(5).
+//  This worked as far as for controls, but mountSaurus::init changes a few selectors of ego as well, which
+//  won't get restored in that situation, which then messes up room changes and other things.
+//
+// I have now decided to change sheepScript::changeState(2) in script 665 instead.
+//
+// This fix could cause issues in case there is a cutscene, where ego is supposed to get onto the saurus using
+//  sheepScript.
+//
+// Applies to at least: English PC Floppy, English Amiga Floppy
+// Responsible method: mountSaurus::changeState(), mountSaurus::init(), mountSaurus::dispose()
+// Fixes bug: #5156
+static const uint16 qfg2SignatureSaurusFreeze[] = {
+	0x3c,                               // dup
+	0x35, 0x02,                         // ldi 5
+	SIG_MAGICDWORD,
+	0x1a,                               // eq?
+	0x30, SIG_UINT16(0x0043),           // bnt [ret]
+	0x76,                               // push0
+	SIG_ADDTOOFFSET(+61),               // skip to dispose code
+	0x39, SIG_SELECTOR8(dispose),       // pushi "dispose"
+	0x76,                               // push0
+	0x54, 0x04,                         // self 04
+	SIG_END
+};
+
+static const uint16 qfg2PatchSaurusFreeze[] = {
+	0x81, 0x66,                         // lag 66h
+	0x2e, SIG_UINT16(0x0040),           // bt [to dispose code]
+	0x35, 0x00,                         // ldi 0 (waste 2 bytes)
+	PATCH_END
+};
+
 // Script 944 in QFG2 contains the FileSelector system class, used in the
 // character import screen. This gets incorrectly called constantly, whenever
 // the user clicks on a button in order to refresh the file list. This was
@@ -2294,6 +2458,7 @@ static const uint16 qfg2PatchImportCharType[] = {
 
 //          script, description,                                      signature                    patch
 static const SciScriptPatcherEntry qfg2Signatures[] = {
+	{  true,   665, "getting back on saurus freeze fix",           1, qfg2SignatureSaurusFreeze,   qfg2PatchSaurusFreeze },
 	{  true,   805, "import character type fix",                   1, qfg2SignatureImportCharType, qfg2PatchImportCharType },
 	{  true,   944, "import dialog continuous calls",              1, qfg2SignatureImportDialog,   qfg2PatchImportDialog },
 	SCI_SIGNATUREENTRY_TERMINATOR
@@ -2575,6 +2740,102 @@ static const uint16 sq4FloppyPatchThrowStuffAtSequelPoliceBug[] = {
 	PATCH_END
 };
 
+// Right at the start of Space Quest 4 CD, when walking up in the first room, ego will
+//  immediately walk down just after entering the upper room.
+//
+// This is caused by the scripts setting ego's vertical coordinate to 189 (BDh), which is the
+//  trigger in rooms to walk to the room below it. Sometimes this isn't triggered, because
+//  the scripts also initiate a motion to vertical coordinate 188 (BCh). When you lower the game's speed,
+//  this bug normally always triggers. And it triggers of course also in the original interpreter.
+//
+// It doesn't happen in PC floppy, because nsRect is not the same as in CD.
+//
+// We fix it by setting ego's vertical coordinate to 188 and we also initiate a motion to 187.
+//
+// Applies to at least: English PC CD
+// Responsible method: rm045::doit
+// Fixes bug: #5468
+static const uint16 sq4CdSignatureWalkInFromBelowRoom45[] = {
+	0x76,                               // push0
+	SIG_MAGICDWORD,
+	0x78,                               // push1
+	0x38, SIG_UINT16(0x00bd),           // pushi 00BDh
+	0x38, SIG_ADDTOOFFSET(+2),          // pushi [setMotion selector]
+	0x39, 0x03,                         // pushi 3
+	0x51, SIG_ADDTOOFFSET(+1),          // class [MoveTo]
+	0x36,                               // push
+	0x78,                               // push1
+	0x76,                               // push0
+	0x81, 0x00,                         // lag global[0]
+	0x4a, 0x04,                         // send 04 -> get ego::x
+	0x36,                               // push
+	0x38, SIG_UINT16(0x00bc),           // pushi 00BCh
+	SIG_END
+};
+
+static const uint16 sq4CdPatchWalkInFromBelowRoom45[] = {
+	PATCH_ADDTOOFFSET(+2),
+	0x38, PATCH_UINT16(0x00bc),         // pushi 00BCh
+	PATCH_ADDTOOFFSET(+15),
+	0x38, PATCH_UINT16(0x00bb),         // pushi 00BBh
+	PATCH_END
+};
+
+// It seems that Sierra forgot to set a script flag, when cleaning out the bank account
+// in Space Quest 4 CD. This was probably caused by the whole bank account interaction
+// getting a rewrite and polish in the CD version.
+//
+// Because of this bug, points for changing back clothes will not get awarded, which
+// makes it impossible to get a perfect point score in the CD version of the game.
+// The points are awarded by rm371::doit in script 371.
+//
+// We fix this. Bug also happened, when using the original interpreter.
+// Bug does not happen for PC floppy.
+//
+// Attention: Some Let's Plays on youtube show that points are in fact awarded. Which is true.
+//            But those Let's Plays were actually created by playing a hacked Space Quest 4 version
+//            (which is part Floppy, part CD version - we consider it to be effectively pirated)
+//            and not the actual CD version of Space Quest 4.
+//            It's easy to identify - talkie + store called "Radio Shack" -> is hacked version.
+//
+// Applies to at least: English PC CD
+// Responsible method: but2Script::changeState(2)
+// Fixes bug: #6866
+static const uint16 sq4CdSignatureGetPointsForChangingBackClothes[] = {
+	0x35, 0x02,                         // ldi 02
+	SIG_MAGICDWORD,
+	0x1a,                               // eq?
+	0x30, SIG_UINT16(0x006a),           // bnt [state 3]
+	0x76,
+	SIG_ADDTOOFFSET(+46),               // jump over "withdraw funds" code
+	0x33, 0x33,                         // jmp [end of state 2, set cycles code]
+	SIG_ADDTOOFFSET(+51),               // jump over "clean bank account" code
+	0x35, 0x02,                         // ldi 02
+	0x65, 0x1a,                         // aTop cycles
+	0x33, 0x0b,                         // jmp [toss/ret]
+	0x3c,                               // dup
+	0x35, 0x03,                         // ldi 03
+	0x1a,                               // eq?
+	0x31, 0x05,                         // bnt [toss/ret]
+	SIG_END
+};
+
+static const uint16 sq4CdPatchGetPointsForChangingBackClothes[] = {
+	PATCH_ADDTOOFFSET(+3),
+	0x30, PATCH_UINT16(0x0070),         // bnt [state 3]
+	PATCH_ADDTOOFFSET(+47),             // "withdraw funds" code
+	0x33, 0x39,                         // jmp [end of state 2, set cycles code]
+	PATCH_ADDTOOFFSET(+51),
+	0x78,                               // push1
+	0x39, 0x1d,                         // ldi 1Dh
+	0x45, 0x07, 0x02,                   // call export 7 of script 0 (set flag) -> effectively sets global 73h, bit 2
+	0x35, 0x02,                         // ldi 02
+	0x65, 0x1c,                         // aTop cycles
+	0x33, 0x05,                         // jmp [toss/ret]
+	// check for state 3 code removed to save 6 bytes
+	PATCH_END
+};
+
 // The scripts in SQ4CD support simultaneous playing of speech and subtitles,
 // but this was not available as an option. The following two patches enable
 // this functionality in the game's GUI options dialog.
@@ -2669,8 +2930,10 @@ static const uint16 sq4CdPatchTextOptions[] = {
 static const SciScriptPatcherEntry sq4Signatures[] = {
 	{  true,   298, "Floppy: endless flight",                      1, sq4FloppySignatureEndlessFlight,               sq4FloppyPatchEndlessFlight },
 	{  true,   700, "Floppy: throw stuff at sequel police bug",    1, sq4FloppySignatureThrowStuffAtSequelPoliceBug, sq4FloppyPatchThrowStuffAtSequelPoliceBug },
-	{  true,   818, "CD: Speech and subtitles option",             1, sq4CdSignatureTextOptions,                     sq4CdPatchTextOptions },
+	{  true,    45, "CD: walk in from below for room 45 fix",      1, sq4CdSignatureWalkInFromBelowRoom45,           sq4CdPatchWalkInFromBelowRoom45 },
+	{  true,   396, "CD: get points for changing back clothes fix",1, sq4CdSignatureGetPointsForChangingBackClothes, sq4CdPatchGetPointsForChangingBackClothes },
 	{  true,     0, "CD: Babble icon speech and subtitles fix",    1, sq4CdSignatureBabbleIcon,                      sq4CdPatchBabbleIcon },
+	{  true,   818, "CD: Speech and subtitles option",             1, sq4CdSignatureTextOptions,                     sq4CdPatchTextOptions },
 	{  true,   818, "CD: Speech and subtitles option button",      1, sq4CdSignatureTextOptionsButton,               sq4CdPatchTextOptionsButton },
 	SCI_SIGNATUREENTRY_TERMINATOR
 };
