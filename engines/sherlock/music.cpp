@@ -21,8 +21,14 @@
  */
 
 #include "common/config-manager.h"
+#include "common/mutex.h"
 #include "sherlock/sherlock.h"
 #include "sherlock/music.h"
+#include "sherlock/scalpel/drivers/mididriver.h"
+// for Miles Audio (Sherlock Holmes 2)
+#include "audio/miles.h"
+// for 3DO digital music
+#include "audio/decoders/aiff.h"
 
 namespace Sherlock {
 
@@ -53,45 +59,43 @@ MidiParser_SH::MidiParser_SH() {
 	_ppqn = 1;
 	setTempo(16667);
 	_data = nullptr;
+	_beats = 0;
+	_lastEvent = 0;
+	_trackEnd = nullptr;
+
+	_musData     = nullptr;
+	_musDataSize = 0;
+}
+
+MidiParser_SH::~MidiParser_SH() {
+	Common::StackLock lock(_mutex);
+	unloadMusic();
+	_driver = NULL;
 }
 
 void MidiParser_SH::parseNextEvent(EventInfo &info) {
-	warning("parseNextEvent");
+	Common::StackLock lock(_mutex);
 
-	// An attempt to remap MT32 instruments to GMIDI. Only partially successful, it still
-	// does not sound even close to the real MT32. Oddly enough, on the actual hardware MT32
-	// and SB sound very differently.
-	static const byte mt32Map[128] = {
-		0,     1,   0,   2,   4,   4,   5,   3, /* 0-7 */
-		16,   17,  18,  16,  16,  19,  20,  21, /* 8-15 */
-		6,     6,   6,   7,   7,   7,   8, 112, /* 16-23 */
-		62,   62,  63,  63 , 38,  38,  39,  39, /* 24-31 */
-		88,   95,  52,  98,  97,  99,  14,  54, /* 32-39 */
-		102,  96,  53, 102,  81, 100,  14,  80, /* 40-47 */
-		48,   48,  49,  45,  41,  40,  42,  42, /* 48-55 */
-		43,   46,  45,  24,  25,  28,  27, 104, /* 56-63 */
-		32,   32,  34,  33,  36,  37,  35,  35, /* 64-71 */
-		79,   73,  72,  72,  74,  75,  64,  65, /* 72-79 */
-		66,   67,  71,  71,  68,  69,  70,  22, /* 80-87 */
-		56,   59,  57,  57,  60,  60,  58,  61, /* 88-95 */
-		61,   11,  11,  98,  14,   9,  14,  13, /* 96-103 */
-		12,  107, 107,  77,  78,  78,  76,  76, /* 104-111 */
-		47,  117, 127, 118, 118, 116, 115, 119, /* 112-119 */
-		115, 112,  55, 124, 123,   0,  14, 117  /* 120-127 */
-	};
+//	warning("parseNextEvent");
 
+	// there is no delta right at the start of the music data
+	// this order is essential, otherwise notes will get delayed or even go missing
+	if (_position._playPos != _tracks[0]) {
+		info.delta = *(_position._playPos++);
+	} else {
+		info.delta = 0;
+	}
 
 	info.start = _position._playPos;
-	info.delta = 0;
 
 	info.event = *_position._playPos++;
-	warning("Event %x", info.event);
+	//warning("Event %x", info.event);
 	_position._runningStatus = info.event;
 
 	switch (info.command()) {
-	case 0xC: {
+	case 0xC: { // program change
 		int idx = *_position._playPos++;
-		info.basic.param1 = mt32Map[idx & 0x7f]; // remap MT32 to GM
+		info.basic.param1 = idx & 0x7f;
 		info.basic.param2 = 0;
 		}
 		break;
@@ -120,6 +124,8 @@ void MidiParser_SH::parseNextEvent(EventInfo &info) {
 		break;
 	case 0xF:
 		if (info.event == 0xFF) {
+			error("SysEx META event 0xFF");
+
 			byte type = *(_position._playPos++);
 			switch(type) {
 			case 0x2F:
@@ -136,10 +142,24 @@ void MidiParser_SH::parseNextEvent(EventInfo &info) {
 				break;
 			}
 		} else if (info.event == 0xFC) {
-			allNotesOff();
-			stopPlaying();
-			unloadMusic();
-			return;
+			// Official End-Of-Track signal
+			debugC(kDebugLevelMusic, "Music: System META event 0xFC");
+
+			byte type = *(_position._playPos++);
+			switch (type) {
+			case 0x80: // end of track, triggers looping
+				debugC(kDebugLevelMusic, "Music: META event triggered looping");
+				jumpToTick(0, true, true, false);
+				break;
+			case 0x81: // end of track, stop playing
+				debugC(kDebugLevelMusic, "Music: META event triggered music stop");
+				stopPlaying();
+				unloadMusic();
+				break;
+			default:
+				error("MidiParser_SH::parseNextEvent: Unknown META event 0xFC type %x", type);
+				break;
+			}
 		} else {
 			warning("TODO: %x / Unknown", info.event);
 			break;
@@ -149,26 +169,28 @@ void MidiParser_SH::parseNextEvent(EventInfo &info) {
 		warning("MidiParser_SH::parseNextEvent: Unsupported event code %x", info.event);
 		break;
 	}// switch (info.command())
-
-	info.delta = *(_position._playPos++);
 }
 
-bool MidiParser_SH::loadMusic(byte *data, uint32 size) {
-	warning("loadMusic");
+bool MidiParser_SH::loadMusic(byte *musData, uint32 musDataSize) {
+	Common::StackLock lock(_mutex);
+
+	debugC(kDebugLevelMusic, "Music: loadMusic()");
 	unloadMusic();
 
-	byte *pos = data;
+	_musData     = musData;
+	_musDataSize = musDataSize;
 
-	if (memcmp("            ", pos, 12)) {
-		warning("Expected header not found in music file");
-		return false;
-	}
-	pos += 12;
-	byte headerSize = *pos;
+	byte  *headerPtr = _musData + 12; // skip over the already checked SPACE header
+	byte  *pos       = headerPtr;
+
+	uint16 headerSize = READ_LE_UINT16(headerPtr);
+	assert(headerSize == 0x7F); // Security check
+
+	// Skip over header
 	pos += headerSize;
 
 	_lastEvent = 0;
-	_trackEnd = data + size;
+	_trackEnd = _musData + _musDataSize;
 
 	_numTracks = 1;
 	_tracks[0] = pos;
@@ -180,27 +202,150 @@ bool MidiParser_SH::loadMusic(byte *data, uint32 size) {
 	return true;
 }
 
+void MidiParser_SH::unloadMusic() {
+	Common::StackLock lock(_mutex);
+
+	if (_musData) {
+		delete[] _musData;
+		_musData = NULL;
+		_musDataSize = 0;
+	}
+}
+
 /*----------------------------------------------------------------*/
 
 Music::Music(SherlockEngine *vm, Audio::Mixer *mixer) : _vm(vm), _mixer(mixer) {
+	_midiDriver = NULL;
+	_midiParser = NULL;
+	_musicType = MT_NULL;
+	_musicPlaying = false;
+	_musicOn = false;
+	_midiOption = false;
+	_musicVolume = 0;
+
+	if (IS_3DO) {
+		// 3DO - uses digital samples for music
+		_musicOn = true;
+		return;
+	}
+
 	if (_vm->_interactiveFl)
 		_vm->_res->addToCache("MUSIC.LIB");
 
-	MidiDriver::DeviceHandle dev = MidiDriver::detectDevice(MDT_MIDI | MDT_ADLIB | MDT_PREFER_GM);
-	_driver = MidiDriver::createMidi(dev);
-	assert(_driver);
+	MidiDriver::DeviceHandle dev;
 
-	int ret = _driver->open();
-	if (ret == 0) {
-		_driver->sendGMReset();
-		_driver->setTimerCallback(&_midiParser, &_midiParser.timerCallback);
+	if (IS_SERRATED_SCALPEL) {
+		// Serrated Scalpel: used an internal Electronic Arts .MUS music engine
+		_midiParser = new MidiParser_SH();
+		dev = MidiDriver::detectDevice(MDT_MIDI | MDT_ADLIB | MDT_PREFER_MT32);
+		_musicType = MidiDriver::getMusicType(dev);
+
+		switch (_musicType) {
+		case MT_ADLIB:
+			_midiDriver = MidiDriver_SH_AdLib_create();
+			break;
+		case MT_MT32:
+			_midiDriver = MidiDriver_MT32_create();
+			break;
+		case MT_GM:
+			if (ConfMan.getBool("native_mt32")) {
+				_midiDriver = MidiDriver_MT32_create();
+				_musicType = MT_MT32;
+			}
+			break;
+		default:
+			// Create default one
+			// I guess we shouldn't do this anymore
+			//_midiDriver = MidiDriver::createMidi(dev);
+			break;
+		}
+	} else {
+		// Rose Tattooo: seems to use Miles Audio 3
+		_midiParser = MidiParser::createParser_XMIDI();
+		dev = MidiDriver::detectDevice(MDT_MIDI | MDT_ADLIB | MDT_PREFER_GM);
+		_musicType = MidiDriver::getMusicType(dev);
+
+		switch (_musicType) {
+		case MT_ADLIB:
+			// SAMPLE.AD  -> regular AdLib instrument data
+			// SAMPLE.OPL -> OPL-3 instrument data
+			// although in case of Rose Tattoo both files are exactly the same
+			_midiDriver = Audio::MidiDriver_Miles_AdLib_create("SAMPLE.AD", "SAMPLE.OPL");
+			break;
+		case MT_MT32:
+			// Sherlock Holmes 2 does not have a MT32 timbre file
+			_midiDriver = Audio::MidiDriver_Miles_MT32_create("");
+			break;
+		case MT_GM:
+			if (ConfMan.getBool("native_mt32")) {
+				_midiDriver = Audio::MidiDriver_Miles_MT32_create("");
+				_musicType = MT_MT32;
+			} else {
+				_midiDriver = MidiDriver::createMidi(dev);
+				_musicType = MT_GM;
+			}
+			break;
+		default:
+			// Do not create anything
+			break;
+		}
 	}
-	_midiParser.setMidiDriver(_driver);
-	_midiParser.setTimerRate(_driver->getBaseTempo());
+
+	if (_midiDriver) {
+		int ret = _midiDriver->open();
+		if (ret == 0) {
+			// Reset is done inside our MIDI driver
+			_midiDriver->setTimerCallback(_midiParser, &_midiParser->timerCallback);
+		}
+		_midiParser->setMidiDriver(_midiDriver);
+		_midiParser->setTimerRate(_midiDriver->getBaseTempo());
+
+		if (IS_SERRATED_SCALPEL) {
+			if (_musicType == MT_MT32) {
+				// Upload patches
+				Common::SeekableReadStream *MT32driverStream = _vm->_res->load("MTHOM.DRV", "MUSIC.LIB");
+
+				if (!MT32driverStream)
+					error("Music: could not load MTHOM.DRV, critical");
+
+				byte *MT32driverData = new byte[MT32driverStream->size()];
+				int32 MT32driverDataSize = MT32driverStream->size();
+				assert(MT32driverData);
+
+				MT32driverStream->read(MT32driverData, MT32driverDataSize);
+				delete MT32driverStream;
+
+				assert(MT32driverDataSize > 12);
+				byte *MT32driverDataPtr = MT32driverData + 12;
+				MT32driverDataSize -= 12;
+
+				MidiDriver_MT32_uploadPatches(_midiDriver, MT32driverDataPtr, MT32driverDataSize);
+				delete[] MT32driverData;
+			}
+		}
+
+		_musicOn = true;
+	}
+}
+
+Music::~Music() {
+	stopMusic();
+	if (_midiDriver) {
+		_midiDriver->setTimerCallback(this, NULL);
+	}
+	if (_midiParser) {
+		_midiParser->stopPlaying();
+		delete _midiParser;
+		_midiParser = nullptr;
+	}
+	if (_midiDriver) {
+		_midiDriver->close();
+		delete _midiDriver;
+	}
 }
 
 bool Music::loadSong(int songNumber) {
-	warning("loadSong");
+	debugC(kDebugLevelMusic, "Music: loadSong()");
 
 	if(songNumber == 100)
 		songNumber = 55;
@@ -218,14 +363,25 @@ bool Music::loadSong(int songNumber) {
 	if((songNumber > NUM_SONGS) || (songNumber < 1))
 		return false;
 
-	Common::String songName = Common::String(SONG_NAMES[songNumber - 1]) + ".MUS";
+	Common::String songName = Common::String(SONG_NAMES[songNumber - 1]);
 
 	freeSong();  // free any song that is currently loaded
-	
+	stopMusic();
+
 	if (!playMusic(songName))
 		return false;
 
+	startSong();
+	return true;
+}
+
+bool Music::loadSong(const Common::String &songName) {
+	freeSong();  // free any song that is currently loaded
 	stopMusic();
+
+	if (!playMusic(songName))
+		return false;
+
 	startSong();
 	return true;
 }
@@ -238,27 +394,122 @@ bool Music::playMusic(const Common::String &name) {
 	if (!_musicOn)
 		return false;
 
-	warning("Sound::playMusic %s", name.c_str());
-	Common::SeekableReadStream *stream = _vm->_res->load(name, "MUSIC.LIB");
+	debugC(kDebugLevelMusic, "Music: playMusic('%s')", name.c_str());
 
-	byte *data = new byte[stream->size()];
-	byte *ptr = data;
+	if (!IS_3DO) {
+		// MIDI based
+		if (!_midiDriver)
+			return false;
 
-	stream->read(ptr, stream->size());
-	Common::DumpFile outFile;
-	outFile.open(name + ".RAW");
-	outFile.write(data, stream->size());
-	outFile.flush();
-	outFile.close();
+		Common::String midiMusicName = (IS_SERRATED_SCALPEL) ? name + ".MUS" : name + ".XMI";
+		Common::SeekableReadStream *stream = _vm->_res->load(midiMusicName, "MUSIC.LIB");
 
-	_midiParser.loadMusic(data, stream->size());
+		byte *midiMusicData     = new byte[stream->size()];
+		int32 midiMusicDataSize = stream->size();
 
+		stream->read(midiMusicData, midiMusicDataSize);
+		delete stream;
+
+		// for dumping the music tracks
+#if 0
+		Common::DumpFile outFile;
+		outFile.open(name + ".RAW");
+		outFile.write(data, stream->size());
+		outFile.flush();
+		outFile.close();
+#endif
+
+		if (midiMusicDataSize < 14) {
+			warning("Music: not enough data in music file");
+			delete[] midiMusicData;
+			return false;
+		}
+
+		byte  *dataPos  = midiMusicData;
+		uint32 dataSize = midiMusicDataSize;
+
+		if (IS_SERRATED_SCALPEL) {
+			if (memcmp("            ", dataPos, 12)) {
+				warning("Music: expected header not found in music file");
+				delete[] midiMusicData;
+				return false;
+			}
+			dataPos += 12;
+			dataSize -= 12;
+
+			if (dataSize < 0x7F) {
+				warning("Music: expected music header not found in music file");
+				delete[] midiMusicData;
+				return false;
+			}
+
+			uint16 headerSize = READ_LE_UINT16(dataPos);
+			if (headerSize != 0x7F) {
+				warning("Music: header is not as expected");
+				delete[] midiMusicData;
+				return false;
+			}
+		} else {
+			if (memcmp("FORM", dataPos, 4)) {
+				warning("Music: expected header not found in music file");
+				delete[] midiMusicData;
+				return false;
+			}
+		}
+
+		if (IS_SERRATED_SCALPEL) {
+			// Pass the music data to the driver as well
+			// because channel mapping and a few other things inside the header
+			switch (_musicType) {
+			case MT_ADLIB:
+				MidiDriver_SH_AdLib_newMusicData(_midiDriver, dataPos, dataSize);
+				break;
+
+			case MT_MT32:
+				MidiDriver_MT32_newMusicData(_midiDriver, dataPos, dataSize);
+				break;
+
+			default:
+				// should never happen
+				break;
+			}
+		}
+
+		_midiParser->loadMusic(midiMusicData, midiMusicDataSize);
+
+	} else {
+		// 3DO: sample based
+		Audio::AudioStream *musicStream;
+		Common::String digitalMusicName = "music/" + name + "_MW22.aifc";
+
+		if (isPlaying()) {
+			_mixer->stopHandle(_digitalMusicHandle);
+		}
+
+		Common::File *digitalMusicFile = new Common::File();
+		if (!digitalMusicFile->open(digitalMusicName)) {
+			warning("playMusic: can not open 3DO music '%s'", digitalMusicName.c_str());
+			return false;
+		}
+
+		// Try to load the given file as AIFF/AIFC
+		musicStream = Audio::makeAIFFStream(digitalMusicFile, DisposeAfterUse::YES);
+		if (!musicStream) {
+			warning("playMusic: can not load 3DO music '%s'", digitalMusicName.c_str());
+			return false;
+		}
+		_mixer->playStream(Audio::Mixer::kMusicSoundType, &_digitalMusicHandle, musicStream);
+	}
 	return true;
 }
 
 void Music::stopMusic() {
-	// TODO
-	warning("TODO: Sound::stopMusic");
+	if (isPlaying()) {
+		if (!IS_3DO)
+			_midiParser->stopPlaying();
+		else
+			_mixer->stopHandle(_digitalMusicHandle);
+	}
 
 	_musicPlaying = false;
 }
@@ -273,12 +524,78 @@ void Music::startSong() {
 }
 
 void Music::freeSong() {
-	// TODO
-	warning("TODO: Sound::freeSong");
+	if (!IS_3DO) {
+		if (_midiParser->isPlaying())
+			_midiParser->stopPlaying();
+
+		// Free the MIDI MUS data buffer
+		_midiParser->unloadMusic();
+	}
 }
 
 void Music::waitTimerRoland(uint time) {
 	// TODO
 	warning("TODO: Sound::waitTimerRoland");
-}} // End of namespace Sherlock
+}
 
+bool Music::isPlaying() {
+	if (!IS_3DO) {
+		// MIDI based
+		return _midiParser->isPlaying();
+	} else {
+		// 3DO: sample based
+		return _mixer->isSoundHandleActive(_digitalMusicHandle);
+	}
+}
+
+// Returns the current music position in milliseconds
+uint32 Music::getCurrentPosition() {
+	if (!IS_3DO) {
+		// MIDI based
+		return (_midiParser->getTick() * 1000) / 60; // translate tick to millisecond
+	} else {
+		// 3DO: sample based
+		return _mixer->getSoundElapsedTime(_digitalMusicHandle);
+	}
+}
+
+// This is used to wait for the music in certain situations like especially the intro
+// Note: the original game didn't do this, instead it just waited for certain amounts of time
+//       We do this, so that the intro graphics + music work together even on faster/slower hardware.
+bool Music::waitUntilMSec(uint32 msecTarget, uint32 msecMax, uint32 additionalDelay, uint32 noMusicDelay) {
+	uint32 msecCurrent = 0;
+
+	if (!isPlaying()) {
+		return _vm->_events->delay(noMusicDelay, true);
+	}
+	while (1) {
+		if (!isPlaying()) { // Music is not playing anymore -> we are done
+			if (additionalDelay > 0) {
+				if (!_vm->_events->delay(additionalDelay, true))
+					return false;
+			}
+			return true;
+		}
+
+		msecCurrent = getCurrentPosition();
+		//warning("waitUntilMSec: %lx", msecCurrent);
+
+		if ((!msecMax) || (msecCurrent <= msecMax)) {
+			if (msecCurrent >= msecTarget) {
+				if (additionalDelay > 0) {
+					if (!_vm->_events->delay(additionalDelay, true))
+						return false;
+				}
+				return true;
+			}
+		}
+		if (!_vm->_events->delay(10, true))
+			return false;
+	}
+}
+
+void Music::setMIDIVolume(int volume) {
+	warning("TODO: Music::setMIDIVolume");
+}
+
+} // End of namespace Sherlock

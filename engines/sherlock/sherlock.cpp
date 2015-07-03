@@ -25,7 +25,6 @@
 #include "common/scummsys.h"
 #include "common/config-manager.h"
 #include "common/debug-channels.h"
-#include "engines/util.h"
 
 namespace Sherlock {
 
@@ -34,6 +33,7 @@ SherlockEngine::SherlockEngine(OSystem *syst, const SherlockGameDescription *gam
 	_animation = nullptr;
 	_debugger = nullptr;
 	_events = nullptr;
+	_fixedText = nullptr;
 	_inventory = nullptr;
 	_journal = nullptr;
 	_map = nullptr;
@@ -57,13 +57,14 @@ SherlockEngine::~SherlockEngine() {
 	delete _animation;
 	delete _debugger;
 	delete _events;
+	delete _fixedText;
 	delete _journal;
 	delete _map;
-	delete _music;
 	delete _people;
 	delete _saves;
 	delete _scene;
 	delete _screen;
+	delete _music;
 	delete _sound;
 	delete _talk;
 	delete _ui;
@@ -72,13 +73,15 @@ SherlockEngine::~SherlockEngine() {
 }
 
 void SherlockEngine::initialize() {
-	initGraphics(SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT, false);
+	DebugMan.addDebugChannel(kDebugLevelScript,      "scripts", "Script debug level");
+	DebugMan.addDebugChannel(kDebugLevelAdLibDriver, "AdLib",   "AdLib driver debugging");
+	DebugMan.addDebugChannel(kDebugLevelMT32Driver,  "MT32",    "MT32 driver debugging");
+	DebugMan.addDebugChannel(kDebugLevelMusic,       "Music",   "Music debugging");
 
-	DebugMan.addDebugChannel(kDebugScript, "scripts", "Script debug level");
-
+	Fonts::setVm(this);
 	ImageFile::setVm(this);
-	Object::setVm(this);
-	Sprite::setVm(this);
+	ImageFile3DO::setVm(this);
+	BaseObject::setVm(this);
 
 	if (isDemo()) {
 		Common::File f;
@@ -92,20 +95,27 @@ void SherlockEngine::initialize() {
 	_animation = new Animation(this);
 	_debugger = new Debugger(this);
 	_events = new Events(this);
-	_inventory = new Inventory(this);
-	_map = new Map(this);
+	_fixedText = FixedText::init(this);
+	_inventory = Inventory::init(this);
+	_map = Map::init(this);
 	_music = new Music(this, _mixer);
-	_journal = new Journal(this);
-	_people = new People(this);
-	_saves = new SaveManager(this, _targetName);
-	_scene = new Scene(this);
-	_screen = new Screen(this);
+	_journal = Journal::init(this);
+	_people = People::init(this);
+	_saves = SaveManager::init(this, _targetName);
+	_scene = Scene::init(this);
+	_screen = Screen::init(this);
 	_sound = new Sound(this, _mixer);
-	_talk = new Talk(this);
-	_ui = new UserInterface(this);
+	_talk = Talk::init(this);
+	_ui = UserInterface::init(this);
 
 	// Load game settings
 	loadConfig();
+
+	if (getPlatform() == Common::kPlatform3DO) {
+		// Disable portraits on 3DO
+		// 3DO does not include portrait data
+		_people->_portraitsOn = false;
+	}
 }
 
 Common::Error SherlockEngine::run() {
@@ -206,14 +216,20 @@ void SherlockEngine::setFlags(int flagNum) {
 	_scene->checkSceneFlags(true);
 }
 
+void SherlockEngine::setFlagsDirect(int flagNum) {
+	_flags[ABS(flagNum)] = flagNum >= 0;
+}
+
 void SherlockEngine::loadConfig() {
 	// Load sound settings
 	syncSoundSettings();
 
-	ConfMan.registerDefault("font", 1);
+	ConfMan.registerDefault("font", getGameID() == GType_SerratedScalpel ? 1 : 4);
 
 	_screen->setFont(ConfMan.getInt("font"));
-	_screen->_fadeStyle = ConfMan.getBool("fade_style");
+	if (getGameID() == GType_SerratedScalpel)
+		_screen->_fadeStyle = ConfMan.getBool("fade_style");
+
 	_ui->_helpStyle = ConfMan.getBool("help_style");
 	_ui->_slideWindows = ConfMan.getBool("window_style");
 	_people->_portraitsOn = ConfMan.getBool("portraits_on");
@@ -241,7 +257,7 @@ void SherlockEngine::syncSoundSettings() {
 	_music->syncMusicSettings();
 }
 
-void SherlockEngine::synchronize(Common::Serializer &s) {
+void SherlockEngine::synchronize(Serializer &s) {
 	for (uint idx = 0; idx < _flags.size(); ++idx)
 		s.syncAsByte(_flags[idx]);
 }

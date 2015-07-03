@@ -32,8 +32,7 @@ namespace Sherlock {
 
 enum ButtonFlag { LEFT_BUTTON = 1, RIGHT_BUTTON = 2 };
 
-Events::Events(SherlockEngine *vm) {
-	_vm = vm;
+Events::Events(SherlockEngine *vm): _vm(vm) {
 	_cursorImages = nullptr;
 	_cursorId = INVALID_CURSOR;
 	_frameCounter = 1;
@@ -42,6 +41,10 @@ Events::Events(SherlockEngine *vm) {
 	_pressed = _released = false;
 	_rightPressed = _rightReleased = false;
 	_oldButtons = _oldRightButton = false;
+	_firstPress = false;
+
+	if (_vm->_interactiveFl)
+		loadCursors("rmouse.vgs");
 }
 
 Events::~Events() {
@@ -52,7 +55,13 @@ void Events::loadCursors(const Common::String &filename) {
 	hideCursor();
 	delete _cursorImages;
 
-	_cursorImages = new ImageFile(filename);
+	if (!IS_3DO) {
+		// PC
+		_cursorImages = new ImageFile(filename);
+	} else {
+		// 3DO
+		_cursorImages = new ImageFile3DO(filename, kImageFile3DOType_RoomFormat);
+	}
 	_cursorId = INVALID_CURSOR;
 }
 
@@ -60,18 +69,43 @@ void Events::setCursor(CursorId cursorId) {
 	if (cursorId == _cursorId)
 		return;
 
-	_cursorId = cursorId;
+	int hotspotX, hotspotY;
+
+	if (cursorId == MAGNIFY) {
+		hotspotX = 8;
+		hotspotY = 8;
+	} else {
+		hotspotX = 0;
+		hotspotY = 0;
+	}
 
 	// Set the cursor data
 	Graphics::Surface &s = (*_cursorImages)[cursorId]._frame;
 
-	setCursor(s);
+	setCursor(s, hotspotX, hotspotY);
+
+	_cursorId = cursorId;
 }
 
-void Events::setCursor(const Graphics::Surface &src) {
-	CursorMan.replaceCursor(src.getPixels(), src.w, src.h, 0, 0, 0xff);
+void Events::setCursor(const Graphics::Surface &src, int hotspotX, int hotspotY) {
+	_cursorId = INVALID_CURSOR;
+	if (!IS_3DO) {
+		// PC 8-bit palettized
+		CursorMan.replaceCursor(src.getPixels(), src.w, src.h, hotspotX, hotspotY, 0xff);
+	} else {
+		// 3DO RGB565
+		CursorMan.replaceCursor(src.getPixels(), src.w, src.h, hotspotX, hotspotY, 0x0000, false, &src.format);
+	}
 	showCursor();
 }
+
+void Events::animateCursorIfNeeded() {
+	if (_cursorId >= WAIT && _cursorId < (WAIT + 3)) {
+		CursorId newId = (_cursorId == WAIT + 2) ? WAIT : (CursorId)((int)_cursorId + 1);
+		setCursor(newId);
+	}
+}
+
 
 void Events::showCursor() {
 	CursorMan.showMouse(true);
@@ -139,6 +173,10 @@ void Events::pollEventsAndWait() {
 	g_system->delayMillis(10);
 }
 
+void Events::warpMouse(const Common::Point &pt) {
+	g_system->warpMouse(pt.x, pt.y);
+}
+
 bool Events::checkForNextFrameCounter() {
 	// Check for next game frame
 	uint32 milli = g_system->getMillis();
@@ -172,6 +210,7 @@ void Events::clearEvents() {
 	_pressed = _released = false;
 	_rightPressed = _rightReleased = false;
 	_oldButtons = _oldRightButton = false;
+	_firstPress = false;
 }
 
 void Events::clearKeyboard() {
@@ -189,7 +228,7 @@ bool Events::delay(uint32 time, bool interruptable) {
 		// For really short periods, simply delay by the desired amount
 		pollEvents();
 		g_system->delayMillis(time);
-		bool result = !(interruptable && (kbHit() || _pressed));
+		bool result = !(interruptable && (kbHit() || _pressed || _vm->shouldQuit()));
 
 		clearEvents();
 		return result;
@@ -208,11 +247,13 @@ bool Events::delay(uint32 time, bool interruptable) {
 			}
 		}
 
-		return true;
+		return !_vm->shouldQuit();
 	}
 }
 
 void Events::setButtonState() {
+	_firstPress = ((_mouseButtons & 1) && !_pressed) || ((_mouseButtons & 2) && !_rightPressed);
+
 	_released = _rightReleased = false;
 	if (_mouseButtons & LEFT_BUTTON)
 		_pressed = _oldButtons = true;

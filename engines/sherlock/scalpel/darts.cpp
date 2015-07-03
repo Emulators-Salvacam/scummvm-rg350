@@ -117,7 +117,7 @@ void Darts::playDarts() {
 				if (playerNumber == 0) {
 					screen.print(Common::Point(DART_INFO_X, DART_INFO_Y + 30), PLAYER_COLOR, "Holmes Wins!");
 					if (_level < OPPONENTS_COUNT)
-						setFlagsForDarts(318 + _level);
+						_vm->setFlagsDirect(318 + _level);
 				} else {
 					screen.print(Common::Point(DART_INFO_X, DART_INFO_Y + 30), PLAYER_COLOR, "%s Wins!", _opponent.c_str());
 				}
@@ -366,8 +366,8 @@ void Darts::drawDartThrow(const Common::Point &pt) {
 void Darts::erasePowerBars() {
 	Screen &screen = *_vm->_screen;
 
-	screen._backBuffer1.fillRect(Common::Rect(DARTBARHX, DARTHORIZY, DARTBARHX + DARTBARSIZE, DARTHORIZY + 10), 0);
-	screen._backBuffer1.fillRect(Common::Rect(DARTBARVX, DARTHEIGHTY, DARTBARVX + 10, DARTHEIGHTY + DARTBARSIZE), 0);
+	screen._backBuffer1.fillRect(Common::Rect(DARTBARHX, DARTHORIZY, DARTBARHX + DARTBARSIZE, DARTHORIZY + 10), BLACK);
+	screen._backBuffer1.fillRect(Common::Rect(DARTBARVX, DARTHEIGHTY, DARTBARVX + 10, DARTHEIGHTY + DARTBARSIZE), BLACK);
 	screen._backBuffer1.transBlitFrom((*_dartImages)[2], Common::Point(DARTBARHX - 1, DARTHORIZY - 1));
 	screen._backBuffer1.transBlitFrom((*_dartImages)[3], Common::Point(DARTBARVX - 1, DARTHEIGHTY - 1));
 	screen.slamArea(DARTBARHX - 1, DARTHORIZY - 1, DARTBARSIZE + 3, 11);
@@ -548,10 +548,6 @@ bool Darts::findNumberOnBoard(int aim, Common::Point &pt) {
 	return done;
 }
 
-void Darts::setFlagsForDarts(int flagNum) {
-	_vm->_flags[ABS(flagNum)] = flagNum >= 0;
-}
-
 } // End of namespace Scalpel
 
-} // End of namespace Scalpel
+} // End of namespace Sherlock

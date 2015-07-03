@@ -20,41 +20,56 @@
  *
  */
 
-#ifndef SHERLOCK_SETTINGS_H
-#define SHERLOCK_SETTINGS_H
-
-#include "common/scummsys.h"
+#include "sherlock/tattoo/tattoo_fixed_text.h"
+#include "sherlock/sherlock.h"
 
 namespace Sherlock {
 
-class SherlockEngine;
-class UserInterface;
+namespace Tattoo {
 
-class Settings {
-private:
-	SherlockEngine *_vm;
+static const char *const FIXED_TEXT_ENGLISH[] = {
+	"Money",
+	"Card",
+	"Tobacco",
+	"Timetable",
+	"Summons",
+	"Foolscap",
+	"Damp Paper",
+	"Bull's Eye",
 
-	Settings(SherlockEngine *vm) : _vm(vm) {}
+	"Money",
+	"Card",
+	"Tobacco",
+	"Timetable",
+	"Summons",
+	"Foolscap",
+	"Foolscap",
+	"Bull's Eye Lantern",
 
-	/**
-	 * Draws the interface for the settings window
-	 */
-	void drawInteface(bool flag);
-
-	/**
-	 * Draws the buttons for the settings dialog
-	 */
-	int drawButtons(const Common::Point &pt, int key);
-public:
-	/**
-	 * Handles input when the settings window is being shown
-	 * @remarks		Whilst this would in theory be better in the Journal class, since it displays in
-	 *		the user interface, it uses so many internal UI fields, that it sort of made some sense
-	 *		to put it in the UserInterface class.
-	 */
-	static void show(SherlockEngine *vm);
+	"Open",
+	"Look",
+	"Talk",
+	"Use",
+	"Journal",
+	"Inventory",
+	"Options",
+	"Solve",
+	"with",
+	"No effect..."
 };
 
-} // End of namespace Sherlock
+TattooFixedText::TattooFixedText(SherlockEngine *vm) : FixedText(vm) {
+}
 
-#endif
+const Common::String TattooFixedText::getText(int fixedTextId) {
+	return Common::String(FIXED_TEXT_ENGLISH[fixedTextId]);
+}
+
+const Common::String TattooFixedText::getActionMessage(FixedTextActionId actionId, int messageIndex) {
+	return Common::String();
+}
+
+
+} // End of namespace Tattoo
+
+} // End of namespace Sherlock

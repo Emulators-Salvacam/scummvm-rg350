@@ -90,7 +90,7 @@ private:
 	/**
 	 * Reads in the index from a library file, and caches it's index for later use
 	 */
-	void loadLibraryIndex(const Common::String &libFilename, Common::SeekableReadStream *stream);
+	void loadLibraryIndex(const Common::String &libFilename, Common::SeekableReadStream *stream, bool isNewStyle);
 public:
 	Resources(SherlockEngine *vm);
 
@@ -140,51 +140,29 @@ public:
 	int resourceIndex() const;
 
 	/**
-	 * Decompresses an LZW block of data with a specified output size
+	 * Decompresses LZW compressed data
+	 */
+	Common::SeekableReadStream *decompress(Common::SeekableReadStream &source);
+
+	/**
+	 * Decompresses LZW compressed data
+	 */
+	Common::SeekableReadStream *decompress(Common::SeekableReadStream &source, uint32 outSize);
+
+	/**
+	 * Decompresses LZW compressed data
+	 */
+	void decompress(Common::SeekableReadStream &source, byte *buffer, uint32 outSize);
+
+	/**
+	 * Decompresses LZW compressed data
 	 */
 	static Common::SeekableReadStream *decompressLZ(Common::SeekableReadStream &source, uint32 outSize);
-	
-	/**
-	 * Decompress an LZW compressed resource
-	 */
-	Common::SeekableReadStream *decompressLZ(Common::SeekableReadStream &source);
-};
-
-struct ImageFrame {
-	uint32 _size;
-	uint16 _width, _height;
-	int _paletteBase;
-	bool _rleEncoded;
-	Common::Point _offset;
-	byte _rleMarker;
-	Graphics::Surface _frame;
-};
-
-class ImageFile : public Common::Array<ImageFrame> {
-private:
-	static SherlockEngine *_vm;
 
 	/**
-	 * Load the data of the sprite
+	 * Decompresses LZW compressed data
 	 */
-	void load(Common::SeekableReadStream &stream, bool skipPalette, bool animImages);
-
-	/**
-	 * Gets the palette at the start of the sprite file
-	 */
-	void loadPalette(Common::SeekableReadStream &stream);
-
-	/**
-	 * Decompress a single frame for the sprite
-	 */
-	void decompressFrame(ImageFrame  &frame, const byte *src);
-public:
-	byte _palette[256 * 3];
-public:
-	ImageFile(const Common::String &name, bool skipPal = false, bool animImages = false);
-	ImageFile(Common::SeekableReadStream &stream, bool skipPal = false);
-	~ImageFile();
-	static void setVm(SherlockEngine *vm);
+	static void decompressLZ(Common::SeekableReadStream &source, byte *outBuffer, int32 outSize, int32 inSize);
 };
 
 } // End of namespace Sherlock

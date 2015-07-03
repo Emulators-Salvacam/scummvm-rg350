@@ -25,36 +25,57 @@
 
 #include "audio/midiplayer.h"
 #include "audio/midiparser.h"
-#include "audio/mididrv.h"
+//#include "audio/mididrv.h"
+#include "sherlock/scalpel/drivers/mididriver.h"
+// for 3DO digital music
+#include "audio/audiostream.h"
+#include "audio/mixer.h"
+#include "common/mutex.h"
 
 namespace Sherlock {
 
 class SherlockEngine;
 
 class MidiParser_SH : public MidiParser {
+public:
+	MidiParser_SH();
+	~MidiParser_SH();
+
 protected:
-	virtual void parseNextEvent(EventInfo &info);
+	Common::Mutex _mutex;
+	void parseNextEvent(EventInfo &info);
 
 	uint8 _beats;
 	uint8 _lastEvent;
 	byte *_data;
 	byte *_trackEnd;
+
 public:
-	MidiParser_SH();
-	virtual bool loadMusic(byte *data, uint32 size);
+	bool loadMusic(byte *musData, uint32 musSize);
+	void unloadMusic();
+
+private:
+	byte  *_musData;
+	uint32 _musDataSize;
 };
 
-class Music : public Audio::MidiPlayer {
+class Music {
 private:
 	SherlockEngine *_vm;
 	Audio::Mixer *_mixer;
-	MidiParser_SH _midiParser;
-
+	MidiParser *_midiParser;
+	MidiDriver *_midiDriver;
+	Audio::SoundHandle _digitalMusicHandle;
+	MusicType _musicType;
 public:
 	bool _musicPlaying;
 	bool _musicOn;
+	int _musicVolume;
+	bool _midiOption;
+	Common::String _currentSongName, _nextSongName;
 public:
 	Music(SherlockEngine *vm, Audio::Mixer *mixer);
+	~Music();
 
 	/**
 	 * Saves sound-related settings
@@ -65,6 +86,11 @@ public:
 	 * Load a specified song
 	 */
 	bool loadSong(int songNumber);
+
+	/**
+	 * Load a specified song
+	 */
+	bool loadSong(const Common::String &songName);
 
 	/**
 	 * Start playing a song
@@ -87,6 +113,16 @@ public:
 	void stopMusic();
 	
 	void waitTimerRoland(uint time);
+
+	bool isPlaying();
+	uint32 getCurrentPosition();
+
+	bool waitUntilMSec(uint32 msecTarget, uint32 maxMSec, uint32 additionalDelay, uint32 noMusicDelay);
+
+	/**
+	 * Sets the volume of the MIDI music with a value ranging from 0 to 127
+	 */
+	void setMIDIVolume(int volume);
 };
 
 } // End of namespace Sherlock

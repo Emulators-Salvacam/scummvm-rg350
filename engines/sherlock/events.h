@@ -26,14 +26,14 @@
 #include "common/scummsys.h"
 #include "common/events.h"
 #include "common/stack.h"
-#include "sherlock/resources.h"
+#include "sherlock/image_file.h"
 
 namespace Sherlock {
 
 #define GAME_FRAME_RATE 60
 #define GAME_FRAME_TIME (1000 / GAME_FRAME_RATE)
 
-enum CursorId { ARROW = 0, MAGNIFY = 1, WAIT = 2, INVALID_CURSOR = -1 };
+enum CursorId { ARROW = 0, MAGNIFY = 1, WAIT = 2, EXIT_ZONES_START = 5, INVALID_CURSOR = -1 };
 
 class SherlockEngine;
 
@@ -57,6 +57,7 @@ public:
 	bool _rightReleased;
 	bool _oldButtons;
 	bool _oldRightButton;
+	bool _firstPress;
 	Common::Stack<Common::KeyState> _pendingKeys;
 public:
 	Events(SherlockEngine *vm);
@@ -75,7 +76,12 @@ public:
 	/**
 	 * Set the cursor to show from a passed frame
 	 */
-	void setCursor(const Graphics::Surface &src);
+	void setCursor(const Graphics::Surface &src, int hotspotX = 0, int hotspotY = 0);
+
+	/**
+	 * Animates the mouse cursor if the Wait cursor is showing
+	 */
+	void animateCursorIfNeeded();
 
 	/**
 	 * Show the mouse cursor
@@ -112,6 +118,11 @@ public:
 	 * yield to other running programs
 	 */
 	void pollEventsAndWait();
+
+	/**
+	 * Move the mouse cursor
+	 */
+	void warpMouse(const Common::Point &pt);
 
 	/**
 	 * Get the current mouse position

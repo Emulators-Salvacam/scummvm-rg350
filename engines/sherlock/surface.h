@@ -24,13 +24,18 @@
 #define SHERLOCK_GRAPHICS_H
 
 #include "common/rect.h"
+#include "common/platform.h"
 #include "graphics/surface.h"
+#include "sherlock/fonts.h"
 
 namespace Sherlock {
 
+#define SCALE_THRESHOLD 0x100
+#define TRANSPARENCY 255
+
 struct ImageFrame;
 
-class Surface {
+class Surface: public Fonts {
 private:
 	bool _freePixels;
 
@@ -53,6 +58,13 @@ private:
 	 * Draws a sub-section of a surface at a given position within this surface
 	 */
 	void blitFrom(const Graphics::Surface &src, const Common::Point &pt, const Common::Rect &srcBounds);
+
+	/**
+	 * Draws a surface at a given position within this surface with transparency
+	 */
+	void transBlitFromUnscaled(const Graphics::Surface &src, const Common::Point &pt, bool flipped, 
+		int overrideColor);
+
 protected:
 	Graphics::Surface _surface;
 
@@ -67,6 +79,8 @@ public:
 	 * when the surface object is destroyed
 	 */
 	void create(uint16 width, uint16 height);
+
+	Graphics::PixelFormat getPixelFormat();
 
 	/**
 	 * Copy a surface into this one
@@ -102,19 +116,19 @@ public:
 	 * Draws an image frame at a given position within this surface with transparency
 	 */
 	void transBlitFrom(const ImageFrame &src, const Common::Point &pt,
-		bool flipped = false, int overrideColor = 0);
+		bool flipped = false, int overrideColor = 0, int scaleVal = 256);
 	
 	/**
 	* Draws a surface at a given position within this surface with transparency
 	*/
 	void transBlitFrom(const Surface &src, const Common::Point &pt,
-		bool flipped = false, int overrideColor = 0);
+		bool flipped = false, int overrideColor = 0, int scaleVal = 256);
 
 	/**
 	 * Draws a surface at a given position within this surface with transparency
 	 */
 	void transBlitFrom(const Graphics::Surface &src, const Common::Point &pt,
-		bool flipped = false, int overrideColor = 0);
+		bool flipped = false, int overrideColor = 0, int scaleVal = 256);
 
 	/**
 	 * Fill a given area of the surface with a given color
@@ -126,8 +140,12 @@ public:
 	 */
 	void fillRect(const Common::Rect &r, byte color);
 
+	void fill(uint16 color);
+
+	void maskArea(const ImageFrame &src, const Common::Point &pt, int scrollX);
+
 	/**
-	 * Clear the screen
+	 * Clear the surface
 	 */
 	void clear();
 
@@ -137,9 +155,20 @@ public:
 	void free();
 
 	/**
+	 * Returns true if the surface is empty
+	 */
+	bool empty() const { return _surface.getPixels() == nullptr; }
+
+	/**
 	 * Set the pixels for the surface to an existing data block
 	 */
-	void setPixels(byte *pixels, int width, int height);
+	void setPixels(byte *pixels, int width, int height, Graphics::PixelFormat format);
+
+	/**
+	 * Draws the given string into the back buffer using the images stored in _font
+	 */
+	virtual void writeString(const Common::String &str, const Common::Point &pt, byte overrideColor);
+	void writeFancyString(const Common::String &str, const Common::Point &pt, byte overrideColor1, byte overrideColor2);
 
 	inline uint16 w() const { return _surface.w; }
 	inline uint16 h() const { return _surface.h; }

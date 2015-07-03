@@ -27,6 +27,12 @@
 #include "agos/agos.h"
 #include "agos/midi.h"
 
+#include "agos/drivers/accolade/mididriver.h"
+// Miles Audio for Simon 2
+#include "audio/miles.h"
+
+#include "gui/message.h"
+
 namespace AGOS {
 
 
@@ -42,6 +48,8 @@ MidiPlayer::MidiPlayer() {
 	_driver = 0;
 	_map_mt32_to_gm = false;
 
+	_adlibPatches = NULL;
+
 	_enable_sfx = true;
 	_current = 0;
 
@@ -55,6 +63,8 @@ MidiPlayer::MidiPlayer() {
 	_loopTrackDefault = false;
 	_queuedTrack = 255;
 	_loopQueuedTrack = 0;
+
+	_musicMode = kMusicModeDisabled;
 }
 
 MidiPlayer::~MidiPlayer() {
@@ -68,14 +78,141 @@ MidiPlayer::~MidiPlayer() {
 	}
 	_driver = NULL;
 	clearConstructs();
+	unloadAdlibPatches();
 }
 
-int MidiPlayer::open(int gameType) {
+int MidiPlayer::open(int gameType, bool isDemo) {
 	// Don't call open() twice!
 	assert(!_driver);
 
-	// Setup midi driver
-	MidiDriver::DeviceHandle dev = MidiDriver::detectDevice(MDT_ADLIB | MDT_MIDI | (gameType == GType_SIMON1 ? MDT_PREFER_MT32 : MDT_PREFER_GM));
+	Common::String accoladeDriverFilename;
+	MusicType musicType = MT_INVALID;
+
+	switch (gameType) {
+	case GType_ELVIRA1:
+		_musicMode = kMusicModeAccolade;
+		accoladeDriverFilename = "INSTR.DAT";
+		break;
+	case GType_ELVIRA2:
+	case GType_WW:
+		// Attention: Elvira 2 shipped with INSTR.DAT and MUSIC.DRV
+		// MUSIC.DRV is the correct one. INSTR.DAT seems to be a left-over
+		_musicMode = kMusicModeAccolade;
+		accoladeDriverFilename = "MUSIC.DRV";
+		break;
+	case GType_SIMON1:
+		if (isDemo) {
+			_musicMode = kMusicModeAccolade;
+			accoladeDriverFilename = "MUSIC.DRV";
+		}
+		break;
+	case GType_SIMON2:
+		//_musicMode = kMusicModeMilesAudio;
+		// currently disabled, because there are a few issues
+		// MT32 seems to work fine now, AdLib seems to use bad instruments and is also outputting music on
+		// the right speaker only. The original driver did initialize the panning to 0 and the Simon2 XMIDI
+		// tracks don't set panning at all. We can reset panning to be centered, which would solve this
+		// issue, but we still don't know who's setting it in the original interpreter.
+		break;
+	default:
+		break;
+	}
+
+	MidiDriver::DeviceHandle dev;
+	int ret = 0;
+
+	if (_musicMode != kMusicModeDisabled) {
+		dev = MidiDriver::detectDevice(MDT_MIDI | MDT_ADLIB | MDT_PREFER_MT32);
+		musicType = MidiDriver::getMusicType(dev);
+
+		switch (musicType) {
+		case MT_ADLIB:
+		case MT_MT32:
+			break;
+		case MT_GM:
+			if (!ConfMan.getBool("native_mt32")) {
+				// Not a real MT32 / no MUNT
+				::GUI::MessageDialog dialog(("You appear to be using a General MIDI device,\n"
+											"but your game only supports Roland MT32 MIDI.\n"
+											"We try to map the Roland MT32 instruments to\n"
+											"General MIDI ones. It is still possible that\n"
+											"some tracks sound incorrect."));
+				dialog.runModal();
+			}
+			// Switch to MT32 driver in any case
+			musicType = MT_MT32;
+			break;
+		default:
+			_musicMode = kMusicModeDisabled;
+			break;
+		}
+	}
+
+	switch (_musicMode) {
+	case kMusicModeAccolade: {
+		// Setup midi driver
+		switch (musicType) {
+		case MT_ADLIB:
+			_driver = MidiDriver_Accolade_AdLib_create(accoladeDriverFilename);
+			break;
+		case MT_MT32:
+			_driver = MidiDriver_Accolade_MT32_create(accoladeDriverFilename);
+			break;
+		default:
+			assert(0);
+			break;
+		}
+		if (!_driver)
+			return 255;
+
+		ret = _driver->open();
+		if (ret == 0) {
+			// Reset is done inside our MIDI driver
+			_driver->setTimerCallback(this, &onTimer);
+		}
+
+		//setTimerRate(_driver->getBaseTempo());
+		return 0;
+	}
+	
+	case kMusicModeMilesAudio: {
+		switch (musicType) {
+		case MT_ADLIB: {
+			_driver = Audio::MidiDriver_Miles_AdLib_create("MIDPAK.AD", "MIDPAK.AD");
+			// TODO: not sure what's going wrong with AdLib
+			// it doesn't seem to matter if we use the regular XMIDI tracks or the 2nd set meant for MT32
+			break;
+		}
+		case MT_MT32:
+			_driver = Audio::MidiDriver_Miles_MT32_create("");
+			_nativeMT32 = true; // use 2nd set of XMIDI tracks
+			break;
+		case MT_GM:
+			if (ConfMan.getBool("native_mt32")) {
+				_driver = Audio::MidiDriver_Miles_MT32_create("");
+				_nativeMT32 = true; // use 2nd set of XMIDI tracks
+			}
+			break;
+
+		default:
+			break;
+		}
+		if (!_driver)
+			return 255;
+
+		ret = _driver->open();
+		if (ret == 0) {
+			// Reset is done inside our MIDI driver
+			_driver->setTimerCallback(this, &onTimer);
+		}
+		return 0;
+	}
+
+	default:
+		break;
+	}
+
+	dev = MidiDriver::detectDevice(MDT_ADLIB | MDT_MIDI | (gameType == GType_SIMON1 ? MDT_PREFER_MT32 : MDT_PREFER_GM));
 	_nativeMT32 = ((MidiDriver::getMusicType(dev) == MT_MT32) || ConfMan.getBool("native_mt32"));
 
 	_driver = MidiDriver::createMidi(dev);
@@ -85,9 +222,15 @@ int MidiPlayer::open(int gameType) {
 	if (_nativeMT32)
 		_driver->property(MidiDriver::PROP_CHANNEL_MASK, 0x03FE);
 
+	/* Disabled due to not sounding right, and low volume level
+	if (gameType == GType_SIMON1 && MidiDriver::getMusicType(dev) == MT_ADLIB) {
+			loadAdlibPatches();
+	}
+	*/
+
 	_map_mt32_to_gm = (gameType != GType_SIMON2 && !_nativeMT32);
 
-	int ret = _driver->open();
+	ret = _driver->open();
 	if (ret)
 		return ret;
 	_driver->setTimerCallback(this, &onTimer);
@@ -104,6 +247,12 @@ void MidiPlayer::send(uint32 b) {
 	if (!_current)
 		return;
 
+	if (_musicMode != kMusicModeDisabled) {
+		// Send directly to Accolade/Miles Audio driver
+		_driver->send(b);
+		return;
+	}
+
 	byte channel = (byte)(b & 0x0F);
 	if ((b & 0xFFF0) == 0x07B0) {
 		// Adjust volume changes by master music and master sfx volume.
@@ -114,8 +263,10 @@ void MidiPlayer::send(uint32 b) {
 		else if (_current == &_music)
 			volume = volume * _musicVolume / 255;
 		b = (b & 0xFF00FFFF) | (volume << 16);
-	} else if ((b & 0xF0) == 0xC0 && _map_mt32_to_gm) {
-		b = (b & 0xFFFF00FF) | (MidiDriver::_mt32ToGm[(b >> 8) & 0xFF] << 8);
+	} else if ((b & 0xF0) == 0xC0) {
+		if (_map_mt32_to_gm && !_adlibPatches) {
+			b = (b & 0xFFFF00FF) | (MidiDriver::_mt32ToGm[(b >> 8) & 0xFF] << 8);
+		}
 	} else if ((b & 0xFFF0) == 0x007BB0) {
 		// Only respond to an All Notes Off if this channel
 		// has already been allocated.
@@ -135,8 +286,10 @@ void MidiPlayer::send(uint32 b) {
 		_current->volume[channel] = 127;
 	}
 
+	// Allocate channels if needed
 	if (!_current->channel[channel])
 		_current->channel[channel] = (channel == 9) ? _driver->getPercussionChannel() : _driver->allocateChannel();
+
 	if (_current->channel[channel]) {
 		if (channel == 9) {
 			if (_current == &_sfx)
@@ -144,7 +297,16 @@ void MidiPlayer::send(uint32 b) {
 			else if (_current == &_music)
 				_current->channel[9]->volume(_current->volume[9] * _musicVolume / 255);
 		}
-		_current->channel[channel]->send(b);
+
+		if ((b & 0xF0) == 0xC0 && _adlibPatches) {
+			// NOTE: In the percussion channel, this function is a
+			//       no-op. Any percussion instruments you hear may
+			//       be the stock ones from adlib.cpp.
+			_driver->sysEx_customInstrument(_current->channel[channel]->getNumber(), 'ADL ', _adlibPatches + 30 * ((b >> 8) & 0xFF));
+		} else {
+			_current->channel[channel]->send(b);
+		}
+
 		if ((b & 0xFFF0) == 0x79B0) {
 			// We have received a "Reset All Controllers" message
 			// and passed it on to the MIDI driver. This may or may
@@ -353,6 +515,47 @@ void MidiPlayer::resetVolumeTable() {
 		if (_driver)
 			_driver->send(((_musicVolume >> 1) << 16) | 0x7B0 | i);
 	}
+}
+
+void MidiPlayer::loadAdlibPatches() {
+	Common::File ibk;
+
+	if (!ibk.open("mt_fm.ibk"))
+		return;
+
+	if (ibk.readUint32BE() == 0x49424b1a) {
+		_adlibPatches = new byte[128 * 30];
+		byte *ptr = _adlibPatches;
+
+		memset(_adlibPatches, 0, 128 * 30);
+
+		for (int i = 0; i < 128; i++) {
+			byte instr[16];
+
+			ibk.read(instr, 16);
+
+			ptr[0] = instr[0];   // Modulator Sound Characteristics
+			ptr[1] = instr[2];   // Modulator Scaling/Output Level
+			ptr[2] = ~instr[4];  // Modulator Attack/Decay
+			ptr[3] = ~instr[6];  // Modulator Sustain/Release
+			ptr[4] = instr[8];   // Modulator Wave Select
+			ptr[5] = instr[1];   // Carrier Sound Characteristics
+			ptr[6] = instr[3];   // Carrier Scaling/Output Level
+			ptr[7] = ~instr[5];  // Carrier Attack/Delay
+			ptr[8] = ~instr[7];  // Carrier Sustain/Release
+			ptr[9] = instr[9];   // Carrier Wave Select
+			ptr[10] = instr[10]; // Feedback/Connection
+
+			// The remaining six bytes are reserved for future use
+
+			ptr += 30;
+		}
+	}
+}
+
+void MidiPlayer::unloadAdlibPatches() {
+	delete[] _adlibPatches;
+	_adlibPatches = NULL;
 }
 
 static const int simon1_gmf_size[] = {

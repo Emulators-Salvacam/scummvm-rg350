@@ -27,6 +27,8 @@
 #include "common/algorithm.h"
 #include "audio/mixer.h"
 #include "audio/decoders/raw.h"
+#include "audio/decoders/aiff.h"
+#include "audio/decoders/wave.h"
 
 namespace Sherlock {
 
@@ -57,18 +59,31 @@ Sound::Sound(SherlockEngine *vm, Audio::Mixer *mixer) : _vm(vm), _mixer(mixer) {
 	_soundPlaying = false;
 	_soundIsOn = &_soundPlaying;
 	_curPriority = 0;
+	_digiBuf = nullptr;
 
 	_soundOn = true;
 	_speechOn = true;
 
+	if (IS_3DO) {
+		// 3DO: we don't need to prepare anything for sound
+		return;
+	}
+
+	_vm->_res->addToCache("MUSIC.LIB");
 	if (!_vm->_interactiveFl)
 		_vm->_res->addToCache("TITLE.SND");
 	else {
-		_vm->_res->addToCache("SND.SND");
+		_vm->_res->addToCache("MUSIC.LIB");
+		
+		if (IS_ROSE_TATTOO) {
+			_vm->_res->addToCache("SOUND.LIB");
+		} else {
+			_vm->_res->addToCache("SND.SND");
 
-		if (!_vm->isDemo()) {
-			_vm->_res->addToCache("TITLE.SND");
-			_vm->_res->addToCache("EPILOGUE.SND");
+			if (!_vm->isDemo()) {
+				_vm->_res->addToCache("TITLE.SND");
+				_vm->_res->addToCache("EPILOGUE.SND");
+			}
 		}
 	}
 }
@@ -80,7 +95,7 @@ void Sound::syncSoundSettings() {
 
 void Sound::loadSound(const Common::String &name, int priority) {
 	// No implementation required in ScummVM
-	warning("loadSound");
+	//warning("loadSound");
 }
 
 byte Sound::decodeSample(byte sample, byte &reference, int16 &scale) {
@@ -110,49 +125,75 @@ bool Sound::playSound(const Common::String &name, WaitType waitType, int priorit
 	stopSound();
 
 	Common::String filename = name;
-	if (!filename.contains('.'))
-		filename += ".SND";
+	if (!filename.contains('.')) {
+		if (!IS_3DO) {
+			if (IS_SERRATED_SCALPEL) {
+				filename += ".SND";
+			} else {
+				filename += ".WAV";
+			}
+		} else {
+			// 3DO uses .aiff extension
+			filename += ".AIFF";
+			if (!filename.contains('/')) {
+				// if no directory was given, use the room sounds directory
+				filename = "rooms/sounds/" + filename;
+			}
+		}
+	}
 
 	Common::String libFilename(libraryFilename);
 	Common::SeekableReadStream *stream = libFilename.empty() ? res.load(filename) : res.load(filename, libFilename);
 
-	if (!stream)
-		error("Unable to find sound file '%s'", filename.c_str());
+	Audio::AudioStream *audioStream;
 
-	stream->skip(2);
-	int size = stream->readUint32BE();
-	int rate = stream->readUint16BE();
-	byte *data = (byte *)malloc(size);
-	byte *ptr = data;
-	stream->read(ptr, size);
+	if (!IS_3DO) {
+		if (IS_SERRATED_SCALPEL) {
+			stream->skip(2);
+			int size = stream->readUint32BE();
+			int rate = stream->readUint16BE();
+			byte *data = (byte *)malloc(size);
+			byte *ptr = data;
+			stream->read(ptr, size);
+			delete stream;
 
-	assert(size > 2);
+			assert(size > 2);
 
-	byte *decoded = (byte *)malloc((size - 1) * 2);
+			byte *decoded = (byte *)malloc((size - 1) * 2);
 
-	// Holmes uses Creative ADPCM 4-bit data
-	int counter = 0;
-	byte reference = ptr[0];
-	int16 scale = 0;
+			// Holmes uses Creative ADPCM 4-bit data
+			int counter = 0;
+			byte reference = ptr[0];
+			int16 scale = 0;
 
-	for(int i = 1; i < size; i++) {
-		decoded[counter++] = decodeSample((ptr[i]>>4)&0x0f, reference, scale);
-		decoded[counter++] = decodeSample((ptr[i]>>0)&0x0f, reference, scale);
-	}
+			for(int i = 1; i < size; i++) {
+				decoded[counter++] = decodeSample((ptr[i]>>4)&0x0f, reference, scale);
+				decoded[counter++] = decodeSample((ptr[i]>>0)&0x0f, reference, scale);
+			}
 
-	free(data);
+			free(data);
 
 #if 0
-	// Debug : used to dump files
-	Common::DumpFile outFile;
-	outFile.open(filename);
-	outFile.write(decoded, (size - 2) * 2);
-	outFile.flush();
-	outFile.close();
+			// Debug : used to dump files
+			Common::DumpFile outFile;
+			outFile.open(filename);
+			outFile.write(decoded, (size - 2) * 2);
+			outFile.flush();
+			outFile.close();
 #endif
 
-	Audio::AudioStream *audioStream = Audio::makeRawStream(decoded, (size - 2) * 2, rate, Audio::FLAG_UNSIGNED, DisposeAfterUse::YES);
-	_mixer->playStream(Audio::Mixer::kPlainSoundType, &_effectsHandle, audioStream, -1,  Audio::Mixer::kMaxChannelVolume);
+			audioStream = Audio::makeRawStream(decoded, (size - 2) * 2, rate, Audio::FLAG_UNSIGNED, DisposeAfterUse::YES);
+		} else {
+			audioStream = Audio::makeWAVStream(stream, DisposeAfterUse::YES);
+		}
+	} else {
+		// 3DO: AIFF file
+		audioStream = Audio::makeAIFFStream(stream, DisposeAfterUse::YES);
+	}
+
+	Audio::SoundHandle effectsHandle = (IS_SERRATED_SCALPEL) ? _scalpelEffectsHandle : getFreeSoundHandle();
+
+	_mixer->playStream(Audio::Mixer::kPlainSoundType, &effectsHandle, audioStream, -1,  Audio::Mixer::kMaxChannelVolume);
 	_soundPlaying = true;
 	_curPriority = priority;
 
@@ -169,22 +210,23 @@ bool Sound::playSound(const Common::String &name, WaitType waitType, int priorit
 			retval = false;
 			break;
 		}
-	} while (!_vm->shouldQuit() && _mixer->isSoundHandleActive(_effectsHandle));
+	} while (!_vm->shouldQuit() && _mixer->isSoundHandleActive(effectsHandle));
 
 	_soundPlaying = false;
-	_mixer->stopHandle(_effectsHandle);
+	_mixer->stopHandle(effectsHandle);
 
 	return retval;
 }
 
 void Sound::playLoadedSound(int bufNum, WaitType waitType) {
-	if (_mixer->isSoundHandleActive(_effectsHandle) && (_curPriority > _vm->_scene->_sounds[bufNum]._priority))
-		return;
+	if (IS_SERRATED_SCALPEL) {
+		if (_mixer->isSoundHandleActive(_scalpelEffectsHandle) && (_curPriority > _vm->_scene->_sounds[bufNum]._priority))
+			return;
 
-	stopSound();
+		stopSound();
+	}
+
 	playSound(_vm->_scene->_sounds[bufNum]._name, waitType, _vm->_scene->_sounds[bufNum]._priority);
-
-	return;
 }
 
 void Sound::freeLoadedSounds() {
@@ -194,7 +236,12 @@ void Sound::freeLoadedSounds() {
 }
 
 void Sound::stopSound() {
-	_mixer->stopHandle(_effectsHandle);
+	if (IS_SERRATED_SCALPEL) {
+		_mixer->stopHandle(_scalpelEffectsHandle);
+	} else {
+		for (int i = 0; i < MAX_MIXER_CHANNELS; i++)
+			_mixer->stopHandle(_tattooEffectsHandle[i]);
+	}
 }
 
 void Sound::stopSndFuncPtr(int v1, int v2) {
@@ -207,6 +254,15 @@ void Sound::freeDigiSound() {
 	_digiBuf = nullptr;
 	_diskSoundPlaying = false;
 	_soundPlaying = false;
+}
+
+Audio::SoundHandle Sound::getFreeSoundHandle() {
+	for (int i = 0; i < MAX_MIXER_CHANNELS; i++) {
+		if (!_mixer->isSoundHandleActive(_tattooEffectsHandle[i]))
+			return _tattooEffectsHandle[i];
+	}
+
+	error("getFreeSoundHandle: No sound handle found");
 }
 
 } // End of namespace Sherlock

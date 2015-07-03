@@ -33,6 +33,12 @@ class File;
 
 namespace AGOS {
 
+enum kMusicMode {
+	kMusicModeDisabled = 0,
+	kMusicModeAccolade = 1,
+	kMusicModeMilesAudio
+};
+
 struct MusicInfo {
 	MidiParser *parser;
 	byte *data;
@@ -77,11 +83,15 @@ protected:
 	byte _queuedTrack;
 	bool _loopQueuedTrack;
 
+	byte *_adlibPatches;
+
 protected:
 	static void onTimer(void *data);
 	void clearConstructs();
 	void clearConstructs(MusicInfo &info);
 	void resetVolumeTable();
+	void loadAdlibPatches();
+	void unloadAdlibPatches();
 
 public:
 	bool _enable_sfx;
@@ -109,12 +119,14 @@ public:
 	void setVolume(int musicVol, int sfxVol);
 
 public:
-	int open(int gameType);
+	int open(int gameType, bool isDemo);
 
 	// MidiDriver_BASE interface implementation
 	virtual void send(uint32 b);
 	virtual void metaEvent(byte type, byte *data, uint16 length);
 
+private:
+	kMusicMode _musicMode;
 };
 
 } // End of namespace AGOS

@@ -35,6 +35,7 @@
 #include "sherlock/animation.h"
 #include "sherlock/debugger.h"
 #include "sherlock/events.h"
+#include "sherlock/fixed_text.h"
 #include "sherlock/inventory.h"
 #include "sherlock/journal.h"
 #include "sherlock/map.h"
@@ -51,7 +52,10 @@
 namespace Sherlock {
 
 enum {
-	kDebugScript = 1 << 0
+	kDebugLevelScript      = 1 << 0,
+	kDebugLevelAdLibDriver = 2 << 0,
+	kDebugLevelMT32Driver  = 3 << 0,
+	kDebugLevelMusic       = 4 << 0
 };
 
 enum GameType {
@@ -59,9 +63,13 @@ enum GameType {
 	GType_RoseTattoo = 1
 };
 
-#define SHERLOCK_SCREEN_WIDTH 320
-#define SHERLOCK_SCREEN_HEIGHT 200
-#define SHERLOCK_SCENE_HEIGHT 138
+#define SHERLOCK_SCREEN_WIDTH _vm->_screen->w()
+#define SHERLOCK_SCREEN_HEIGHT _vm->_screen->h()
+#define SHERLOCK_SCENE_HEIGHT (IS_SERRATED_SCALPEL ? 138 : 480)
+#define SCENES_COUNT (IS_SERRATED_SCALPEL ? 63 : 101)
+
+#define COL_INFO_FOREGROUND (IS_SERRATED_SCALPEL ? (byte)Scalpel::INFO_FOREGROUND : (byte)Tattoo::INFO_FOREGROUND)
+#define COL_PEN_COLOR (IS_SERRATED_SCALPEL ? (byte)Scalpel::PEN_COLOR : (byte)Tattoo::PEN_COLOR)
 
 struct SherlockGameDescription;
 
@@ -102,6 +110,7 @@ public:
 	Animation *_animation;
 	Debugger *_debugger;
 	Events *_events;
+	FixedText *_fixedText;
 	Inventory *_inventory;
 	Journal *_journal;
 	Map *_map;
@@ -171,6 +180,11 @@ public:
 	Common::Platform getPlatform() const;
 
 	/**
+	 * Return the game's language
+	 */
+	Common::Language getLanguage() const;
+
+	/**
 	 * Return a random number
 	 */
 	int getRandomNumber(int limit) { return _randomSource.getRandomNumber(limit - 1); }
@@ -189,6 +203,12 @@ public:
 	void setFlags(int flagNum);
 
 	/**
+	 * Set a global flag to 0 or 1 depending on whether the passed flag is negative or positive.
+	 * @remarks		We don't use the global setFlags method because we don't want to check scene flags
+	 */
+	void setFlagsDirect(int flagNum);
+
+	/**
 	 * Saves game configuration information
 	 */
 	void saveConfig();
@@ -196,8 +216,12 @@ public:
 	/**
 	 * Synchronize the data for a savegame
 	 */
-	void synchronize(Common::Serializer &s);
+	void synchronize(Serializer &s);
 };
+
+#define IS_ROSE_TATTOO (_vm->getGameID() == GType_RoseTattoo)
+#define IS_SERRATED_SCALPEL (_vm->getGameID() == GType_SerratedScalpel)
+#define IS_3DO (_vm->getPlatform() == Common::kPlatform3DO)
 
 } // End of namespace Sherlock
 

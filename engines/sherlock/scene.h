@@ -29,10 +29,10 @@
 #include "common/serializer.h"
 #include "sherlock/objects.h"
 #include "sherlock/resources.h"
+#include "sherlock/screen.h"
 
 namespace Sherlock {
 
-#define SCENES_COUNT 63
 #define MAX_ZONES	40
 #define INFO_LINE	140
 
@@ -44,12 +44,23 @@ struct BgFileHeader {
 	int _numcAnimations;
 	int _descSize;
 	int _seqSize;
+
+	// Serrated Scalpel
 	int _fill;
+
+	// Rose Tattoo
+	int _scrollSize;
+	int _bytesWritten;				// Size of the main body of the RRM
+	int _fadeStyle;					// Fade style
+	byte _palette[PALETTE_SIZE];	// Palette
+
+
+	BgFileHeader();
 
 	/**
 	 * Load the data for the object
 	 */
-	void load(Common::SeekableReadStream &s);
+	void load(Common::SeekableReadStream &s, bool isRoseTattoo);
 };
 
 struct BgFileHeaderInfo {
@@ -61,20 +72,24 @@ struct BgFileHeaderInfo {
 	 * Load the data for the object
 	 */
 	void load(Common::SeekableReadStream &s);
+	void load3DO(Common::SeekableReadStream &s);
 };
 
-struct Exit {
-	Common::Rect _bounds;
-
+class Exit: public Common::Rect {
+public:
 	int _scene;
 	int _allow;
-	Common::Point _people;
-	int _peopleDir;
+	Common::Point _newPosition;
+	int _newFacing;
+
+	Common::String _dest;
+	int _image;					// Arrow image to use
 
 	/**
 	 * Load the data for the object
 	 */
-	void load(Common::SeekableReadStream &s);
+	void load(Common::SeekableReadStream &s, bool isRoseTattoo);
+	void load3DO(Common::SeekableReadStream &s);
 };
 
 struct SceneEntry {
@@ -86,6 +101,7 @@ struct SceneEntry {
 	 * Load the data for the object
 	 */
 	void load(Common::SeekableReadStream &s);
+	void load3DO(Common::SeekableReadStream &s);
 };
 
 struct SceneSound {
@@ -96,6 +112,7 @@ struct SceneSound {
 	 * Load the data for the object
 	 */
 	void load(Common::SeekableReadStream &s);
+	void load3DO(Common::SeekableReadStream &s);
 };
 
 class ObjectArray : public Common::Array<Object> {
@@ -106,22 +123,35 @@ public:
 	int indexOf(const Object &obj) const;
 };
 
+class ScaleZone: public Common::Rect {
+public:
+	int _topNumber;		// Numerator of scale size at the top of the zone
+	int _bottomNumber;	// Numerator of scale size at the bottom of the zone
+
+	void load(Common::SeekableReadStream &s);
+};
+
+class WalkArray : public Common::Array < Common::Point > {
+public:
+	int _pointsCount;
+	int _fileOffset;
+
+	WalkArray() : _pointsCount(0), _fileOffset(-1) {}
+
+	/**
+	 * Load data for the walk array entry
+	 */
+	void load(Common::SeekableReadStream &s, bool isRoseTattoo);
+};
+
 class Scene {
 private:
-	SherlockEngine *_vm;
-	Common::String _rrmName;
 	bool _loadingSavedGame;
 
 	/**
-	 * Loads the data associated for a given scene. The .BGD file's format is:
-	 * BGHEADER: Holds an index for the rest of the file
-	 * STRUCTS:  The objects for the scene
-	 * IMAGES:   The graphic information for the structures
-	 *
-	 * The _misc field of the structures contains the number of the graphic image
-	 * that it should point to after loading; _misc is then set to 0.
+	 * Loads sounds for the scene
 	 */
-	bool loadScene(const Common::String &filename);
+	void loadSceneSounds();
 
 	/**
 	 * Set objects to their current persistent state. This includes things such as
@@ -143,25 +173,50 @@ private:
 	void transitionToScene();
 
 	/**
-	 * Checks all the background shapes. If a background shape is animating,
-	 * it will flag it as needing to be drawn. If a non-animating shape is
-	 * colliding with another shape, it will also flag it as needing drawing
-	 */
-	void checkBgShapes(ImageFrame *frame, const Common::Point &pt);
-
-	/**
 	 * Restores objects to the correct status. This ensures that things like being opened or moved
 	 * will remain the same on future visits to the scene
 	 */
 	void saveSceneStatus();
+protected:
+	SherlockEngine *_vm;
+	Common::String _roomFilename;
+
+	/**
+	 * Loads the data associated for a given scene. The room resource file's format is:
+	 * BGHEADER: Holds an index for the rest of the file
+	 * STRUCTS:  The objects for the scene
+	 * IMAGES:   The graphic information for the structures
+	 *
+	 * The _misc field of the structures contains the number of the graphic image
+	 * that it should point to after loading; _misc is then set to 0.
+	 */
+	virtual bool loadScene(const Common::String &filename);
+
+	/**
+	 * Checks all the background shapes. If a background shape is animating,
+	 * it will flag it as needing to be drawn. If a non-animating shape is
+	 * colliding with another shape, it will also flag it as needing drawing
+	 */
+	virtual void checkBgShapes();
+
+	/**
+	 * Draw all the shapes, people and NPCs in the correct order
+	 */
+	virtual void drawAllShapes() = 0;
+
+	/**
+	 * Called by loadScene when the palette is loaded for Rose Tattoo
+	 */
+	virtual void paletteLoaded() {}
+
+	Scene(SherlockEngine *vm);
 public:
 	int _currentScene;
 	int _goToScene;
-	bool _sceneStats[SCENES_COUNT][65];
-	bool _savedStats[SCENES_COUNT][9];
+	bool **_sceneStats;
 	bool _walkedInScene;
 	int _version;
-	bool _lzwMode;
+	bool _compressed;
 	int _invGraphicItems;
 	Common::String _comments;
 	Common::Array<char> _descText;
@@ -171,19 +226,22 @@ public:
 	Common::Array<byte> _sequenceBuffer;
 	Common::Array<SceneImage> _images;
 	int _walkDirectory[MAX_ZONES][MAX_ZONES];
-	Common::Array<byte> _walkData;
+	Common::Array<WalkArray> _walkPoints;
 	Common::Array<Exit> _exits;
+	int _exitZone;
 	SceneEntry _entrance;
 	Common::Array<SceneSound> _sounds;
 	ObjectArray _canimShapes;
+	Common::Array<ScaleZone> _scaleZones;
+	Common::StringArray _objSoundList;
 	bool _restoreFlag;
 	int _animating;
 	bool _doBgAnimDone;
 	int _tempFadeStyle;
 	int _cAnimFramePause;
 public:
-	Scene(SherlockEngine *vm);
-	~Scene();
+	static Scene *init(SherlockEngine *vm);
+	virtual ~Scene();
 
 	/**
 	 * Handles loading the scene specified by _goToScene
@@ -208,31 +266,22 @@ public:
 	Exit *checkForExit(const Common::Rect &r);
 
 	/**
-	 * Attempt to start a canimation sequence. It will load the requisite graphics, and
-	 * then copy the canim object into the _canimShapes array to start the animation.
-	 *
-	 * @param cAnimNum		The canim object within the current scene
-	 * @param playRate		Play rate. 0 is invalid; 1=normal speed, 2=1/2 speed, etc.
-	 *		A negative playRate can also be specified to play the animation in reverse
-	 */
-	int startCAnim(int cAnimNum, int playRate);
-
-	/**
 	 * Scans through the object list to find one with a matching name, and will
 	 * call toggleHidden with all matches found. Returns the numer of matches found
 	 */
 	int toggleObject(const Common::String &name);
 
 	/**
-	 * Animate all objects and people.
+	 * Attempts to find a background shape within the passed bounds. If found,
+	 * it will return the shape number, or -1 on failure.
 	 */
-	void doBgAnim();
+	int findBgShape(const Common::Rect &r);
 
 	/**
 	 * Attempts to find a background shape within the passed bounds. If found,
 	 * it will return the shape number, or -1 on failure.
 	 */
-	int findBgShape(const Common::Rect &r);
+	int findBgShape(const Common::Point &pt);
 
 	/**
 	 * Checks to see if the given position in the scene belongs to a given zone type.
@@ -248,18 +297,33 @@ public:
 	/**
 	 * Returns the index of the closest zone to a given point.
 	 */
-	int closestZone(const Common::Point &pt);
+	virtual int closestZone(const Common::Point &pt) = 0;
+
+	/**
+	 * Synchronize the data for a savegame
+	 */
+	virtual void synchronize(Serializer &s);
+public:
+	/**
+	 * Draw all objects and characters.
+	 */
+	virtual void doBgAnim() = 0;
 
 	/**
 	 * Update the screen back buffer with all of the scene objects which need
 	 * to be drawn
 	 */
-	void updateBackground();
+	virtual void updateBackground();
 
 	/**
-	 * Synchronize the data for a savegame
+	 * Attempt to start a canimation sequence. It will load the requisite graphics, and
+	 * then copy the canim object into the _canimShapes array to start the animation.
+	 *
+	 * @param cAnimNum		The canim object within the current scene
+	 * @param playRate		Play rate. 0 is invalid; 1=normal speed, 2=1/2 speed, etc.
+	 *		A negative playRate can also be specified to play the animation in reverse
 	 */
-	void synchronize(Common::Serializer &s);
+	virtual int startCAnim(int cAnimNum, int playRate = 1) = 0;
 };
 
 } // End of namespace Sherlock
