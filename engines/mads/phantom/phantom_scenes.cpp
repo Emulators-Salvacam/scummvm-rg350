@@ -28,6 +28,7 @@
 #include "mads/scene.h"
 #include "mads/phantom/game_phantom.h"
 #include "mads/phantom/phantom_scenes.h"
+#include "mads/phantom/phantom_scenes1.h"
 
 namespace MADS {
 
@@ -42,9 +43,9 @@ SceneLogic *SceneFactory::createScene(MADSEngine *vm) {
 	switch (scene._nextSceneId) {
 	// Scene group #1 (theater, stage and dressing rooms)
 	case 101:	// seats
-		return new DummyScene(vm);	// TODO
+		return new Scene101(vm);
 	case 102:	// music stands
-		return new DummyScene(vm);	// TODO
+		return new Scene102(vm);
 	case 103:	// below stage
 		return new DummyScene(vm);	// TODO
 	case 104:	// stage
@@ -169,6 +170,10 @@ Common::String PhantomScene::formAnimName(char sepChar, int suffixNum) {
 /*------------------------------------------------------------------------*/
 
 void SceneInfoPhantom::loadCodes(MSurface &depthSurface, int variant) {
+	// The intro scenes do not have any codes
+	if (_sceneId >= 900)
+		return;
+
 	Common::String ext = Common::String::format(".WW%d", variant);
 	File f(Resources::formatName(RESPREFIX_RM, _sceneId, ext));
 	MadsPack codesPack(&f);

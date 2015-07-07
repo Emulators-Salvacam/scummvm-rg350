@@ -42,6 +42,7 @@ protected:
 	Common::Rect _oldBounds;
 	Surface _surface;
 	bool _outsideMenu;
+	bool _scroll;
 
 	/**
 	 * Used by descendent classes to split up long text for display across multiple lines
@@ -51,7 +52,7 @@ protected:
 	/**
 	 * Ensure that menu is drawn entirely on-screen
 	 */
-	void checkMenuPosition();
+	void restrictToScreen();
 
 	/**
 	 * Draw a window frame around the dges of the passed surface
@@ -64,9 +65,14 @@ protected:
 	void makeInfoArea();
 
 	/**
-	 * Returns the current scroll position
+	 * Draw the scrollbar for the dialog
 	 */
-	virtual const Common::Point &getCurrentScroll() const;
+	void drawScrollBar(int index, int pageSize, int count);
+
+	/**
+	 * Handles any events when the mouse is on the scrollbar
+	 */
+	void handleScrollbarEvents(int index, int pageSize, int count);
 
 	/**
 	 * Handle drawing the background on the area the widget is going to cover

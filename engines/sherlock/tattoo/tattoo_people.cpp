@@ -23,6 +23,7 @@
 #include "sherlock/tattoo/tattoo_people.h"
 #include "sherlock/tattoo/tattoo_scene.h"
 #include "sherlock/tattoo/tattoo_talk.h"
+#include "sherlock/tattoo/tattoo_user_interface.h"
 #include "sherlock/tattoo/tattoo.h"
 
 namespace Sherlock {
@@ -131,6 +132,7 @@ void TattooPerson::freeAltGraphics() {
 void TattooPerson::adjustSprite() {
 	People &people = *_vm->_people;
 	TattooScene &scene = *(TattooScene *)_vm->_scene;
+	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
 
 	if (_type == INVALID)
 		return;
@@ -192,13 +194,17 @@ void TattooPerson::adjustSprite() {
 
 	// See if the player has come to a stop after clicking on an Arrow zone to leave the scene.
 	// If so, this will set up the exit information for the scene transition
-	if (!_walkCount && scene._exitZone != -1 && scene._walkedInScene && scene._goToScene != -1 &&
+	if (!_walkCount && ui._exitZone != -1 && scene._walkedInScene && scene._goToScene == -1 &&
 			!_description.compareToIgnoreCase(people[HOLMES]._description)) { 
-		people._hSavedPos = scene._exits[scene._exitZone]._newPosition;
-		people._hSavedFacing = scene._exits[scene._exitZone]._newFacing;
+		Exit &exit = scene._exits[ui._exitZone];
+		scene._goToScene = exit._scene;
 
-		if (people._hSavedFacing > 100 && people._hSavedPos.x < 1)
-			people._hSavedPos.x = 100;
+		if (exit._newPosition.x != 0) {
+			people._savedPos = exit._newPosition;
+
+			if (people._savedPos._facing > 100 && people._savedPos.x < 1)
+				people._savedPos.x = 100;
+		}
 	}
 }
 
@@ -961,6 +967,55 @@ void TattooPerson::checkWalkGraphics() {
 	setImageFrame();
 }
 
+void TattooPerson::synchronize(Serializer &s) {
+	s.syncAsSint32LE(_position.x);
+	s.syncAsSint32LE(_position.y);
+	s.syncAsSint16LE(_sequenceNumber);
+	s.syncAsSint16LE(_type);
+	s.syncString(_walkVGSName);
+	s.syncString(_description);
+	s.syncString(_examine);
+
+	// NPC specific properties
+	s.syncBytes(&_npcPath[0], MAX_NPC_PATH);
+	s.syncString(_npcName);
+	s.syncAsSint32LE(_npcPause);
+	s.syncAsByte(_lookHolmes);
+	s.syncAsByte(_updateNPCPath);
+	
+	// Walk to list
+	uint count = _walkTo.size();
+	s.syncAsUint16LE(count);
+	if (s.isLoading()) {
+		// Load path
+		for (uint idx = 0; idx < count; ++idx) {
+			int xp = 0, yp = 0;
+			s.syncAsSint16LE(xp);
+			s.syncAsSint16LE(yp);
+			_walkTo.push(Common::Point(xp, yp));
+		}
+	} else {
+		// Save path
+		Common::Array<Common::Point> path;
+
+		// Save the points of the path
+		for (uint idx = 0; idx < count; ++idx) {
+			Common::Point pt = _walkTo.pop();
+			s.syncAsSint16LE(pt.x);
+			s.syncAsSint16LE(pt.y);
+			path.push_back(pt);
+		}
+
+		// Re-add the pending points back to the _walkTo queue
+		for (uint idx = 0; idx < count; ++idx)
+			_walkTo.push(path[idx]);
+	}
+
+	// Verbs
+	for (int idx = 0; idx < 2; ++idx)
+		_use[idx].synchronize(s);
+}
+
 /*----------------------------------------------------------------*/
 
 TattooPeople::TattooPeople(SherlockEngine *vm) : People(vm) {
@@ -1147,9 +1202,9 @@ int TattooPeople::findSpeaker(int speaker) {
 
 	// Fallback that Rose Tattoo uses if no speaker was found
 	if (result == -1) {
-		bool flag = _vm->readFlags(76);
+		bool flag = _vm->readFlags(FLAG_PLAYER_IS_HOLMES);
 
-		if (_data[HOLMES]->_type == CHARACTER && ((speaker == 0 && flag) || (speaker == 1 && !flag)))
+		if (_data[HOLMES]->_type == CHARACTER && ((speaker == HOLMES && flag) || (speaker == WATSON && !flag)))
 			return -1;
 
 		for (uint idx = 1; idx < _data.size(); ++idx) {
@@ -1170,22 +1225,15 @@ int TattooPeople::findSpeaker(int speaker) {
 void TattooPeople::synchronize(Serializer &s) {
 	s.syncAsByte(_holmesOn);
 
-	for (uint idx = 0; idx < _data.size(); ++idx) {
-		Person &p = *_data[idx];
-		s.syncAsSint32LE(p._position.x);
-		s.syncAsSint32LE(p._position.y);
-		s.syncAsSint16LE(p._sequenceNumber);
-		s.syncAsSint16LE(p._type);
-		s.syncString(p._walkVGSName);
-		s.syncString(p._description);
-		s.syncString(p._examine);
-	}
+	for (uint idx = 0; idx < _data.size(); ++idx)
+		(*this)[idx].synchronize(s);
 
 	s.syncAsSint16LE(_holmesQuotient);
 
 	if (s.isLoading()) {
-		_hSavedPos = _data[HOLMES]->_position;
-		_hSavedFacing = _data[HOLMES]->_sequenceNumber;
+		_savedPos.x = _data[HOLMES]->_position.x;
+		_savedPos.y = _data[HOLMES]->_position.y;
+		_savedPos._facing = _data[HOLMES]->_sequenceNumber;
 	}
 }
 
@@ -1264,6 +1312,31 @@ void TattooPeople::pullNPCPaths() {
 		}
 	}
 }
+
+const Common::Point TattooPeople::restrictToZone(int zoneId, const Common::Point &destPos) {
+	Scene &scene = *_vm->_scene;
+	Screen &screen = *_vm->_screen;
+	Common::Rect &r = scene._zones[zoneId];
+
+	if (destPos.x < 0 || destPos.x > screen._backBuffer1.w())
+		return destPos;
+	else if (destPos.y < r.top && r.left < destPos.x && destPos.x < r.right)
+		return Common::Point(destPos.x, r.top);
+	else if (destPos.y > r.bottom && r.left < destPos.x && destPos.x < r.right)
+		return Common::Point(destPos.x, r.bottom);
+	else if (destPos.x < r.left && r.top < destPos.y && destPos.y < r.bottom)
+		return Common::Point(r.left, destPos.y);
+	else if (destPos.x > r.right && r.top < destPos.y && destPos.y < r.bottom)
+		return Common::Point(r.bottom, destPos.y);
+
+	// Find which corner of the zone the point is closet to
+	if (destPos.x <= r.left) {
+		return Common::Point(r.left, (destPos.y <= r.top) ? r.top : r.bottom);
+	} else {
+		return Common::Point(r.right, (destPos.y <= r.top) ? r.top : r.bottom);
+	}
+}
+
 
 } // End of namespace Tattoo
 

@@ -55,7 +55,16 @@ enum FixedTextId {
 	kFixedText_Options,
 	kFixedText_Solve,
 	kFixedText_With,
-	kFixedText_NoEffect
+	kFixedText_NoEffect,
+	kFixedText_NothingToSay,
+
+	kFixedText_CloseJournal,
+	kFixedText_SearchJournal,
+	kFixedText_SaveJournal,
+	kFixedText_AbortSearch,
+	kFixedText_SearchBackwards,
+	kFixedText_SearchForwards,
+	kFixedText_TextNotFound
 };
 
 class TattooFixedText: public FixedText {
@@ -67,7 +76,7 @@ public:
 	/**
 	 * Gets text
 	 */
-	virtual const Common::String getText(int fixedTextId);
+	virtual const char *getText(int fixedTextId);
 
 	/**
 	 * Get action message

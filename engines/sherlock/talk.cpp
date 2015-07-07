@@ -29,6 +29,7 @@
 #include "sherlock/scalpel/scalpel_user_interface.h"
 #include "sherlock/tattoo/tattoo.h"
 #include "sherlock/tattoo/tattoo_people.h"
+#include "sherlock/tattoo/tattoo_scene.h"
 #include "sherlock/tattoo/tattoo_talk.h"
 
 namespace Sherlock {
@@ -150,7 +151,11 @@ void Talk::talkTo(const Common::String &filename) {
 
 	// If there any canimations currently running, or a portrait is being cleared,
 	// save the filename for later executing when the canimation is done
-	if (scene._canimShapes.size() > 0 || people._clearingThePortrait) {
+	bool ongoingAnim = scene._canimShapes.size() > 0;
+	if (IS_ROSE_TATTOO) {
+		ongoingAnim = static_cast<Tattoo::TattooScene *>(_vm->_scene)->_activeCAnim.active();
+	}
+	if (ongoingAnim || people._clearingThePortrait) {
 		// Make sure we're not in the middle of a script
 		if (!_scriptMoreFlag) {
 			_scriptName = filename;
@@ -374,22 +379,8 @@ void Talk::talkTo(const Common::String &filename) {
 
 				// If the new conversion is a reply first, then we don't need
 				// to display any choices, since the reply needs to be shown
-				if (!newStatement._statement.hasPrefix("*") &&
-						!newStatement._statement.hasPrefix("^")) {
-					clearSequences();
-					pushSequence(_talkTo);
-					setStillSeq(_talkTo);
+				if (!newStatement._statement.hasPrefix("*") && !newStatement._statement.hasPrefix("^")) {
 					_talkIndex = select;
-					ui._selector = ui._oldSelector = -1;
-
-					if (!ui._windowOpen) {
-						// Draw the talk interface on the back buffer
-						drawInterface();
-						displayTalk(false);
-					} else {
-						displayTalk(true);
-					}
-
 					showTalk();
 
 					// Break out of loop now that we're waiting for player input
@@ -437,7 +428,7 @@ void Talk::talkTo(const Common::String &filename) {
 	// previous script can continue
 	popStack();
 
-	if (_vm->getGameID() == GType_SerratedScalpel && filename == "Tube59c") {
+	if (IS_SERRATED_SCALPEL && filename == "Tube59c") {
 		// WORKAROUND: Original game bug causes the results of testing the powdery substance
 		// to disappear too quickly. Introduce a delay to allow it to be properly displayed
 		ui._menuCounter = 30;
@@ -893,11 +884,13 @@ void Talk::doScript(const Common::String &script) {
 		}
 
 		pullSequence();
-		if (_speaker >= 0 && _speaker < SPEAKER_REMOVE)
-			people.clearTalking();
 
-		if (IS_ROSE_TATTOO)
+		if (IS_SERRATED_SCALPEL) {
+			if (_speaker >= 0 && _speaker < SPEAKER_REMOVE)
+				people.clearTalking();
+		} else {
 			static_cast<Tattoo::TattooPeople *>(_vm->_people)->pullNPCPaths();
+		}
 	}
 }
 

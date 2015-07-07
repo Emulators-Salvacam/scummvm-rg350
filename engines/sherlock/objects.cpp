@@ -526,18 +526,17 @@ int BaseObject::checkNameForCodes(const Common::String &name, FixedTextActionId 
 					++p;
 
 					Common::String s(p, p + 3);
-					people._hSavedPos.x = atoi(s.c_str());
+					people._savedPos.x = atoi(s.c_str());
 
 					s = Common::String(p + 3, p + 6);
-					people._hSavedPos.y = atoi(s.c_str());
+					people._savedPos.y = atoi(s.c_str());
 
 					s = Common::String(p + 6, p + 9);
-					people._hSavedFacing = atoi(s.c_str());
-					if (people._hSavedFacing == 0)
-						people._hSavedFacing = 10;
+					people._savedPos._facing = atoi(s.c_str());
+					if (people._savedPos._facing == 0)
+						people._savedPos._facing = 10;
 				} else if ((p = strchr(name.c_str(), '/')) != nullptr) {
-					people._hSavedPos = Common::Point(1, 0);
-					people._hSavedFacing = 100 + atoi(p + 1);
+					people._savedPos = PositionFacing(1, 0, 100 + atoi(p + 1));
 				}
 			} else {
 				scene._goToScene = 100;
@@ -917,6 +916,17 @@ void UseType::load3DO(Common::SeekableReadStream &s) {
 
 	s.read(buffer, 12);
 	_target = Common::String(buffer);
+}
+
+void UseType::synchronize(Serializer &s) {
+	s.syncString(_verb);
+	s.syncAsSint16LE(_cAnimNum);
+	s.syncAsSint16LE(_cAnimSpeed);
+	s.syncAsSint16LE(_useFlag);
+
+	for (int idx = 0; idx < 4; ++idx)
+		s.syncString(_names[idx]);
+	s.syncString(_target);
 }
 
 /*----------------------------------------------------------------*/
@@ -1444,7 +1454,7 @@ void CAnim::load(Common::SeekableReadStream &s, bool isRoseTattoo, uint32 dataOf
 		_goto[1].y = s.readSint16LE();
 		_goto[1]._facing = s.readSint16LE();
 		ADJUST_COORD(_goto[1]);
-	} else {
+	} else if (_goto[0].x != -1) {
 		// For Serrated Scalpel, adjust the loaded co-ordinates
 		_goto[0].x = _goto[0].x / 100;
 		_goto[0].y = _goto[0].y / 100;
@@ -1461,7 +1471,7 @@ void CAnim::load(Common::SeekableReadStream &s, bool isRoseTattoo, uint32 dataOf
 		_teleport[1].y = s.readSint16LE();
 		_teleport[1]._facing = s.readSint16LE();
 		ADJUST_COORD(_teleport[1]);
-	} else {
+	} else if (_teleport[0].x != -1) {
 		// For Serrated Scalpel, adjust the loaded co-ordinates
 		_teleport[0].x = _teleport[0].x / 100;
 		_teleport[0].y = _teleport[0].y / 100;

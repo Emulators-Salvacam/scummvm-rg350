@@ -344,13 +344,8 @@ void Screen::blitFrom3DOcolorLimit(uint16 limitColor) {
 }
 
 void Screen::restoreBackground(const Common::Rect &r) {
-	if (r.width() > 0 && r.height() > 0) {
-		Common::Rect tempRect = r;
-		tempRect.clip(Common::Rect(0, 0, this->w(), SHERLOCK_SCENE_HEIGHT));
-
-		if (tempRect.isValidRect())
-			_backBuffer1.blitFrom(_backBuffer2, Common::Point(tempRect.left, tempRect.top), tempRect);
-	}
+	if (r.width() > 0 && r.height() > 0)
+		_backBuffer1.blitFrom(_backBuffer2, Common::Point(r.left, r.top), r);
 }
 
 void Screen::slamArea(int16 xp, int16 yp, int16 width, int16 height) {
@@ -359,18 +354,8 @@ void Screen::slamArea(int16 xp, int16 yp, int16 width, int16 height) {
 
 void Screen::slamRect(const Common::Rect &r) {
 	if (r.width() && r.height() > 0) {
-		Common::Rect tempRect = r;
-		tempRect.clip(Common::Rect(0, 0, this->w(), this->h()));
-
-		if (tempRect.isValidRect())
-			blitFrom(*_backBuffer, Common::Point(tempRect.left, tempRect.top), tempRect);
-	}
-}
-
-void Screen::slamRect(const Common::Rect &r, const Common::Point &currentScroll) {
-	if (r.width() && r.height() > 0) {
 		Common::Rect srcRect = r, destRect = r;
-		srcRect.translate(currentScroll.x, currentScroll.y);
+		srcRect.translate(_currentScroll.x, _currentScroll.y);
 
 		if (destRect.left < 0) {
 			srcRect.left += -destRect.left;
@@ -464,14 +449,13 @@ void Screen::flushImage(ImageFrame *frame, const Common::Point &pt, Common::Rect
 	newBounds = Common::Rect(newPos.x, newPos.y, newPos.x + newSize.x, newPos.y + newSize.y);
 }
 
-void Screen::blockMove(const Common::Rect &r, const Common::Point &scrollPos) {
+void Screen::blockMove(const Common::Rect &r) {
 	Common::Rect bounds = r;
-	bounds.translate(scrollPos.x, scrollPos.y);
 	slamRect(bounds);
 }
 
-void Screen::blockMove(const Common::Point &scrollPos) {
-	blockMove(Common::Rect(0, 0, w(), h()), scrollPos);
+void Screen::blockMove() {
+	blockMove(Common::Rect(0, 0, w(), h()));
 }
 
 void Screen::print(const Common::Point &pt, byte color, const char *formatStr, ...) {
@@ -523,8 +507,7 @@ void Screen::vgaBar(const Common::Rect &r, int color) {
 }
 
 void Screen::setDisplayBounds(const Common::Rect &r) {
-	assert(r.left == 0 && r.top == 0);
-	_sceneSurface.setPixels(_backBuffer1.getPixels(), r.width(), r.height(), _backBuffer1.getPixelFormat());
+	_sceneSurface.setPixels(_backBuffer1.getBasePtr(r.left, r.top), r.width(), r.height(), _backBuffer1.getPixelFormat());
 
 	_backBuffer = &_sceneSurface;
 }

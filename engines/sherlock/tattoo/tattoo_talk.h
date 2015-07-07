@@ -36,7 +36,10 @@ namespace Sherlock {
 
 namespace Tattoo {
 
+class WidgetTalk;
+
 class TattooTalk : public Talk {
+	friend class WidgetTalk;
 private:
 	WidgetTalk _talkWidget;
 
@@ -76,18 +79,16 @@ private:
 	OpcodeReturn cmdWalkNPCToCAnimation(const byte *&str);
 	OpcodeReturn cmdWalkNPCToCoords(const byte *&str);
 	OpcodeReturn cmdWalkHomesAndNPCToCoords(const byte *&str);
-private:
-	void drawTalk(const char *str);
-
-	/**
-	 * Open the talk window
-	 */
-	void openTalkWindow();
 protected:
 	/**
 	 * Display the talk interface window
 	 */
 	virtual void talkInterface(const byte *&str);
+
+	/**
+	 * Show the talk display
+	 */
+	virtual void showTalk();
 public:
 	TattooTalk(SherlockEngine *vm);
 	virtual ~TattooTalk() {}

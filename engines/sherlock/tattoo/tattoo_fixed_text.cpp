@@ -55,14 +55,23 @@ static const char *const FIXED_TEXT_ENGLISH[] = {
 	"Options",
 	"Solve",
 	"with",
-	"No effect..."
+	"No effect...",
+	"This person has nothing to say at the moment",
+
+	"Close Journal", 
+	"Search Journal",
+	"Save Journal",
+	"Abort Search",
+	"Search Backwards",
+	"Search Forwards",
+	"Text Not Found !"
 };
 
 TattooFixedText::TattooFixedText(SherlockEngine *vm) : FixedText(vm) {
 }
 
-const Common::String TattooFixedText::getText(int fixedTextId) {
-	return Common::String(FIXED_TEXT_ENGLISH[fixedTextId]);
+const char *TattooFixedText::getText(int fixedTextId) {
+	return FIXED_TEXT_ENGLISH[fixedTextId];
 }
 
 const Common::String TattooFixedText::getActionMessage(FixedTextActionId actionId, int messageIndex) {

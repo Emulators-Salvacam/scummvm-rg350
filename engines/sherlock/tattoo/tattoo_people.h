@@ -173,6 +173,11 @@ public:
 	void checkWalkGraphics();
 
 	/**
+	 * Synchronize the data for a savegame
+	 */
+	void synchronize(Serializer &s);
+
+	/**
 	 * This adjusts the sprites position, as well as it's animation sequence:
 	 */
 	virtual void adjustSprite();
@@ -220,7 +225,7 @@ public:
 	 * @param speaker		Who is speaking
 	 * @param sequenceNum	Which listen sequence to use
 	 */
-	void setListenSequence(int speaker, int sequenceNum);
+	void setListenSequence(int speaker, int sequenceNum = 1);
 
 	/**
 	 * Restore any saved NPC walk path data from any of the NPCs
@@ -246,6 +251,11 @@ public:
 	 * Load the walking images for Sherlock
 	 */
 	virtual bool loadWalk();
+
+	/**
+	 * Restrict passed point to zone using Sherlock's positioning rules
+	 */
+	virtual const Common::Point restrictToZone(int zoneId, const Common::Point &destPos);
 };
 
 } // End of namespace Scalpel

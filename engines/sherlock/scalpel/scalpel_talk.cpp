@@ -320,15 +320,13 @@ OpcodeReturn ScalpelTalk::cmdGotoScene(const byte *&str) {
 
 		// Run a canimation?
 		if (str[2] > 100) {
-			people._hSavedFacing = str[2];
-			people._hSavedPos = Point32(160, 100);
+			people._savedPos = PositionFacing(160, 100, str[2]);
 		} else {
-			people._hSavedFacing = str[2] - 1;
 			int32 posX = (str[3] - 1) * 256 + str[4] - 1;
 			int32 posY = str[5] - 1;
-			people._hSavedPos = Point32(posX, posY);
+			people._savedPos = PositionFacing(posX, posY, str[2] - 1);
 		}
-	}	// if (scene._goToScene != 100)
+	}
 
 	str += 6;
 
@@ -808,6 +806,20 @@ void ScalpelTalk::showTalk() {
 	ScalpelUserInterface &ui = *(ScalpelUserInterface *)_vm->_ui;
 	Common::String fixedText_Exit = fixedText.getText(kFixedText_Window_Exit);
 	byte color = ui._endKeyActive ? COMMAND_FOREGROUND : COMMAND_NULL;
+
+	clearSequences();
+	pushSequence(_talkTo);
+	setStillSeq(_talkTo);
+
+	ui._selector = ui._oldSelector = -1;
+
+	if (!ui._windowOpen) {
+		// Draw the talk interface on the back buffer
+		drawInterface();
+		displayTalk(false);
+	} else {
+		displayTalk(true);
+	}
 
 	// If the window is already open, simply draw. Otherwise, do it
 	// to the back buffer and then summon the window

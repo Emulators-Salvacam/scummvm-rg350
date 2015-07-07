@@ -40,12 +40,13 @@ namespace Tattoo {
 
 class WidgetBase;
 
+enum ScrollHighlight { SH_NONE = 0, SH_SCROLL_UP = 1, SH_PAGE_UP = 2, SH_THUMBNAIL = 3, SH_PAGE_DOWN = 4, SH_SCROLL_DOWN = 5 };
+
 class TattooUserInterface : public UserInterface {
 	friend class WidgetBase;
 private:
 	int _lockoutTimer;
 	SaveMode _fileMode;
-	int _exitZone;
 	int _scriptZone;
 	int _cAnimFramePause;
 	WidgetInventory _inventoryWidget;
@@ -75,12 +76,6 @@ private:
 	 * Handle input while the verb menu is open
 	 */
 	void doVerbControl();
-
-	/**
-	 * Handles input when in talk mode. It highlights the buttons and response statements,
-	 * and handles any actions for clicking on the buttons or statements.
-	 */
-	void doTalkControl();
 	
 	/**
 	 * Handles input when the player is in the Lab Table scene
@@ -108,7 +103,7 @@ private:
 	 */
 	void freeMenu();
 public:
-	Common::Point _currentScroll, _targetScroll;
+	Common::Point _targetScroll;
 	int _scrollSize, _scrollSpeed;
 	bool _drawMenu;
 	int _arrowZone, _oldArrowZone;
@@ -117,7 +112,7 @@ public:
 	int _activeObj;
 	Common::KeyState _keyState;
 	Common::Point _lookPos;
-	int _scrollHighlight;
+	ScrollHighlight _scrollHighlight;
 	ImageFile *_mask, *_mask1;
 	Common::Point _maskOffset;
 	int _maskCounter;

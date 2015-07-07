@@ -203,17 +203,20 @@ MusicManager::MusicManager(AccessEngine *vm) : _vm(vm) {
 	MusicType musicType = MidiDriver::getMusicType(dev);
 
 	// Amazon Guardians of Eden uses MIDPAK inside MIDIDRV.AP
-	// Amazon Guardians of Eden possibly used MIDPAK as well
 	// AdLib patches are inside MIDIDRV.AP too, 2nd resource file
+	//
+	// Amazon Guardians of Eden (demo) seems to use another type of driver, possibly written by Access themselves
+	// Martian Memorandum uses this other type of driver as well, which means it makes sense to reverse engineer it.
+	//
 	switch (musicType) {
 	case MT_ADLIB: {
 		Resource   *midiDrvResource = _vm->_files->loadFile(92, 1);
-		const byte *adLibInstrumentData = midiDrvResource->data();
-		uint32      adLibInstrumentDataSize = midiDrvResource->_size;
+		Common::MemoryReadStream *adLibInstrumentStream = new Common::MemoryReadStream(midiDrvResource->data(), midiDrvResource->_size);
 
-		_driver = Audio::MidiDriver_Miles_AdLib_create("", "", adLibInstrumentData, adLibInstrumentDataSize);
+		_driver = Audio::MidiDriver_Miles_AdLib_create("", "", adLibInstrumentStream);
 
 		delete midiDrvResource;
+		delete adLibInstrumentStream;
 		break;
 	}
 	case MT_MT32:
@@ -225,6 +228,9 @@ MusicManager::MusicManager(AccessEngine *vm) : _vm(vm) {
 			_driver = Audio::MidiDriver_Miles_MT32_create("");
 			_nativeMT32 = true;
 		}
+		break;
+
+	default:
 		break;
 	}
 

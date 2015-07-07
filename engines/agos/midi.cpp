@@ -23,6 +23,7 @@
 #include "common/config-manager.h"
 #include "common/file.h"
 #include "common/textconsole.h"
+#include "common/memstream.h"
 
 #include "agos/agos.h"
 #include "agos/midi.h"
@@ -30,6 +31,9 @@
 #include "agos/drivers/accolade/mididriver.h"
 // Miles Audio for Simon 2
 #include "audio/miles.h"
+
+// PKWARE data compression library decompressor required for Simon 2
+#include "common/dcl.h"
 
 #include "gui/message.h"
 
@@ -50,6 +54,7 @@ MidiPlayer::MidiPlayer() {
 
 	_adlibPatches = NULL;
 
+	_adLibMusic = false;
 	_enable_sfx = true;
 	_current = 0;
 
@@ -60,7 +65,7 @@ MidiPlayer::MidiPlayer() {
 	_paused = false;
 
 	_currentTrack = 255;
-	_loopTrackDefault = false;
+	_loopTrack = 0;
 	_queuedTrack = 255;
 	_loopQueuedTrack = 0;
 
@@ -178,7 +183,25 @@ int MidiPlayer::open(int gameType, bool isDemo) {
 	case kMusicModeMilesAudio: {
 		switch (musicType) {
 		case MT_ADLIB: {
-			_driver = Audio::MidiDriver_Miles_AdLib_create("MIDPAK.AD", "MIDPAK.AD");
+			Common::File instrumentDataFile;
+			if (instrumentDataFile.exists("MIDPAK.AD")) {
+				// if there is a file called MIDPAK.AD, use it directly
+				warning("SIMON 2: using MIDPAK.AD");
+				_driver = Audio::MidiDriver_Miles_AdLib_create("MIDPAK.AD", "MIDPAK.AD");
+			} else {
+				// if there is no file called MIDPAK.AD, try to extract it from the file SETUP.SHR
+				// if we didn't do this, the user would be forced to "install" the game instead of simply
+				// copying all files from CD-ROM.
+				Common::SeekableReadStream *midpakAdLibStream;
+				midpakAdLibStream = simon2SetupExtractFile("MIDPAK.AD");
+				if (!midpakAdLibStream)
+					error("MidiPlayer: could not extract MIDPAK.AD from SETUP.SHR");
+
+				// Pass this extracted data to the driver
+				warning("SIMON 2: using MIDPAK.AD extracted from SETUP.SHR");
+				_driver = Audio::MidiDriver_Miles_AdLib_create("", "", midpakAdLibStream);
+				delete midpakAdLibStream;
+			}
 			// TODO: not sure what's going wrong with AdLib
 			// it doesn't seem to matter if we use the regular XMIDI tracks or the 2nd set meant for MT32
 			break;
@@ -213,6 +236,7 @@ int MidiPlayer::open(int gameType, bool isDemo) {
 	}
 
 	dev = MidiDriver::detectDevice(MDT_ADLIB | MDT_MIDI | (gameType == GType_SIMON1 ? MDT_PREFER_MT32 : MDT_PREFER_GM));
+	_adLibMusic = (MidiDriver::getMusicType(dev) == MT_ADLIB);
 	_nativeMT32 = ((MidiDriver::getMusicType(dev) == MT_MT32) || ConfMan.getBool("native_mt32"));
 
 	_driver = MidiDriver::createMidi(dev);
@@ -328,13 +352,13 @@ void MidiPlayer::metaEvent(byte type, byte *data, uint16 length) {
 		return;
 	} else if (_current == &_sfx) {
 		clearConstructs(_sfx);
-	} else if (_current->loopTrack) {
+	} else if (_loopTrack) {
 		_current->parser->jumpToTick(0);
 	} else if (_queuedTrack != 255) {
 		_currentTrack = 255;
 		byte destination = _queuedTrack;
 		_queuedTrack = 255;
-		_current->loopTrack = _loopQueuedTrack;
+		_loopTrack = _loopQueuedTrack;
 		_loopQueuedTrack = false;
 
 		// Remember, we're still inside the locked mutex.
@@ -462,7 +486,7 @@ void MidiPlayer::setVolume(int musicVol, int sfxVol) {
 void MidiPlayer::setLoop(bool loop) {
 	Common::StackLock lock(_mutex);
 
-	_loopTrackDefault = loop;
+	_loopTrack = loop;
 }
 
 void MidiPlayer::queueTrack(int track, bool loop) {
@@ -629,9 +653,11 @@ void MidiPlayer::loadSMF(Common::File *in, int song, bool sfx) {
 		// It seems that 4 corresponds to our base tempo, so
 		// this should be the right way to calculate it.
 		timerRate = (4 * _driver->getBaseTempo()) / p->data[5];
-		p->loopTrack = (p->data[6] != 0);
-	} else {
-		p->loopTrack = _loopTrackDefault;
+
+		// According to bug #1004919 calling setLoop() from
+		// within a lock causes a lockup, though I have no
+		// idea when this actually happens.
+		_loopTrack = (p->data[6] != 0);
 	}
 
 	MidiParser *parser = MidiParser::createParser_SMF();
@@ -701,8 +727,6 @@ void MidiPlayer::loadMultipleSMF(Common::File *in, bool sfx) {
 		p->song_sizes[i] = size;
 	}
 
-	p->loopTrack = _loopTrackDefault;
-
 	if (!sfx) {
 		_currentTrack = 255;
 		resetVolumeTable();
@@ -734,7 +758,6 @@ void MidiPlayer::loadXMIDI(Common::File *in, bool sfx) {
 		in->seek(pos, 0);
 		p->data = (byte *)calloc(size, 1);
 		in->read(p->data, size);
-		p->loopTrack = _loopTrackDefault;
 	} else {
 		error("Expected 'FORM' tag but found '%c%c%c%c' instead", buf[0], buf[1], buf[2], buf[3]);
 	}
@@ -779,8 +802,105 @@ void MidiPlayer::loadS1D(Common::File *in, bool sfx) {
 		_currentTrack = 255;
 		resetVolumeTable();
 	}
-	p->loopTrack = _loopTrackDefault;
 	p->parser = parser; // That plugs the power cord into the wall
+}
+
+#define MIDI_SETUP_BUNDLE_HEADER_SIZE 56
+#define MIDI_SETUP_BUNDLE_FILEHEADER_SIZE 48
+#define MIDI_SETUP_BUNDLE_FILENAME_MAX_SIZE 12
+
+// PKWARE data compression library (called "DCL" in ScummVM) was used for storing files within SETUP.SHR
+// we need it to be able to get the file MIDPAK.AD, otherwise we would have to require the user
+// to "install" the game before being able to actually play it, when using AdLib.
+//
+// SETUP.SHR file format:
+//  [bundle file header]
+//    [compressed file header] [compressed file data]
+//     * compressed file count
+Common::SeekableReadStream *MidiPlayer::simon2SetupExtractFile(const Common::String &requestedFileName) {
+	Common::File *setupBundleStream = new Common::File();
+	uint32        bundleSize = 0;
+	uint32        bundleBytesLeft = 0;
+	byte          bundleHeader[MIDI_SETUP_BUNDLE_HEADER_SIZE];
+	byte          bundleFileHeader[MIDI_SETUP_BUNDLE_FILEHEADER_SIZE];
+	uint16        bundleFileCount = 0;
+	uint16        bundleFileNr = 0;
+
+	Common::String fileName;
+	uint32         fileCompressedSize = 0;
+	byte          *fileCompressedDataPtr = nullptr;
+
+	Common::SeekableReadStream *extractedStream = nullptr;
+
+	if (!setupBundleStream->open("setup.shr"))
+		error("MidiPlayer: could not open setup.shr");
+
+	bundleSize = setupBundleStream->size();
+	bundleBytesLeft = bundleSize;
+
+	if (bundleSize < MIDI_SETUP_BUNDLE_HEADER_SIZE)
+		error("MidiPlayer: unexpected EOF in setup.shr");
+
+	if (setupBundleStream->read(bundleHeader, MIDI_SETUP_BUNDLE_HEADER_SIZE) != MIDI_SETUP_BUNDLE_HEADER_SIZE)
+		error("MidiPlayer: setup.shr read error");
+	bundleBytesLeft -= MIDI_SETUP_BUNDLE_HEADER_SIZE;
+
+	// Verify header byte
+	if (bundleHeader[13] != 't')
+		error("MidiPlayer: setup.shr bundle header data mismatch");
+
+	bundleFileCount = READ_LE_UINT16(&bundleHeader[14]);
+
+	// Search for requested file
+	while (bundleFileNr < bundleFileCount) {
+		if (bundleBytesLeft < sizeof(bundleFileHeader))
+			error("MidiPlayer: unexpected EOF in setup.shr");
+
+		if (setupBundleStream->read(bundleFileHeader, sizeof(bundleFileHeader)) != sizeof(bundleFileHeader))
+			error("MidiPlayer: setup.shr read error");
+		bundleBytesLeft -= MIDI_SETUP_BUNDLE_FILEHEADER_SIZE;
+
+		// Extract filename from file-header
+		fileName.clear();
+		for (byte curPos = 0; curPos < MIDI_SETUP_BUNDLE_FILENAME_MAX_SIZE; curPos++) {
+			if (!bundleFileHeader[curPos]) // terminating NUL
+				break;
+			fileName.insertChar(bundleFileHeader[curPos], curPos);
+		}
+
+		// Get compressed
+		fileCompressedSize = READ_LE_UINT32(&bundleFileHeader[20]);
+		if (!fileCompressedSize)
+			error("MidiPlayer: compressed file is 0 bytes, data corruption?");
+		if (bundleBytesLeft < fileCompressedSize)
+			error("MidiPlayer: unexpected EOF in setup.shr");
+
+		if (fileName == requestedFileName) {
+			// requested file found
+			fileCompressedDataPtr = new byte[fileCompressedSize];
+
+			if (setupBundleStream->read(fileCompressedDataPtr, fileCompressedSize) != fileCompressedSize)
+				error("MidiPlayer: setup.shr read error");
+
+			Common::MemoryReadStream *compressedStream = nullptr;
+
+			compressedStream = new Common::MemoryReadStream(fileCompressedDataPtr, fileCompressedSize);
+			// we don't know the unpacked size, let decompressor figure it out
+			extractedStream = Common::decompressDCL(compressedStream);
+			delete compressedStream;
+			break;
+		}
+
+		// skip compressed size
+		setupBundleStream->skip(fileCompressedSize);
+		bundleBytesLeft -= fileCompressedSize;
+
+		bundleFileNr++;
+	}
+	setupBundleStream->close();
+	delete setupBundleStream;
+
+	return extractedStream;
 }
 
 } // End of namespace AGOS

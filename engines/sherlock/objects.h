@@ -29,6 +29,7 @@
 #include "common/str.h"
 #include "sherlock/image_file.h"
 #include "sherlock/fixed_text.h"
+#include "sherlock/saveload.h"
 
 namespace Sherlock {
 
@@ -122,6 +123,11 @@ public:
 	int _facing;
 
 	PositionFacing() : Point32(), _facing(0) {}
+	PositionFacing(int xp, int yp, int theFacing) : Point32(xp, yp), _facing(theFacing) {}
+	PositionFacing &operator=(const Point32 &pt) { 
+		x = pt.x; y = pt.y;
+		return *this;
+	}
 };
 
 struct WalkSequence {
@@ -171,6 +177,11 @@ struct UseType: public ActionType {
 	 */
 	void load(Common::SeekableReadStream &s, bool isRoseTattoo);
 	void load3DO(Common::SeekableReadStream &s);
+
+	/**
+	 * Synchronize the data for a savegame
+	 */
+	void synchronize(Serializer &s);
 };
 
 class BaseObject {

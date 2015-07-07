@@ -116,7 +116,7 @@ void Exit::load(Common::SeekableReadStream &s, bool isRoseTattoo) {
 
 	_newPosition.x = s.readSint16LE();
 	_newPosition.y = s.readSint16LE();
-	_newFacing = s.readUint16LE();
+	_newPosition._facing = s.readUint16LE();
 
 	if (isRoseTattoo)
 		_allow = s.readSint16LE();
@@ -135,7 +135,7 @@ void Exit::load3DO(Common::SeekableReadStream &s) {
 
 	_newPosition.x = s.readSint16BE();
 	_newPosition.y = s.readSint16BE();
-	_newFacing = s.readUint16BE();
+	_newPosition._facing = s.readUint16BE();
 	s.skip(2); // Filler
 }
 
@@ -231,7 +231,6 @@ Scene::Scene(SherlockEngine *vm): _vm(vm) {
 	_animating = 0;
 	_doBgAnimDone = true;
 	_tempFadeStyle = 0;
-	_exitZone = -1;
 	_doBgAnimDone = false;
 }
 
@@ -363,6 +362,14 @@ bool Scene::loadScene(const Common::String &filename) {
 			_invGraphicItems = bgHeader._numImages + 1;
 
 			if (IS_ROSE_TATTOO) {
+				// Resize the screen if necessary
+				int fullWidth = SHERLOCK_SCREEN_WIDTH + bgHeader._scrollSize;
+				if (screen._backBuffer1.w() != fullWidth) {
+					screen._backBuffer1.create(fullWidth, SHERLOCK_SCREEN_HEIGHT);
+					screen._backBuffer2.create(fullWidth, SHERLOCK_SCREEN_HEIGHT);
+				}
+
+				// Handle initializing the palette
 				screen.initPaletteFade(bgHeader._bytesWritten);
 				rrmStream->read(screen._cMap, PALETTE_SIZE);
 				screen.translatePalette(screen._cMap);
@@ -371,9 +378,9 @@ bool Scene::loadScene(const Common::String &filename) {
 
 				// Read in background
 				if (_compressed) {
-					res.decompress(*rrmStream, (byte *)screen._backBuffer1.getPixels(), SHERLOCK_SCREEN_WIDTH * SHERLOCK_SCREEN_HEIGHT);
+					res.decompress(*rrmStream, (byte *)screen._backBuffer1.getPixels(), fullWidth * SHERLOCK_SCREEN_HEIGHT);
 				} else {
-					rrmStream->read(screen._backBuffer1.getPixels(), SHERLOCK_SCREEN_WIDTH * SHERLOCK_SCREEN_HEIGHT);
+					rrmStream->read(screen._backBuffer1.getPixels(), fullWidth * SHERLOCK_SCREEN_HEIGHT);
 				}
 			} 
 
@@ -391,7 +398,7 @@ bool Scene::loadScene(const Common::String &filename) {
 
 				_bgShapes.resize(bgHeader._numStructs);
 				for (int idx = 0; idx < bgHeader._numStructs; ++idx)
-					_bgShapes[idx].load(*infoStream, _vm->getGameID() == GType_RoseTattoo);
+					_bgShapes[idx].load(*infoStream, true);
 
 				if (_compressed)
 					delete infoStream;
@@ -603,7 +610,6 @@ bool Scene::loadScene(const Common::String &filename) {
 			}
 
 			// Read in the exits
-			_exitZone = -1;
 			int numExits = rrmStream->readByte();
 			_exits.resize(numExits);
 
@@ -922,7 +928,6 @@ bool Scene::loadScene(const Common::String &filename) {
 
 		int exitsCount = header3DO_exits_size / 20;
 
-		_exitZone = -1;
 		_exits.resize(exitsCount);
 		for (int idx = 0; idx < exitsCount; ++idx)
 			_exits[idx].load3DO(*roomStream);
@@ -1157,8 +1162,8 @@ void Scene::transitionToScene() {
 	SaveManager &saves = *_vm->_saves;
 	Screen &screen = *_vm->_screen;
 	Talk &talk = *_vm->_talk;
-	Point32 &hSavedPos = people._hSavedPos;
-	int &hSavedFacing = people._hSavedFacing;
+	Point32 &hSavedPos = people._savedPos;
+	int &hSavedFacing = people._savedPos._facing;
 
 	if (hSavedPos.x < 1) {
 		// No exit information from last scene-check entrance info
