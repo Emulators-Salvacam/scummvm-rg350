@@ -89,6 +89,8 @@ void Events::setCursor(CursorId cursorId) {
 
 void Events::setCursor(const Graphics::Surface &src, int hotspotX, int hotspotY) {
 	_cursorId = INVALID_CURSOR;
+	_hotspotPos = Common::Point(hotspotX, hotspotY);
+	
 	if (!IS_3DO) {
 		// PC 8-bit palettized
 		CursorMan.replaceCursor(src.getPixels(), src.w, src.h, hotspotX, hotspotY, 0xff);
@@ -99,13 +101,56 @@ void Events::setCursor(const Graphics::Surface &src, int hotspotX, int hotspotY)
 	showCursor();
 }
 
+void Events::setCursor(CursorId cursorId, const Common::Point &cursorPos, const Graphics::Surface &surface) {
+	_cursorId = cursorId;
+
+	// Get the standard cursor frame
+	Graphics::Surface &cursorImg = (*_cursorImages)[cursorId]._frame;
+
+	// If the X pos for the cursor image is -100, this is a special value to indicate
+	// the cursor should be horizontally centered
+	Common::Point cursorPt = cursorPos;
+	if (cursorPos.x == -100)
+		cursorPt.x = (surface.w - cursorImg.w) / 2;
+
+	// Figure total bounds needed for cursor image and passed image
+	Common::Rect bounds(surface.w, surface.h);
+	bounds.extend(Common::Rect(cursorPt.x, cursorPt.y, cursorPt.x + cursorImg.w, cursorPt.y + cursorImg.h));
+	Common::Rect r = bounds;
+	r.moveTo(0, 0);
+
+	// Form a single surface containing both frames
+	Graphics::Surface s;
+	s.create(r.width(), r.height(), Graphics::PixelFormat::createFormatCLUT8());
+	s.fillRect(r, TRANSPARENCY);
+
+	// Draw the passed image
+	Common::Point drawPos;
+	if (cursorPt.x < 0)
+		drawPos.x = -cursorPt.x;
+	if (cursorPt.y < 0)
+		drawPos.y = -cursorPt.y;
+	s.copyRectToSurface(surface, drawPos.x, drawPos.y, Common::Rect(0, 0, surface.w, surface.h));
+
+	// Draw the cursor image
+	drawPos = Common::Point(MAX(cursorPt.x, (int16)0), MAX(cursorPt.y, (int16)0));
+	s.copyRectToSurface(cursorImg, drawPos.x, drawPos.y, Common::Rect(0, 0, cursorImg.w, cursorImg.h));
+
+	// Set up hotspot position for cursor, adjusting for cursor image's position within the surface
+	Common::Point hotspot;
+	if (cursorId == MAGNIFY)
+		hotspot = Common::Point(8, 8);
+	hotspot += drawPos;
+	// Set the cursor
+	setCursor(s, hotspot.x, hotspot.y);
+}
+
 void Events::animateCursorIfNeeded() {
 	if (_cursorId >= WAIT && _cursorId < (WAIT + 3)) {
 		CursorId newId = (_cursorId == WAIT + 2) ? WAIT : (CursorId)((int)_cursorId + 1);
 		setCursor(newId);
 	}
 }
-
 
 void Events::showCursor() {
 	CursorMan.showMouse(true);
@@ -123,16 +168,14 @@ bool Events::isCursorVisible() const {
 	return CursorMan.isVisible();
 }
 
-void Events::moveMouse(const Common::Point &pt) {
-	g_system->warpMouse(pt.x, pt.y);
-}
-
 void Events::pollEvents() {
 	checkForNextFrameCounter();
 
 	Common::Event event;
 	while (g_system->getEventManager()->pollEvent(event)) {
-		// Handle keypress
+		_mousePos = event.mouse;
+
+		// Handle events
 		switch (event.type) {
 		case Common::EVENT_QUIT:
 		case Common::EVENT_RTL:
@@ -174,7 +217,18 @@ void Events::pollEventsAndWait() {
 }
 
 void Events::warpMouse(const Common::Point &pt) {
-	g_system->warpMouse(pt.x, pt.y);
+	_mousePos = pt - _vm->_screen->_currentScroll;	
+	g_system->warpMouse(_mousePos.x, _mousePos.y);
+}
+
+void Events::warpMouse() {
+	Screen &screen = *_vm->_screen;
+	warpMouse(Common::Point(screen._currentScroll.x + SHERLOCK_SCREEN_WIDTH / 2,
+		screen._currentScroll.y + SHERLOCK_SCREEN_HEIGHT / 2));
+}
+
+Common::Point Events::mousePos() const {
+	return _vm->_screen->_currentScroll + _mousePos;
 }
 
 bool Events::checkForNextFrameCounter() {
@@ -196,12 +250,39 @@ bool Events::checkForNextFrameCounter() {
 	return false;
 }
 
-Common::Point Events::mousePos() const {
-	return g_system->getEventManager()->getMousePos();
-}
-
 Common::KeyState Events::getKey() {
-	return _pendingKeys.pop();
+	Common::KeyState keyState = _pendingKeys.pop();
+
+	switch (keyState.keycode) {
+	case Common::KEYCODE_KP1:
+		keyState.keycode = Common::KEYCODE_END;
+		break;
+	case Common::KEYCODE_KP2:
+		keyState.keycode = Common::KEYCODE_DOWN;
+		break;
+	case Common::KEYCODE_KP3:
+		keyState.keycode = Common::KEYCODE_PAGEDOWN;
+		break;
+	case Common::KEYCODE_KP4:
+		keyState.keycode = Common::KEYCODE_LEFT;
+		break;
+	case Common::KEYCODE_KP6:
+		keyState.keycode = Common::KEYCODE_RIGHT;
+		break;
+	case Common::KEYCODE_KP7:
+		keyState.keycode = Common::KEYCODE_HOME;
+		break;
+	case Common::KEYCODE_KP8:
+		keyState.keycode = Common::KEYCODE_UP;
+		break;
+	case Common::KEYCODE_KP9:
+		keyState.keycode = Common::KEYCODE_PAGEUP;
+		break;
+	default:
+		break;
+	}
+
+	return keyState;
 }
 
 void Events::clearEvents() {

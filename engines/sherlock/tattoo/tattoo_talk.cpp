@@ -193,7 +193,7 @@ void TattooTalk::talkInterface(const byte *&str) {
 	}
 
 	// Display the text window
-	ui.banishWindow();
+//	ui.banishWindow();
 	ui._textWidget.load(Common::String((const char *)s, (const char *)str), _speaker);
 	ui._textWidget.summonWindow();
 	_wait = true;
@@ -201,6 +201,7 @@ void TattooTalk::talkInterface(const byte *&str) {
 
 void TattooTalk::showTalk() {
 	TattooPeople &people = *(TattooPeople *)_vm->_people;
+	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
 
 	_sequenceStack.clear();
 	people.setListenSequence(_talkTo, 129);
@@ -208,6 +209,9 @@ void TattooTalk::showTalk() {
 	_talkWidget.load();
 	_talkWidget.summonWindow();
 	_talkWidget.refresh();
+
+	if (ui._menuMode != MESSAGE_MODE)
+		ui._menuMode = TALK_MODE;
 }
 
 OpcodeReturn TattooTalk::cmdSwitchSpeaker(const byte *&str) {
@@ -726,7 +730,32 @@ OpcodeReturn TattooTalk::cmdSetNPCWalkGraphics(const byte *&str) {
 	return RET_SUCCESS;
 }
 
-OpcodeReturn TattooTalk::cmdSetSceneEntryFlag(const byte *&str) { error("TODO: script opcode (cmdSetSceneEntryFlag)"); }
+OpcodeReturn TattooTalk::cmdSetSceneEntryFlag(const byte *&str) {
+	TattooScene &scene = *(TattooScene *)_vm->_scene;
+	++str;
+	int flag = (str[0] - 1) * 256 + str[1] - 1 - (str[1] == 1);
+
+	int flag1 = flag & 16383;
+	if (flag > 16383)
+		flag1 *= -1;
+
+	str += 2;
+
+	// Make sure that this instance is not already being tracked
+	bool found = false;
+	for (uint idx = 0; idx < scene._sceneTripCounters.size() && !found; ++idx) {
+		SceneTripEntry &entry = scene._sceneTripCounters[idx];
+		if (entry._flag == flag1 && entry._sceneNumber == str[0] - 1)
+			found = true;
+	}
+
+	// Only add it if it's not being tracked already
+	if (!found)
+		scene._sceneTripCounters.push_back(SceneTripEntry(flag1, str[0] - 1, str[1] - 1));
+
+	++str;
+	return RET_SUCCESS;
+}
 
 OpcodeReturn TattooTalk::cmdSetTalkSequence(const byte *&str) {
 	TattooPeople &people = *(TattooPeople *)_vm->_people;

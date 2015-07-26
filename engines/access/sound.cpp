@@ -50,9 +50,6 @@ void SoundManager::clearSounds() {
 	if (_mixer->isSoundHandleActive(_effectsHandle))
 		_mixer->stopHandle(_effectsHandle);
 
-	if (_queue.size())
-		_queue.remove_at(0);
-
 	while (_queue.size()) {
 		delete _queue[0];
 		_queue.remove_at(0);
@@ -78,26 +75,26 @@ Resource *SoundManager::loadSound(int fileNum, int subfile) {
 	return _vm->_files->loadFile(fileNum, subfile);
 }
 
-void SoundManager::playSound(int soundIndex) {
-	debugC(1, kDebugSound, "playSound(%d)", soundIndex);
+void SoundManager::playSound(int soundIndex, bool loop) {
+	debugC(1, kDebugSound, "playSound(%d, %d)", soundIndex, loop);
 
 	int priority = _soundTable[soundIndex]._priority;
-	playSound(_soundTable[soundIndex]._res, priority);
+	playSound(_soundTable[soundIndex]._res, priority, loop);
 }
 
-void SoundManager::playSound(Resource *res, int priority) {
+void SoundManager::playSound(Resource *res, int priority, bool loop) {
 	debugC(1, kDebugSound, "playSound");
 
 	byte *resourceData = res->data();
 
 	assert(res->_size >= 32);
 
+	Audio::RewindableAudioStream *audioStream;
+
 	if (READ_BE_UINT32(resourceData) == MKTAG('R','I','F','F')) {
 		// CD version uses WAVE-files
 		Common::SeekableReadStream *waveStream = new Common::MemoryReadStream(resourceData, res->_size, DisposeAfterUse::NO);
-		Audio::RewindableAudioStream *audioStream = Audio::makeWAVStream(waveStream, DisposeAfterUse::YES);
-		_queue.push_back(audioStream);
-
+		audioStream = Audio::makeWAVStream(waveStream, DisposeAfterUse::YES);
 	} else if (READ_BE_UINT32(resourceData) == MKTAG('S', 'T', 'E', 'V')) {
 		// sound files have a fixed header of 32 bytes in total
 		//  header content:
@@ -137,16 +134,20 @@ void SoundManager::playSound(Resource *res, int priority) {
 			return;
 		}
 
-		Audio::RewindableAudioStream *audioStream = Audio::makeRawStream(resourceData + 32, sampleSize, sampleRate, 0, DisposeAfterUse::NO);
-		_queue.push_back(audioStream);
-
+		audioStream = Audio::makeRawStream(resourceData + 32, sampleSize, sampleRate, 0, DisposeAfterUse::NO);
 	} else
 		error("Unknown format");
+
+	if (loop) {
+		_queue.push_back(new Audio::LoopingAudioStream(audioStream, 0, DisposeAfterUse::NO));
+	} else {
+		_queue.push_back(audioStream);
+	}
 
 	if (!_mixer->isSoundHandleActive(_effectsHandle))
 		_mixer->playStream(Audio::Mixer::kSFXSoundType, &_effectsHandle,
 						_queue[0], -1, _mixer->kMaxChannelVolume, 0,
-						DisposeAfterUse::YES);
+						DisposeAfterUse::NO);
 }
 
 void SoundManager::checkSoundQueue() {
@@ -155,12 +156,13 @@ void SoundManager::checkSoundQueue() {
 	if (_queue.empty() || _mixer->isSoundHandleActive(_effectsHandle))
 		return;
 
+	delete _queue[0];
 	_queue.remove_at(0);
 
-	if (_queue.size())
+	if (_queue.size() && _queue[0])
 		_mixer->playStream(Audio::Mixer::kSFXSoundType, &_effectsHandle,
 		   _queue[0], -1, _mixer->kMaxChannelVolume, 0,
-		   DisposeAfterUse::YES);
+		   DisposeAfterUse::NO);
 }
 
 bool SoundManager::isSFXPlaying() {
@@ -181,7 +183,7 @@ void SoundManager::loadSounds(Common::Array<RoomInfo::SoundIdent> &sounds) {
 void SoundManager::stopSound() {
 	debugC(3, kDebugSound, "stopSound");
 
-	_mixer->stopHandle(Audio::SoundHandle());
+	_mixer->stopHandle(_effectsHandle);
 }
 
 void SoundManager::freeSounds() {
@@ -198,6 +200,7 @@ MusicManager::MusicManager(AccessEngine *vm) : _vm(vm) {
 	_tempMusic = nullptr;
 	_isLooping = false;
 	_driver = nullptr;
+	_byte1F781 = false;
 
 	MidiDriver::DeviceHandle dev = MidiDriver::detectDevice(MDT_MIDI | MDT_ADLIB | MDT_PREFER_MT32);
 	MusicType musicType = MidiDriver::getMusicType(dev);
@@ -210,13 +213,17 @@ MusicManager::MusicManager(AccessEngine *vm) : _vm(vm) {
 	//
 	switch (musicType) {
 	case MT_ADLIB: {
-		Resource   *midiDrvResource = _vm->_files->loadFile(92, 1);
-		Common::MemoryReadStream *adLibInstrumentStream = new Common::MemoryReadStream(midiDrvResource->data(), midiDrvResource->_size);
+		if (_vm->getGameID() == GType_Amazon) {
+			Resource   *midiDrvResource = _vm->_files->loadFile(92, 1);
+			Common::MemoryReadStream *adLibInstrumentStream = new Common::MemoryReadStream(midiDrvResource->data(), midiDrvResource->_size);
 
-		_driver = Audio::MidiDriver_Miles_AdLib_create("", "", adLibInstrumentStream);
+			_driver = Audio::MidiDriver_Miles_AdLib_create("", "", adLibInstrumentStream);
 
-		delete midiDrvResource;
-		delete adLibInstrumentStream;
+			delete midiDrvResource;
+			delete adLibInstrumentStream;
+		} else {
+			MidiPlayer::createDriver();
+		}
 		break;
 	}
 	case MT_MT32:

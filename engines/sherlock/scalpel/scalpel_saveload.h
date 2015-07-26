@@ -33,6 +33,8 @@ extern const int ENV_POINTS[6][3];
 
 class ScalpelSaveManager: public SaveManager {
 public:
+	SaveMode _envMode;
+public:
 	ScalpelSaveManager(SherlockEngine *vm, const Common::String &target);
 	virtual ~ScalpelSaveManager() {}
 

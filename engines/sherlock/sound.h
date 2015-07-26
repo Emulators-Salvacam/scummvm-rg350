@@ -59,6 +59,7 @@ public:
 	bool _soundPlaying;
 	bool *_soundIsOn;
 	byte *_digiBuf;
+	int _soundVolume;
 
 	Common::String _talkSoundFile;
 public:
@@ -98,6 +99,8 @@ public:
 	void freeDigiSound();
 
 	Audio::SoundHandle getFreeSoundHandle();
+
+	void setVolume(int volume);
 };
 
 } // End of namespace Sherlock

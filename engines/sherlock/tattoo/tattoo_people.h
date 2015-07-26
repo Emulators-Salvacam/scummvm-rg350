@@ -117,7 +117,6 @@ public:
 	int _npcIndex;
 	int _npcPause;
 	byte _npcPath[MAX_NPC_PATH];
-	Common::String _npcName;
 	bool _npcMoved;
 	int _npcFacing;
 	bool _resetNPCPath;
@@ -177,6 +176,12 @@ public:
 	 */
 	void synchronize(Serializer &s);
 
+
+	/**
+	 * Walk Holmes to the NPC
+	 */
+	void walkHolmesToNPC();
+
 	/**
 	 * This adjusts the sprites position, as well as it's animation sequence:
 	 */
@@ -206,6 +211,11 @@ public:
 	 * @remarks		1: First talk seq, 2: second talk seq, etc.
 	 */
 	virtual void setObjTalkSequence(int seq);
+
+	/**
+	 * Center the visible screen so that the person is in the center of the screen
+	 */
+	virtual void centerScreenOnPerson();
 };
 
 class TattooPeople : public People {

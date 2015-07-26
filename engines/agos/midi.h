@@ -36,7 +36,8 @@ namespace AGOS {
 enum kMusicMode {
 	kMusicModeDisabled = 0,
 	kMusicModeAccolade = 1,
-	kMusicModeMilesAudio
+	kMusicModeMilesAudio = 2,
+	kMusicModeSimon1 = 3
 };
 
 struct MusicInfo {
@@ -81,15 +82,11 @@ protected:
 	byte _queuedTrack;
 	bool _loopQueuedTrack;
 
-	byte *_adlibPatches;
-
 protected:
 	static void onTimer(void *data);
 	void clearConstructs();
 	void clearConstructs(MusicInfo &info);
 	void resetVolumeTable();
-	void loadAdlibPatches();
-	void unloadAdlibPatches();
 
 public:
 	bool _adLibMusic;

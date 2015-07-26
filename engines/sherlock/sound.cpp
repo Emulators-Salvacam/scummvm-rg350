@@ -60,6 +60,7 @@ Sound::Sound(SherlockEngine *vm, Audio::Mixer *mixer) : _vm(vm), _mixer(mixer) {
 	_soundIsOn = &_soundPlaying;
 	_curPriority = 0;
 	_digiBuf = nullptr;
+	_soundVolume = 255;
 
 	_soundOn = true;
 	_speechOn = true;
@@ -263,6 +264,10 @@ Audio::SoundHandle Sound::getFreeSoundHandle() {
 	}
 
 	error("getFreeSoundHandle: No sound handle found");
+}
+
+void Sound::setVolume(int volume) {
+	warning("TODO: setVolume - %d", volume);
 }
 
 } // End of namespace Sherlock

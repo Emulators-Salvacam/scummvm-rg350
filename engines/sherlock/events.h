@@ -44,6 +44,7 @@ private:
 	uint32 _priorFrameTime;
 	ImageFile *_cursorImages;
 	int _mouseButtons;
+	Common::Point _mousePos;
 
 	/**
 	 * Check whether it's time to display the next screen frame
@@ -59,6 +60,7 @@ public:
 	bool _oldRightButton;
 	bool _firstPress;
 	Common::Stack<Common::KeyState> _pendingKeys;
+	Common::Point _hotspotPos;
 public:
 	Events(SherlockEngine *vm);
 	~Events();
@@ -77,6 +79,11 @@ public:
 	 * Set the cursor to show from a passed frame
 	 */
 	void setCursor(const Graphics::Surface &src, int hotspotX = 0, int hotspotY = 0);
+
+	/**
+	 * Set both a standard cursor as well as an inventory item above it
+	 */
+	void setCursor(CursorId cursorId, const Common::Point &cursorPos, const Graphics::Surface &surface);
 
 	/**
 	 * Animates the mouse cursor if the Wait cursor is showing
@@ -104,11 +111,6 @@ public:
 	bool isCursorVisible() const;
 
 	/**
-	 * Move the mouse
-	 */
-	void moveMouse(const Common::Point &pt);
-
-	/**
 	 * Check for any pending events
 	 */
 	void pollEvents();
@@ -125,12 +127,28 @@ public:
 	void warpMouse(const Common::Point &pt);
 
 	/**
+	* Move the mouse cursor to the center of the screen
+	*/
+	void warpMouse();
+
+	/**
 	 * Get the current mouse position
+	 */
+	Common::Point screenMousePos() const { return _mousePos; }
+
+	/**
+	 * Get the current mouse position within the scene, adjusted by the scroll position
 	 */
 	Common::Point mousePos() const;
 
+	/**
+	 * Return the current game frame number
+	 */
 	uint32 getFrameCounter() const { return _frameCounter; }
 
+	/**
+	 * Returns true if there's a pending keyboard key
+	 */
 	bool kbHit() const { return !_pendingKeys.empty(); }
 
 	/**

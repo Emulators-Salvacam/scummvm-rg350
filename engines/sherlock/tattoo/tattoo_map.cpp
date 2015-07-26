@@ -49,6 +49,7 @@ TattooMap::TattooMap(SherlockEngine *vm) : Map(vm), _mapTooltip(vm) {
 }
 
 int TattooMap::show() {
+	Debugger &debugger = *_vm->_debugger;
 	Events &events = *_vm->_events;
 	Music &music = *_vm->_music;
 	Resources &res = *_vm->_res;
@@ -91,6 +92,7 @@ int TattooMap::show() {
 	// Load the custom mouse cursors for the map
 	ImageFile cursors("omouse.vgs");
 	events.setCursor(cursors[0]._frame);
+	events.warpMouse();
 
 	// Load the data for the map
 	_iconImages = new ImageFile("mapicons.vgs");
@@ -127,7 +129,12 @@ int TattooMap::show() {
 		// Allow for event processing and get the current mouse position
 		events.pollEventsAndWait();
 		events.setButtonState();
-		Common::Point mousePos = events.mousePos();
+		Common::Point mousePos = events.screenMousePos();
+
+		if (debugger._showAllLocations == LOC_REFRESH) {
+			drawMapIcons();
+			screen.slamArea(screen._currentScroll.x, screen._currentScroll.y, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_WIDTH);
+		}
 
 		checkMapNames(true);
 
@@ -199,7 +206,7 @@ int TattooMap::show() {
 			screen._currentScroll = _targetScroll;
 
 			checkMapNames(false);
-			screen.slamArea(0, 0, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
+			screen.slamArea(_targetScroll.x, _targetScroll.y, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
 		}
 
 		// Handling if a location has been clicked on
@@ -290,10 +297,13 @@ void TattooMap::loadData() {
 }
 
 void TattooMap::drawMapIcons() {
+	Debugger &debugger = *_vm->_debugger;
 	Screen &screen = *_vm->_screen;
 	
 	for (uint idx = 0; idx < _data.size(); ++idx) {
-		_vm->setFlagsDirect(idx + 1); //***DEBUG***
+		if (debugger._showAllLocations != LOC_DISABLED)
+			_vm->setFlagsDirect(idx + 1);
+
 		if (_data[idx]._iconNum != -1 && _vm->readFlags(idx + 1)) {
 			MapEntry &mapEntry = _data[idx];
 			ImageFrame &img = (*_iconImages)[mapEntry._iconNum];
@@ -301,12 +311,14 @@ void TattooMap::drawMapIcons() {
 				mapEntry.y - img._height / 2));
 		}
 	}
+
+	if (debugger._showAllLocations == LOC_REFRESH)
+		debugger._showAllLocations = LOC_ALL;
 }
 
 void TattooMap::checkMapNames(bool slamIt) {
 	Events &events = *_vm->_events;
-	Screen &screen = *_vm->_screen;
-	Common::Point mapPos = events.mousePos() + screen._currentScroll;
+	Common::Point mapPos = events.mousePos();
 
 	// See if the mouse is pointing at any of the map locations
 	_bgFound = -1;
@@ -355,6 +367,9 @@ void TattooMap::restoreArea(const Common::Rect &bounds) {
 void TattooMap::showCloseUp(int closeUpNum) {
 	Events &events = *_vm->_events;
 	Screen &screen = *_vm->_screen;
+
+	// Reset scroll position
+	screen._currentScroll = Common::Point(0, 0);
 
 	// Get the closeup images
 	Common::String fname = Common::String::format("res%02d.vgs", closeUpNum + 1);
@@ -407,7 +422,6 @@ void TattooMap::showCloseUp(int closeUpNum) {
 	}
 
 	// Handle final drawing of closeup
-	// TODO: Handle scrolling
 	Common::Rect r(SHERLOCK_SCREEN_WIDTH / 2 - pic[0]._width / 2, SHERLOCK_SCREEN_HEIGHT / 2 - pic[0]._height / 2,
 		SHERLOCK_SCREEN_WIDTH / 2 - pic[0]._width / 2 + pic[0]._width,
 		SHERLOCK_SCREEN_HEIGHT / 2 - pic[0]._height / 2 + pic[0]._height);

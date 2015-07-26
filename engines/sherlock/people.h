@@ -68,6 +68,7 @@ public:
 	bool _walkLoaded;
 	Common::String _portrait;
 	Common::Point _walkDest;
+	Common::String _npcName;
 
 	// Rose Tattoo fields
 	Common::String _walkVGSName;		// Name of walk library person is using
@@ -86,6 +87,11 @@ public:
 	 * Walk to the co-ordinates passed, and then face the given direction
 	 */
 	virtual void walkToCoords(const Point32 &destPos, int destDir) = 0;
+
+	/**
+	 * Center the visible screen so that the person is in the center of the screen
+	 */
+	virtual void centerScreenOnPerson() {}
 };
 
 class SherlockEngine;

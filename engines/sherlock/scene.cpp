@@ -32,13 +32,6 @@
 
 namespace Sherlock {
 
-static const int FS_TRANS[8] = {
-	Scalpel::STOP_UP, Scalpel::STOP_UPRIGHT, Scalpel::STOP_RIGHT, Scalpel::STOP_DOWNRIGHT, 
-	Scalpel::STOP_DOWN, Scalpel::STOP_DOWNLEFT, Scalpel::STOP_LEFT, Scalpel::STOP_UPLEFT
-};
-
-/*----------------------------------------------------------------*/
-
 BgFileHeader::BgFileHeader() {
 	_numStructs = -1;
 	_numImages = -1;
@@ -1099,9 +1092,15 @@ void Scene::checkSceneFlags(bool flag) {
 
 	for (uint idx = 0; idx < _bgShapes.size(); ++idx) {
 		Object &o = _bgShapes[idx];
+		bool objectFlag = true;
 
-		if (o._requiredFlag) {
-			if (!_vm->readFlags(_bgShapes[idx]._requiredFlag)) {
+		if (o._requiredFlag[0] || o._requiredFlag[1]) {
+			if (o._requiredFlag[0] != 0)
+				objectFlag = _vm->readFlags(o._requiredFlag[0]);
+			if (o._requiredFlag[1] != 0)
+				objectFlag &= _vm->readFlags(o._requiredFlag[1]);
+
+			if (!objectFlag) {
 				// Kill object
 				if (o._type != HIDDEN && o._type != INVALID) {
 					if (o._images == nullptr || o._images->size() == 0)
@@ -1111,7 +1110,7 @@ void Scene::checkSceneFlags(bool flag) {
 						// Flag it as needing to be hidden after first erasing it
 						o._type = mode;
 				}
-			} else if (_bgShapes[idx]._requiredFlag > 0) {
+			} else if (IS_ROSE_TATTOO || o._requiredFlag[0] > 0) {
 				// Restore object
 				if (o._images == nullptr || o._images->size() == 0)
 					o._type = NO_SHAPE;
@@ -1192,7 +1191,11 @@ void Scene::transitionToScene() {
 		// Note: If a savegame was just loaded, then the data is already correct.
 		// Otherwise, this is a linked scene or entrance info, and must be translated
 		if (hSavedFacing < 8 && !saves._justLoaded) {
-			hSavedFacing = FS_TRANS[hSavedFacing];
+			if (IS_ROSE_TATTOO)
+				hSavedFacing = Tattoo::FS_TRANS[hSavedFacing];
+			else			
+				hSavedFacing = Scalpel::FS_TRANS[hSavedFacing];
+			
 			hSavedPos.x *= FIXED_INT_MULTIPLIER;
 			hSavedPos.y *= FIXED_INT_MULTIPLIER;
 		}
@@ -1217,6 +1220,11 @@ void Scene::transitionToScene() {
 		// Prevent Holmes from being drawn
 		people[HOLMES]._position = Common::Point(0, 0);
 	}
+
+	// If the scene is capable of scrolling, set the current scroll so that whoever has control 
+	// of the scroll code is in the middle of the screen
+	if (screen._backBuffer1.w() > SHERLOCK_SCREEN_WIDTH)
+		people[people._walkControl].centerScreenOnPerson();
 
 	for (uint objIdx = 0; objIdx < _bgShapes.size(); ++objIdx) {
 		Object &obj = _bgShapes[objIdx];
@@ -1277,7 +1285,7 @@ void Scene::transitionToScene() {
 			screen.fadeIntoScreen3DO(3);
 		}
 	} else {
-		screen.blitFrom(screen._backBuffer1);
+		screen.slamArea(screen._currentScroll.x, screen._currentScroll.y, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
 	}
 	screen.update();
 
@@ -1332,7 +1340,7 @@ Exit *Scene::checkForExit(const Common::Rect &r) {
 	return nullptr;
 }
 
-int Scene::findBgShape(const Common::Rect &r) {
+int Scene::findBgShape(const Common::Point &pt) {
 	if (!_doBgAnimDone)
 		// New frame hasn't been drawn yet
 		return -1;
@@ -1341,19 +1349,15 @@ int Scene::findBgShape(const Common::Rect &r) {
 		Object &o = _bgShapes[idx];
 		if (o._type != INVALID && o._type != NO_SHAPE && o._type != HIDDEN
 			&& o._aType <= PERSON) {
-			if (r.intersects(o.getNewBounds()))
+			if (o.getNewBounds().contains(pt))
 				return idx;
 		} else if (o._type == NO_SHAPE) {
-			if (r.intersects(o.getNoShapeBounds()))
+			if (o.getNoShapeBounds().contains(pt))
 				return idx;
 		}
 	}
 
 	return -1;
-}
-
-int Scene::findBgShape(const Common::Point &pt) {
-	return findBgShape(Common::Rect(pt.x, pt.y, pt.x + 1, pt.y + 1));
 }
 
 int Scene::checkForZones(const Common::Point &pt, int zoneType) {

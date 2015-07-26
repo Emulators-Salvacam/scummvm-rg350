@@ -30,16 +30,10 @@ namespace Sherlock {
 
 class SherlockEngine;
 
+enum AllLocations { LOC_REFRESH = -1, LOC_DISABLED = 0, LOC_ALL = 1 };
+
 class Debugger : public GUI::Debugger {
-public:
-	Debugger(SherlockEngine *vm);
-	virtual ~Debugger() {}
-
-	void postEnter();
-
 private:
-	SherlockEngine *_vm;
-
 	/**
 	 * Converts a decimal or hexadecimal string into a number
 	 */
@@ -51,16 +45,6 @@ private:
 	bool cmdScene(int argc, const char **argv);
 
 	/**
-	 * Plays a 3DO movie
-	 */
-	bool cmd3DO_PlayMovie(int argc, const char **argv);
-
-	/**
-	 * Plays a 3DO audio
-	 */
-	bool cmd3DO_PlayAudio(int argc, const char **argv);
-
-	/**
 	 * Plays a song
 	 */
 	bool cmdSong(int argc, const char **argv);
@@ -70,8 +54,21 @@ private:
 	 */
 	bool cmdDumpFile(int argc, const char **argv);
 
-private:
+	/**
+	 * Show all locations on the map
+	 */
+	bool cmdLocations(int argc, const char **argv);
+protected:
+	SherlockEngine *_vm;
 	Common::String _3doPlayMovieFile;
+public:
+	AllLocations _showAllLocations;
+public:
+	Debugger(SherlockEngine *vm);
+	virtual ~Debugger() {}
+	static Debugger *init(SherlockEngine *vm);
+
+	void postEnter();
 };
 
 } // End of namespace Sherlock

@@ -38,18 +38,19 @@ WidgetVerbs::WidgetVerbs(SherlockEngine *vm) : WidgetBase(vm) {
 
 void WidgetVerbs::load(bool objectsOn) {
 	Events &events = *_vm->_events;
+	TattooPeople &people = *(TattooPeople *)_vm->_people;
 	Talk &talk = *_vm->_talk;
 	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
-	TattooPeople &people = *(TattooPeople *)_vm->_people;
 	Common::Point mousePos = events.mousePos();
 	bool isWatson = false;
 
 	if (talk._talkToAbort)
 		return;
 
+	ui._activeObj = ui._bgFound;
 	_outsideMenu = false;
-
 	_verbCommands.clear();
+	_selector = _oldSelector = -1;
 
 	// Check if we need to show options for the highlighted object
 	if (objectsOn) {
@@ -153,11 +154,9 @@ void WidgetVerbs::handleEvents() {
 	FixedText &fixedText = *_vm->_fixedText;
 	People &people = *_vm->_people;
 	TattooScene &scene = *(TattooScene *)_vm->_scene;
-	Screen &screen = *_vm->_screen;
 	Talk &talk = *_vm->_talk;
 	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
 	Common::Point mousePos = events.mousePos();
-	Common::Point scenePos = mousePos + screen._currentScroll;
 	bool noDesc = false;
 
 	Common::String strLook = fixedText.getText(kFixedText_Look);
@@ -178,20 +177,17 @@ void WidgetVerbs::handleEvents() {
 		// See if they want to close the menu (they clicked outside of the menu)
 		if (!_bounds.contains(mousePos)) {
 			if (_outsideMenu) {
-				// Free the current menu graphics & erase the menu
-				banishWindow();
-
 				if (events._rightReleased) {
-					// Reset the selected shape to what was clicked on
-					ui._bgFound = scene.findBgShape(scenePos);
+					// Change to the item (if any) that was right-clicked on, and re-draw the verb menu
+					ui._bgFound = scene.findBgShape(mousePos);
 					ui._personFound = ui._bgFound >= 1000;
-					Object *_bgShape = ui._personFound ? nullptr : &scene._bgShapes[ui._bgFound];
+					ui._bgShape = ui._personFound || ui._bgFound == -1 ? nullptr : &scene._bgShapes[ui._bgFound];
 
 					if (ui._personFound) {
 						if (people[ui._bgFound - 1000]._description.empty() || people[ui._bgFound - 1000]._description.hasPrefix(" "))
 							noDesc = true;
 					} else if (ui._bgFound != -1) {
-						if (_bgShape->_description.empty() || _bgShape->_description.hasPrefix(" "))
+						if (ui._bgShape->_description.empty() || ui._bgShape->_description.hasPrefix(" "))
 							noDesc = true;
 					} else {
 						noDesc = true;
@@ -200,11 +196,14 @@ void WidgetVerbs::handleEvents() {
 					// Call the Routine to turn on the Commands for this Object
 					load(!noDesc);
 				} else {
+					// Free the current menu graphics & erase the menu
+					banishWindow();
+
 					// See if we're in a Lab Table Room
 					ui._menuMode = scene._labTableScene ? LAB_MODE : STD_MODE;
 				}
 			}
-		} else if (_bounds.contains(mousePos)) {
+		} else if (_bounds.contains(mousePos) && _selector != -1) {
 			// Mouse is within the menu
 			// Erase the menu
 			banishWindow();

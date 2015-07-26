@@ -31,6 +31,12 @@ namespace Sherlock {
 
 namespace Tattoo {
 
+const int FS_TRANS[8] = {
+	STOP_UP, STOP_UPRIGHT, STOP_RIGHT, STOP_DOWNRIGHT, STOP_DOWN, STOP_DOWNLEFT, STOP_LEFT, STOP_UPLEFT
+};
+
+/*----------------------------------------------------------------*/
+
 struct ShapeEntry {
 	Object *_shape;
 	TattooPerson *_person;
@@ -49,7 +55,7 @@ static bool sortImagesY(const ShapeEntry &s1, const ShapeEntry &s2) {
 
 /*----------------------------------------------------------------*/
 
-TattooScene::TattooScene(SherlockEngine *vm) : Scene(vm) {
+TattooScene::TattooScene(SherlockEngine *vm) : Scene(vm), _labWidget(vm) {
 	_labTableScene = false;
 }
 
@@ -101,6 +107,9 @@ bool TattooScene::loadScene(const Common::String &filename) {
 		// Set the menu/ui mode and whether we're in a lab table close-up scene
 		_labTableScene = _currentScene > 91 && _currentScene < 100;
 		ui._menuMode = _labTableScene ? LAB_MODE : STD_MODE;
+
+		if (_labTableScene)
+			ui.addFixedWidget(&_labWidget);
 	}
 
 	return result;
@@ -347,14 +356,14 @@ void TattooScene::doBgAnim() {
 
 	ui.drawInterface();
 
-	if (vm._creditsActive)
-		vm.blitCredits();
+	if (ui._creditsWidget.active())
+		ui._creditsWidget.blitCredits();
 
 	if (!vm._fastMode)
 		events.wait(3);
 
 	if (screen._flushScreen) {
-		screen.slamRect(Common::Rect(0, 0, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT));
+		screen.slamArea(screen._currentScroll.x, screen._currentScroll.y, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
 		screen._flushScreen = false;
 	}
 
@@ -689,7 +698,12 @@ int TattooScene::startCAnim(int cAnimNum, int playRate) {
 
 void TattooScene::setNPCPath(int npc) {
 	TattooPeople &people = *(TattooPeople *)_vm->_people;
+	SaveManager &saves = *_vm->_saves;
 	Talk &talk = *_vm->_talk;
+
+	// Don't do initial scene setup if a savegame has just been loaded
+	if (saves._justLoaded)
+		return;
 
 	people[npc].clearNPC();
 	people[npc]._name = Common::String::format("WATS%.2dA", _currentScene);
@@ -706,6 +720,50 @@ void TattooScene::setNPCPath(int npc) {
 	// Call the path script for the scene
 	Common::String pathFile = Common::String::format("PATH%.2dA", _currentScene);
 	talk.talkTo(pathFile);
+}
+
+int TattooScene::findBgShape(const Common::Point &pt) {
+	People &people = *_vm->_people;
+
+	if (!_doBgAnimDone)
+		// New frame hasn't been drawn yet
+		return -1;
+
+	int result = Scene::findBgShape(pt);
+	if (result == -1) {
+		if (_labTableScene) {
+			// Check for SOLID objects in the lab scene
+			for (int idx = (int)_bgShapes.size() - 1; idx >= 0; --idx) {
+				Object &o = _bgShapes[idx];
+				if (o._type != INVALID && o._type != NO_SHAPE && o._type != HIDDEN && o._aType == SOLID) {
+					if (o.getNewBounds().contains(pt))
+						return idx;
+				}
+			}
+		}
+
+		// No shape found, so check whether a character is highlighted
+		for (int idx = 1; idx < MAX_CHARACTERS && result == -1; ++idx) {
+			Person &person = people[idx];
+
+			if (person._type == CHARACTER) {
+				int scaleVal = getScaleVal(person._position);
+				Common::Rect charRect;
+
+				if (scaleVal == SCALE_THRESHOLD)
+					charRect = Common::Rect(person.frameWidth(), person.frameHeight());
+				else
+					charRect = Common::Rect(person._imageFrame->sDrawXSize(scaleVal), person._imageFrame->sDrawYSize(scaleVal));
+				charRect.moveTo(person._position.x / FIXED_INT_MULTIPLIER, person._position.y / FIXED_INT_MULTIPLIER
+					- charRect.height());
+
+				if (charRect.contains(pt))
+					result = 1000 + idx;
+			}
+		}
+	}
+
+	return result;
 }
 
 void TattooScene::synchronize(Serializer &s) {

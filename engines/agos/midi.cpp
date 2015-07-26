@@ -29,6 +29,7 @@
 #include "agos/midi.h"
 
 #include "agos/drivers/accolade/mididriver.h"
+#include "agos/drivers/simon1/adlib.h"
 // Miles Audio for Simon 2
 #include "audio/miles.h"
 
@@ -51,8 +52,6 @@ MidiPlayer::MidiPlayer() {
 	// between songs.
 	_driver = 0;
 	_map_mt32_to_gm = false;
-
-	_adlibPatches = NULL;
 
 	_adLibMusic = false;
 	_enable_sfx = true;
@@ -83,7 +82,6 @@ MidiPlayer::~MidiPlayer() {
 	}
 	_driver = NULL;
 	clearConstructs();
-	unloadAdlibPatches();
 }
 
 int MidiPlayer::open(int gameType, bool isDemo) {
@@ -109,6 +107,8 @@ int MidiPlayer::open(int gameType, bool isDemo) {
 		if (isDemo) {
 			_musicMode = kMusicModeAccolade;
 			accoladeDriverFilename = "MUSIC.DRV";
+		} else if (Common::File::exists("MT_FM.IBK")) {
+			_musicMode = kMusicModeSimon1;
 		}
 		break;
 	case GType_SIMON2:
@@ -231,6 +231,28 @@ int MidiPlayer::open(int gameType, bool isDemo) {
 		return 0;
 	}
 
+	case kMusicModeSimon1: {
+		// This only handles the original AdLib driver of Simon1.
+		if (musicType == MT_ADLIB) {
+			_adLibMusic = true;
+			_map_mt32_to_gm = false;
+			_nativeMT32 = false;
+
+			_driver = createMidiDriverSimon1AdLib("MT_FM.IBK");
+			if (_driver && _driver->open() == 0) {
+				_driver->setTimerCallback(this, &onTimer);
+				// Like the original, we enable the rhythm support by default.
+				_driver->send(0xB0, 0x67, 0x01);
+				return 0;
+			}
+
+			delete _driver;
+			_driver = nullptr;
+		}
+
+		_musicMode = kMusicModeDisabled;
+	}
+
 	default:
 		break;
 	}
@@ -245,12 +267,6 @@ int MidiPlayer::open(int gameType, bool isDemo) {
 
 	if (_nativeMT32)
 		_driver->property(MidiDriver::PROP_CHANNEL_MASK, 0x03FE);
-
-	/* Disabled due to not sounding right, and low volume level
-	if (gameType == GType_SIMON1 && MidiDriver::getMusicType(dev) == MT_ADLIB) {
-			loadAdlibPatches();
-	}
-	*/
 
 	_map_mt32_to_gm = (gameType != GType_SIMON2 && !_nativeMT32);
 
@@ -272,7 +288,28 @@ void MidiPlayer::send(uint32 b) {
 		return;
 
 	if (_musicMode != kMusicModeDisabled) {
-		// Send directly to Accolade/Miles Audio driver
+		// Handle volume control for Simon1 output.
+		if (_musicMode == kMusicModeSimon1) {
+			// The driver does not support any volume control, thus we simply
+			// scale the velocities on note on for now.
+			// TODO: We should probably handle this at output level at some
+			// point. Then we can allow volume changes to affect already
+			// playing notes too. For now this simple change allows us to
+			// have some simple volume control though.
+			if ((b & 0xF0) == 0x90) {
+				byte volume = (b >> 16) & 0x7F;
+
+				if (_current == &_sfx) {
+					volume = volume * _sfxVolume / 255;
+				} else if (_current == &_music) {
+					volume = volume * _musicVolume / 255;
+				}
+
+				b = (b & 0xFF00FFFF) | (volume << 16);
+			}
+		}
+
+		// Send directly to Accolade/Miles/Simon1 Audio driver
 		_driver->send(b);
 		return;
 	}
@@ -287,10 +324,8 @@ void MidiPlayer::send(uint32 b) {
 		else if (_current == &_music)
 			volume = volume * _musicVolume / 255;
 		b = (b & 0xFF00FFFF) | (volume << 16);
-	} else if ((b & 0xF0) == 0xC0) {
-		if (_map_mt32_to_gm && !_adlibPatches) {
-			b = (b & 0xFFFF00FF) | (MidiDriver::_mt32ToGm[(b >> 8) & 0xFF] << 8);
-		}
+	} else if ((b & 0xF0) == 0xC0 && _map_mt32_to_gm) {
+		b = (b & 0xFFFF00FF) | (MidiDriver::_mt32ToGm[(b >> 8) & 0xFF] << 8);
 	} else if ((b & 0xFFF0) == 0x007BB0) {
 		// Only respond to an All Notes Off if this channel
 		// has already been allocated.
@@ -321,16 +356,7 @@ void MidiPlayer::send(uint32 b) {
 			else if (_current == &_music)
 				_current->channel[9]->volume(_current->volume[9] * _musicVolume / 255);
 		}
-
-		if ((b & 0xF0) == 0xC0 && _adlibPatches) {
-			// NOTE: In the percussion channel, this function is a
-			//       no-op. Any percussion instruments you hear may
-			//       be the stock ones from adlib.cpp.
-			_driver->sysEx_customInstrument(_current->channel[channel]->getNumber(), 'ADL ', _adlibPatches + 30 * ((b >> 8) & 0xFF));
-		} else {
-			_current->channel[channel]->send(b);
-		}
-
+		_current->channel[channel]->send(b);
 		if ((b & 0xFFF0) == 0x79B0) {
 			// We have received a "Reset All Controllers" message
 			// and passed it on to the MIDI driver. This may or may
@@ -541,47 +567,6 @@ void MidiPlayer::resetVolumeTable() {
 	}
 }
 
-void MidiPlayer::loadAdlibPatches() {
-	Common::File ibk;
-
-	if (!ibk.open("mt_fm.ibk"))
-		return;
-
-	if (ibk.readUint32BE() == 0x49424b1a) {
-		_adlibPatches = new byte[128 * 30];
-		byte *ptr = _adlibPatches;
-
-		memset(_adlibPatches, 0, 128 * 30);
-
-		for (int i = 0; i < 128; i++) {
-			byte instr[16];
-
-			ibk.read(instr, 16);
-
-			ptr[0] = instr[0];   // Modulator Sound Characteristics
-			ptr[1] = instr[2];   // Modulator Scaling/Output Level
-			ptr[2] = ~instr[4];  // Modulator Attack/Decay
-			ptr[3] = ~instr[6];  // Modulator Sustain/Release
-			ptr[4] = instr[8];   // Modulator Wave Select
-			ptr[5] = instr[1];   // Carrier Sound Characteristics
-			ptr[6] = instr[3];   // Carrier Scaling/Output Level
-			ptr[7] = ~instr[5];  // Carrier Attack/Delay
-			ptr[8] = ~instr[7];  // Carrier Sustain/Release
-			ptr[9] = instr[9];   // Carrier Wave Select
-			ptr[10] = instr[10]; // Feedback/Connection
-
-			// The remaining six bytes are reserved for future use
-
-			ptr += 30;
-		}
-	}
-}
-
-void MidiPlayer::unloadAdlibPatches() {
-	delete[] _adlibPatches;
-	_adlibPatches = NULL;
-}
-
 static const int simon1_gmf_size[] = {
 	8900, 12166, 2848, 3442, 4034, 4508, 7064, 9730, 6014, 4742, 3138,
 	6570, 5384, 8909, 6457, 16321, 2742, 8968, 4804, 8442, 7717,
@@ -638,26 +623,27 @@ void MidiPlayer::loadSMF(Common::File *in, int song, bool sfx) {
 		// 1 BYTE : Major version
 		// 1 BYTE : Minor version
 		// 1 BYTE : Ticks (Ranges from 2 - 8, always 2 for SFX)
-		// 1 BYTE : Loop control. 0 = no loop, 1 = loop
+		// 1 BYTE : Loop control. 0 = no loop, 1 = loop (Music only)
+		if (!sfx) {
+			// In the original, the ticks value indicated how many
+			// times the music timer was called before it actually
+			// did something. The larger the value the slower the
+			// music.
+			//
+			// We, on the other hand, have a timer rate which is
+			// used to control by how much the music advances on
+			// each onTimer() call. The larger the value, the
+			// faster the music.
+			//
+			// It seems that 4 corresponds to our base tempo, so
+			// this should be the right way to calculate it.
+			timerRate = (4 * _driver->getBaseTempo()) / p->data[5];
 
-		// In the original, the ticks value indicated how many
-		// times the music timer was called before it actually
-		// did something. The larger the value the slower the
-		// music.
-		//
-		// We, on the other hand, have a timer rate which is
-		// used to control by how much the music advances on
-		// each onTimer() call. The larger the value, the
-		// faster the music.
-		//
-		// It seems that 4 corresponds to our base tempo, so
-		// this should be the right way to calculate it.
-		timerRate = (4 * _driver->getBaseTempo()) / p->data[5];
-
-		// According to bug #1004919 calling setLoop() from
-		// within a lock causes a lockup, though I have no
-		// idea when this actually happens.
-		_loopTrack = (p->data[6] != 0);
+			// According to bug #1004919 calling setLoop() from
+			// within a lock causes a lockup, though I have no
+			// idea when this actually happens.
+			_loopTrack = (p->data[6] != 0);
+		}
 	}
 
 	MidiParser *parser = MidiParser::createParser_SMF();

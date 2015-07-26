@@ -39,12 +39,15 @@ void WidgetTooltipBase::draw() {
 		erase();
 
 	if (_bounds.width() > 0 && !_surface.empty()) {
+		restrictToScreen();
+
 		// Blit the affected area to the screen
 		screen.slamRect(_bounds);
 		
 		// Draw the widget directly onto the screen. Unlike other widgets, we don't draw to the back buffer,
 		// since nothing should be drawing on top of tooltips, so there's no need to store in the back buffer
-		screen.transBlitFrom(_surface, Common::Point(_bounds.left, _bounds.top));
+		screen.transBlitFrom(_surface, Common::Point(_bounds.left - screen._currentScroll.x, 
+			_bounds.top - screen._currentScroll.y));
 
 		// Store a copy of the drawn area for later erasing
 		_oldBounds = _bounds;
@@ -65,7 +68,7 @@ void WidgetTooltipBase::erase() {
 
 /*----------------------------------------------------------------*/
 
-WidgetTooltip::WidgetTooltip(SherlockEngine *vm) : WidgetTooltipBase (vm) {
+WidgetTooltip::WidgetTooltip(SherlockEngine *vm) : WidgetTooltipBase (vm), _offsetY(0) {
 }
 
 void WidgetTooltip::setText(const Common::String &str) {
@@ -139,8 +142,8 @@ void WidgetTooltip::setText(const Common::String &str) {
 		}
 
 		// Set the initial display position for the tooltip text
-		int tagX = CLIP(mousePos.x - width / 2, 0, SHERLOCK_SCREEN_WIDTH - width);
-		int tagY = MAX(mousePos.y - height, 0);
+		int tagX = mousePos.x - width / 2;
+		int tagY = mousePos.y - height - _offsetY;
 
 		_bounds = Common::Rect(tagX, tagY, tagX + width, tagY + height);
 	} else {
@@ -157,8 +160,8 @@ void WidgetTooltip::handleEvents() {
 	Common::Point mousePos = events.mousePos();
 
 	// Set the new position for the tooltip
-	int xp = CLIP(mousePos.x - _bounds.width() / 2, 0, SHERLOCK_SCREEN_WIDTH - _bounds.width());
-	int yp = MAX(mousePos.y - _bounds.height(), 0);
+	int xp = mousePos.x - _bounds.width() / 2;
+	int yp = mousePos.y - _bounds.height() - _offsetY;
 
 	_bounds.moveTo(xp, yp);
 }
@@ -199,11 +202,9 @@ void WidgetSceneTooltip::handleEvents() {
 
 		ui._oldBgFound = ui._bgFound;
 	} else {
-
 		// Set the new position for the tooltip
 		int tagX = CLIP(mousePos.x - _bounds.width() / 2, 0, SHERLOCK_SCREEN_WIDTH - _bounds.width());
-		int tagY = MAX(mousePos.y - _bounds.height(), 0);
-
+		int tagY = MAX(mousePos.y - _bounds.height() - _offsetY, 0);
 		_bounds.moveTo(tagX, tagY);
 	}
 

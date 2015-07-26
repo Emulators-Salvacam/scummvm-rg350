@@ -24,6 +24,8 @@
 #define SHERLOCK_TATTOO_H
 
 #include "sherlock/sherlock.h"
+#include "sherlock/tattoo/tattoo_darts.h"
+#include "sherlock/tattoo/widget_hangman.h"
 
 namespace Sherlock {
 
@@ -52,6 +54,9 @@ enum {
 
 class TattooEngine : public SherlockEngine {
 private:
+	Darts _darts;
+	WidgetHangman _hangmanWidget;
+
 	/**
 	 * Loads the initial palette for the game
 	 */
@@ -73,31 +78,29 @@ protected:
 	 * Starting a scene within the game
 	 */
 	virtual void startScene();
+
+	/**
+	 * Load configuration options
+	 */
+	virtual void loadConfig();
 public:
-	bool _creditsActive;
 	bool _runningProlog;
 	bool _fastMode, _allowFastMode;
 	bool _transparentMenus;
+	bool _textWindowsOn;
 public:
 	TattooEngine(OSystem *syst, const SherlockGameDescription *gameDesc);
 	virtual ~TattooEngine();
 
 	/**
-	 * Draw credits on the screen
+	 * Shows the hangman puzzle
 	 */
-	void drawCredits();
-
-	/**
-	 * Blit the drawn credits to the screen
-	 */
-	void blitCredits();
-
-	/**
-	 * Erase any area of the screen covered by credits
-	 */
-	void eraseCredits();
-
 	void doHangManPuzzle();
+
+	/**
+	 * Save the game configuration
+	 */
+	virtual void saveConfig();
 };
 
 } // End of namespace Tattoo

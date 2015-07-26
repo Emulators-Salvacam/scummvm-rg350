@@ -363,6 +363,44 @@ void MohawkEngine_LivingBooks::destroyPage() {
 	_focus = NULL;
 }
 
+// Replace any colons (originally a slash) with another character
+static Common::String replaceColons(const Common::String &in, char replace) {
+	Common::String out;
+
+	for (uint32 i = 0; i < in.size(); i++) {
+		if (in[i] == ':')
+			out += replace;
+		else
+			out += in[i];
+	}
+
+	return out;
+}
+
+// Helper function to assist in opening pages
+static bool tryOpenPage(Archive *archive, const Common::String &fileName) {
+	// Try the plain file name first
+	if (archive->openFile(fileName))
+		return true;
+
+	// No colons, then bail out
+	if (!fileName.contains(':'))
+		return false;
+
+	// Try replacing colons with underscores (in case the original was
+	// a Mac version and had slashes not as a separator).
+	if (archive->openFile(replaceColons(fileName, '_')))
+		return true;
+
+	// Try replacing colons with slashes (in case the original was a Mac
+	// version and had slashes as a separator).
+	if (archive->openFile(replaceColons(fileName, '/')))
+		return true;
+
+	// Failed to open the archive
+	return false;
+}
+
 bool MohawkEngine_LivingBooks::loadPage(LBMode mode, uint page, uint subpage) {
 	destroyPage();
 
@@ -410,7 +448,7 @@ bool MohawkEngine_LivingBooks::loadPage(LBMode mode, uint page, uint subpage) {
 	}
 
 	Archive *pageArchive = createArchive();
-	if (!filename.empty() && pageArchive->openFile(filename)) {
+	if (!filename.empty() && tryOpenPage(pageArchive, filename)) {
 		_page = new LBPage(this);
 		_page->open(pageArchive, 1000);
 	} else {
@@ -824,18 +862,18 @@ int MohawkEngine_LivingBooks::getIntFromConfig(const Common::String &section, co
 
 Common::String MohawkEngine_LivingBooks::getFileNameFromConfig(const Common::String &section, const Common::String &key, Common::String &leftover) {
 	Common::String string = getStringFromConfig(section, key, leftover);
-	Common::String x;
 
-	uint32 i = 0;
 	if (string.hasPrefix("//")) {
 		// skip "//CD-ROM Title/" prefixes which we don't care about
-		i = 3;
+		uint i = 3;
 		while (i < string.size() && string[i - 1] != '/')
 			i++;
-	}
-	x = string.c_str() + i;
 
-	return (getPlatform() == Common::kPlatformMacintosh) ? convertMacFileName(x) : convertWinFileName(x);
+		// Already uses slashes, no need to convert further
+		return string.c_str() + i;
+	}
+
+	return (getPlatform() == Common::kPlatformMacintosh) ? convertMacFileName(string) : convertWinFileName(string);
 }
 
 Common::String MohawkEngine_LivingBooks::removeQuotesFromString(const Common::String &string, Common::String &leftover) {
@@ -866,8 +904,10 @@ Common::String MohawkEngine_LivingBooks::convertMacFileName(const Common::String
 	for (uint32 i = 0; i < string.size(); i++) {
 		if (i == 0 && string[i] == ':') // First character should be ignored (another colon)
 			continue;
-		if (string[i] == ':')
+		if (string[i] == ':') // Directory separator
 			filename += '/';
+		else if (string[i] == '/') // Literal slash
+			filename += ':'; // Replace by colon, as used by Mac OS X for slash
 		else
 			filename += string[i];
 	}
@@ -3772,7 +3812,7 @@ LBMovieItem::~LBMovieItem() {
 void LBMovieItem::update() {
 	if (_playing) {
 		VideoHandle videoHandle = _vm->_video->findVideoHandle(_resourceId);
-		if (videoHandle == NULL_VID_HANDLE || _vm->_video->endOfVideo(videoHandle))
+		if (!videoHandle || videoHandle->endOfVideo())
 			done(true);
 	}
 
@@ -3783,8 +3823,11 @@ bool LBMovieItem::togglePlaying(bool playing, bool restart) {
 	if (playing) {
 		if ((_loaded && _enabled && _globalEnabled) || _phase == kLBPhaseNone) {
 			debug("toggled video for phase %d", _phase);
-			_vm->_video->playMovie(_resourceId, _rect.left, _rect.top);
+			VideoHandle handle = _vm->_video->playMovie(_resourceId);
+			if (!handle)
+				error("Failed to open tMOV %d", _resourceId);
 
+			handle->moveTo(_rect.left, _rect.top);
 			return true;
 		}
 	}
@@ -3881,7 +3924,7 @@ void LBProxyItem::load() {
 
 	debug(1, "LBProxyItem loading archive '%s' with id %d", filename.c_str(), baseId);
 	Archive *pageArchive = _vm->createArchive();
-	if (!pageArchive->openFile(filename))
+	if (!tryOpenPage(pageArchive, filename))
 		error("failed to open archive '%s' (for proxy '%s')", filename.c_str(), _desc.c_str());
 	_page = new LBPage(_vm);
 	_page->open(pageArchive, baseId);

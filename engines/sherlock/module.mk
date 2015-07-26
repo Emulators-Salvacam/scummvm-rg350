@@ -8,6 +8,7 @@ MODULE_OBJS = \
 	scalpel/drivers/mt32.o \
 	scalpel/tsage/logo.o \
 	scalpel/tsage/resources.o \
+	scalpel/scalpel_debugger.o \
 	scalpel/scalpel_fixed_text.o \
 	scalpel/scalpel_inventory.o \
 	scalpel/scalpel_journal.o \
@@ -20,6 +21,8 @@ MODULE_OBJS = \
 	scalpel/scalpel_user_interface.o \
 	scalpel/settings.o \
 	tattoo/tattoo.o \
+	tattoo/tattoo_darts.o \
+	tattoo/tattoo_debugger.o \
 	tattoo/tattoo_fixed_text.o \
 	tattoo/tattoo_inventory.o \
 	tattoo/tattoo_journal.o \
@@ -30,7 +33,13 @@ MODULE_OBJS = \
 	tattoo/tattoo_talk.o \
 	tattoo/tattoo_user_interface.o \
 	tattoo/widget_base.o \
+	tattoo/widget_credits.o \
+	tattoo/widget_files.o \
+	tattoo/widget_hangman.o \
 	tattoo/widget_inventory.o \
+	tattoo/widget_lab.o \
+	tattoo/widget_options.o \
+	tattoo/widget_quit.o \
 	tattoo/widget_talk.o \
 	tattoo/widget_text.o \
 	tattoo/widget_tooltip.o \

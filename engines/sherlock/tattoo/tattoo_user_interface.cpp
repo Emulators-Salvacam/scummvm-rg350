@@ -29,8 +29,20 @@ namespace Sherlock {
 
 namespace Tattoo {
 
+bool WidgetList::contains(const WidgetBase *item) const {
+	for (const_iterator i = begin(); i != end(); ++i) {
+		if ((*i) == item)
+			return true;
+	}
+
+	return false;
+}
+
+/*-------------------------------------------------------------------------*/
+
 TattooUserInterface::TattooUserInterface(SherlockEngine *vm): UserInterface(vm),
-		_inventoryWidget(vm), _messageWidget(vm), _textWidget(vm), _tooltipWidget(vm), _verbsWidget(vm) {
+		_inventoryWidget(vm), _messageWidget(vm), _textWidget(vm), _tooltipWidget(vm), 
+		_verbsWidget(vm), _creditsWidget(vm), _optionsWidget(vm), _quitWidget(vm) {
 	Common::fill(&_lookupTable[0], &_lookupTable[PALETTE_COUNT], 0);
 	Common::fill(&_lookupTable1[0], &_lookupTable1[PALETTE_COUNT], 0);
 	_scrollSize = 0;
@@ -39,13 +51,11 @@ TattooUserInterface::TattooUserInterface(SherlockEngine *vm): UserInterface(vm),
 	_bgShape = nullptr;
 	_personFound = false;
 	_lockoutTimer = 0;
-	_fileMode = SAVEMODE_NONE;
 	_exitZone = -1;
 	_scriptZone = -1;
 	_arrowZone = _oldArrowZone = -1;
 	_activeObj = -1;
 	_cAnimFramePause = 0;
-	_widget = nullptr;
 	_scrollHighlight = SH_NONE;
 	_mask = _mask1 = nullptr;
 	_maskCounter = 0;
@@ -160,7 +170,6 @@ void TattooUserInterface::printObjectDesc(const Common::String &str, bool firstT
 		events.setCursor(MAGNIFY);
 		int savedSelector = _selector;
 
-		freeMenu();
 		if (!_invLookFlag)
 			_windowOpen = false;
 
@@ -224,17 +233,25 @@ void TattooUserInterface::doJournal() {
 void TattooUserInterface::reset() {
 	UserInterface::reset();
 	_lookPos = Common::Point(SHERLOCK_SCREEN_WIDTH / 2, SHERLOCK_SCREEN_HEIGHT / 2);
+	_tooltipWidget.setText("");
+	_widgets.clear();
+	_fixedWidgets.clear();
 }
 
 void TattooUserInterface::handleInput() {
 	TattooEngine &vm = *(TattooEngine *)_vm;
 	Events &events = *_vm->_events;
 	TattooScene &scene = *(TattooScene *)_vm->_scene;
-	Screen &screen = *_vm->_screen;
-	Common::Point mousePos = events.mousePos() + screen._currentScroll;
+	Common::Point mousePos = events.mousePos();
 
+	_vm->_canLoadSave = _menuMode == STD_MODE;
 	events.pollEventsAndWait();
+	_vm->_canLoadSave = false;
 	_keyState.keycode = Common::KEYCODE_INVALID;
+
+	// Check for credits starting
+	if (_vm->readFlags(3000) && !_creditsWidget.active())
+		_creditsWidget.initCredits();
 
 	// Check the mouse positioning
 	if (events.isCursorVisible())
@@ -266,9 +283,11 @@ void TattooUserInterface::handleInput() {
 	if (!events.isCursorVisible())
 		_keyState.keycode = Common::KEYCODE_INVALID;
 
-	// If there's an active widget/window, let it do event processing
-	if (_widget)
-		_widget->handleEvents();
+	// If there's any active widgets/windows, let the most recently open one do event processing
+	if (!_widgets.empty())
+		_widgets.back()->handleEvents();
+	else if (!_fixedWidgets.empty())
+		_fixedWidgets.back()->handleEvents();
 
 	// Handle input depending on what mode we're in
 	switch (_menuMode) {
@@ -278,12 +297,6 @@ void TattooUserInterface::handleInput() {
 	case LOOK_MODE:
 		doLookControl();
 		break;
-	case FILES_MODE:
-		doFileControl();
-		break;
-	case LAB_MODE:
-		doLabControl();
-		break;
 	default:
 		break;
 	}
@@ -291,13 +304,17 @@ void TattooUserInterface::handleInput() {
 
 void TattooUserInterface::drawInterface(int bufferNum) {
 	Screen &screen = *_vm->_screen;
-	TattooEngine &vm = *(TattooEngine *)_vm;
 
-	if (_widget)
-		_widget->draw();
+	// Draw any active on-screen widgets
+	for (Common::List<WidgetBase *>::iterator i = _fixedWidgets.begin(); i != _fixedWidgets.end(); ++i)
+		(*i)->draw();
+	for (Common::List<WidgetBase *>::iterator i = _widgets.begin(); i != _widgets.end(); ++i)
+		(*i)->draw();
 
-	if (vm._creditsActive)
-		vm.drawCredits();
+	// Handle drawing credits
+	// TODO: See if credits are only shown on a single screen. If so, _fixedWidgets could be used
+	if (_creditsWidget.active())
+		_creditsWidget.drawCredits();
 
 	// Bring the widgets to the screen
 	if (_mask != nullptr)
@@ -307,16 +324,19 @@ void TattooUserInterface::drawInterface(int bufferNum) {
 		screen.blockMove();
 
 	// Handle drawing the text tooltip if necessary
-	_tooltipWidget.draw();
+	if (_menuMode == STD_MODE || _menuMode == LAB_MODE)
+		_tooltipWidget.draw();
 }
 
 void TattooUserInterface::doBgAnimRestoreUI() {
 	TattooScene &scene = *((TattooScene *)_vm->_scene);
 	Screen &screen = *_vm->_screen;
 
-	// If there is any on-screen widget, then erase it
-	if (_widget)
-		_widget->erase();
+	// If there are any on-screen widgets, then erase them
+	for (Common::List<WidgetBase *>::iterator i = _widgets.begin(); i != _widgets.end(); ++i)
+		(*i)->erase();
+	for (Common::List<WidgetBase *>::iterator i = _fixedWidgets.begin(); i != _fixedWidgets.end(); ++i)
+		(*i)->erase();
 
 	// If there is a Text Tag being display, restore the area underneath it
 	_tooltipWidget.erase();
@@ -354,7 +374,6 @@ void TattooUserInterface::doStandardControl() {
 	Events &events = *_vm->_events;
 	People &people = *_vm->_people;
 	TattooScene &scene = *(TattooScene *)_vm->_scene;
-	Screen &screen = *_vm->_screen;
 	Talk &talk = *_vm->_talk;
 	Common::Point mousePos = events.mousePos();
 	bool noDesc = false;
@@ -370,15 +389,13 @@ void TattooUserInterface::doStandardControl() {
 	case Common::KEYCODE_F5:
 		// Save game
 		freeMenu();
-		_fileMode = SAVEMODE_SAVE;
-		initFileMenu();
+		saveGame();
 		return;
 
 	case Common::KEYCODE_F7:
 		// Load game
 		freeMenu();
-		_fileMode = SAVEMODE_LOAD;
-		initFileMenu();
+		loadGame();
 		return;
 
 	case Common::KEYCODE_F1:
@@ -402,13 +419,14 @@ void TattooUserInterface::doStandardControl() {
 
 	case Common::KEYCODE_F4:
 		// Display options
-		freeMenu();
-		doControls();
+		events.warpMouse();
+		_optionsWidget.load();
 		return;
 
 	case Common::KEYCODE_F10:
 		// Quit menu
 		freeMenu();
+		events.warpMouse();
 		doQuitMenu();
 		return;
 
@@ -455,7 +473,7 @@ void TattooUserInterface::doStandardControl() {
 			// Either call the code to Look at it's Examine Field or call the Exit animation
 			// if the object is an exit, specified by the first four characters of the name being "EXIT"
 			Common::String name = _personFound ? people[_bgFound - 1000]._name : _bgShape->_name;
-			if (name.hasPrefix("EXIT")) {
+			if (!name.hasPrefix("EXIT")) {
 				lookAtObject();
 			} else {
 				// Run the Exit animation and set which scene to go to next
@@ -475,7 +493,7 @@ void TattooUserInterface::doStandardControl() {
 				events._pressed = events._released = false;
 			} else {
 				// Walk to where the mouse was clicked
-				people[HOLMES]._walkDest = mousePos + screen._currentScroll;
+				people[HOLMES]._walkDest = mousePos;
 				people[HOLMES].goAllTheWay();
 			}
 		}
@@ -521,35 +539,22 @@ void TattooUserInterface::doLookControl() {
 	}
 }
 
-void TattooUserInterface::doFileControl() {
-	warning("TODO: ui control (file)");
-}
-
-void TattooUserInterface::doLabControl() {
-	warning("TODO: ui control (lab)");
-}
-
 void TattooUserInterface::displayObjectNames() {
 	Events &events = *_vm->_events;
 	Scene &scene = *_vm->_scene;
-	Screen &screen = *_vm->_screen;
-	Common::Point scenePos = events.mousePos() + screen._currentScroll;
+	Common::Point mousePos = events.mousePos();
 	_arrowZone = -1;
 
 	if (_bgFound == -1 || scene._currentScene == 90) {
 		for (uint idx = 0; idx < scene._exits.size() && _arrowZone == -1; ++idx) {
 			Exit &exit = scene._exits[idx];
-			if (exit.contains(scenePos))
+			if (exit.contains(mousePos))
 				_arrowZone = idx;
 		}
 	}
 
 	_tooltipWidget.handleEvents();
 	_oldArrowZone = _arrowZone;
-}
-
-void TattooUserInterface::initFileMenu() {
-	// TODO
 }
 
 void TattooUserInterface::doInventory(int mode) {
@@ -563,7 +568,7 @@ void TattooUserInterface::doInventory(int mode) {
 }
 
 void TattooUserInterface::doControls() {
-	// TODO
+	_optionsWidget.load();
 }
 
 void TattooUserInterface::pickUpObject(int objNum) {
@@ -571,14 +576,7 @@ void TattooUserInterface::pickUpObject(int objNum) {
 }
 
 void TattooUserInterface::doQuitMenu() {
-	// TODO
-}
-
-void TattooUserInterface::freeMenu() {
-	if (_widget != nullptr) {
-		_widget->banishWindow();
-		_widget = nullptr;
-	}
+	_quitWidget.show();
 }
 
 void TattooUserInterface::putMessage(const char *formatStr, ...) {
@@ -589,6 +587,7 @@ void TattooUserInterface::putMessage(const char *formatStr, ...) {
 	va_end(args);
 
 	// Open the message widget
+	_menuMode = MESSAGE_MODE;
 	_messageWidget.load(str, 25);
 	_messageWidget.summonWindow();
 }
@@ -654,9 +653,7 @@ void TattooUserInterface::setupBGArea(const byte cMap[PALETTE_SIZE]) {
 	}
 }
 
-
 void TattooUserInterface::doBgAnimEraseBackground() {
-	TattooEngine &vm = *((TattooEngine *)_vm);
 	People &people = *_vm->_people;
 	Scene &scene = *_vm->_scene;
 	Screen &screen = *_vm->_screen;
@@ -721,8 +718,8 @@ void TattooUserInterface::doBgAnimEraseBackground() {
 		}
 
 		// If credits are active, erase the area they cover
-		if (vm._creditsActive)
-			vm.eraseCredits();
+		if (_creditsWidget.active())
+			_creditsWidget.eraseCredits();
 	}
 
 	for (uint idx = 0; idx < scene._bgShapes.size(); ++idx) {
@@ -759,42 +756,69 @@ void TattooUserInterface::doBgAnimEraseBackground() {
 
 void TattooUserInterface::drawMaskArea(bool mode) {
 	Scene &scene = *_vm->_scene;
-	Screen &screen = *_vm->_screen;
 	int xp = mode ? _maskOffset.x : 0;
 
 	if (_mask != nullptr) {
 		switch (scene._currentScene) {
 		case 7:
-			screen._backBuffer1.maskArea((*_mask)[0], Common::Point(_maskOffset.x - SHERLOCK_SCREEN_WIDTH, 110));
-			screen._backBuffer1.maskArea((*_mask)[0], Common::Point(_maskOffset.x, 110));
-			screen._backBuffer1.maskArea((*_mask)[0], Common::Point(_maskOffset.x + SHERLOCK_SCREEN_WIDTH, 110));
+			maskArea(*_mask, Common::Point(_maskOffset.x - SHERLOCK_SCREEN_WIDTH, 110));
+			maskArea(*_mask, Common::Point(_maskOffset.x, 110));
+			maskArea(*_mask, Common::Point(_maskOffset.x + SHERLOCK_SCREEN_WIDTH, 110));
 			break;
 
 		case 8:
-			screen._backBuffer1.maskArea((*_mask)[0], Common::Point(_maskOffset.x - SHERLOCK_SCREEN_WIDTH, 180));
-			screen._backBuffer1.maskArea((*_mask)[0], Common::Point(_maskOffset.x, 180));
-			screen._backBuffer1.maskArea((*_mask)[0], Common::Point(_maskOffset.x + SHERLOCK_SCREEN_WIDTH, 180));
+			maskArea(*_mask, Common::Point(_maskOffset.x - SHERLOCK_SCREEN_WIDTH, 180));
+			maskArea(*_mask, Common::Point(_maskOffset.x, 180));
+			maskArea(*_mask, Common::Point(_maskOffset.x + SHERLOCK_SCREEN_WIDTH, 180));
 			if (!_vm->readFlags(880))
-				screen._backBuffer1.maskArea((*_mask1)[0], Common::Point(940, 300));
+				maskArea(*_mask1, Common::Point(940, 300));
 			break;
 
 		case 18:
-			screen._backBuffer1.maskArea((*_mask)[0], Common::Point(xp, 203));
+			maskArea(*_mask, Common::Point(xp, 203));
 			if (!_vm->readFlags(189))
-				screen._backBuffer1.maskArea((*_mask1)[0], Common::Point(124 + xp, 239));
+				maskArea(*_mask1, Common::Point(124 + xp, 239));
 			break;
 
 		case 53:
-			screen._backBuffer1.maskArea((*_mask)[0], Common::Point(_maskOffset.x, 110));
+			maskArea(*_mask, Common::Point(_maskOffset.x, 110));
 			if (mode)
-				screen._backBuffer1.maskArea((*_mask)[0], Common::Point(_maskOffset.x - SHERLOCK_SCREEN_WIDTH, 110));
+				maskArea(*_mask, Common::Point(_maskOffset.x - SHERLOCK_SCREEN_WIDTH, 110));
 			break;
 
 		case 68:
-			screen._backBuffer1.maskArea((*_mask)[0], Common::Point(xp, 203));
-			screen._backBuffer1.maskArea((*_mask1)[0], Common::Point(124 + xp, 239));
+			maskArea(*_mask, Common::Point(xp, 203));
+			maskArea(*_mask1, Common::Point(124 + xp, 239));
 			break;
 		}
+	}
+}
+
+void TattooUserInterface::maskArea(Common::SeekableReadStream &mask, const Common::Point &pt) {
+	Screen &screen = *_vm->_screen;
+	Surface &bb1 = screen._backBuffer1;
+	mask.seek(0);
+	int xSize = mask.readUint16LE();
+	int ySize = mask.readUint16LE();
+	int pixel, len, xp, yp;
+
+	for (yp = 0; yp < ySize; ++yp) {
+		byte *ptr = bb1.getBasePtr(pt.x, pt.y + yp);
+
+		for (xp = 0; xp < xSize;) {
+			// The mask data consists of pairs of pixel/lengths, where all non-zero pixels means that the
+			// given pixel on the back buffer is darkened (the mask pixel value isn't otherwise used)
+			pixel = mask.readByte();
+			len = mask.readByte();
+
+			for (; len > 0; --len, ++xp, ++ptr) {
+				if (pixel && (pt.x + xp) >= screen._currentScroll.x && (pt.x + xp) < (screen._currentScroll.x + SHERLOCK_SCREEN_WIDTH)) {
+					*ptr = _lookupTable1[*ptr];
+				}
+			}
+		}
+
+		assert(xp == xSize);
 	}
 }
 
@@ -842,14 +866,34 @@ void TattooUserInterface::drawDialogRect(Surface &s, const Common::Rect &r, bool
 	}
 }
 
-void TattooUserInterface::banishWindow() {
-	if (_widget != nullptr)
-		_widget->banishWindow();
-	_widget = nullptr;
+void TattooUserInterface::banishWindow(bool slideUp) {
+	if (!_widgets.empty())
+		_widgets.back()->banishWindow();
+}
+
+void TattooUserInterface::freeMenu() {
+	for (Common::List<WidgetBase *>::iterator i = _widgets.begin(); i != _widgets.end(); ++i)
+		(*i)->erase();
+	_widgets.clear();
 }
 
 void TattooUserInterface::clearWindow() {
 	banishWindow();
+}
+
+void TattooUserInterface::loadGame() {
+	WidgetFiles &files = *(WidgetFiles *)_vm->_saves;
+	files.show(SAVEMODE_LOAD);
+}
+
+void TattooUserInterface::saveGame() {
+	WidgetFiles &files = *(WidgetFiles *)_vm->_saves;
+	files.show(SAVEMODE_SAVE);
+}
+
+void TattooUserInterface::addFixedWidget(WidgetBase *widget) {
+	_fixedWidgets.push_back(widget);
+	widget->summonWindow();
 }
 
 } // End of namespace Tattoo

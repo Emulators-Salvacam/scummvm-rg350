@@ -403,9 +403,10 @@ void Talk::talkTo(const Common::String &filename) {
 
 				if (!ui._lookScriptFlag) {
 					ui.drawInterface(2);
-					ui.banishWindow();
-					ui._windowBounds.top = CONTROLS_Y1;
 					ui._menuMode = STD_MODE;
+					ui._windowBounds.top = CONTROLS_Y1;
+
+					ui.banishWindow();
 				}
 
 				break;
@@ -441,14 +442,14 @@ void Talk::talk(int objNum) {
 	Events &events = *_vm->_events;
 	People &people = *_vm->_people;
 	Scene &scene = *_vm->_scene;
-	Screen &screen = *_vm->_screen;
 	UserInterface &ui = *_vm->_ui;
-	Object &obj = scene._bgShapes[objNum];
 
 	ui._windowBounds.top = CONTROLS_Y;
 	ui._infoFlag = true;
 	_speaker = SPEAKER_REMOVE;
-	loadTalkFile(scene._bgShapes[objNum]._name);
+
+	Common::String talkFilename = (objNum >= 1000) ? people[objNum - 1000]._npcName : scene._bgShapes[objNum]._name;
+	loadTalkFile(talkFilename);
 
 	// Find the first statement with the correct flags
 	int select = -1;
@@ -469,33 +470,44 @@ void Talk::talk(int objNum) {
 		// Start talk in stealth mode
 		_talkStealth = 2;
 
-		talkTo(obj._name);
+		talkTo(talkFilename);
 	} else if (statement._statement.hasPrefix("*")) {
 		// Character being spoken to will speak first
-		clearSequences();
-		pushSequence(_talkTo);
-		setStillSeq(_talkTo);
+		if (objNum > 1000) {
+			(*static_cast<Tattoo::TattooPeople *>(_vm->_people))[objNum - 1000].walkHolmesToNPC();
+		} else {
+			Object &obj = scene._bgShapes[objNum];
+			clearSequences();
+			pushSequence(_talkTo);
+			setStillSeq(_talkTo);
 
-		events.setCursor(WAIT);
-		if (obj._lookPosition.y != 0)
-			// Need to walk to character first
-			people[HOLMES].walkToCoords(obj._lookPosition, obj._lookPosition._facing);
-		events.setCursor(ARROW);
+			events.setCursor(WAIT);
+			if (obj._lookPosition.y != 0)
+				// Need to walk to character first
+				people[HOLMES].walkToCoords(obj._lookPosition, obj._lookPosition._facing);
+			events.setCursor(ARROW);
+		}
 
 		if (!_talkToAbort)
-			talkTo(obj._name);
+			talkTo(talkFilename);
 	} else {
 		// Holmes will be speaking first
-		clearSequences();
-		pushSequence(_talkTo);
-		setStillSeq(_talkTo);
-
 		_talkToFlag = false;
-		events.setCursor(WAIT);
-		if (obj._lookPosition.y != 0)
-			// Walk over to person to talk to
-			people[HOLMES].walkToCoords(obj._lookPosition, obj._lookPosition._facing);
-		events.setCursor(ARROW);
+
+		if (objNum > 1000) {
+			(*static_cast<Tattoo::TattooPeople *>(_vm->_people))[objNum - 1000].walkHolmesToNPC();
+		} else {
+			Object &obj = scene._bgShapes[objNum];
+			clearSequences();
+			pushSequence(_talkTo);
+			setStillSeq(_talkTo);
+
+			events.setCursor(WAIT);
+			if (obj._lookPosition.y != 0)
+				// Walk over to person to talk to
+				people[HOLMES].walkToCoords(obj._lookPosition, obj._lookPosition._facing);
+			events.setCursor(ARROW);
+		}
 
 		if (!_talkToAbort) {
 			// See if walking over triggered a conversation
@@ -506,21 +518,11 @@ void Talk::talk(int objNum) {
 					pullSequence();
 				}
 			} else {
-				drawInterface();
-
-				events._pressed = events._released = false;
 				_talkIndex = select;
-				displayTalk(false);
-				ui._selector = ui._oldSelector = -1;
+				showTalk();
 
-				if (!ui._slideWindows) {
-					screen.slamRect(Common::Rect(0, CONTROLS_Y, SHERLOCK_SCREEN_WIDTH,
-						SHERLOCK_SCREEN_HEIGHT));
-				} else {
-					ui.summonWindow();
-				}
-
-				ui._windowOpen = true;
+				// Break out of loop now that we're waiting for player input
+				events.setCursor(ARROW);
 			}
 
 			_talkToFlag = -1;
@@ -924,7 +926,16 @@ int Talk::waitForMore(int delay) {
 
 			if (events.kbHit()) {
 				Common::KeyState keyState = events.getKey();
-				if (Common::isPrint(keyState.ascii))
+				if (keyState.keycode == Common::KEYCODE_ESCAPE) {
+					if (IS_ROSE_TATTOO && static_cast<Tattoo::TattooEngine *>(_vm)->_runningProlog) {
+						// Skip out of the introduction
+						_vm->setFlags(-76);
+						_vm->setFlags(396);
+						scene._goToScene = 1;
+					}
+					break;
+
+				} else if (Common::isPrint(keyState.ascii))
 					key2 = keyState.keycode;
 			}
 

@@ -22,6 +22,7 @@
 
 #include "sherlock/tattoo/widget_base.h"
 #include "sherlock/tattoo/tattoo.h"
+#include "sherlock/tattoo/tattoo_scene.h"
 #include "sherlock/tattoo/tattoo_talk.h"
 #include "sherlock/tattoo/tattoo_user_interface.h"
 
@@ -31,11 +32,19 @@ namespace Tattoo {
 
 WidgetBase::WidgetBase(SherlockEngine *vm) : _vm(vm) {
 	_scroll = false;
+	_dialogTimer = 0;
 }
 
 void WidgetBase::summonWindow() {
 	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
-	ui._widget = this;
+
+	// Double-check that the same widget isn't added twice
+	if (ui._widgets.contains(this))
+		error("Tried to add a widget multiple times");
+
+	// Add widget to the screen
+	if (!ui._fixedWidgets.contains(this))
+		ui._widgets.push_back(this);
 	_outsideMenu = false;
 
 	draw();
@@ -46,8 +55,27 @@ void WidgetBase::banishWindow() {
 
 	erase();
 	_surface.free();
-	ui._widget = nullptr;
+	ui._widgets.remove(this);
 }
+
+void WidgetBase::close() {
+	TattooScene &scene = *(TattooScene *)_vm->_scene;
+	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
+
+	banishWindow();
+	ui._menuMode = scene._labTableScene ? LAB_MODE : STD_MODE;
+}
+
+bool WidgetBase::active() const {
+	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
+	for (Common::List<WidgetBase *>::iterator i = ui._widgets.begin(); i != ui._widgets.end(); ++i) {
+		if ((*i) == this)
+			return true;
+	}
+
+	return false;
+}
+
 
 void WidgetBase::erase() {
 	Screen &screen = *_vm->_screen;
@@ -141,14 +169,16 @@ Common::String WidgetBase::splitLines(const Common::String &str, Common::StringA
 }
 
 void WidgetBase::restrictToScreen() {
-	if (_bounds.left < 0)
-		_bounds.moveTo(0, _bounds.top);
+	Screen &screen = *_vm->_screen;
+
+	if (_bounds.left < screen._currentScroll.x)
+		_bounds.moveTo(screen._currentScroll.x, _bounds.top);
 	if (_bounds.top < 0)
 		_bounds.moveTo(_bounds.left, 0);
-	if (_bounds.right > SHERLOCK_SCREEN_WIDTH)
-		_bounds.moveTo(SHERLOCK_SCREEN_WIDTH - _bounds.width(), _bounds.top);
-	if (_bounds.bottom > SHERLOCK_SCREEN_HEIGHT)
-		_bounds.moveTo(_bounds.left, SHERLOCK_SCREEN_HEIGHT - _bounds.height());
+	if (_bounds.right > screen._backBuffer1.w())
+		_bounds.moveTo(screen._backBuffer1.w() - _bounds.width(), _bounds.top);
+	if (_bounds.bottom > screen._backBuffer1.h())
+		_bounds.moveTo(_bounds.left, screen._backBuffer1.h() - _bounds.height());
 }
 
 void WidgetBase::makeInfoArea(Surface &s) {
@@ -186,19 +216,27 @@ void WidgetBase::makeInfoArea() {
 	makeInfoArea(_surface);
 }
 
+void WidgetBase::drawDialogRect(const Common::Rect &r, bool raised) {
+	static_cast<TattooUserInterface *>(_vm->_ui)->drawDialogRect(_surface, r, raised);
+}
+
 void WidgetBase::checkTabbingKeys(int numOptions) {
+}
+
+Common::Rect WidgetBase::getScrollBarBounds() const {
+	Common::Rect r(BUTTON_SIZE, _bounds.height() - 6);
+	r.moveTo(_bounds.width() - BUTTON_SIZE - 3, 3);
+	return r;
 }
 
 void WidgetBase::drawScrollBar(int index, int pageSize, int count) {
 	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
-	bool raised;
 
 	// Fill the area with transparency
-	Common::Rect r(BUTTON_SIZE, _bounds.height() - 6);
-	r.moveTo(_bounds.width() - BUTTON_SIZE - 3, 3);
+	Common::Rect r = getScrollBarBounds();
 	_surface.fillRect(r, TRANSPARENCY);
 
-	raised = ui._scrollHighlight != 1;
+	bool raised = ui._scrollHighlight != 1;
 	_surface.fillRect(Common::Rect(r.left + 2, r.top + 2, r.right - 2, r.top + BUTTON_SIZE - 2), INFO_MIDDLE);
 	ui.drawDialogRect(_surface, Common::Rect(r.left, r.top, r.left + BUTTON_SIZE, r.top + BUTTON_SIZE), raised);
 
@@ -216,7 +254,7 @@ void WidgetBase::drawScrollBar(int index, int pageSize, int count) {
 	_surface.fillRect(Common::Rect(r.right / 2 - 3, r.top + 1 + BUTTON_SIZE / 2,
 		r.right / 2 + 3, r.top + 1 + BUTTON_SIZE / 2), color);
 
-	color = (index + NUM_INVENTORY_SHOWN) < count ? INFO_BOTTOM + 2 : INFO_BOTTOM;
+	color = (index + pageSize) < count ? INFO_BOTTOM + 2 : INFO_BOTTOM;
 	_surface.fillRect(Common::Rect(r.right / 2 - 3, r.bottom - 1 - BUTTON_SIZE + BUTTON_SIZE / 2,
 		r.right / 2 + 3, r.bottom - 1 - BUTTON_SIZE + BUTTON_SIZE / 2), color);
 	_surface.fillRect(Common::Rect(r.right / 2 - 2, r.bottom - 1 - BUTTON_SIZE + 1 + BUTTON_SIZE / 2,
@@ -227,15 +265,10 @@ void WidgetBase::drawScrollBar(int index, int pageSize, int count) {
 		r.right / 2, r.bottom - 1 - BUTTON_SIZE + 3 + BUTTON_SIZE / 2), color);
 
 	// Draw the scroll position bar
-	int idx = count;
-	if (idx % (NUM_INVENTORY_SHOWN / 2))
-		idx = (idx + (NUM_INVENTORY_SHOWN / 2)) / (NUM_INVENTORY_SHOWN / 2) * (NUM_INVENTORY_SHOWN / 2);
-	int barHeight = NUM_INVENTORY_SHOWN * (_bounds.height() - BUTTON_SIZE * 2) / idx;
-	barHeight = CLIP(barHeight, BUTTON_SIZE, _bounds.height() - BUTTON_SIZE * 2);
+	int barHeight = (r.height() - BUTTON_SIZE * 2) * pageSize / count;
+	barHeight = CLIP(barHeight, BUTTON_SIZE, r.height() - BUTTON_SIZE * 2);
+	int barY = r.top + BUTTON_SIZE + (r.height() - BUTTON_SIZE * 2 - barHeight) * index / (count - pageSize);
 
-	int barY = (idx<= NUM_INVENTORY_SHOWN) ? r.top + BUTTON_SIZE :
-		(r.height() - BUTTON_SIZE * 2 - barHeight) * FIXED_INT_MULTIPLIER / (idx- NUM_INVENTORY_SHOWN)
-			* index / FIXED_INT_MULTIPLIER + r.top + BUTTON_SIZE;
 	_surface.fillRect(Common::Rect(r.left + 2, barY + 2, r.right - 2, barY + barHeight - 3), INFO_MIDDLE);
 	ui.drawDialogRect(_surface, Common::Rect(r.left, barY, r.right, barY + barHeight), true);
 }
@@ -246,7 +279,7 @@ void WidgetBase::handleScrollbarEvents(int index, int pageSize, int count) {
 	Common::Point mousePos = events.mousePos();
 
 	// If they have selected the sollbar, return with the Scroll Bar Still selected
-	if (ui._scrollHighlight == 3)
+	if ((events._pressed || events._released) && ui._scrollHighlight == SH_THUMBNAIL)
 		return;
 
 	ui._scrollHighlight = SH_NONE;
@@ -254,30 +287,87 @@ void WidgetBase::handleScrollbarEvents(int index, int pageSize, int count) {
 	if ((!events._pressed && !events._rightReleased) || !_scroll)
 		return;
 
-	Common::Rect r(_bounds.right - BUTTON_SIZE - 3, _bounds.top, _bounds.right - 3, _bounds.bottom - 6);
+	Common::Rect r = getScrollBarBounds();
+	r.translate(_bounds.left, _bounds.top);
 
 	// Calculate the Scroll Position bar
-	int barHeight = pageSize * (r.height() - BUTTON_SIZE * 2) / count;
+	int barHeight = (r.height() - BUTTON_SIZE * 2) * pageSize / count;
 	barHeight = CLIP(barHeight, BUTTON_SIZE, r.height() - BUTTON_SIZE * 2);
+	int barY = r.top + BUTTON_SIZE + (r.height() - BUTTON_SIZE * 2 - barHeight) * index / (count - pageSize);
 
-	int barY = (count <= pageSize) ? 3 + BUTTON_SIZE : (r.height() - BUTTON_SIZE * 2 - barHeight) * FIXED_INT_MULTIPLIER 
-		/ (count - pageSize) * index / FIXED_INT_MULTIPLIER + 3 + BUTTON_SIZE;
-
-	if (Common::Rect(r.left, r.top + 3, r.left + BUTTON_SIZE, r.top + BUTTON_SIZE + 3).contains(mousePos))
+	if (Common::Rect(r.left, r.top, r.right, r.top + BUTTON_SIZE).contains(mousePos))
 		// Mouse on scroll up button
 		ui._scrollHighlight = SH_SCROLL_UP;
-	else if (Common::Rect(r.left, r.top + BUTTON_SIZE + 3, r.left + BUTTON_SIZE, barY - BUTTON_SIZE - 3).contains(mousePos))
+	else if (Common::Rect(r.left, r.top + BUTTON_SIZE, r.right, barY).contains(mousePos))
 		// Mouse on paging up area (the area of the vertical bar above the thumbnail)
 		ui._scrollHighlight = SH_PAGE_UP;
-	else if (Common::Rect(r.left, r.top + barY, r.left + BUTTON_SIZE, r.top + barY + barHeight).contains(mousePos))
+	else if (Common::Rect(r.left, barY, r.right, barY + barHeight).contains(mousePos))
 		// Mouse on scrollbar thumb
 		ui._scrollHighlight = SH_THUMBNAIL;
-	else if (Common::Rect(r.left, r.top + barY + barHeight, r.left + BUTTON_SIZE, r.bottom - BUTTON_SIZE + 3).contains(mousePos))
+	else if (Common::Rect(r.left, barY + barHeight, r.right, r.bottom - BUTTON_SIZE).contains(mousePos))
 		// Mouse on paging down area (the area of the vertical bar below the thumbnail)
 		ui._scrollHighlight = SH_PAGE_DOWN;
-	else if (Common::Rect(r.left, r.bottom - BUTTON_SIZE + 3, r.left + BUTTON_SIZE, r.bottom).contains(mousePos))
+	else if (Common::Rect(r.left, r.bottom - BUTTON_SIZE, r.right, r.bottom).contains(mousePos))
 		// Mouse on scroll down button
 		ui._scrollHighlight = SH_SCROLL_DOWN;
+}
+
+void WidgetBase::handleScrolling(int &scrollIndex, int pageSize, int max) {
+	Events &events = *_vm->_events;
+	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
+	Common::KeyCode keycode = ui._keyState.keycode;
+	Common::Point mousePos = events.mousePos();
+
+	Common::Rect r = getScrollBarBounds();
+	r.translate(_bounds.left, _bounds.top);
+
+	if (ui._scrollHighlight != SH_NONE || keycode == Common::KEYCODE_HOME || keycode == Common::KEYCODE_END
+		|| keycode == Common::KEYCODE_PAGEUP || keycode == Common::KEYCODE_PAGEDOWN
+		|| keycode == Common::KEYCODE_UP || keycode == Common::KEYCODE_DOWN) {
+		// Check for the scrollbar
+		if (ui._scrollHighlight == SH_THUMBNAIL) {
+			int yp = mousePos.y;
+			yp = CLIP(yp, r.top + BUTTON_SIZE + 3, r.bottom - BUTTON_SIZE - 3);
+
+			// Calculate the line number that corresponds to the position that the mouse is on the scrollbar
+			int lineNum = (yp - r.top - BUTTON_SIZE - 3) * (max - pageSize) / (r.height() - BUTTON_SIZE * 2 - 6);
+			scrollIndex = CLIP(lineNum, 0, max - pageSize);
+		}
+
+		// Get the current frame so we can check the scroll timer against it
+		uint32 frameNum = events.getFrameCounter();
+
+		if (frameNum > _dialogTimer) {
+			// Set the timeout for the next scroll if the mouse button remains held down
+			_dialogTimer = (_dialogTimer == 0) ? frameNum + pageSize : frameNum + 1;
+
+			// Check for Scroll Up
+			if ((ui._scrollHighlight == SH_SCROLL_UP || keycode == Common::KEYCODE_UP) && scrollIndex)
+				--scrollIndex;
+
+			// Check for Page Up
+			else if ((ui._scrollHighlight == SH_PAGE_UP || keycode == Common::KEYCODE_PAGEUP) && scrollIndex)
+				scrollIndex -= pageSize;
+
+			// Check for Page Down
+			else if ((ui._scrollHighlight == SH_PAGE_DOWN || keycode == Common::KEYCODE_PAGEDOWN)
+				&& (scrollIndex + pageSize < max)) {
+				scrollIndex += pageSize;
+				if (scrollIndex + pageSize >max)
+					scrollIndex = max - pageSize;
+			}
+
+			// Check for Scroll Down
+			else if ((ui._scrollHighlight == SH_SCROLL_DOWN || keycode == Common::KEYCODE_DOWN) && (scrollIndex + pageSize < max))
+				++scrollIndex;
+		}
+
+		if (keycode == Common::KEYCODE_END)
+			scrollIndex = max - pageSize;
+
+		if (scrollIndex < 0 || keycode == Common::KEYCODE_HOME)
+			scrollIndex = 0;
+	}
 }
 
 } // End of namespace Tattoo
