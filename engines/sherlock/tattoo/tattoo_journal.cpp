@@ -49,6 +49,9 @@ void TattooJournal::show() {
 	Screen &screen = *_vm->_screen;
 	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
 	byte palette[PALETTE_SIZE];
+	
+	Common::Point oldScroll = screen._currentScroll;
+	screen._currentScroll = Common::Point(0, 0);
 
 	// Load journal images
 	_journalImages = new ImageFile("journal.vgs");
@@ -56,8 +59,9 @@ void TattooJournal::show() {
 	// Load palette
 	Common::SeekableReadStream *stream = res.load("journal.pal");
 	stream->read(palette, PALETTE_SIZE);
-	screen.translatePalette(palette);
 	ui.setupBGArea(palette);
+	screen.translatePalette(palette);
+	delete stream;
 
 	// Set screen to black, and set background
 	screen._backBuffer1.blitFrom((*_journalImages)[0], Common::Point(0, 0));
@@ -95,6 +99,10 @@ void TattooJournal::show() {
 
 	// Free the images
 	delete _journalImages;
+	_journalImages = nullptr;
+
+	// Reset back to whatever scroll was active for the screen
+	screen._currentScroll = oldScroll;
 }
 
 void TattooJournal::handleKeyboardEvents() {
@@ -129,7 +137,7 @@ void TattooJournal::handleKeyboardEvents() {
 			events.warpMouse(Common::Point(r.left + (r.width() / 3) * (_selector + 1) - 10, mousePos.y));
 		}
 
-	} else if (keyState.keycode == Common::KEYCODE_PAGEUP || keyState.keycode == Common::KEYCODE_KP9) {
+	} else if (keyState.keycode == Common::KEYCODE_PAGEUP) {
 		// See if they have Shift held down to go forward 10 pages
 		if (keyState.flags & Common::KBD_SHIFT) {
 			if (_page > 1) {
@@ -148,13 +156,13 @@ void TattooJournal::handleKeyboardEvents() {
 				// Scroll Up 1 page
 				drawJournal(1, LINES_PER_PAGE);
 				drawScrollBar();
-				show();
+				drawJournal(0, 0);
 				screen.slamArea(0, 0, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
 				_wait = false;
 			}
 		}
 
-	} else if (keyState.keycode == Common::KEYCODE_PAGEDOWN || keyState.keycode == Common::KEYCODE_KP3) {
+	} else if (keyState.keycode == Common::KEYCODE_PAGEDOWN) {
 		if (keyState.flags & Common::KBD_SHIFT) {
 			if (_down) {
 				// Scroll down 10 Pages
@@ -172,14 +180,14 @@ void TattooJournal::handleKeyboardEvents() {
 				// Scroll down 1 page
 				drawJournal(2, LINES_PER_PAGE);
 				drawScrollBar();
-				show();
+				drawJournal(0, 0);
 				screen.slamArea(0, 0, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
 
 				_wait = false;
 			}
 		}
 
-	} else if (keyState.keycode == Common::KEYCODE_HOME || keyState.keycode == Common::KEYCODE_KP7) {
+	} else if (keyState.keycode == Common::KEYCODE_HOME) {
 		// Scroll to start of journal
 		if (_page > 1) {
 			// Go to the beginning of the journal
@@ -195,7 +203,7 @@ void TattooJournal::handleKeyboardEvents() {
 			_wait = false;
 		}
 
-	} else if (keyState.keycode == Common::KEYCODE_END || keyState.keycode == Common::KEYCODE_KP1) {
+	} else if (keyState.keycode == Common::KEYCODE_END) {
 		// Scroll to end of journal
 		if (_down) {
 			// Go to the end of the journal
@@ -205,7 +213,7 @@ void TattooJournal::handleKeyboardEvents() {
 
 			_wait = false;
 		}
-	} else if (keyState.keycode == Common::KEYCODE_RETURN || keyState.keycode == Common::KEYCODE_KP_ENTER) {
+	} else if (keyState.keycode == Common::KEYCODE_RETURN) {
 		events._pressed = false;
 		events._released = true;
 		events._oldButtons = 0;
@@ -266,7 +274,7 @@ void TattooJournal::handleButtons() {
 					else
 						drawJournal(1, 10 * LINES_PER_PAGE);
 					drawScrollBar();
-					show();
+					drawJournal(0, 0);
 					screen.slamArea(0, 0, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
 					_wait = false;
 				}
@@ -403,7 +411,7 @@ void TattooJournal::loadLocations() {
 			locNumStr += line[i];
 			i++;
 		}
-		locNum = atoi(locNumStr.c_str());
+		locNum = atoi(locNumStr.c_str()) - 1;
 
 		// Skip the dot, spaces and initial quotation mark
 		while (line[i] == ' ' || line[i] == '.' || line[i] == '\"')

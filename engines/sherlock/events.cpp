@@ -27,6 +27,7 @@
 #include "graphics/cursorman.h"
 #include "sherlock/sherlock.h"
 #include "sherlock/events.h"
+#include "sherlock/surface.h"
 
 namespace Sherlock {
 
@@ -120,9 +121,8 @@ void Events::setCursor(CursorId cursorId, const Common::Point &cursorPos, const 
 	r.moveTo(0, 0);
 
 	// Form a single surface containing both frames
-	Graphics::Surface s;
-	s.create(r.width(), r.height(), Graphics::PixelFormat::createFormatCLUT8());
-	s.fillRect(r, TRANSPARENCY);
+	Surface s(r.width(), r.height());
+	s.fill(TRANSPARENCY);
 
 	// Draw the passed image
 	Common::Point drawPos;
@@ -130,11 +130,11 @@ void Events::setCursor(CursorId cursorId, const Common::Point &cursorPos, const 
 		drawPos.x = -cursorPt.x;
 	if (cursorPt.y < 0)
 		drawPos.y = -cursorPt.y;
-	s.copyRectToSurface(surface, drawPos.x, drawPos.y, Common::Rect(0, 0, surface.w, surface.h));
+	s.blitFrom(surface, Common::Point(drawPos.x, drawPos.y));
 
 	// Draw the cursor image
 	drawPos = Common::Point(MAX(cursorPt.x, (int16)0), MAX(cursorPt.y, (int16)0));
-	s.copyRectToSurface(cursorImg, drawPos.x, drawPos.y, Common::Rect(0, 0, cursorImg.w, cursorImg.h));
+	s.transBlitFrom(cursorImg, Common::Point(drawPos.x, drawPos.y));
 
 	// Set up hotspot position for cursor, adjusting for cursor image's position within the surface
 	Common::Point hotspot;
@@ -142,7 +142,7 @@ void Events::setCursor(CursorId cursorId, const Common::Point &cursorPos, const 
 		hotspot = Common::Point(8, 8);
 	hotspot += drawPos;
 	// Set the cursor
-	setCursor(s, hotspot.x, hotspot.y);
+	setCursor(s.getRawSurface(), hotspot.x, hotspot.y);
 }
 
 void Events::animateCursorIfNeeded() {
@@ -278,6 +278,9 @@ Common::KeyState Events::getKey() {
 	case Common::KEYCODE_KP9:
 		keyState.keycode = Common::KEYCODE_PAGEUP;
 		break;
+	case Common::KEYCODE_KP_ENTER:
+		keyState.keycode = Common::KEYCODE_RETURN;
+		break;
 	default:
 		break;
 	}
@@ -322,7 +325,7 @@ bool Events::delay(uint32 time, bool interruptable) {
 		while (!_vm->shouldQuit() && g_system->getMillis() < delayEnd) {
 			pollEventsAndWait();
 
-			if (interruptable && (kbHit() || _pressed)) {
+			if (interruptable && (kbHit() || _mouseButtons)) {
 				clearEvents();
 				return false;
 			}

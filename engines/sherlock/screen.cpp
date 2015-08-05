@@ -439,9 +439,10 @@ void Screen::flushScaleImage(ImageFrame *frame, const Common::Point &pt, int16 *
 }
 
 void Screen::flushImage(ImageFrame *frame, const Common::Point &pt, Common::Rect &newBounds, int scaleVal) {
-	Common::Point newPos, newSize;
+	Common::Point newPos(newBounds.left, newBounds.top);
+	Common::Point newSize(newBounds.width(), newBounds.height());
 
-	if (scaleVal == 256)
+	if (scaleVal == SCALE_THRESHOLD)
 		flushImage(frame, pt, &newPos.x, &newPos.y, &newSize.x, &newSize.y);
 	else
 		flushScaleImage(frame, pt, &newPos.x, &newPos.y, &newSize.x, &newSize.y, scaleVal);

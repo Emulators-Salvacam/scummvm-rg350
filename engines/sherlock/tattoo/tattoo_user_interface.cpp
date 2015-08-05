@@ -65,6 +65,8 @@ TattooUserInterface::TattooUserInterface(SherlockEngine *vm): UserInterface(vm),
 
 TattooUserInterface::~TattooUserInterface() {
 	delete _interfaceImages;
+	delete _mask;
+	delete _mask1;
 }
 
 void TattooUserInterface::initScrollVars() {
@@ -227,7 +229,7 @@ void TattooUserInterface::doJournal() {
 
 	screen._backBuffer1.blitFrom(screen._backBuffer2);
 	scene.updateBackground();
-	screen.slamArea(0, 0, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
+	screen.slamArea(screen._currentScroll.x, screen._currentScroll.y, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
 }
 
 void TattooUserInterface::reset() {
@@ -244,9 +246,6 @@ void TattooUserInterface::handleInput() {
 	TattooScene &scene = *(TattooScene *)_vm->_scene;
 	Common::Point mousePos = events.mousePos();
 
-	_vm->_canLoadSave = _menuMode == STD_MODE;
-	events.pollEventsAndWait();
-	_vm->_canLoadSave = false;
 	_keyState.keycode = Common::KEYCODE_INVALID;
 
 	// Check for credits starting
@@ -319,13 +318,6 @@ void TattooUserInterface::drawInterface(int bufferNum) {
 	// Bring the widgets to the screen
 	if (_mask != nullptr)
 		screen._flushScreen = true;
-
-	if (screen._flushScreen)
-		screen.blockMove();
-
-	// Handle drawing the text tooltip if necessary
-	if (_menuMode == STD_MODE || _menuMode == LAB_MODE)
-		_tooltipWidget.draw();
 }
 
 void TattooUserInterface::doBgAnimRestoreUI() {
@@ -367,6 +359,9 @@ void TattooUserInterface::doScroll() {
 		if (screen._currentScroll.x < _targetScroll.x)
 			screen._currentScroll.x = _targetScroll.x;
 	}
+
+	// Reset the default look position to the center of the new screen area
+	_lookPos = screen._currentScroll + Common::Point(SHERLOCK_SCREEN_WIDTH / 2, SHERLOCK_SCREEN_HEIGHT / 2);
 }
 
 void TattooUserInterface::doStandardControl() {
@@ -388,13 +383,13 @@ void TattooUserInterface::doStandardControl() {
 	switch (_keyState.keycode) {
 	case Common::KEYCODE_F5:
 		// Save game
-		freeMenu();
+		events.warpMouse();
 		saveGame();
 		return;
 
 	case Common::KEYCODE_F7:
 		// Load game
-		freeMenu();
+		events.warpMouse();
 		loadGame();
 		return;
 
@@ -599,8 +594,7 @@ void TattooUserInterface::setupBGArea(const byte cMap[PALETTE_SIZE]) {
 	// to darker as the palette numbers go up. The last palette entry in that run is specified by _bgColor
 	byte *p = &_lookupTable[0];
 	for (int idx = 0; idx < PALETTE_COUNT; ++idx)
-		*p++ = BG_GREYSCALE_RANGE_END - ((cMap[idx * 3] / 4) * 30 + (cMap[idx * 3 + 1] / 4) * 59 + 
-			(cMap[idx * 3 + 2] / 4) * 11) / 480;
+		*p++ = BG_GREYSCALE_RANGE_END - (cMap[idx * 3] * 30 + cMap[idx * 3 + 1] * 59 + cMap[idx * 3 + 2] * 11) / 480;
 
 	// If we're going to a scene with a haze special effect, initialize the translate table to lighten the colors
 	if (_mask != nullptr) {
@@ -634,12 +628,12 @@ void TattooUserInterface::setupBGArea(const byte cMap[PALETTE_SIZE]) {
 				break;
 			}
 
-			byte c = 0;
-			int cd = (r - cMap[0]) * (r - cMap[0]) + (g - cMap[1]) * (g - cMap[1]) + (b - cMap[2]) * (b - cMap[2]);
+			byte c = 0xff;
+			int cd = 99999;
 
 			for (int pal = 0; pal < PALETTE_COUNT; ++pal) {
-				int d = (r - cMap[pal * 3]) * (r - cMap[pal * 3]) + (g - cMap[pal * 3 + 1]) * (g - cMap[pal * 3 + 1]) 
-					+ (b - cMap[pal * 3 + 2])*(b - cMap[pal * 3 + 2]);
+				int d = (r - cMap[pal * 3]) * (r - cMap[pal * 3]) + (g - cMap[pal * 3 + 1]) * (g - cMap[pal * 3 + 1]) + 
+					(b - cMap[pal * 3 + 2]) * (b - cMap[pal * 3 + 2]);
 
 				if (d < cd) {
 					c = pal;
@@ -661,7 +655,9 @@ void TattooUserInterface::doBgAnimEraseBackground() {
 	static const int16 OFFSETS[16] = { -1, -2, -3, -3, -2, -1, -1, 0, 1, 2, 3, 3, 2, 1, 0, 0 };
 
 	if (_mask != nullptr) {
-		screen.slamArea(0, 0, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
+		// Since a mask is active, restore the screen from the secondary back buffer prior to applying the mask
+		screen._backBuffer1.blitFrom(screen._backBuffer2, screen._currentScroll, Common::Rect(screen._currentScroll.x, 0, 
+			screen._currentScroll.x + SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT));
 
 		switch (scene._currentScene) {
 		case 7:

@@ -247,11 +247,6 @@ public:
 	void selectScene();
 
 	/**
-	 * Fres all the graphics and other dynamically allocated data for the scene
-	 */
-	void freeScene();
-
-	/**
 	 * Check the scene's objects against the game flags. If false is passed,
 	 * it means the scene has just been loaded. A value of true means that the scene
 	 * is in use (ie. not just loaded)
@@ -281,6 +276,11 @@ public:
 	int whichZone(const Common::Point &pt);
 
 	/**
+	 * Fres all the graphics and other dynamically allocated data for the scene
+	 */
+	virtual void freeScene();
+
+	/**
 	 * Returns the index of the closest zone to a given point.
 	 */
 	virtual int closestZone(const Common::Point &pt) = 0;
@@ -289,7 +289,7 @@ public:
 	 * Attempts to find a background shape within the passed bounds. If found,
 	 * it will return the shape number, or -1 on failure.
 	 */
-	virtual int findBgShape(const Common::Point &pt);
+	virtual int findBgShape(const Common::Point &pt) = 0;
 
 	/**
 	 * Synchronize the data for a savegame

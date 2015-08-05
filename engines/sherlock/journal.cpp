@@ -25,9 +25,16 @@
 #include "sherlock/scalpel/scalpel_fixed_text.h"
 #include "sherlock/scalpel/scalpel_journal.h"
 #include "sherlock/tattoo/tattoo.h"
+#include "sherlock/tattoo/tattoo_fixed_text.h"
 #include "sherlock/tattoo/tattoo_journal.h"
 
 namespace Sherlock {
+
+static const int TATTOO_LINE_SPACING[17] = {
+	21, 21, 20, 21, 20, 21, 20, 21, 20, 21, 20, 21, 20, 20, 20, 20, 21
+};
+
+/*----------------------------------------------------------------*/
 
 Journal *Journal::init(SherlockEngine *vm) {
 	if (vm->getGameID() == GType_SerratedScalpel)
@@ -39,7 +46,7 @@ Journal *Journal::init(SherlockEngine *vm) {
 Journal::Journal(SherlockEngine *vm) : _vm(vm) {
 	_up = _down = false;
 	_index = 0;
-	_page = 0;
+	_page = 1;
 	_maxPage = 0;
 	_sub = 0;
 }
@@ -49,7 +56,8 @@ bool Journal::drawJournal(int direction, int howFar) {
 	FixedText &fixedText = *_vm->_fixedText;
 	Screen &screen = *_vm->_screen;
 	Talk &talk = *_vm->_talk;
-	int yp = 37;
+	int topLineY = IS_SERRATED_SCALPEL ? 37 : 103 - screen.charHeight('A');
+	int yp = topLineY;
 	int startPage = _page;
 	bool endJournal = false;
 	bool firstOccurance = true;
@@ -85,7 +93,11 @@ bool Journal::drawJournal(int direction, int howFar) {
 		if (direction)
 			drawFrame();
 
-		screen.gPrint(Common::Point(235, 21), COL_PEN_COLOR, "Page %d", _page);
+		if (IS_SERRATED_SCALPEL)
+			screen.gPrint(Common::Point(235, 21), COL_PEN_COLOR, fixedText.getText(Scalpel::kFixedText_Journal_Page), _page);
+		else
+			screen.gPrint(Common::Point(530, 72), COL_PEN_COLOR, fixedText.getText(Tattoo::kFixedText_Page), _page);
+
 		return false;
 	}
 
@@ -203,9 +215,10 @@ bool Journal::drawJournal(int direction, int howFar) {
 		drawFrame();
 	}
 
-	Common::String fixedText_Page = IS_SERRATED_SCALPEL ? fixedText.getText(Scalpel::kFixedText_Journal_Page) : "TODO";
-
-	screen.gPrint(Common::Point(235, 21), COL_PEN_COLOR, fixedText_Page.c_str(), _page);
+	if (IS_SERRATED_SCALPEL)
+		screen.gPrint(Common::Point(235, 21), COL_PEN_COLOR, fixedText.getText(Scalpel::kFixedText_Journal_Page), _page);
+	else
+		screen.gPrint(Common::Point(530, 72), COL_PEN_COLOR, fixedText.getText(Tattoo::kFixedText_Page), _page);
 
 	temp = _sub;
 	savedIndex = _index;
@@ -216,7 +229,7 @@ bool Journal::drawJournal(int direction, int howFar) {
 
 		// If there wasn't any line to print at the top of the page, we won't need to
 		// increment the y position
-		if (_lines[temp].empty() && yp == 37)
+		if (_lines[temp].empty() && yp == topLineY)
 			inc = false;
 
 		// If there's a searched for keyword in the line, it will need to be highlighted
@@ -232,30 +245,30 @@ bool Journal::drawJournal(int direction, int howFar) {
 				Common::String lineStart(_lines[temp].c_str(), matchP);
 				if (lineStart.hasPrefix("@")) {
 					width = screen.stringWidth(lineStart.c_str() + 1);
-					screen.gPrint(Common::Point(53, yp), 15, "%s", lineStart.c_str() + 1);
+					screen.gPrint(Common::Point(JOURNAL_LEFT_X, yp), COL_PEN_HIGHLIGHT, "%s", lineStart.c_str() + 1);
 				} else {
 					width = screen.stringWidth(lineStart.c_str());
-					screen.gPrint(Common::Point(53, yp), COL_PEN_COLOR, "%s", lineStart.c_str());
+					screen.gPrint(Common::Point(JOURNAL_LEFT_X, yp), COL_PEN_COLOR, "%s", lineStart.c_str());
 				 }
 
 				// Print out the found keyword
 				Common::String lineMatch(matchP, matchP + _find.size());
 				byte fgColor = IS_SERRATED_SCALPEL ? (byte)Scalpel::INV_FOREGROUND : (byte)Tattoo::INV_FOREGROUND;
-				screen.gPrint(Common::Point(53 + width, yp), fgColor, "%s", lineMatch.c_str());
+				screen.gPrint(Common::Point(JOURNAL_LEFT_X + width, yp), fgColor, "%s", lineMatch.c_str());
 				width += screen.stringWidth(lineMatch.c_str());
 
 				// Print remainder of line
-				screen.gPrint(Common::Point(53 + width, yp), COL_PEN_COLOR, "%s", matchP + _find.size());
+				screen.gPrint(Common::Point(JOURNAL_LEFT_X + width, yp), COL_PEN_COLOR, "%s", matchP + _find.size());
 			} else if (_lines[temp].hasPrefix("@")) {
-				screen.gPrint(Common::Point(53, yp), 15, "%s", _lines[temp].c_str() + 1);
+				screen.gPrint(Common::Point(JOURNAL_LEFT_X, yp), COL_PEN_HIGHLIGHT, "%s", _lines[temp].c_str() + 1);
 			} else {
-				screen.gPrint(Common::Point(53, yp), COL_PEN_COLOR, "%s", _lines[temp].c_str());
+				screen.gPrint(Common::Point(JOURNAL_LEFT_X, yp), COL_PEN_COLOR, "%s", _lines[temp].c_str());
 			}
 		} else {
 			if (_lines[temp].hasPrefix("@")) {
-				screen.gPrint(Common::Point(53, yp), 15, "%s", _lines[temp].c_str() + 1);
+				screen.gPrint(Common::Point(JOURNAL_LEFT_X, yp), COL_PEN_HIGHLIGHT, "%s", _lines[temp].c_str() + 1);
 			} else {
-				screen.gPrint(Common::Point(53, yp), COL_PEN_COLOR, "%s", _lines[temp].c_str());
+				screen.gPrint(Common::Point(JOURNAL_LEFT_X, yp), COL_PEN_COLOR, "%s", _lines[temp].c_str());
 			}
 		}
 
@@ -276,8 +289,8 @@ bool Journal::drawJournal(int direction, int howFar) {
 
 		if (inc) {
 			// Move to next line
+			yp += IS_SERRATED_SCALPEL ? 13 : TATTOO_LINE_SPACING[lineNum];
 			++lineNum;
-			yp += 13;
 		}
 	} while (lineNum < LINES_PER_PAGE && !endFlag);
 
@@ -396,6 +409,8 @@ void Journal::loadJournalFile(bool alreadyLoaded) {
 	bool commentJustPrinted = false;
 	const byte *replyP = (const byte *)statement._reply.c_str();
 	const int inspectorId = (IS_SERRATED_SCALPEL) ? 2 : 18;
+	int beforeLastSpeakerChange = journalString.size();
+	bool justChangedSpeaker = true;
 
 	while (*replyP) {
 		byte c = *replyP++;
@@ -414,15 +429,11 @@ void Journal::loadJournalFile(bool alreadyLoaded) {
 		if (c < opcodes[0]) {
 			// Nope. Set flag for allowing control codes to insert spaces
 			ctrlSpace = true;
+			justChangedSpeaker = false;
 			assert(c >= ' ');
 
 			// Check for embedded comments
 			if (c == '{' || c == '}') {
-
-				// TODO: Rose Tattoo checks if no text was added for the last
-				// comment here. In such a case, the last "XXX said" string is
-				// removed here.
-
 				// Comment characters. If we're starting a comment and there's
 				// already text displayed, add a closing quote
 				if (c == '{' && !startOfReply && !commentJustPrinted)
@@ -484,6 +495,15 @@ void Journal::loadJournalFile(bool alreadyLoaded) {
 				commentJustPrinted = false;
 			}
 		} else if (c == opcodes[OP_SWITCH_SPEAKER]) {
+			if (IS_ROSE_TATTOO) {
+				// If the speaker has just changed, then no text has just been added
+				// from the last speaker, so remove the initial "Person said" text
+				if (justChangedSpeaker)
+					journalString = Common::String(journalString.c_str(), journalString.c_str() + beforeLastSpeakerChange);
+
+				justChangedSpeaker = true;
+			}
+
 			if (!startOfReply) {
 				if (!commentFlag && !commentJustPrinted)
 					journalString += "\"\n";
@@ -624,7 +644,6 @@ void Journal::loadJournalFile(bool alreadyLoaded) {
 					replyP++;
 					while (replyP[0] && replyP[0] != opcodes[OP_NPC_DESC_ON_OFF])
 						replyP++;
-					replyP++;
 				} else if (
 					c == opcodes[OP_SET_NPC_INFO_LINE])
 					replyP += replyP[1] + 2;
@@ -642,6 +661,9 @@ void Journal::loadJournalFile(bool alreadyLoaded) {
 
 	if (!startOfReply && !commentJustPrinted)
 		journalString += '"';
+
+	if (IS_ROSE_TATTOO && justChangedSpeaker)
+		journalString = Common::String(journalString.c_str(), journalString.c_str() + beforeLastSpeakerChange);
 
 	// Finally finished building the journal text. Need to process the text to
 	// word wrap it to fit on-screen. The resulting lines are stored in the
@@ -682,6 +704,37 @@ void Journal::loadJournalFile(bool alreadyLoaded) {
 		_lines.clear();
 	}
 }
+
+void Journal::record(int converseNum, int statementNum, bool replyOnly) {
+	int saveIndex = _index;
+	int saveSub = _sub;
+
+	if (IS_3DO) {
+		// there seems to be no journal in the 3DO version
+		return;
+	}
+
+	// Record the entry into the list
+	_journal.push_back(JournalEntry(converseNum, statementNum, replyOnly));
+	_index = _journal.size() - 1;
+
+	// Load the text for the new entry to get the number of lines it will have
+	loadJournalFile(true);
+
+	// Restore old state
+	_index = saveIndex;
+	_sub = saveSub;
+
+	// If new lines were added to the ournal, update the total number of lines
+	// the journal continues
+	if (!_lines.empty()) {
+		_maxPage += _lines.size();
+	} else {
+		// No lines in entry, so remove the new entry from the journal
+		_journal.remove_at(_journal.size() - 1);
+	}
+}
+
 
 void Journal::synchronize(Serializer &s) {
 	s.syncAsSint16LE(_index);

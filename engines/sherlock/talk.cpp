@@ -342,6 +342,11 @@ void Talk::talkTo(const Common::String &filename) {
 			Statement &statement = _statements[select];
 			doScript(_statements[select]._reply);
 
+			if (IS_ROSE_TATTOO) {
+				for (int idx = 0; idx < MAX_CHARACTERS; ++idx)
+					people[idx]._misc = 0;
+			}
+
 			if (_talkToAbort)
 				return;
 
@@ -401,14 +406,17 @@ void Talk::talkTo(const Common::String &filename) {
 			} else {
 				freeTalkVars();
 
-				if (!ui._lookScriptFlag) {
-					ui.drawInterface(2);
-					ui._menuMode = STD_MODE;
-					ui._windowBounds.top = CONTROLS_Y1;
-
-					ui.banishWindow();
+				if (IS_SERRATED_SCALPEL) {
+					if (!ui._lookScriptFlag) {
+						ui.drawInterface(2);
+						ui._menuMode = STD_MODE;
+						ui._windowBounds.top = CONTROLS_Y1;
+					}
+				} else {
+					ui._menuMode = static_cast<Tattoo::TattooScene *>(_vm->_scene)->_labTableScene ? LAB_MODE : STD_MODE;
 				}
 
+				ui.banishWindow();
 				break;
 			}
 		}
@@ -922,6 +930,7 @@ int Talk::waitForMore(int delay) {
 			events._released = true;
 		} else {
 			// See if there's been a button press
+			events.pollEventsAndWait();
 			events.setButtonState();
 
 			if (events.kbHit()) {
@@ -1082,42 +1091,6 @@ OpcodeReturn Talk::cmdBanishWindow(const byte *&str) {
 	ui.banishWindow();
 	ui._menuMode = TALK_MODE;
 	_noTextYet = true;
-
-	return RET_SUCCESS;
-}
-
-OpcodeReturn Talk::cmdCallTalkFile(const byte *&str) {
-	Common::String tempString;
-
-	++str;
-	for (int idx = 0; idx < 8 && str[idx] != '~'; ++idx)
-		tempString += str[idx];
-	str += 8;
-
-	int scriptCurrentIndex = str - _scriptStart;
-
-	// Save the current script position and new talk file
-	if (_scriptStack.size() < 9) {
-		ScriptStackEntry rec1;
-		rec1._name = _scriptName;
-		rec1._currentIndex = scriptCurrentIndex;
-		rec1._select = _scriptSelect;
-		_scriptStack.push(rec1);
-
-		// Push the new talk file onto the stack
-		ScriptStackEntry rec2;
-		rec2._name = tempString;
-		rec2._currentIndex = 0;
-		rec2._select = 100;
-		_scriptStack.push(rec2);
-	}
-	else {
-		error("Script stack overflow");
-	}
-
-	_scriptMoreFlag = 1;
-	_endStr = true;
-	_wait = 0;
 
 	return RET_SUCCESS;
 }

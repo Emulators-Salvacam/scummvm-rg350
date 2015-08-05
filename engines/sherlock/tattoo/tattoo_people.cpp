@@ -98,8 +98,8 @@ SavedNPCPath::SavedNPCPath() {
 	_lookHolmes = false;
 }
 
-SavedNPCPath::SavedNPCPath(byte path[MAX_NPC_PATH], int npcIndex, int npcPause, const Common::Point &walkDest,
-	int npcFacing, bool lookHolmes) : _npcIndex(npcIndex), _npcPause(npcPause), _walkDest(walkDest),
+SavedNPCPath::SavedNPCPath(byte path[MAX_NPC_PATH], int npcIndex, int npcPause, const Point32 &position,
+	int npcFacing, bool lookHolmes) : _npcIndex(npcIndex), _npcPause(npcPause), _position(position),
 		_npcFacing(npcFacing), _lookHolmes(lookHolmes) {
 	Common::copy(&path[0], &path[MAX_NPC_PATH], &_path[0]);
 }
@@ -526,7 +526,7 @@ void TattooPerson::walkToCoords(const Point32 &destPos, int destDir) {
 		people._allowWalkAbort = true;
 	} else {
 		// Clear the path Variables
-		_npcIndex = _npcPause;
+		_npcIndex = _npcPause = 0;
 		Common::fill(_npcPath, _npcPath + 100, 0);
 		_npcFacing = destDir;
 	}
@@ -847,13 +847,12 @@ void TattooPerson::pullNPCPath() {
 
 	// Handle the first case if the NPC was paused
 	if (_npcPause) {
-		_walkDest = Common::Point(path._walkDest.x / FIXED_INT_MULTIPLIER, path._walkDest.y / FIXED_INT_MULTIPLIER);
 		_npcFacing = path._npcFacing;
 		_lookHolmes = path._lookHolmes;
 
-		// See if the NPC was moved
-		if (_walkDest.x != (_position.x / FIXED_INT_MULTIPLIER) ||
-				_walkDest.y != (_position.y / FIXED_INT_MULTIPLIER)) {
+		// See if the NPC has moved from where they originally were
+		if (path._position != _position) {
+			_walkDest = Point32(path._position.x / FIXED_INT_MULTIPLIER, path._position.y / FIXED_INT_MULTIPLIER);
 			goAllTheWay();
 			_npcPause = 0;
 			_npcIndex -= 3;
@@ -971,7 +970,14 @@ void TattooPerson::synchronize(Serializer &s) {
 	s.syncAsSint32LE(_position.x);
 	s.syncAsSint32LE(_position.y);
 	s.syncAsSint16LE(_sequenceNumber);
-	s.syncAsSint16LE(_type);
+
+	if (s.isSaving()) {
+		SpriteType type = (_type == INVALID && _walkLoaded) ? HIDDEN_CHARACTER : _type;
+		s.syncAsSint16LE(type);
+	} else {
+		s.syncAsSint16LE(_type);
+	}
+
 	s.syncString(_walkVGSName);
 	s.syncString(_description);
 	s.syncString(_examine);
@@ -1112,6 +1118,9 @@ void TattooPerson::centerScreenOnPerson() {
 	ui._targetScroll.x = CLIP(_position.x / FIXED_INT_MULTIPLIER - SHERLOCK_SCREEN_WIDTH / 2,
 		0, screen._backBuffer1.w() - SHERLOCK_SCREEN_WIDTH);
 	screen._currentScroll = ui._targetScroll;
+
+	// Reset the default look position to the center of the screen
+	ui._lookPos = screen._currentScroll + Common::Point(SHERLOCK_SCREEN_WIDTH / 2, SHERLOCK_SCREEN_HEIGHT / 2);
 }
 
 /*----------------------------------------------------------------*/

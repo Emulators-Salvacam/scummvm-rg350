@@ -35,9 +35,6 @@ namespace Sherlock {
 
 namespace Scalpel {
 
-#define JOURNAL_MAX_WIDTH 230
-#define JOURNAL_MAX_CHARS 80
-
 enum JournalButton {
 	BTN_NONE, BTN_EXIT, BTN_BACK10, BTN_UP, BTN_DOWN, BTN_AHEAD110, BTN_SEARCH,
 	BTN_FIRST_PAGE, BTN_LAST_PAGE, BTN_PRINT_TEXT
@@ -82,12 +79,6 @@ public:
 	 * Draw the journal background, frame, and interface buttons
 	 */
 	virtual void drawFrame();
-
-	/**
-	 * Records statements that are said, in the order which they are said. The player
-	 * can then read the journal to review them
-	 */
-	virtual void record(int converseNum, int statementNum, bool replyOnly = false);
 
 	/**
 	 * Reset viewing position to the start of the journal

@@ -193,7 +193,7 @@ void TattooTalk::talkInterface(const byte *&str) {
 	}
 
 	// Display the text window
-//	ui.banishWindow();
+	ui.banishWindow();
 	ui._textWidget.load(Common::String((const char *)s, (const char *)str), _speaker);
 	ui._textWidget.summonWindow();
 	_wait = true;
@@ -874,6 +874,31 @@ OpcodeReturn TattooTalk::cmdWalkHomesAndNPCToCoords(const byte *&str) {
 		return RET_EXIT;
 
 	str += 9;
+	return RET_SUCCESS;
+}
+
+OpcodeReturn TattooTalk::cmdCallTalkFile(const byte *&str) {
+	TattooPeople &people = *(TattooPeople *)_vm->_people;
+	Common::String tempString;
+
+	int npc = *++str;
+	assert(npc >= 1 && npc < MAX_CHARACTERS);
+	TattooPerson &person = people[npc];
+
+	if (person._resetNPCPath) {
+		person._npcIndex = person._npcPause = 0;
+		person._resetNPCPath = false;
+		Common::fill(&person._npcPath[0], &person._npcPath[100], 0);
+	}
+
+	// Set the path control code and copy the filename
+	person._npcPath[person._npcIndex] = 4;
+	for (int idx = 1; idx <= 8; ++idx)
+		person._npcPath[person._npcIndex + idx] = str[idx];
+
+	person._npcIndex += 9;
+	str += 8;
+
 	return RET_SUCCESS;
 }
 

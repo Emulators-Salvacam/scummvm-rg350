@@ -356,6 +356,10 @@ bool BaseObject::checkEndOfSequence() {
 			// Determine next sequence to use
 			int seq = _sequences[_frameNumber + 1];
 
+			// If the object has been turned off, we're going nowhere
+			if (IS_ROSE_TATTOO && (_type == HIDE_SHAPE || _type == HIDDEN || _type == REMOVE))
+				return false;
+
 			if (seq == 99) {
 				--_frameNumber;
 				screen._backBuffer1.transBlitFrom(*_imageFrame, _position);
@@ -396,6 +400,10 @@ bool BaseObject::checkEndOfSequence() {
 void BaseObject::setObjSequence(int seq, bool wait) {
 	Scene &scene = *_vm->_scene;
 	int checkFrame = _allow ? MAX_FRAME : FRAMES_END;
+
+	if (IS_ROSE_TATTOO && (seq == -1 || seq == 255))
+		// This means goto beginning
+		seq = 0;
 
 	if (seq >= 128) {
 		// Loop the sequence until the count exceeded

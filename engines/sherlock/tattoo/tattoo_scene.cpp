@@ -84,7 +84,7 @@ bool TattooScene::loadScene(const Common::String &filename) {
 	}
 
 	// Set the NPC paths for the scene
-	setNPCPath(0);
+	setNPCPath(WATSON);
 
 	// Handle loading music for the scene
 	if (music._musicOn) {
@@ -292,6 +292,15 @@ void TattooScene::checkBgShapes() {
 	}
 }
 
+void TattooScene::freeScene() {
+	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
+	Scene::freeScene();
+
+	delete ui._mask;
+	delete ui._mask1;
+	ui._mask = ui._mask1 = nullptr;
+}
+
 void TattooScene::doBgAnimCheckCursor() {
 	Events &events = *_vm->_events;
 	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
@@ -359,9 +368,6 @@ void TattooScene::doBgAnim() {
 	if (ui._creditsWidget.active())
 		ui._creditsWidget.blitCredits();
 
-	if (!vm._fastMode)
-		events.wait(3);
-
 	if (screen._flushScreen) {
 		screen.slamArea(screen._currentScroll.x, screen._currentScroll.y, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
 		screen._flushScreen = false;
@@ -370,6 +376,18 @@ void TattooScene::doBgAnim() {
 	screen._flushScreen = false;
 	_doBgAnimDone = true;
 	ui._drawMenu = false;
+
+	// Handle drawing tooltips
+	if (ui._menuMode == STD_MODE || ui._menuMode == LAB_MODE)
+		ui._tooltipWidget.draw();
+	if (!ui._postRenderWidgets.empty()) {
+		for (WidgetList::iterator i = ui._postRenderWidgets.begin(); i != ui._postRenderWidgets.end(); ++i)
+			(*i)->draw();
+		ui._postRenderWidgets.clear();
+	}
+
+	if (!vm._fastMode)
+		events.wait(3);
 
 	for (int idx = 1; idx < MAX_CHARACTERS; ++idx) {
 		if (people[idx]._updateNPCPath)
@@ -706,7 +724,7 @@ void TattooScene::setNPCPath(int npc) {
 		return;
 
 	people[npc].clearNPC();
-	people[npc]._name = Common::String::format("WATS%.2dA", _currentScene);
+	people[npc]._npcName = Common::String::format("WATS%.2dA", _currentScene);
 
 	// If we're in the middle of a script that will continue once the scene is loaded,
 	// return without calling the path script
@@ -724,42 +742,43 @@ void TattooScene::setNPCPath(int npc) {
 
 int TattooScene::findBgShape(const Common::Point &pt) {
 	People &people = *_vm->_people;
+	UserInterface &ui = *_vm->_ui;
 
 	if (!_doBgAnimDone)
 		// New frame hasn't been drawn yet
 		return -1;
 
-	int result = Scene::findBgShape(pt);
-	if (result == -1) {
-		if (_labTableScene) {
-			// Check for SOLID objects in the lab scene
-			for (int idx = (int)_bgShapes.size() - 1; idx >= 0; --idx) {
-				Object &o = _bgShapes[idx];
-				if (o._type != INVALID && o._type != NO_SHAPE && o._type != HIDDEN && o._aType == SOLID) {
-					if (o.getNewBounds().contains(pt))
-						return idx;
-				}
-			}
+	int result = -1;
+	for (int idx = (int)_bgShapes.size() - 1; idx >= 0 && result == -1; --idx) {
+		Object &o = _bgShapes[idx];
+
+		if (o._type != INVALID && o._type != NO_SHAPE && o._type != HIDDEN && 
+				(o._aType <= PERSON || (ui._menuMode == LAB_MODE && o._aType == SOLID))) {
+			if (o.getNewBounds().contains(pt))
+				result = idx;
+		} else if (o._type == NO_SHAPE) {
+			if (o.getNoShapeBounds().contains(pt))
+				result = idx;
 		}
+	}
 
-		// No shape found, so check whether a character is highlighted
-		for (int idx = 1; idx < MAX_CHARACTERS && result == -1; ++idx) {
-			Person &person = people[idx];
+	// Now check for the mouse being over an NPC. If so, it overrides any found bg object
+	for (int idx = 1; idx < MAX_CHARACTERS; ++idx) {
+		Person &person = people[idx];
 
-			if (person._type == CHARACTER) {
-				int scaleVal = getScaleVal(person._position);
-				Common::Rect charRect;
+		if (person._type == CHARACTER) {
+			int scaleVal = getScaleVal(person._position);
+			Common::Rect charRect;
 
-				if (scaleVal == SCALE_THRESHOLD)
-					charRect = Common::Rect(person.frameWidth(), person.frameHeight());
-				else
-					charRect = Common::Rect(person._imageFrame->sDrawXSize(scaleVal), person._imageFrame->sDrawYSize(scaleVal));
-				charRect.moveTo(person._position.x / FIXED_INT_MULTIPLIER, person._position.y / FIXED_INT_MULTIPLIER
-					- charRect.height());
+			if (scaleVal == SCALE_THRESHOLD)
+				charRect = Common::Rect(person.frameWidth(), person.frameHeight());
+			else
+				charRect = Common::Rect(person._imageFrame->sDrawXSize(scaleVal), person._imageFrame->sDrawYSize(scaleVal));
+			charRect.moveTo(person._position.x / FIXED_INT_MULTIPLIER, person._position.y / FIXED_INT_MULTIPLIER
+				- charRect.height());
 
-				if (charRect.contains(pt))
-					result = 1000 + idx;
-			}
+			if (charRect.contains(pt))
+				result = 1000 + idx;
 		}
 	}
 

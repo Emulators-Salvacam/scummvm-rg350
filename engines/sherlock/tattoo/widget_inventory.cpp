@@ -34,6 +34,7 @@ namespace Tattoo {
 #define INVENTORY_XSIZE 70			// Width of the box that surrounds inventory items
 #define INVENTORY_YSIZE 70			// Height of the box that surrounds inventory items
 #define MAX_INV_COMMANDS 10			// Maximum elements in dialog
+#define NUM_INV_PER_LINE 4			// Number of inentory items per line in the dialog
 
 WidgetInventoryTooltip::WidgetInventoryTooltip(SherlockEngine *vm, WidgetInventory *owner) : 
 		WidgetTooltipBase(vm), _owner(owner) {
@@ -122,6 +123,12 @@ void WidgetInventoryTooltip::handleEvents() {
 	Common::String strWith = fixedText.getText(kFixedText_With);
 	Common::String strUse = fixedText.getText(kFixedText_Use);
 
+	// Register the tooltip for requiring post-rendering drawing, since we draw directly to the screen if a scene
+	// mask is active, since the initial draw to the screen will be covered by the mask rendering
+	if (ui._mask) {
+		ui._postRenderWidgets.push_back(this);
+	}
+
 	// If we are using an inventory item on an object in the room, display the appropriate text above the mouse cursor
 	if (_owner->_invVerbMode == 3) {
 		select = ui._bgFound;
@@ -174,8 +181,8 @@ void WidgetInventoryTooltip::handleEvents() {
 			}
 		}
 	} else {
-		Common::Rect r = _owner->_bounds;
-		r.grow(-3);
+		const Common::Rect &b = _owner->_bounds;
+		Common::Rect r(b.left + 3, b.top + 3, b.right - 3 - BUTTON_SIZE, b.bottom - 3);
 
 		if (r.contains(mousePos)) {
 			select = (mousePos.x - r.left) / (INVENTORY_XSIZE + 3) + NUM_INVENTORY_SHOWN / 2 *
@@ -383,24 +390,21 @@ void WidgetInventoryVerbs::handleEvents() {
 			_outsideMenu = false;
 
 			// Check if they are trying to solve the Foolscap puzzle, or looking at the completed puzzle
-			bool doHangman = !inv[_owner->_invSelect]._name.compareToIgnoreCase(FIXED(Inv6)) &&
+			bool doFoolscap = !inv[_owner->_invSelect]._name.compareToIgnoreCase(FIXED(Inv6)) &&
 				!_inventCommands[_invVerbSelect].compareToIgnoreCase(FIXED(Solve));
-			doHangman |= (!inv[_owner->_invSelect]._name.compareToIgnoreCase(FIXED(Inv6)) || !inv[_owner->_invSelect]._name.compareToIgnoreCase(FIXED(Inv7)))
-				&& _inventCommands[_invVerbSelect].compareToIgnoreCase(FIXED(Look)) && vm.readFlags(299);
+			doFoolscap |= (!inv[_owner->_invSelect]._name.compareToIgnoreCase(FIXED(Inv6)) || !inv[_owner->_invSelect]._name.compareToIgnoreCase(FIXED(Inv7)))
+				&& !_inventCommands[_invVerbSelect].compareToIgnoreCase(FIXED(Look)) && vm.readFlags(299);
 
-			if (doHangman) {
+			if (doFoolscap) {
 				// Close the entire Inventory and return to Standard Mode
 				_owner->_invVerbMode = 0;
 
 				_owner->_tooltipWidget.banishWindow();
+				_owner->banishWindow();
 				inv.freeInv();
 
 				events.clearEvents();
-				events.setCursor(ARROW);
-				ui._menuMode = scene._labTableScene ? LAB_MODE : STD_MODE;
-
-				scene.doBgAnim();
-				vm.doHangManPuzzle();
+				vm.doFoolscapPuzzle();
 			} else if (_invVerbSelect == 0) {
 				// They have released the mouse on the Look Verb command, so Look at the inventory item
 				ui._invLookFlag = true;
@@ -474,7 +478,6 @@ WidgetInventory::WidgetInventory(SherlockEngine *vm) : WidgetBase(vm),
 	_invVerbMode = 0;
 	_invSelect = _oldInvSelect = -1;
 	_selector = _oldSelector = -1;
-	_dialogTimer = -1;
 	_swapItems = false;
 }
 
@@ -494,7 +497,7 @@ void WidgetInventory::load(int mode) {
 	_invVerbMode = 0;
 	_invSelect = _oldInvSelect = -1;
 	_selector = _oldSelector = -1;
-	_dialogTimer = -1;
+	_scroll = true;
 
 	if (mode == 0) {
 		banishWindow();
@@ -568,7 +571,8 @@ void WidgetInventory::drawInventory() {
 		}
 	}
 
-	drawScrollBar(inv._invIndex, NUM_INVENTORY_SHOWN, inv._holdings);
+	drawScrollBar(inv._invIndex / NUM_INV_PER_LINE, NUM_INVENTORY_SHOWN / NUM_INV_PER_LINE, 
+		(inv._holdings + NUM_INV_PER_LINE - 1) / NUM_INV_PER_LINE);
 }
 
 void WidgetInventory::handleEvents() {
@@ -580,10 +584,34 @@ void WidgetInventory::handleEvents() {
 	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
 	Common::Point mousePos = events.mousePos();
 
-	if (_invVerbMode == 1)
+	if (_invVerbMode == 1) {
 		checkTabbingKeys(MAX_INV_COMMANDS);
-	else if (_invVerbMode == 0)
+	} else if (_invVerbMode == 0) {
 		checkInvTabbingKeys();
+
+		// Handle scrollbar events
+		int oldScrollIndex = inv._invIndex / NUM_INV_PER_LINE;
+		int invIndex = inv._invIndex / NUM_INV_PER_LINE;
+
+		ScrollHighlight oldHighlight = ui._scrollHighlight;
+		handleScrollbarEvents(invIndex, NUM_INVENTORY_SHOWN / NUM_INV_PER_LINE, 
+			(inv._holdings + NUM_INV_PER_LINE - 1) / NUM_INV_PER_LINE);
+
+		handleScrolling(invIndex, NUM_INVENTORY_SHOWN / NUM_INV_PER_LINE, 
+			(inv._holdings + NUM_INV_PER_LINE - 1) / NUM_INV_PER_LINE);
+
+		if (oldScrollIndex != invIndex) {
+			// Starting visible item index has changed, so set the index and reload inventory graphics
+			inv._invIndex = invIndex * NUM_INV_PER_LINE;
+			inv.freeGraphics();
+			inv.loadGraphics();
+		}
+
+		if (ui._scrollHighlight != oldHighlight || oldScrollIndex != invIndex) {
+			drawInventory();
+			return;
+		}
+	}
 
 	if (_invVerbMode != 1)
 		_tooltipWidget.handleEvents();
@@ -597,7 +625,6 @@ void WidgetInventory::handleEvents() {
 
 	// See if they released a mouse button button
 	if (events._released || events._rightReleased || ui._keyState.keycode == Common::KEYCODE_ESCAPE) {
-		_dialogTimer = -1;
 		ui._scrollHighlight = SH_NONE;
 
 		// See if they have a Verb List open for an Inventry Item
@@ -703,7 +730,7 @@ void WidgetInventory::handleEvents() {
 							ui._menuMode = scene._labTableScene ? LAB_MODE : STD_MODE;
 
 							scene.doBgAnim();
-							vm.doHangManPuzzle();
+							vm.doFoolscapPuzzle();
 						} else {
 							ui._invLookFlag = true;
 							inv.freeInv();
