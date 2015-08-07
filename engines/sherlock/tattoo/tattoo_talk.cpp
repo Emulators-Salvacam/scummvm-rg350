@@ -280,10 +280,10 @@ OpcodeReturn TattooTalk::cmdGotoScene(const byte *&str) {
 		if (str[2] > 100) {
 			people._savedPos = PositionFacing(160, 100, str[2]);
 		} else {
-			int32 posX = (str[3] - 1) * 256 + str[4] - 1;
+			int posX = (str[3] - 1) * 256 + str[4] - 1;
 			if (posX > 16384)
 				posX = -1 * (posX - 16384);
-			int32 posY = (str[5] - 1) * 256 + str[6] - 1;
+			int posY = (str[5] - 1) * 256 + str[6] - 1;
 			people._savedPos = PositionFacing(posX, posY, str[2] - 1);
 		}
 
@@ -403,7 +403,7 @@ OpcodeReturn TattooTalk::cmdPlaySong(const byte *&str) {
 }
 
 OpcodeReturn TattooTalk::cmdRestorePeopleSequence(const byte *&str) {
-	int npcNum = *++str - 1;
+	int npcNum = *++str;
 	TattooPeople &people = *(TattooPeople *)_vm->_people;
 	TattooPerson &person = people[npcNum];
 	person._misc = 0;
@@ -560,14 +560,14 @@ OpcodeReturn TattooTalk::cmdSetNPCPathPauseLookingHolmes(const byte *&str) {
 }
 
 OpcodeReturn TattooTalk::cmdSetNPCPosition(const byte *&str) {
-	int npcNum = *++str - 1;
+	int npcNum = *++str;
 	++str;
 	TattooPeople &people = *(TattooPeople *)_vm->_people;
 	TattooPerson &person = people[npcNum];
-	int32 posX = (str[0] - 1) * 256 + str[1] - 1;
+	int posX = (str[0] - 1) * 256 + str[1] - 1;
 	if (posX > 16384)
 		posX = -1 * (posX - 16384);
-	int32 posY = (str[2] - 1) * 256 + str[3] - 1;
+	int posY = (str[2] - 1) * 256 + str[3] - 1;
 	
 	people[npcNum]._position = Point32(posX * FIXED_INT_MULTIPLIER, posY * FIXED_INT_MULTIPLIER);
 	if (person._seqTo && person._walkLoaded) {
@@ -593,7 +593,7 @@ OpcodeReturn TattooTalk::cmdSetNPCPosition(const byte *&str) {
 					break;
 				}
 			}
-		} while(!done);
+		} while (!done);
 	}
 
 	str += 4;
@@ -710,7 +710,7 @@ OpcodeReturn TattooTalk::cmdSetNPCVerbTarget(const byte *&str) {
 }
 
 OpcodeReturn TattooTalk::cmdSetNPCWalkGraphics(const byte *&str) {
-	int npcNum = *++str - 1;
+	int npcNum = *++str;
 	TattooPeople &people = *(TattooPeople *)_vm->_people;
 	Person &person = people[npcNum];
 
@@ -862,13 +862,21 @@ OpcodeReturn TattooTalk::cmdWalkHomesAndNPCToCoords(const byte *&str) {
 		person.pushNPCPath();
 	person._npcMoved = true;
 
+	// Get destination position and facing for Holmes
 	int xp = (str[0] - 1) * 256 + str[1] - 1;
 	if (xp > 16384)
 		xp = -1 * (xp - 16384);
 	int yp = (str[2] - 1) * 256 + str[3] - 1;
+	PositionFacing holmesDest(xp * FIXED_INT_MULTIPLIER, yp * FIXED_INT_MULTIPLIER, DIRECTION_CONVERSION[str[4] - 1]);
 
-	person.walkToCoords(Point32(xp * FIXED_INT_MULTIPLIER, yp * FIXED_INT_MULTIPLIER),
-		DIRECTION_CONVERSION[str[4] - 1]);
+	// Get destination position and facing for specified NPC
+	xp = (str[5] - 1) * 256 + str[6] - 1;
+	if (xp > 16384)
+		xp = -1 * (xp - 16384);
+	yp = (str[7] - 1) * 256 + str[8] - 1;
+	PositionFacing npcDest(xp * FIXED_INT_MULTIPLIER, yp * FIXED_INT_MULTIPLIER, DIRECTION_CONVERSION[str[9] - 1]);
+
+	person.walkBothToCoords(holmesDest, npcDest);
 
 	if (_talkToAbort)
 		return RET_EXIT;
