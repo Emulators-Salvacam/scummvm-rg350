@@ -339,7 +339,8 @@ void Talk::talkTo(const Common::String &filename) {
 			_scriptSelect = select;
 			_speaker = _talkTo;
 
-			Statement &statement = _statements[select];
+			// Make a copy of the statement (in case the script frees the statement list), and then execute it
+			Statement statement = _statements[select];
 			doScript(_statements[select]._reply);
 
 			if (IS_ROSE_TATTOO) {
@@ -467,8 +468,15 @@ void Talk::talk(int objNum) {
 			break;
 		}
 	}
-	if (select == -1)
-		error("No entry matched all required flags");
+
+	if (select == -1) {
+		freeTalkVars();
+		if (!scumm_strnicmp(talkFilename.c_str(), "PATH", 4))
+			error("No entries found to execute in path file");
+
+		nothingToSay();
+		return;
+	}
 
 	// See if the statement is a stealth mode reply
 	Statement &statement = _statements[select];
@@ -823,7 +831,7 @@ void Talk::doScript(const Common::String &script) {
 		}
 	}
 
-	bool   trigger3DOMovie = true;
+	bool  speakerSwitched = true;
 	uint16 subIndex = 1;
 
 	do {
@@ -844,12 +852,12 @@ void Talk::doScript(const Common::String &script) {
 				return;
 			case RET_CONTINUE:
 				continue;
-			case OP_SWITCH_SPEAKER:
-				trigger3DOMovie = true;
-				break;
 			default:
 				break;
 			}
+
+			if (c == _opcodes[OP_SWITCH_SPEAKER])
+				speakerSwitched = true;
 
 			++str;
 		} else {
@@ -869,12 +877,10 @@ void Talk::doScript(const Common::String &script) {
 			_openTalkWindow = false;
 		}
 
-		if ((_wait) && (trigger3DOMovie)) {
-			// Trigger to play 3DO movie
-			talk3DOMovieTrigger(subIndex);
-
-			trigger3DOMovie = false; // wait for next switch speaker opcode
-			subIndex++;
+		if ((_wait) && (speakerSwitched)) {
+			switchSpeaker(subIndex);
+			speakerSwitched = false;
+			++subIndex;
 		}
 
 		if (_wait)

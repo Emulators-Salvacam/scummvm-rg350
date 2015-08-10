@@ -91,7 +91,8 @@ void WidgetVerbs::load(bool objectsOn) {
 			// Add any extra active verbs from the object's verb list
 			for (int idx = 0; idx < 6; ++idx) {
 				if (!ui._bgShape->_use[idx]._verb.empty() && !ui._bgShape->_use[idx]._verb.hasPrefix(" ") &&
-					(ui._bgShape->_use[idx]._target.empty() || ui._bgShape->_use[idx]._target.hasPrefix(" "))) {
+						(ui._bgShape->_use[idx]._target.empty() || ui._bgShape->_use[idx]._target.hasPrefix("*") ||
+						ui._bgShape->_use[idx]._target.hasPrefix(" "))) {
 					_verbCommands.push_back(ui._bgShape->_use[idx]._verb);
 				}
 			}
@@ -208,6 +209,7 @@ void WidgetVerbs::handleEvents() {
 			// Mouse is within the menu
 			// Erase the menu
 			banishWindow();
+			events.clearEvents();
 
 			// See if they are activating the Look Command
 			if (!_verbCommands[_selector].compareToIgnoreCase(strLook)) {

@@ -30,6 +30,7 @@
 #include "common/stream.h"
 #include "common/stack.h"
 #include "sherlock/talk.h"
+#include "sherlock/tattoo/widget_password.h"
 #include "sherlock/tattoo/widget_talk.h"
 
 namespace Sherlock {
@@ -42,6 +43,7 @@ class TattooTalk : public Talk {
 	friend class WidgetTalk;
 private:
 	WidgetTalk _talkWidget;
+	WidgetPassword _passwordWidget;
 
 	OpcodeReturn cmdCallTalkFile(const byte *&str);
 	OpcodeReturn cmdSwitchSpeaker(const byte *&str);
@@ -85,6 +87,11 @@ protected:
 	 * Display the talk interface window
 	 */
 	virtual void talkInterface(const byte *&str);
+
+	/**
+	 * Called when a character being spoken to has no talk options to display
+	 */
+	virtual void nothingToSay();
 
 	/**
 	 * Show the talk display

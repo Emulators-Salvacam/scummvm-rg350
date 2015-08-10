@@ -57,6 +57,7 @@ static const char *const FIXED_TEXT_ENGLISH[] = {
 	"with",
 	"No effect...",
 	"This person has nothing to say at the moment",
+	"Picked up",
 
 	"Page %d",
 	"Close Journal", 
@@ -103,7 +104,9 @@ static const char *const FIXED_TEXT_ENGLISH[] = {
 	"Are you sure you",
 	"wish to Quit ?",
 	"Yes",
-	"No"
+	"No",
+	"Enter Password",
+	"Going East"
 };
 
 static const char *const FIXED_TEXT_GERMAN[] = {
@@ -182,7 +185,9 @@ static const char *const FIXED_TEXT_GERMAN[] = {
 	"Spiel beenden? ",
 	"Sind Sie sicher ?",
 	"Ja",
-	"Nein"
+	"Nein",
+	"Pacwort eingeben",
+	"Going East"
 };
 
 TattooFixedText::TattooFixedText(SherlockEngine *vm) : FixedText(vm) {

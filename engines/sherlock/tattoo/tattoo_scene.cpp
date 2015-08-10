@@ -663,9 +663,10 @@ int TattooScene::startCAnim(int cAnimNum, int playRate) {
 
 	_activeCAnim.load(animStream, _compressed);
 
-	while (_activeCAnim.active() && !_vm->shouldQuit()) {
+	while (!_vm->shouldQuit()) {
 		// Get the next frame
-		_activeCAnim.getNextFrame();
+		if (!_activeCAnim.getNextFrame())
+			break;
 
 		// Draw the frame
 		doBgAnim();
@@ -787,10 +788,14 @@ int TattooScene::findBgShape(const Common::Point &pt) {
 
 void TattooScene::synchronize(Serializer &s) {
 	TattooEngine &vm = *(TattooEngine *)_vm;
+	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
 	Scene::synchronize(s);
 
-	if (s.isLoading())
+	if (s.isLoading()) {
+		// In case we were showing the intro prologue or the ending credits, stop them
 		vm._runningProlog = false;
+		ui._creditsWidget.close();
+	}
 }
 
 int TattooScene::closestZone(const Common::Point &pt) {

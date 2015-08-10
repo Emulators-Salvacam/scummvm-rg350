@@ -251,23 +251,16 @@ void WidgetBase::drawScrollBar(int index, int pageSize, int count) {
 
 	// Draw the arrows on the scroll buttons
 	byte color = index ? INFO_BOTTOM + 2 : INFO_BOTTOM;
-	_surface.hLine(r.right / 2, r.top - 2 + BUTTON_SIZE / 2, r.right / 2, color);
-	_surface.fillRect(Common::Rect(r.right / 2 - 1, r.top - 1 + BUTTON_SIZE / 2,
-		r.right / 2 + 1, r.top - 1 + BUTTON_SIZE / 2), color);
-	_surface.fillRect(Common::Rect(r.right / 2 - 2, r.top + BUTTON_SIZE / 2,
-		r.right / 2 + 2, r.top + BUTTON_SIZE / 2), color);
-	_surface.fillRect(Common::Rect(r.right / 2 - 3, r.top + 1 + BUTTON_SIZE / 2,
-		r.right / 2 + 3, r.top + 1 + BUTTON_SIZE / 2), color);
+	_surface.hLine(r.left + r.width() / 2, r.top - 2 + BUTTON_SIZE / 2, r.left + r.width() / 2, color);
+	_surface.hLine(r.left + r.width() / 2 - 1, r.top - 1 + BUTTON_SIZE / 2, r.left + r.width() / 2 + 1, color);
+	_surface.hLine(r.left + r.width() / 2 - 2, r.top + BUTTON_SIZE / 2, r.left + r.width() / 2 + 2, color);
+	_surface.hLine(r.left + r.width() / 2 - 3, r.top + 1 + BUTTON_SIZE / 2, r.left + r.width() / 2 + 3, color);
 
 	color = (index + pageSize) < count ? INFO_BOTTOM + 2 : INFO_BOTTOM;
-	_surface.fillRect(Common::Rect(r.right / 2 - 3, r.bottom - 1 - BUTTON_SIZE + BUTTON_SIZE / 2,
-		r.right / 2 + 3, r.bottom - 1 - BUTTON_SIZE + BUTTON_SIZE / 2), color);
-	_surface.fillRect(Common::Rect(r.right / 2 - 2, r.bottom - 1 - BUTTON_SIZE + 1 + BUTTON_SIZE / 2,
-		r.right / 2 + 2, r.bottom - 1 - BUTTON_SIZE + 1 + BUTTON_SIZE / 2), color);
-	_surface.fillRect(Common::Rect(r.right / 2 - 1, r.bottom - 1 - BUTTON_SIZE + 2 + BUTTON_SIZE / 2,
-		r.right / 2 + 1, r.bottom - 1 - BUTTON_SIZE + 2 + BUTTON_SIZE / 2), color);
-	_surface.fillRect(Common::Rect(r.right / 2, r.bottom - 1 - BUTTON_SIZE + 3 + BUTTON_SIZE / 2,
-		r.right / 2, r.bottom - 1 - BUTTON_SIZE + 3 + BUTTON_SIZE / 2), color);
+	_surface.hLine(r.left + r.width() / 2 - 3, r.bottom - 1 - BUTTON_SIZE + BUTTON_SIZE / 2, r.left + r.width() / 2 + 3, color);
+	_surface.hLine(r.left + r.width() / 2 - 2, r.bottom - 1 - BUTTON_SIZE + 1 + BUTTON_SIZE / 2, r.left + r.width() / 2 + 2, color);
+	_surface.hLine(r.left + r.width() / 2 - 1, r.bottom - 1 - BUTTON_SIZE + 2 + BUTTON_SIZE / 2, r.left + r.width() / 2 + 1, color);
+	_surface.hLine(r.left + r.width() / 2, r.bottom - 1 - BUTTON_SIZE + 3 + BUTTON_SIZE / 2, r.left + r.width() / 2, color);
 
 	// Draw the scroll position bar
 	int barHeight = (r.height() - BUTTON_SIZE * 2) * pageSize / count;
@@ -299,7 +292,8 @@ void WidgetBase::handleScrollbarEvents(int index, int pageSize, int count) {
 	// Calculate the Scroll Position bar
 	int barHeight = (r.height() - BUTTON_SIZE * 2) * pageSize / count;
 	barHeight = CLIP(barHeight, BUTTON_SIZE, r.height() - BUTTON_SIZE * 2);
-	int barY = r.top + BUTTON_SIZE + (r.height() - BUTTON_SIZE * 2 - barHeight) * index / (count - pageSize);
+	int barY = (count <= pageSize) ? r.top + BUTTON_SIZE : r.top + BUTTON_SIZE +
+		(r.height() - BUTTON_SIZE * 2 - barHeight) * index / (count - pageSize);
 
 	if (Common::Rect(r.left, r.top, r.right, r.top + BUTTON_SIZE).contains(mousePos))
 		// Mouse on scroll up button

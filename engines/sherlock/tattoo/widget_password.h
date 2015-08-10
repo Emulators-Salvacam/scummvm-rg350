@@ -20,66 +20,45 @@
  *
  */
 
-#ifndef SHERLOCK_TATTOO_CREDITS_H
-#define SHERLOCK_TATTOO_CREDITS_H
+#ifndef SHERLOCK_TATTOO_WIDGET_PASSWORD_H
+#define SHERLOCK_TATTOO_WIDGET_PASSWORD_H
 
-#include "common/array.h"
-#include "common/rect.h"
+#include "common/scummsys.h"
+#include "sherlock/tattoo/widget_base.h"
 
 namespace Sherlock {
 
-	class SherlockEngine;
+class SherlockEngine;
 
 namespace Tattoo {
 
-struct CreditLine {
-	Common::Point _position;
-	int _xOffset;
-	int _width;
-	Common::String _line, _line2;
-
-	CreditLine(const Common::String &line, const Common::Point &pt, int width) :
-		_line(line), _position(pt), _width(width), _xOffset(0) {}
-};
-
-class WidgetCredits {
+class WidgetPassword: public WidgetBase {
 private:
-	SherlockEngine *_vm;
-	Common::Array<CreditLine> _creditLines;
-	int _creditSpeed;
-	bool _creditsActive;
-public:
-	WidgetCredits(SherlockEngine *vm);
+	Common::Point _cursorPos;
+	Common::String _password;
+	int _index;
+	bool _blinkFlag;
+	int _blinkCounter;
+	byte _cursorColor;
+	bool _insert;
 
 	/**
-	 * Returns true if the credits are active
-	 */
-	bool active() const { return _creditsActive; }
-
-	/**
-	 * Initialize and load credit data for display
-	 */
-	void initCredits();
-
-	/**
-	 * Closes down credits display
+	 * Close the window and check if the entered password is correct
 	 */
 	void close();
+public:
+	WidgetPassword(SherlockEngine *vm);
+	virtual ~WidgetPassword() {}
 
 	/**
-	 * Draw credits on the screen
+	 * Show the password entry window
 	 */
-	void drawCredits();
+	void show();
 
 	/**
-	 * Blit the drawn credits to the screen
+	 * Handle event processing
 	 */
-	void blitCredits();
-
-	/**
-	 * Erase any area of the screen covered by credits
-	 */
-	void eraseCredits();
+	virtual void handleEvents();
 };
 
 } // End of namespace Tattoo
