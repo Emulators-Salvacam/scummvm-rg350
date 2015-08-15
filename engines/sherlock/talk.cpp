@@ -141,6 +141,7 @@ void Talk::talkTo(const Common::String &filename) {
 	People &people = *_vm->_people;
 	Scene &scene = *_vm->_scene;
 	Screen &screen = *_vm->_screen;
+	Sound &sound = *_vm->_sound;
 	UserInterface &ui = *_vm->_ui;
 	Common::Rect savedBounds = screen.getDisplayBounds();
 	bool abortFlag = false;
@@ -338,6 +339,10 @@ void Talk::talkTo(const Common::String &filename) {
 			clearSequences();
 			_scriptSelect = select;
 			_speaker = _talkTo;
+
+			// Set up the talk file extension
+			if (IS_ROSE_TATTOO && sound._speechOn && _scriptMoreFlag != 1)
+				sound._talkSoundFile += Common::String::format("%02dB", select + 1);
 
 			// Make a copy of the statement (in case the script frees the statement list), and then execute it
 			Statement statement = _statements[select];
@@ -570,6 +575,10 @@ void Talk::loadTalkFile(const Common::String &filename) {
 	const char *chP = strchr(filename.c_str(), '.');
 	Common::String talkFile = chP ? Common::String(filename.c_str(), chP) + ".tlk" :
 		Common::String(filename.c_str(), filename.c_str() + 7) + ".tlk";
+
+	// Create the base of the sound filename used for talking in Rose Tattoo
+	if (IS_ROSE_TATTOO && _scriptMoreFlag != 1)
+		sound._talkSoundFile = filename + ".";
 
 	// Open the talk file for reading
 	Common::SeekableReadStream *talkStream = res.load(talkFile);
@@ -918,14 +927,22 @@ int Talk::waitForMore(int delay) {
 	UserInterface &ui = *_vm->_ui;
 	CursorId oldCursor = events.getCursor();
 	int key2 = 254;
+	bool playingSpeech = false;
 
 	// Unless we're in stealth mode, show the appropriate cursor
 	if (!_talkStealth) {
 		events.setCursor(ui._lookScriptFlag ? MAGNIFY : ARROW);
 	}
 
+	// Handle playing any speech associated with the text being displayed
+	if (IS_ROSE_TATTOO && sound._speechOn) {
+		sound.playSpeech(sound._talkSoundFile);
+		sound._talkSoundFile.setChar(sound._talkSoundFile.lastChar() + 1, sound._talkSoundFile.size() - 1);
+		playingSpeech = sound.isSpeechPlaying();
+	}
+
 	do {
-		if (sound._speechOn && !*sound._soundIsOn)
+		if (IS_SERRATED_SCALPEL && sound._speechOn && !sound.isSpeechPlaying())
 			people._portrait._frameNumber = -1;
 
 		scene.doBgAnim();
@@ -964,18 +981,17 @@ int Talk::waitForMore(int delay) {
 		if ((delay > 0 && !ui._invLookFlag && !ui._lookScriptFlag) || _talkStealth)
 			--delay;
 
-		// If there are voices playing, reset delay so that they keep playing
-		if (sound._voices == 2 && *sound._soundIsOn)
+		if (playingSpeech && !sound.isSpeechPlaying())
 			delay = 0;
-	} while (!_vm->shouldQuit() && key2 == 254 && (delay || (sound._voices == 2 && *sound._soundIsOn))
+	} while (!_vm->shouldQuit() && key2 == 254 && (delay || (playingSpeech && sound.isSpeechPlaying()))
 		&& !events._released && !events._rightReleased);
 
 	// If voices was set 2 to indicate a voice file was place, then reset it back to 1
 	if (sound._voices == 2)
 		sound._voices = 1;
 
-	if (delay > 0 && sound._diskSoundPlaying)
-		sound.stopSndFuncPtr(0, 0);
+	if (delay > 0 && sound.isSpeechPlaying())
+		sound.stopSpeech();
 
 	// Adjust _talkStealth mode:
 	// mode 1 - It was by a pause without stealth being on before the pause, so reset back to 0
@@ -992,7 +1008,8 @@ int Talk::waitForMore(int delay) {
 		break;
 	}
 
-	sound._speechOn = false;
+
+	sound.stopSpeech();
 	events.setCursor(_talkToAbort ? ARROW : oldCursor);
 	events._pressed = events._released = false;
 

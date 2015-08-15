@@ -25,7 +25,7 @@
 #include "sherlock/tattoo/tattoo_people.h"
 #include "sherlock/tattoo/tattoo_scene.h"
 #include "sherlock/tattoo/tattoo_user_interface.h"
-#include "sherlock/sherlock.h"
+#include "sherlock/tattoo/tattoo.h"
 #include "sherlock/screen.h"
 
 namespace Sherlock {
@@ -184,21 +184,27 @@ TattooTalk::TattooTalk(SherlockEngine *vm) : Talk(vm), _talkWidget(vm), _passwor
 }
 
 void TattooTalk::talkInterface(const byte *&str) {
+	TattooEngine &vm = *(TattooEngine *)_vm;
+	Sound &sound = *_vm->_sound;
 	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
 	const byte *s = str;
 
 	// Move to past the end of the text string
+	_wait = 1;
 	_charCount = 0;
 	while ((*str < TATTOO_OPCODES[0] || *str == TATTOO_OPCODES[OP_NULL]) && *str) {
 		++_charCount;
 		++str;
 	}
 
+	// If speech is on, and text windows (subtitles) are off, then don't show the text window
+	if (!vm._textWindowsOn && sound._speechOn && _speaker != -1)
+		return;
+
 	// Display the text window
 	ui.banishWindow();
 	ui._textWidget.load(Common::String((const char *)s, (const char *)str), _speaker);
 	ui._textWidget.summonWindow();
-	_wait = true;
 }
 
 void TattooTalk::nothingToSay() {
@@ -573,7 +579,7 @@ OpcodeReturn TattooTalk::cmdSetNPCPosition(const byte *&str) {
 		posX = -1 * (posX - 16384);
 	int posY = (str[2] - 1) * 256 + str[3] - 1;
 	
-	people[npcNum]._position = Point32(posX * FIXED_INT_MULTIPLIER, posY * FIXED_INT_MULTIPLIER);
+	person._position = Point32(posX * FIXED_INT_MULTIPLIER, posY * FIXED_INT_MULTIPLIER);
 	if (person._seqTo && person._walkLoaded) {
 		person._walkSequences[person._sequenceNumber]._sequences[person._frameNumber] = person._seqTo;
 		person._seqTo = 0;

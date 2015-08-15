@@ -116,6 +116,10 @@ Resources::Resources(SherlockEngine *vm) : _vm(vm), _cache(vm) {
 }
 
 void Resources::addToCache(const Common::String &filename) {
+	// Return immediately if the library has already been loaded
+	if (_indexes.contains(filename))
+		return;
+	
 	_cache.load(filename);
 
 	// Check to see if the file is a library
@@ -191,16 +195,25 @@ void Resources::decompressIfNecessary(Common::SeekableReadStream *&stream) {
 	}
 }
 
-Common::SeekableReadStream *Resources::load(const Common::String &filename, const Common::String &libraryFile) {
+Common::SeekableReadStream *Resources::load(const Common::String &filename, const Common::String &libraryFile,
+		bool suppressErrors) {
 	// Open up the library for access
 	Common::SeekableReadStream *libStream = load(libraryFile);
 
 	// Check if the library has already had it's index read, and if not, load it
 	if (!_indexes.contains(libraryFile))
 		loadLibraryIndex(libraryFile, libStream, false);
+	LibraryIndex &libIndex = _indexes[libraryFile];
+
+	// Handle if resource is not present
+	if (!libIndex.contains(filename)) {
+		if (!suppressErrors)
+			error("Could not find resource - %s", filename.c_str());
+		return nullptr;
+	}
 
 	// Extract the data for the specified resource and return it
-	LibraryEntry &entry = _indexes[libraryFile][filename];
+	LibraryEntry &entry = libIndex[filename];
 	libStream->seek(entry._offset);
 	Common::SeekableReadStream *stream = libStream->readStream(entry._size);
 	decompressIfNecessary(stream);
@@ -217,6 +230,10 @@ bool Resources::exists(const Common::String &filename) const {
 void Resources::loadLibraryIndex(const Common::String &libFilename,
 		Common::SeekableReadStream *stream, bool isNewStyle) {
 	uint32 offset, nextOffset;
+
+	// Return immediately if the library has already been loaded
+	if (_indexes.contains(libFilename))
+		return;
 
 	// Create an index entry
 	_indexes[libFilename] = LibraryIndex();

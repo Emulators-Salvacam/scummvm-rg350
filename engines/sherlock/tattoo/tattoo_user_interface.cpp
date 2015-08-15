@@ -132,7 +132,7 @@ void TattooUserInterface::lookAtObject() {
 						while ((*p == ' ') || (*p == '='))
 							++p;
 
-						// If it's not "NONE", play the Sound File
+						// If it's not "NONE", play the speech File
 						Common::String soundName(p);
 						if (soundName.compareToIgnoreCase("NONE")) {
 							soundName.toLowercase();
