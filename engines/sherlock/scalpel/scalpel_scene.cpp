@@ -225,8 +225,8 @@ void ScalpelScene::doBgAnim() {
 				_canimShapes[idx].checkObject();
 		}
 
-		if (_currentScene == 12)
-			vm.eraseMirror12();
+		if (_currentScene == DRAWING_ROOM)
+			vm.eraseBrumwellMirror();
 
 		// Restore the back buffer from the back buffer 2 in the changed area
 		Common::Rect bounds(people[HOLMES]._oldPosition.x, people[HOLMES]._oldPosition.y,
@@ -297,8 +297,8 @@ void ScalpelScene::doBgAnim() {
 	// Flag the bg shapes which need to be redrawn
 	checkBgShapes();
 
-	if (_currentScene == 12)
-		vm.doMirror12();
+	if (_currentScene == DRAWING_ROOM)
+		vm.doBrumwellMirror();
 
 	// Draw all active shapes which are behind the person
 	for (uint idx = 0; idx < _bgShapes.size(); ++idx) {
@@ -407,8 +407,8 @@ void ScalpelScene::doBgAnim() {
 			}
 		}
 
-		if (_currentScene == 12)
-			vm.flushMirror12();
+		if (_currentScene == DRAWING_ROOM)
+			vm.flushBrumwellMirror();
 
 		for (uint idx = 0; idx < _bgShapes.size(); ++idx) {
 			Object &o = _bgShapes[idx];

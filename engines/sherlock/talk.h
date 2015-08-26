@@ -35,7 +35,6 @@ namespace Sherlock {
 
 #define SPEAKER_REMOVE 0x80
 #define MAX_TALK_SEQUENCES 11
-#define TALK_SEQUENCE_STACK_SIZE 20
 
 enum {
 	OP_SWITCH_SPEAKER			= 0,
@@ -120,8 +119,13 @@ typedef OpcodeReturn(Talk::*OpcodeMethod)(const byte *&str);
 struct SequenceEntry {
 	int _objNum;
 	Common::Array<byte> _sequences;
-	int _frameNumber;
-	int _seqTo;
+	Object *_obj;			// Pointer to the bgshape that these values go to
+	short _frameNumber;		// Frame number in frame sequence to draw
+	short _sequenceNumber;	// Start frame of sequences that are repeated
+	int _seqStack;			// Allows gosubs to return to calling frame
+	int _seqTo;				// Allows 1-5, 8-3 type sequences encoded 
+	int _seqCounter;		// How many times this sequence has been executed
+	int _seqCounter2;
 
 	SequenceEntry();
 };
@@ -158,19 +162,6 @@ struct TalkHistoryEntry {
 	bool &operator[](int index) { return _data[index]; }
 };
 
-struct TalkSequence {
-	Object *_obj;			// Pointer to the bgshape that these values go to
-	short _frameNumber;		// Frame number in frame sequence to draw
-	short _sequenceNumber;	// Start frame of sequences that are repeated
-	int _seqStack;			// Allows gosubs to return to calling frame
-	int _seqTo;				// Allows 1-5, 8-3 type sequences encoded 
-	int _seqCounter;		// How many times this sequence has been executed
-	int _seqCounter2;
-
-	TalkSequence();
-};
-
-
 class Talk {
 	friend class Scalpel::ScalpelUserInterface;
 private:
@@ -182,7 +173,6 @@ protected:
 	SherlockEngine *_vm;
 	OpcodeMethod *_opcodeTable;
 	Common::Stack<SequenceEntry> _savedSequences;
-	Common::Stack<SequenceEntry> _sequenceStack;
 	Common::Stack<ScriptStackEntry> _scriptStack;
 	Common::Array<TalkHistoryEntry> _talkHistory;
 	int _talkIndex;
@@ -190,6 +180,7 @@ protected:
 	int _talkStealth;
 	int _talkToFlag;
 	int _scriptSaveIndex;
+	int _3doSpeechIndex;
 
 	// These fields are used solely by doScript, but are fields because all the script opcodes are
 	// separate methods now, and need access to these fields
@@ -262,9 +253,8 @@ protected:
 	/**
 	 * Called when the active speaker is switched
 	 */
-	virtual void switchSpeaker(int subIndex) {}
+	virtual void switchSpeaker() {}
 public:
-	TalkSequence _talkSequenceStack[TALK_SEQUENCE_STACK_SIZE];
 	Common::Array<Statement> _statements;
 	bool _talkToAbort;
 	int _talkCounter;
@@ -307,7 +297,7 @@ public:
 	 * interface window for the conversation and passes on control to give the
 	 * player a list of options to make a selection from
 	 */
-	void talk(int objNum);
+	void initTalk(int objNum);
 
 	/**
 	 * Clear loaded talk data
@@ -321,37 +311,20 @@ public:
 	void loadTalkFile(const Common::String &filename);
 
 	/**
-	 * Change the sequence of a background object corresponding to a given speaker.
-	 * The new sequence will display the character as "listening"
-	 */
-	void setStillSeq(int speaker);
-
-	/**
-	 * Clears the stack of pending object sequences associated with speakers in the scene
-	 */
-	void clearSequences();
-	
-	/**
-	 * Pulls a background object sequence from the sequence stack and restore's the
-	 * object's sequence
-	 */
-	void pullSequence();
-
-	/**
 	 * Push the sequence of a background object that's an NPC that needs to be
 	 * saved onto the sequence stack.
 	 */
 	void pushSequence(int speaker);
 	
 	/**
-	 * Push a given shape's sequence data onto the Rose Tattoo talk sequence stack
+	 * Push the details of a passed object onto the saved sequences stack
 	 */
-	void pushTalkSequence(Object *obj);
+	virtual void pushSequenceEntry(Object *obj) = 0;
 
 	/**
-	 * Returns true if the script stack is empty
+	 * Clears the stack of pending object sequences associated with speakers in the scene
 	 */
-	bool isSequencesEmpty() const { return _scriptStack.empty(); }
+	virtual void clearSequences() = 0;
 
 	/**
 	 * Pops an entry off of the script stack
@@ -378,6 +351,17 @@ public:
 	 * Prints a single conversation option in the interface window
 	 */
 	virtual int talkLine(int lineNum, int stateNum, byte color, int lineY, bool slamIt) { return 0; }
+	
+	/**
+	 * Pulls a background object sequence from the sequence stack and restore's the
+	 * object's sequence
+	 */
+	virtual void pullSequence(int slot = -1) = 0;
+
+	/**
+	 * Returns true if the script stack is empty
+	 */
+	virtual bool isSequencesEmpty() const = 0;
 };
 
 } // End of namespace Sherlock

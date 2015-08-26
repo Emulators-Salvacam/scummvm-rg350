@@ -216,7 +216,6 @@ void TattooTalk::showTalk() {
 	TattooPeople &people = *(TattooPeople *)_vm->_people;
 	TattooUserInterface &ui = *(TattooUserInterface *)_vm->_ui;
 
-	_sequenceStack.clear();
 	people.setListenSequence(_talkTo, 129);
 
 	_talkWidget.load();
@@ -895,6 +894,99 @@ OpcodeReturn TattooTalk::cmdCallTalkFile(const byte *&str) {
 	str += 8;
 
 	return RET_SUCCESS;
+}
+
+void TattooTalk::pushSequenceEntry(Object *obj) {
+	// Check if the shape is already on the stack
+	for (uint idx = 0; idx < TALK_SEQUENCE_STACK_SIZE; ++idx) {
+		if (_sequenceStack[idx]._obj == obj)
+			return;
+	}
+
+	// Find a free slot and save the details in it
+	for (uint idx = 0; idx < TALK_SEQUENCE_STACK_SIZE; ++idx) {
+		SequenceEntry &seq = _sequenceStack[idx];
+		if (seq._obj == nullptr) {
+			seq._obj = obj;
+			seq._frameNumber = obj->_frameNumber;
+			seq._sequenceNumber = obj->_sequenceNumber;
+			seq._seqStack = obj->_seqStack;
+			seq._seqTo = obj->_seqTo;
+			seq._seqCounter = obj->_seqCounter;
+			seq._seqCounter2 = obj->_seqCounter2;
+			return;
+		}
+	}
+
+	error("Ran out of talk sequence stack space");
+}
+
+void TattooTalk::pullSequence(int slot) {
+	People &people = *_vm->_people;
+
+	for (int idx = 0; idx < TALK_SEQUENCE_STACK_SIZE; ++idx) {
+		SequenceEntry &seq = _sequenceStack[idx];
+		if (slot != -1 && idx != slot)
+			continue;
+
+		// Check for an entry in this slot
+		if (seq._obj) {
+			Object &o = *seq._obj;
+			
+			// See if we're not supposed to restore it until an Allow Talk Interrupt
+			if (slot == -1 && seq._obj->hasAborts()) {
+				seq._obj->_gotoSeq = -1;
+				seq._obj->_restoreSlot = idx;
+			} else {
+				// Restore the object's sequence information immediately
+				o._frameNumber = seq._frameNumber;
+				o._sequenceNumber = seq._sequenceNumber;
+				o._seqStack = seq._seqStack;
+				o._seqTo = seq._seqTo;
+				o._seqCounter = seq._seqCounter;
+				o._seqCounter2 = seq._seqCounter2;
+				o._gotoSeq = 0;
+				o._talkSeq = 0;
+
+				// Flag the slot as free again
+				seq._obj = nullptr;
+			}
+		}
+	}
+
+	// Handle restoring any character positioning
+	for (int idx = 0; idx < MAX_CHARACTERS; ++idx) {
+		Person &person = people[idx];
+
+		if (person._type == CHARACTER && !person._walkSequences.empty() && person._sequenceNumber >= TALK_UPRIGHT
+				&& person._sequenceNumber <= LISTEN_UPLEFT) {
+			person.gotoStand();
+
+			bool done = false;
+			do {
+				person.checkSprite();
+				for (int frameNum = 0; frameNum < person._frameNumber; ++frameNum) {
+					if (person._walkSequences[person._sequenceNumber]._sequences[frameNum] == 0)
+						done = true;
+				}
+			} while (!done);
+		}
+	}
+}
+
+bool TattooTalk::isSequencesEmpty() const {
+	for (int idx = 0; idx < TALK_SEQUENCE_STACK_SIZE; ++idx) {
+		if (_sequenceStack[idx]._obj)
+			return false;
+	}
+
+	return true;
+}
+
+void TattooTalk::clearSequences() {
+	for (int idx = 0; idx < TALK_SEQUENCE_STACK_SIZE; ++idx) {
+		_sequenceStack[idx]._obj = nullptr;
+	}
 }
 
 } // End of namespace Tattoo

@@ -370,6 +370,14 @@ Common::Point ScalpelPerson::getSourcePoint() const {
 		_position.y / FIXED_INT_MULTIPLIER);
 }
 
+void ScalpelPerson::synchronize(Serializer &s) {
+	if (_walkCount)
+		gotoStand();
+
+	s.syncAsSint32LE(_position.x);
+	s.syncAsSint32LE(_position.y);
+}
+
 /*----------------------------------------------------------------*/
 
 ScalpelPeople::ScalpelPeople(SherlockEngine *vm) : People(vm) {
@@ -436,11 +444,9 @@ void ScalpelPeople::setTalking(int speaker) {
 }
 
 void ScalpelPeople::synchronize(Serializer &s) {
-	s.syncAsByte(_holmesOn);
-	s.syncAsSint32LE(_data[HOLMES]->_position.x);
-	s.syncAsSint32LE(_data[HOLMES]->_position.y);
-	s.syncAsSint16LE(_data[HOLMES]->_sequenceNumber);
+	(*this)[HOLMES].synchronize(s);
 	s.syncAsSint16LE(_holmesQuotient);
+	s.syncAsByte(_holmesOn);
 
 	if (s.isLoading()) {
 		_savedPos = _data[HOLMES]->_position;
@@ -525,6 +531,36 @@ const Common::Point ScalpelPeople::restrictToZone(int zoneId, const Common::Poin
 	// zone just before it was left
 	return Common::Point((pt.x - delta.x * 2) / FIXED_INT_MULTIPLIER,
 		(pt.y - delta.y * 2) / FIXED_INT_MULTIPLIER);
+}
+
+void ScalpelPeople::setListenSequence(int speaker, int sequenceNum) {
+	People &people = *_vm->_people;
+	Scene &scene = *_vm->_scene;
+
+	// Don't bother doing anything if no specific speaker is specified
+	if (speaker == -1)
+		return;
+
+	if (speaker) {
+		int objNum = people.findSpeaker(speaker);
+		if (objNum != -1) {
+			Object &obj = scene._bgShapes[objNum];
+
+			if (obj._seqSize < MAX_TALK_SEQUENCES) {
+				warning("Tried to copy too few still frames");
+			} else {
+				for (uint idx = 0; idx < MAX_TALK_SEQUENCES; ++idx) {
+					obj._sequences[idx] = people._characters[speaker]._stillSequences[idx];
+					if (idx > 0 && !people._characters[speaker]._talkSequences[idx] &&
+						!people._characters[speaker]._talkSequences[idx - 1])
+						break;
+				}
+
+				obj._frameNumber = 0;
+				obj._seqTo = 0;
+			}
+		}
+	}
 }
 
 } // End of namespace Scalpel

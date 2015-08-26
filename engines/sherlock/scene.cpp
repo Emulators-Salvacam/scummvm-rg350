@@ -278,6 +278,7 @@ void Scene::freeScene() {
 
 	_vm->_ui->clearWindow();
 	_vm->_talk->freeTalkVars();
+	_vm->_talk->clearSequences();
 	_vm->_inventory->freeInv();
 	_vm->_music->freeSong();
 	_vm->_sound->freeLoadedSounds();
@@ -1200,13 +1201,15 @@ void Scene::transitionToScene() {
 
 	int cAnimNum = -1;
 
-	if (hSavedFacing < 101) {
-		// Standard info, so set it
-		people[HOLMES]._position = hSavedPos;
-		people[HOLMES]._sequenceNumber = hSavedFacing;
-	} else {
-		// It's canimation information
-		cAnimNum = hSavedFacing - 101;
+	if (!saves._justLoaded) {
+		if (hSavedFacing < 101) {
+			// Standard info, so set it
+			people[HOLMES]._position = hSavedPos;
+			people[HOLMES]._sequenceNumber = hSavedFacing;
+		} else {
+			// It's canimation information
+			cAnimNum = hSavedFacing - 101;
+		}
 	}
 
 	// Reset positioning for next load

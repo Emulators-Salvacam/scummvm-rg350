@@ -540,10 +540,10 @@ void ScalpelTalk::nothingToSay() {
 	error("Character had no talk options available");
 }
 
-void ScalpelTalk::switchSpeaker(int subIndex) {
+void ScalpelTalk::switchSpeaker() {
 	// If it's the 3DO, pass on to start the actor's conversation movie
 	if (IS_3DO)
-		talk3DOMovieTrigger(subIndex);
+		talk3DOMovieTrigger(_3doSpeechIndex++);
 }
 
 void ScalpelTalk::talk3DOMovieTrigger(int subIndex) {
@@ -806,6 +806,7 @@ int ScalpelTalk::talkLine(int lineNum, int stateNum, byte color, int lineY, bool
 
 void ScalpelTalk::showTalk() {
 	FixedText &fixedText = *_vm->_fixedText;
+	People &people = *_vm->_people;
 	ScalpelScreen &screen = *(ScalpelScreen *)_vm->_screen;
 	ScalpelUserInterface &ui = *(ScalpelUserInterface *)_vm->_ui;
 	Common::String fixedText_Exit = fixedText.getText(kFixedText_Window_Exit);
@@ -813,7 +814,7 @@ void ScalpelTalk::showTalk() {
 
 	clearSequences();
 	pushSequence(_talkTo);
-	setStillSeq(_talkTo);
+	people.setListenSequence(_talkTo);
 
 	ui._selector = ui._oldSelector = -1;
 
@@ -876,6 +877,50 @@ OpcodeReturn ScalpelTalk::cmdCallTalkFile(const byte *&str) {
 	_wait = 0;
 
 	return RET_SUCCESS;
+}
+
+void ScalpelTalk::pushSequenceEntry(Object *obj) {
+	Scene &scene = *_vm->_scene;
+	SequenceEntry seqEntry;
+	seqEntry._objNum = scene._bgShapes.indexOf(*obj);
+
+	if (seqEntry._objNum != -1) {
+		for (uint idx = 0; idx < MAX_TALK_SEQUENCES; ++idx)
+			seqEntry._sequences.push_back(obj->_sequences[idx]);
+
+		seqEntry._frameNumber = obj->_frameNumber;
+		seqEntry._seqTo = obj->_seqTo;
+	}
+
+	_sequenceStack.push(seqEntry);
+	if (_scriptStack.size() >= 5)
+		error("script stack overflow");
+}
+
+void ScalpelTalk::pullSequence(int slot) {
+	Scene &scene = *_vm->_scene;
+
+	if (_sequenceStack.empty())
+		return;
+
+	SequenceEntry seq = _sequenceStack.pop();
+	if (seq._objNum != -1) {
+		Object &obj = scene._bgShapes[seq._objNum];
+
+		if (obj._seqSize < MAX_TALK_SEQUENCES) {
+			warning("Tried to restore too few frames");
+		} else {
+			for (int idx = 0; idx < MAX_TALK_SEQUENCES; ++idx)
+				obj._sequences[idx] = seq._sequences[idx];
+
+			obj._frameNumber = seq._frameNumber;
+			obj._seqTo = seq._seqTo;
+		}
+	}
+}
+
+void ScalpelTalk::clearSequences() {
+	_sequenceStack.clear();
 }
 
 } // End of namespace Scalpel

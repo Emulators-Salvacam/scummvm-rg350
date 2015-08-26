@@ -61,6 +61,7 @@ BaseObject::BaseObject() {
 	_images = nullptr;
 	_imageFrame = nullptr;
 	_sequenceNumber = 0;
+	_startSeq = 0;
 	_walkCount = 0;
 	_allow = 0;
 	_frameNumber = 0;
@@ -179,6 +180,7 @@ void BaseObject::checkObject() {
 			if (IS_ROSE_TATTOO && v == ALLOW_TALK_CODE) {
 				if (_gotoSeq) {
 					setObjTalkSequence(_gotoSeq);
+					_gotoSeq = 0;
 				} else {
 					++_frameNumber;
 				}
@@ -428,10 +430,9 @@ void BaseObject::setObjSequence(int seq, bool wait) {
 			if (_frameNumber >= checkFrame)
 				_frameNumber = 0;
 
-			// For Rose Tattoo, save the starting frame for new sequences in the _sequenceNumber field,
-			// to make it easier to reset back for repeats
+			// For Rose Tattoo, save the starting frame for new sequences
 			if (IS_ROSE_TATTOO)
-				_sequenceNumber = _frameNumber;
+				_startSeq = _frameNumber;
 
 			_seqCounter = 0;
 			if (_sequences[_frameNumber] == 0)
@@ -441,9 +442,10 @@ void BaseObject::setObjSequence(int seq, bool wait) {
 		} else {
 			// Find beginning of sequence
 			if (IS_ROSE_TATTOO) {
-				// Use the sequence number as the index to reset the sequence back to
-				_frameNumber = _sequenceNumber;
+				// Use the saved start of the sequence to reset the frame
+				_frameNumber = _startSeq;
 			} else {
+				// For Scalpel, scan backwards from the end of the sequence to find it's start
 				do {
 					--_frameNumber;
 				} while (_frameNumber > 0 && _sequences[_frameNumber] != 0);
@@ -491,6 +493,7 @@ void BaseObject::setObjSequence(int seq, bool wait) {
 	if (idx >= checkFrame)
 		idx = 0;
 	_frameNumber = idx;
+	_startSeq = idx;
 
 	if (wait) {
 		seqCc = idx;
@@ -1225,26 +1228,16 @@ void Object::setObjTalkSequence(int seq) {
 
 	// See if we're supposed to restore the object's sequence from the talk sequence stack
 	if (seq == -1) {
-		TalkSequence &ts = talk._talkSequenceStack[_restoreSlot];
 		if (_seqTo != 0)
 			_sequences[_frameNumber] = _seqTo;
-		_frameNumber = ts._frameNumber;
-		_sequenceNumber = ts._sequenceNumber;
-		_seqStack = ts._seqStack;
-		_seqTo = ts._seqTo;
-		_seqCounter = ts._seqCounter;
-		_seqCounter2 = ts._seqCounter2;
-		_talkSeq = 0;
 
-		// Flag this slot as free again
-		ts._obj = nullptr;
-
+		talk.pullSequence(_restoreSlot);
 		return;
 	}
 
 	assert(_type != CHARACTER);
 
-	talk.pushTalkSequence(this);
+	talk.pushSequenceEntry(this);
 	int talkSeqNum = seq;
 
 	// Find where the talk sequence data begins in the object

@@ -36,8 +36,11 @@ namespace Sherlock {
 
 SequenceEntry::SequenceEntry() {
 	_objNum = 0;
-	_frameNumber = 0;
+	_obj = nullptr;
+	_seqStack = 0;
 	_seqTo = 0;
+	_sequenceNumber = _frameNumber = 0;
+	_seqCounter = _seqCounter2 = 0;
 }
 
 /*----------------------------------------------------------------*/
@@ -87,17 +90,6 @@ TalkHistoryEntry::TalkHistoryEntry() {
 
 /*----------------------------------------------------------------*/
 
-TalkSequence::TalkSequence() {
-	_obj = nullptr;
-	_frameNumber = 0;
-	_sequenceNumber = 0;
-	_seqStack = 0;
-	_seqTo = 0;
-	_seqCounter = _seqCounter2 = 0;
-}
-
-/*----------------------------------------------------------------*/
-
 Talk *Talk::init(SherlockEngine *vm) {
 	if (vm->getGameID() == GType_SerratedScalpel)
 		return new Scalpel::ScalpelTalk(vm);
@@ -121,6 +113,7 @@ Talk::Talk(SherlockEngine *vm) : _vm(vm) {
 	_scriptSaveIndex = -1;
 	_opcodes = nullptr;
 	_opcodeTable = nullptr;
+	_3doSpeechIndex = -1;
 
 	_charCount = 0;
 	_line = 0;
@@ -177,7 +170,7 @@ void Talk::talkTo(const Common::String &filename) {
 	// Turn on the Exit option
 	ui._endKeyActive = true;
 
-	if (people[HOLMES]._walkCount || (people[HOLMES]._walkTo.size() > 0 && 
+	if (people[HOLMES]._walkCount || (!people[HOLMES]._walkTo.empty() && 
 			(IS_SERRATED_SCALPEL || people._allowWalkAbort))) {
 		// Only interrupt if trying to do an action, and not just if player is walking around the scene
 		if (people._allowWalkAbort)
@@ -203,8 +196,12 @@ void Talk::talkTo(const Common::String &filename) {
 		}
 	}
 
-	while (!_sequenceStack.empty())
+	if (IS_ROSE_TATTOO) {
 		pullSequence();
+	} else {
+		while (!isSequencesEmpty())
+			pullSequence();
+	}
 
 	if (IS_SERRATED_SCALPEL) {
 		// Restore any pressed button
@@ -452,7 +449,7 @@ void Talk::talkTo(const Common::String &filename) {
 	events.setCursor(ARROW);
 }
 
-void Talk::talk(int objNum) {
+void Talk::initTalk(int objNum) {
 	Events &events = *_vm->_events;
 	People &people = *_vm->_people;
 	Scene &scene = *_vm->_scene;
@@ -500,7 +497,7 @@ void Talk::talk(int objNum) {
 			Object &obj = scene._bgShapes[objNum];
 			clearSequences();
 			pushSequence(_talkTo);
-			setStillSeq(_talkTo);
+			people.setListenSequence(_talkTo, 129);
 
 			events.setCursor(WAIT);
 			if (obj._lookPosition.y != 0)
@@ -521,7 +518,7 @@ void Talk::talk(int objNum) {
 			Object &obj = scene._bgShapes[objNum];
 			clearSequences();
 			pushSequence(_talkTo);
-			setStillSeq(_talkTo);
+			people.setListenSequence(_talkTo, 129);
 
 			events.setCursor(WAIT);
 			if (obj._lookPosition.y != 0)
@@ -578,7 +575,9 @@ void Talk::loadTalkFile(const Common::String &filename) {
 
 	// Create the base of the sound filename used for talking in Rose Tattoo
 	if (IS_ROSE_TATTOO && _scriptMoreFlag != 1)
-		sound._talkSoundFile = filename + ".";
+		sound._talkSoundFile = Common::String(filename.c_str(), filename.c_str() + 7) + ".";
+	else if (IS_3DO)
+		_3doSpeechIndex = 1;
 
 	// Open the talk file for reading
 	Common::SeekableReadStream *talkStream = res.load(talkFile);
@@ -636,113 +635,15 @@ void Talk::setTalkMap() {
 	}
 }
 
-void Talk::clearSequences() {
-	_sequenceStack.clear();
-}
-
-void Talk::pullSequence() {
-	Scene &scene = *_vm->_scene;
-
-	if (_sequenceStack.empty() || IS_ROSE_TATTOO)
-		return;
-
-	SequenceEntry seq = _sequenceStack.pop();
-	if (seq._objNum != -1) {
-		Object &obj = scene._bgShapes[seq._objNum];
-
-		if (obj._seqSize < MAX_TALK_SEQUENCES) {
-			warning("Tried to restore too few frames");
-		} else {
-			for (int idx = 0; idx < MAX_TALK_SEQUENCES; ++idx)
-				obj._sequences[idx] = seq._sequences[idx];
-
-			obj._frameNumber = seq._frameNumber;
-			obj._seqTo = seq._seqTo;
-		}
-	}
-}
-
 void Talk::pushSequence(int speaker) {
 	People &people = *_vm->_people;
 	Scene &scene = *_vm->_scene;
 
 	// Only proceed if a speaker is specified
-	if (speaker == -1 || IS_ROSE_TATTOO)
-		return;
-
-	SequenceEntry seqEntry;
-	if (!speaker) {
-		seqEntry._objNum = -1;
-	} else {
-		seqEntry._objNum = people.findSpeaker(speaker);
-
-		if (seqEntry._objNum != -1) {
-			Object &obj = scene._bgShapes[seqEntry._objNum];
-			for (uint idx = 0; idx < MAX_TALK_SEQUENCES; ++idx)
-				seqEntry._sequences.push_back(obj._sequences[idx]);
-
-			seqEntry._frameNumber = obj._frameNumber;
-			seqEntry._seqTo = obj._seqTo;
-		}
-	}
-
-	_sequenceStack.push(seqEntry);
-	if (_scriptStack.size() >= 5)
-		error("script stack overflow");
-}
-
-void Talk::pushTalkSequence(Object *obj) {
-	// Check if the shape is already on the stack
-	for (uint idx = 0; idx < TALK_SEQUENCE_STACK_SIZE; ++idx) {
-		if (_talkSequenceStack[idx]._obj == obj)
-			return;
-	}
-
-	// Find a free slot and save the details in it
-	for (uint idx = 0; idx < TALK_SEQUENCE_STACK_SIZE; ++idx) {
-		TalkSequence &ts = _talkSequenceStack[idx];
-		if (ts._obj == nullptr) {
-			ts._obj = obj;
-			ts._frameNumber = obj->_frameNumber;
-			ts._sequenceNumber = obj->_sequenceNumber;
-			ts._seqStack = obj->_seqStack;
-			ts._seqTo = obj->_seqTo;
-			ts._seqCounter = obj->_seqCounter;
-			ts._seqCounter2 = obj->_seqCounter2;
-			return;
-		}
-	}
-
-	error("Ran out of talk sequence stack space");
-}
-
-void Talk::setStillSeq(int speaker) {
-	People &people = *_vm->_people;
-	Scene &scene = *_vm->_scene;
-
-	// Don't bother doing anything if no specific speaker is specified
-	if (speaker == -1)
-		return;
-
-	if (speaker) {
+	if (speaker != -1) {
 		int objNum = people.findSpeaker(speaker);
-		if (objNum != -1) {
-			Object &obj = scene._bgShapes[objNum];
-
-			if (obj._seqSize < MAX_TALK_SEQUENCES) {
-				warning("Tried to copy too few still frames");
-			} else {
-				for (uint idx = 0; idx < MAX_TALK_SEQUENCES; ++idx) {
-					obj._sequences[idx] = people._characters[speaker]._stillSequences[idx];
-					if (idx > 0 && !people._characters[speaker]._talkSequences[idx] &&
-							!people._characters[speaker]._talkSequences[idx - 1])
-						break;
-				}
-
-				obj._frameNumber = 0;
-				obj._seqTo = 0;
-			}
-		}
+		if (objNum != -1)
+			pushSequenceEntry(&scene._bgShapes[objNum]);
 	}
 }
 
@@ -789,17 +690,23 @@ void Talk::doScript(const Common::String &script) {
 		_talkStealth = 2;
 		_speaker |= SPEAKER_REMOVE;
 	} else {
-		pushSequence(_speaker);
+		if (IS_SERRATED_SCALPEL)
+			pushSequence(_speaker);
 		if (IS_SERRATED_SCALPEL || ui._windowOpen)
 			ui.clearWindow();
 
 		// Need to switch speakers?
 		if (str[0] == _opcodes[OP_SWITCH_SPEAKER]) {
 			_speaker = str[1] - 1;
-			str += IS_SERRATED_SCALPEL ? 2 : 3;
 
-			pullSequence();
-			pushSequence(_speaker);
+			if (IS_SERRATED_SCALPEL) {
+				str += 2;
+				pullSequence();
+				pushSequence(_speaker);
+			} else {
+				str += 3;
+			}
+
 			people.setTalkSequence(_speaker);
 		} else {
 			people.setTalkSequence(_speaker);
@@ -840,9 +747,6 @@ void Talk::doScript(const Common::String &script) {
 		}
 	}
 
-	bool  speakerSwitched = true;
-	uint16 subIndex = 1;
-
 	do {
 		Common::String tempString;
 		_wait = 0;
@@ -865,9 +769,6 @@ void Talk::doScript(const Common::String &script) {
 				break;
 			}
 
-			if (c == _opcodes[OP_SWITCH_SPEAKER])
-				speakerSwitched = true;
-
 			++str;
 		} else {
 			// Handle drawing the talk interface with the text
@@ -884,12 +785,6 @@ void Talk::doScript(const Common::String &script) {
 
 			ui._windowOpen = true;
 			_openTalkWindow = false;
-		}
-
-		if ((_wait) && (speakerSwitched)) {
-			switchSpeaker(subIndex);
-			speakerSwitched = false;
-			++subIndex;
 		}
 
 		if (_wait)
@@ -935,11 +830,12 @@ int Talk::waitForMore(int delay) {
 	}
 
 	// Handle playing any speech associated with the text being displayed
-	if (IS_ROSE_TATTOO && sound._speechOn) {
+	switchSpeaker();
+	if (sound._speechOn && IS_ROSE_TATTOO) {
 		sound.playSpeech(sound._talkSoundFile);
 		sound._talkSoundFile.setChar(sound._talkSoundFile.lastChar() + 1, sound._talkSoundFile.size() - 1);
-		playingSpeech = sound.isSpeechPlaying();
 	}
+	playingSpeech = sound.isSpeechPlaying();
 
 	do {
 		if (IS_SERRATED_SCALPEL && sound._speechOn && !sound.isSpeechPlaying())
@@ -1168,6 +1064,7 @@ OpcodeReturn Talk::cmdPauseWithoutControl(const byte *&str) {
 		events.setButtonState();
 	}
 
+	_endStr = false;
 	return RET_SUCCESS;
 }
 

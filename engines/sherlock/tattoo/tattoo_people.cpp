@@ -962,23 +962,29 @@ void TattooPerson::checkWalkGraphics() {
 		_seqTo = _seqCounter = _seqCounter2 = _seqStack = _startSeq = 0;
 		_sequences = &_walkSequences[_sequenceNumber]._sequences[0];
 		_seqSize = _walkSequences[_sequenceNumber]._sequences.size();
+
+		// WORKAROUND: Occassionally when switching to a new walk sequence the existing frame number may be outside
+		// the allowed range for the new sequence. In such cases, reset the frame number
+		if (_frameNumber < 0 || _frameNumber >= (int)_seqSize || _walkSequences[_sequenceNumber][_frameNumber] == 0)
+			_frameNumber = 0;
 	}
 
 	setImageFrame();
 }
 
 void TattooPerson::synchronize(Serializer &s) {
-	s.syncAsSint32LE(_position.x);
-	s.syncAsSint32LE(_position.y);
-	s.syncAsSint16LE(_sequenceNumber);
-
 	if (s.isSaving()) {
 		SpriteType type = (_type == INVALID && _walkLoaded) ? HIDDEN_CHARACTER : _type;
 		s.syncAsSint16LE(type);
 	} else {
+		if (_walkCount)
+			gotoStand();
+
 		s.syncAsSint16LE(_type);
 	}
 
+	s.syncAsSint32LE(_position.x);
+	s.syncAsSint32LE(_position.y);
 	s.syncString(_walkVGSName);
 	s.syncString(_description);
 	s.syncString(_examine);
@@ -989,34 +995,6 @@ void TattooPerson::synchronize(Serializer &s) {
 	s.syncAsSint32LE(_npcPause);
 	s.syncAsByte(_lookHolmes);
 	s.syncAsByte(_updateNPCPath);
-	
-	// Walk to list
-	uint count = _walkTo.size();
-	s.syncAsUint16LE(count);
-	if (s.isLoading()) {
-		// Load path
-		for (uint idx = 0; idx < count; ++idx) {
-			int xp = 0, yp = 0;
-			s.syncAsSint16LE(xp);
-			s.syncAsSint16LE(yp);
-			_walkTo.push(Common::Point(xp, yp));
-		}
-	} else {
-		// Save path
-		Common::Array<Common::Point> path;
-
-		// Save the points of the path
-		for (uint idx = 0; idx < count; ++idx) {
-			Common::Point pt = _walkTo.pop();
-			s.syncAsSint16LE(pt.x);
-			s.syncAsSint16LE(pt.y);
-			path.push_back(pt);
-		}
-
-		// Re-add the pending points back to the _walkTo queue
-		for (uint idx = 0; idx < count; ++idx)
-			_walkTo.push(path[idx]);
-	}
 
 	// Verbs
 	for (int idx = 0; idx < 2; ++idx)
@@ -1031,6 +1009,9 @@ void TattooPerson::walkHolmesToNPC() {
 	Talk &talk = *_vm->_talk;
 	TattooPerson &holmes = people[HOLMES];
 	int facing;
+
+	// Save the character's details
+	pushNPCPath();
 
 	// If the NPC is moving, stop him at his current position
 	if (_walkCount) {
@@ -1298,7 +1279,7 @@ void TattooPeople::setTalkSequence(int speaker, int sequenceNum) {
 
 		// See if the Object has to wait for an Abort Talk Code
 		if (obj.hasAborts()) {
-			talk.pushTalkSequence(&obj);
+			talk.pushSequenceEntry(&obj);
 			obj._gotoSeq = sequenceNum;
 		}
 		else {
@@ -1397,7 +1378,7 @@ int TattooPeople::findSpeaker(int speaker) {
 		}
 	}
 
-	return -1;
+	return result;
 }
 
 void TattooPeople::synchronize(Serializer &s) {

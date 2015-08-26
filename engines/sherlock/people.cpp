@@ -185,23 +185,22 @@ void People::reset() {
 
 		if (IS_SERRATED_SCALPEL) {
 			p._type = CHARACTER;
-			p._sequenceNumber = (int)Tattoo::STOP_DOWNRIGHT;
 			p._position = Point32(100 * FIXED_INT_MULTIPLIER, 110 * FIXED_INT_MULTIPLIER);
 		} else if (!talk._scriptMoreFlag && !saves._justLoaded) {
 			p._type = (idx == 0) ? CHARACTER : INVALID;
-			p._sequenceNumber = (int)Scalpel::STOP_DOWNRIGHT;
 			p._position = Point32(36 * FIXED_INT_MULTIPLIER, 29 * FIXED_INT_MULTIPLIER);
 			p._use[0]._verb = "";
 			p._use[1]._verb = "";
 		}
-		
+
+		p._sequenceNumber = IS_SERRATED_SCALPEL ? (int)Scalpel::STOP_DOWNRIGHT : (int)Tattoo::STOP_DOWNRIGHT;
 		p._imageFrame = nullptr;
 		p._frameNumber = 1;
+		p._startSeq = 0;
 		p._delta = Point32(0, 0);
 		p._oldPosition = Common::Point(0, 0);
 		p._oldSize = Common::Point(0, 0);
 		p._misc = 0;
-		p._walkCount = 0;
 		p._pickUp = "";
 		p._allow = 0;
 		p._noShapeSize = Common::Point(0, 0);
@@ -219,6 +218,7 @@ void People::reset() {
 		p._adjust = Common::Point(0, 0);
 
 		// Load the default walk sequences
+		p._walkCount = 0;
 		p._walkTo.clear();
 		p._oldWalkSequence = -1;
 		p._walkSequences.clear();
