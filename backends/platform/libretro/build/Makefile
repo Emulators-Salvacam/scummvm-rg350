@@ -116,8 +116,8 @@ endif
 
 ###SCUMM VM
 srcdir = ../../../..
-retrodir = backends/platform/libretro/
-libcodir = $(retrodir)libco/
+retrodir = backends/platform/libretro
+libcodir = $(retrodir)/libco
 VPATH = $(srcdir)
 
 # Define toolset
@@ -135,32 +135,38 @@ RM_REC        = rm -rf
 
 # Define build flags
 DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565 -DUSE_MT32EMU -Wno-multichar
-INCLUDES      += -I$(srcdir)/$(retrodir) -I. -I$(srcdir) -I$(srcdir)/engines -I../libco
+INCLUDES      += -I$(srcdir)/$(retrodir) \
+					  -I. \
+					  -I$(srcdir) \
+					  -I$(srcdir)/engines \
+					  -I../libco \
+					  -I../libretro-common/include
 DEPDIR        = .deps
 HAVE_GCC3     = true
 USE_RGB_COLOR = true
 
-OBJS := $(retrodir)libretro.o \
-        $(retrodir)os.o \
-		  $(libcodir)libco.o
+OBJS := $(retrodir)/libretro.o \
+        $(retrodir)/os.o \
+		  $(retrodir)/libretro-common/file/retro_dirent.o \
+		  $(libcodir)/libco.o
 
 ifeq ($(FS_TYPE), posix)
 POSIX = 1
 DEFINES += -DFS_TYPE_POSIX
 else ifeq ($(FS_TYPE), ps3)
 
-OBJS += $(retrodir)ps3-fs.o \
-        $(retrodir)ps3-filestream.o \
-        $(retrodir)ps3-fs-factory.o
+OBJS += $(retrodir)/ps3-fs.o \
+        $(retrodir)/ps3-filestream.o \
+        $(retrodir)/ps3-fs-factory.o
 
 DEFINES += -DFS_TYPE_PS3
 endif
 
 ifeq ($(platform), win)
-OBJS += $(retrodir)dirent_win32.o
+OBJS += $(retrodir)/dirent_win32.o
 endif
 
-MODULE_DIRS += $(retrodir) $(retrodir)libco
+MODULE_DIRS += $(retrodir) $(retrodir)/libco
 
 BACKEND := libretro
 USE_MT32EMU = 1
