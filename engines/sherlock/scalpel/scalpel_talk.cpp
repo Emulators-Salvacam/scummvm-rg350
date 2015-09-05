@@ -171,6 +171,18 @@ ScalpelTalk::ScalpelTalk(SherlockEngine *vm) : Talk(vm) {
 
 }
 
+void ScalpelTalk::talkTo(const Common::String filename) {
+	ScalpelUserInterface &ui = *(ScalpelUserInterface *)_vm->_ui;
+
+	Talk::talkTo(filename);
+
+	if (filename == "Tube59c") {
+		// WORKAROUND: Original game bug causes the results of testing the powdery substance
+		// to disappear too quickly. Introduce a delay to allow it to be properly displayed
+		ui._menuCounter = 30;
+	}
+}
+
 void ScalpelTalk::talkInterface(const byte *&str) {
 	FixedText &fixedText = *_vm->_fixedText;
 	People &people = *_vm->_people;
@@ -199,8 +211,7 @@ void ScalpelTalk::talkInterface(const byte *&str) {
 		if (ui._windowOpen) {
 			screen.print(Common::Point(16, _yp), TALK_FOREGROUND, "%s",
 				people._characters[_speaker & 127]._name);
-		}
-		else {
+		} else {
 			screen.gPrint(Common::Point(16, _yp - 1), TALK_FOREGROUND, "%s",
 				people._characters[_speaker & 127]._name);
 			_openTalkWindow = true;
@@ -222,8 +233,7 @@ void ScalpelTalk::talkInterface(const byte *&str) {
 			--idx;
 			--_charCount;
 		}
-	}
-	else {
+	} else {
 		_endStr = true;
 	}
 
@@ -242,17 +252,14 @@ void ScalpelTalk::talkInterface(const byte *&str) {
 	if (_speaker != -1) {
 		if (ui._windowOpen) {
 			screen.print(Common::Point(16, _yp), COMMAND_FOREGROUND, "%s", lineStr.c_str());
-		}
-		else {
+		} else {
 			screen.gPrint(Common::Point(16, _yp - 1), COMMAND_FOREGROUND, "%s", lineStr.c_str());
 			_openTalkWindow = true;
 		}
-	}
-	else {
+	} else {
 		if (ui._windowOpen) {
 			screen.print(Common::Point(16, _yp), COMMAND_FOREGROUND, "%s", lineStr.c_str());
-		}
-		else {
+		} else {
 			screen.gPrint(Common::Point(16, _yp - 1), COMMAND_FOREGROUND, "%s", lineStr.c_str());
 			_openTalkWindow = true;
 		}

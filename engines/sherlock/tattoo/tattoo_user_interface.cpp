@@ -270,17 +270,18 @@ void TattooUserInterface::handleInput() {
 	if (events.kbHit()) {
 		_keyState = events.getKey();
 
-		if (_keyState.keycode == Common::KEYCODE_s && vm._allowFastMode)
-			vm._fastMode = !vm._fastMode;
-
-		else if (_keyState.keycode == Common::KEYCODE_l && _bgFound != -1) {
-			// Beging used for testing that Look dialogs work
-			lookAtObject();
-
-		} else if (_keyState.keycode == Common::KEYCODE_ESCAPE && vm._runningProlog && !_lockoutTimer) {
+		if (_keyState.keycode == Common::KEYCODE_ESCAPE && vm._runningProlog && !_lockoutTimer) {
 			vm.setFlags(-76);
 			vm.setFlags(396);
 			scene._goToScene = STARTING_GAME_SCENE;
+		} else if (_menuMode == STD_MODE) {
+			if (_keyState.keycode == Common::KEYCODE_s && vm._allowFastMode) {
+				vm._fastMode = !vm._fastMode;
+
+			} else if (_keyState.keycode == Common::KEYCODE_l && _bgFound != -1) {
+				// Beging used for testing that Look dialogs work
+				lookAtObject();
+			}
 		}
 	}
 
@@ -342,7 +343,7 @@ void TattooUserInterface::doBgAnimRestoreUI() {
 	if (scene._activeCAnim.active())
 		screen.restoreBackground(scene._activeCAnim._oldBounds);
 
-	// If a canimation just ended, remove it's graphics from the backbuffer
+	// If a canimation just ended, remove its graphics from the backbuffer
 	if (scene._activeCAnim._removeBounds.width() > 0)
 		screen.restoreBackground(scene._activeCAnim._removeBounds);
 }
@@ -481,7 +482,7 @@ void TattooUserInterface::doStandardControl() {
 			talk.initTalk(_bgFound);
 			_activeObj = -1;
 		} else if (!noDesc) {
-			// Either call the code to Look at it's Examine Field or call the Exit animation
+			// Either call the code to Look at its Examine Field or call the Exit animation
 			// if the object is an exit, specified by the first four characters of the name being "EXIT"
 			Common::String name = _personFound ? people[_bgFound - 1000]._name : _bgShape->_name;
 			if (!name.hasPrefix("EXIT")) {

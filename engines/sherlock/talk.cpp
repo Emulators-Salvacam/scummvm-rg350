@@ -127,7 +127,7 @@ Talk::Talk(SherlockEngine *vm) : _vm(vm) {
 	_talkHistory.resize(IS_ROSE_TATTOO ? 1500 : 500);
 }
 
-void Talk::talkTo(const Common::String &filename) {
+void Talk::talkTo(const Common::String filename) {
 	Events &events = *_vm->_events;
 	Inventory &inv = *_vm->_inventory;
 	Journal &journal = *_vm->_journal;
@@ -399,7 +399,6 @@ void Talk::talkTo(const Common::String &filename) {
 					if (_talkTo != -1 && !_talkHistory[_converseNum][select])
 						journal.record(_converseNum, select, true);
 					_talkHistory[_converseNum][select] = true;
-
 				}
 
 				ui._key = ui._oldKey = Scalpel::COMMANDS[TALK_MODE - 1];
@@ -439,12 +438,6 @@ void Talk::talkTo(const Common::String &filename) {
 	// If a script was added to the script stack, restore state so that the
 	// previous script can continue
 	popStack();
-
-	if (IS_SERRATED_SCALPEL && filename == "Tube59c") {
-		// WORKAROUND: Original game bug causes the results of testing the powdery substance
-		// to disappear too quickly. Introduce a delay to allow it to be properly displayed
-		ui._menuCounter = 30;
-	}
 
 	events.setCursor(ARROW);
 }
@@ -677,6 +670,7 @@ void Talk::doScript(const Common::String &script) {
 			Tattoo::TattooPerson &p = (*(Tattoo::TattooPeople *)_vm->_people)[idx];
 			p._savedNpcSequence = p._sequenceNumber;
 			p._savedNpcFrame = p._frameNumber;
+			p._resetNPCPath = true;
 		}
 	}
 
@@ -1054,6 +1048,8 @@ OpcodeReturn Talk::cmdPauseWithoutControl(const byte *&str) {
 	Scene &scene = *_vm->_scene;
 	++str;
 
+	events.incWaitCounter();
+
 	for (int idx = 0; idx < (str[0] - 1); ++idx) {
 		scene.doBgAnim();
 		if (_talkToAbort)
@@ -1063,6 +1059,8 @@ OpcodeReturn Talk::cmdPauseWithoutControl(const byte *&str) {
 		events.pollEvents();
 		events.setButtonState();
 	}
+
+	events.decWaitCounter();
 
 	_endStr = false;
 	return RET_SUCCESS;
@@ -1091,7 +1089,9 @@ OpcodeReturn Talk::cmdRunCAnimation(const byte *&str) {
 		return RET_EXIT;
 
 	// Check if next character is changing side or changing portrait
-	if (_charCount && (str[1] == _opcodes[OP_SWITCH_SPEAKER] || str[1] == _opcodes[OP_ASSIGN_PORTRAIT_LOCATION]))
+	_wait = 0;
+	if (_charCount && (str[1] == _opcodes[OP_SWITCH_SPEAKER] ||
+			(IS_SERRATED_SCALPEL && str[1] == _opcodes[OP_ASSIGN_PORTRAIT_LOCATION])))
 		_wait = 1;
 
 	return RET_SUCCESS;

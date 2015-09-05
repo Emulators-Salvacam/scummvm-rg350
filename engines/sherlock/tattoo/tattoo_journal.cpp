@@ -353,8 +353,8 @@ void TattooJournal::handleButtons() {
 					_savedSub = _sub;
 					_savedPage = _page;
 					
-					if (drawJournal(dir + 2, 1000 * LINES_PER_PAGE) == 0)
-					{
+					bool drawResult = drawJournal(dir + 2, 1000 * LINES_PER_PAGE);
+					if (!drawResult) {
 						_index = _savedIndex;
 						_sub = _savedSub;
 						_page = _savedPage;
@@ -362,12 +362,13 @@ void TattooJournal::handleButtons() {
 						drawFrame();
 						drawJournal(0, 0);
 						notFound = true;
-					} else {
-						break;
 					}
 
 					highlightJournalControls(false);
 					screen.slamArea(0, 0, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);
+
+					if (drawResult)
+						break;
 				} else {
 					break;
 				}
@@ -729,7 +730,7 @@ void TattooJournal::drawScrollBar() {
 void TattooJournal::disableControls() {
 	Screen &screen = *_vm->_screen;
 	Common::Rect r(JOURNAL_BAR_WIDTH, BUTTON_SIZE + screen.fontHeight() + 13);
-	r.moveTo((SHERLOCK_SCREEN_HEIGHT - r.width()) / 2, SHERLOCK_SCREEN_HEIGHT - r.height());
+	r.moveTo((SHERLOCK_SCREEN_WIDTH - r.width()) / 2, SHERLOCK_SCREEN_HEIGHT - r.height());
 	const char *JOURNAL_COMMANDS[3] = { FIXED(CloseJournal), FIXED(SearchJournal), FIXED(SaveJournal) };
 
 	// Print the Journal commands
@@ -752,7 +753,9 @@ int TattooJournal::getFindName(bool printError) {
 	int done = 0;
 	Common::String name;
 	int cursorX, cursorY;
-	bool flag = false;
+	bool blinkFlag = false;
+	int blinkCountdown = 1;
+	enum SearchButtons { SB_CANCEL = 0, SB_BACKWARDS = 1, SB_FORWARDS = 2 };
 
 	Common::Rect r(JOURNAL_BAR_WIDTH, (screen.fontHeight() + 4) * 2 + 9);
 	r.moveTo((SHERLOCK_SCREEN_WIDTH - r.width()) / 2, (SHERLOCK_SCREEN_HEIGHT - r.height()) / 2);
@@ -761,6 +764,7 @@ int TattooJournal::getFindName(bool printError) {
 	cursorY = r.top + screen.fontHeight() + 12;
 
 	drawControls(1);
+	disableControls();
 	
 	// Backup the area under the text entry
 	Surface bgSurface(r.width() - 6, screen.fontHeight());
@@ -768,7 +772,8 @@ int TattooJournal::getFindName(bool printError) {
 		r.right - 3, cursorY + screen.fontHeight()));
 
 	if (printError) {
-		screen.gPrint(Common::Point(0, cursorY), INFO_TOP, "%s", FIXED(TextNotFound));
+		screen.gPrint(Common::Point(r.left + (r.width() - screen.stringWidth(FIXED(TextNotFound))) / 2, cursorY), 
+			INFO_TOP, "%s", FIXED(TextNotFound));
 	} else {
 		// If there was a name already entered, copy it to name and display it
 		if (!_find.empty()) {
@@ -820,21 +825,27 @@ int TattooJournal::getFindName(bool printError) {
 			events.setButtonState();
 
 			// Handle blinking cursor
-			flag = !flag;
-			if (flag) {
-				// Draw cursor
-				screen._backBuffer1.fillRect(Common::Rect(cursorX, cursorY, cursorX + 7, cursorY + 8), COMMAND_HIGHLIGHTED);
-				screen.slamArea(cursorX, cursorY, 8, 9);
-			} else {
-				// Erase cursor by restoring background and writing current text
-				screen._backBuffer1.blitFrom(bgSurface, Common::Point(r.left + 3, cursorY));
-				screen.gPrint(Common::Point(r.left + screen.widestChar() + 3, cursorY), COMMAND_HIGHLIGHTED, "%s", name.c_str());
-				screen.slamArea(r.left + 3, r.top, r.width() - 3, screen.fontHeight());
+			if (--blinkCountdown == 0) {
+				blinkCountdown = 3;
+				blinkFlag = !blinkFlag;
+				if (blinkFlag) {
+					// Draw cursor
+					screen._backBuffer1.fillRect(Common::Rect(cursorX, cursorY, cursorX + 7, cursorY + 8), COMMAND_HIGHLIGHTED);
+					screen.slamArea(cursorX, cursorY, 8, 9);
+				}
+				else {
+					// Erase cursor by restoring background and writing current text
+					screen._backBuffer1.blitFrom(bgSurface, Common::Point(r.left + 3, cursorY));
+					screen.gPrint(Common::Point(r.left + screen.widestChar() + 3, cursorY), COMMAND_HIGHLIGHTED, "%s", name.c_str());
+					screen.slamArea(r.left + 3, cursorY, r.width() - 3, screen.fontHeight());
+				}
 			}
 
 			highlightSearchControls(true);
 
 			events.wait(2);
+			if (_vm->shouldQuit())
+				return 0;
 		}
 
 		if (events.kbHit()) {
@@ -881,10 +892,11 @@ int TattooJournal::getFindName(bool printError) {
 				}
 			}
 
-			if (keyState.ascii && keyState.ascii != '@' && name.size() < 50) {
+			if (keyState.ascii >= ' ' && keyState.ascii != '@' && name.size() < 50) {
 				if ((cursorX + screen.charWidth(keyState.ascii)) < (r.right - screen.widestChar() * 3)) {
-					cursorX += screen.charWidth(keyState.ascii);
-					name += toupper(keyState.ascii);
+					char c = toupper(keyState.ascii);
+					cursorX += screen.charWidth(c);
+					name += c;
 				}
 			}
 
@@ -897,13 +909,13 @@ int TattooJournal::getFindName(bool printError) {
 
 		if (events._released || events._rightReleased) {
 			switch (_selector) {
-			case JH_CLOSE:
+			case SB_CANCEL:
 				done = -1;
 				break;
-			case JH_SEARCH:
+			case SB_BACKWARDS:
 				done = 2;
 				break;
-			case JH_PRINT:
+			case SB_FORWARDS:
 				done = 1;
 				break;
 			default:
@@ -913,6 +925,7 @@ int TattooJournal::getFindName(bool printError) {
 	} while (!done);
 
 	if (done != -1) {
+		// Forwards or backwards search, so save the entered name
 		_find = name;
 		result = done;
 	} else {
