@@ -50,12 +50,6 @@
 #endif
 #include <stdio.h>
 
-#ifdef __OS2__
-#define INCL_DOS
-#include <os2.h>
-#endif
-
-
 void POSIXFilesystemNode::setFlags() {
 	struct stat st;
 
@@ -81,32 +75,9 @@ POSIXFilesystemNode::POSIXFilesystemNode(const Common::String &p) {
 		_path = p;
 	}
 
-#ifdef __OS2__
-	// On OS/2, 'X:/' is a root of drive X, so we should not remove that last
-	// slash.
-	if (!(_path.size() == 3 && _path.hasSuffix(":/")))
-#endif
 	// Normalize the path (that is, remove unneeded slashes etc.)
 	_path = Common::normalizePath(_path, '/');
 	_displayName = Common::lastPathComponent(_path, '/');
-
-	// TODO: should we turn relative paths into absolute ones?
-	// Pro: Ensures the "getParent" works correctly even for relative dirs.
-	// Contra: The user may wish to use (and keep!) relative paths in his
-	//   config file, and converting relative to absolute paths may hurt him...
-	//
-	// An alternative approach would be to change getParent() to work correctly
-	// if "_path" is the empty string.
-#if 0
-	if (!_path.hasPrefix("/")) {
-		char buf[MAXPATHLEN+1];
-		getcwd(buf, MAXPATHLEN);
-		strcat(buf, "/");
-		_path = buf + _path;
-	}
-#endif
-	// TODO: Should we enforce that the path is absolute at this point?
-	//assert(_path.hasPrefix("/"));
 
 	setFlags();
 }
@@ -130,34 +101,6 @@ AbstractFSNode *POSIXFilesystemNode::getChild(const Common::String &n) const {
 
 bool POSIXFilesystemNode::getChildren(AbstractFSList &myList, ListMode mode, bool hidden) const {
 	assert(_isDirectory);
-
-#ifdef __OS2__
-	if (_path == "/") {
-		// Special case for the root dir: List all DOS drives
-		ULONG ulDrvNum;
-		ULONG ulDrvMap;
-
-		DosQueryCurrentDisk(&ulDrvNum, &ulDrvMap);
-
-		for (int i = 0; i < 26; i++) {
-			if (ulDrvMap & 1) {
-				char drive_root[] = "A:/";
-				drive_root[0] += i;
-
-                POSIXFilesystemNode *entry = new POSIXFilesystemNode();
-				entry->_isDirectory = true;
-				entry->_isValid = true;
-				entry->_path = drive_root;
-				entry->_displayName = "[" + Common::String(drive_root, 2) + "]";
-				myList.push_back(entry);
-			}
-
-			ulDrvMap >>= 1;
-		}
-
-		return true;
-	}
-#endif
 
 	DIR *dirp = opendir(_path.c_str());
 	struct dirent *dp;
@@ -230,12 +173,6 @@ bool POSIXFilesystemNode::getChildren(AbstractFSList &myList, ListMode mode, boo
 AbstractFSNode *POSIXFilesystemNode::getParent() const {
 	if (_path == "/")
 		return 0;	// The filesystem root has no parent
-
-#ifdef __OS2__
-    if (_path.size() == 3 && _path.hasSuffix(":/"))
-        // This is a root directory of a drive
-        return makeNode("/");   // return a virtual root for a list of drives
-#endif
 
 	const char *start = _path.c_str();
 	const char *end = start + _path.size();
