@@ -28,8 +28,6 @@ LD        = $(CXX)
 AR        = ar cru
 RANLIB    = ranlib
 
-FS_TYPE := posix
-
 ifeq ($(platform), unix)
    TARGET  := $(TARGET_NAME)_libretro.so
    DEFINES += -fPIC
@@ -67,7 +65,6 @@ else ifeq ($(platform), ps3)
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
    LD = ./fake-link.sh $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe cru
-	FS_TYPE := posix
    DEFINES += -DPLAYSTATION3
 else ifeq ($(platform), wii)
    TARGET := $(TARGET_NAME)_libretro_wii.a
@@ -150,22 +147,8 @@ OBJS := $(retrodir)/libretro.o \
 		  $(retrodir)/libretro-common/file/retro_dirent.o \
 		  $(libcodir)/libco.o
 
-ifeq ($(FS_TYPE), posix)
 POSIX = 1
 DEFINES += -DFS_TYPE_POSIX
-else ifeq ($(FS_TYPE), ps3)
-
-OBJS += $(retrodir)/ps3-fs.o \
-        $(retrodir)/ps3-filestream.o \
-        $(retrodir)/ps3-fs-factory.o
-
-DEFINES += -DFS_TYPE_PS3
-endif
-
-ifeq ($(platform), win)
-OBJS += $(retrodir)/dirent_win32.o
-endif
-
 MODULE_DIRS += $(retrodir) $(retrodir)/libco
 
 BACKEND := libretro
