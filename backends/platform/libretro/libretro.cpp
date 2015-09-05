@@ -6,8 +6,6 @@
 #include "audio/mixer_intern.h"
 
 #include "os.h"
-
-
 #include "libco/libco.h"
 #include "libretro.h"
 
@@ -301,35 +299,33 @@ unsigned retro_get_region (void) { return RETRO_REGION_NTSC; }
 #if defined(GEKKO) || defined(__CELLOS_LV2__)
 int access(const char *path, int amode)
 {
-    FILE *f;
-    const char *mode;
-    
-    switch (amode)
-    {
-        // we don't really care if a file exists but isn't readable
-        case F_OK:
-        case R_OK:
-            mode = "r";
-            break;
+   FILE *f;
+   const char *mode;
 
-        case W_OK:
-            mode = "r+";
-            break;
+   switch (amode)
+   {
+      // we don't really care if a file exists but isn't readable
+      case F_OK:
+      case R_OK:
+         mode = "r";
+         break;
 
-        default:
-            return -1;
-    }
+      case W_OK:
+         mode = "r+";
+         break;
 
-    f = fopen(path, mode);
+      default:
+         return -1;
+   }
 
-    if (f)
-    {
-        fclose(f);
-        return 0;
-    }
-    else
-    {
-        return -1;
-    }
+   f = fopen(path, mode);
+
+   if (f)
+   {
+      fclose(f);
+      return 0;
+   }
+
+   return -1;
 }
 #endif

@@ -31,13 +31,8 @@
 #include "common/events.h"
 #include "audio/mixer_intern.h"
 
-#if defined(FS_TYPE_POSIX)
 #include "backends/fs/posix/posix-fs-factory.h"
 #define FS_SYSTEM_FACTORY POSIXFilesystemFactory
-#elif defined(FS_TYPE_PS3)
-#include "ps3-fs-factory.h"
-#define FS_SYSTEM_FACTORY Ps3FilesystemFactory
-#endif
 
 #include "backends/timer/default/default-timer.h"
 #include "graphics/colormasks.h"
