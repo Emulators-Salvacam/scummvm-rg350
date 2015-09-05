@@ -25,10 +25,6 @@
 
 #include <boolean.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct RDIR;
 
 struct RDIR *retro_opendir(const char *name);
@@ -53,9 +49,5 @@ const char *retro_dirent_get_name(struct RDIR *rdir);
 bool retro_dirent_is_dir(struct RDIR *rdir, const char *path);
 
 void retro_closedir(struct RDIR *rdir);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

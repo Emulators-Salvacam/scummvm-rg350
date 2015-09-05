@@ -43,27 +43,27 @@
 #include <sys/param.h>
 #endif
 #include <sys/stat.h>
-#ifdef _WIN32
-#include "dirent_win32.h"
-#else
-#include <dirent.h>
-#endif
+#include <retro_dirent.h>
 #include <stdio.h>
 
-void POSIXFilesystemNode::setFlags() {
-	struct stat st;
+void POSIXFilesystemNode::setFlags()
+{
+   struct stat st;
 
-	_isValid = (0 == stat(_path.c_str(), &st));
-	_isDirectory = _isValid ? S_ISDIR(st.st_mode) : false;
+   _isValid = (0 == stat(_path.c_str(), &st));
+   _isDirectory = _isValid ? S_ISDIR(st.st_mode) : false;
 }
 
-POSIXFilesystemNode::POSIXFilesystemNode(const Common::String &p) {
+POSIXFilesystemNode::POSIXFilesystemNode(const Common::String &p)
+{
 	assert(p.size() > 0);
 
 	// Expand "~/" to the value of the HOME env variable
-	if (p.hasPrefix("~/")) {
+	if (p.hasPrefix("~/"))
+   {
 		const char *home = getenv("HOME");
-		if (home != NULL && strlen(home) < MAXPATHLEN) {
+		if (home != NULL && strlen(home) < MAXPATHLEN)
+      {
 			_path = home;
 			// Skip over the tilda.  We know that p contains at least
 			// two chars, so this is safe:
@@ -71,9 +71,7 @@ POSIXFilesystemNode::POSIXFilesystemNode(const Common::String &p) {
 		}
 	}
    else
-   {
 		_path = p;
-	}
 
 	// Normalize the path (that is, remove unneeded slashes etc.)
 	_path = Common::normalizePath(_path, '/');
@@ -102,75 +100,53 @@ AbstractFSNode *POSIXFilesystemNode::getChild(const Common::String &n) const {
 bool POSIXFilesystemNode::getChildren(AbstractFSList &myList, ListMode mode, bool hidden) const {
 	assert(_isDirectory);
 
-	DIR *dirp = opendir(_path.c_str());
-	struct dirent *dp;
+	struct RDIR *dirp = retro_opendir(_path.c_str());
 
 	if (dirp == NULL)
 		return false;
 
 	// loop over dir entries using readdir
-	while ((dp = readdir(dirp)) != NULL) {
-		// Skip 'invisible' files if necessary
-		if (dp->d_name[0] == '.' && !hidden) {
-			continue;
-		}
-		// Skip '.' and '..' to avoid cycles
-		if ((dp->d_name[0] == '.' && dp->d_name[1] == 0) || (dp->d_name[0] == '.' && dp->d_name[1] == '.')) {
-			continue;
-		}
+	while ((retro_readdir(dirp)))
+   {
+      const char *d_name = retro_dirent_get_name(dirp);
 
-		// Start with a clone of this node, with the correct path set
-		POSIXFilesystemNode entry(*this);
-		entry._displayName = dp->d_name;
-		if (_path.lastChar() != '/')
-			entry._path += '/';
-		entry._path += entry._displayName;
+      // Skip 'invisible' files if necessary
+      if (d_name[0] == '.' && !hidden)
+         continue;
+      // Skip '.' and '..' to avoid cycles
+      if ((d_name[0] == '.' && d_name[1] == 0) || (d_name[0] == '.' && d_name[1] == '.'))
+         continue;
 
-#if defined(SYSTEM_NOT_SUPPORTING_D_TYPE)
-		/* TODO: d_type is not part of POSIX, so it might not be supported
-		 * on some of our targets. For those systems where it isn't supported,
-		 * add this #elif case, which tries to use stat() instead.
-		 *
-		 * The d_type method is used to avoid costly recurrent stat() calls in big
-		 * directories.
-		 */
-		entry.setFlags();
-#else
-		if (dp->d_type == DT_UNKNOWN) {
-			// Fall back to stat()
-			entry.setFlags();
-		} else {
-			entry._isValid = (dp->d_type == DT_DIR) || (dp->d_type == DT_REG) || (dp->d_type == DT_LNK);
-			if (dp->d_type == DT_LNK) {
-				struct stat st;
-				if (stat(entry._path.c_str(), &st) == 0)
-					entry._isDirectory = S_ISDIR(st.st_mode);
-				else
-					entry._isDirectory = false;
-			} else {
-				entry._isDirectory = (dp->d_type == DT_DIR);
-			}
-		}
-#endif
+      // Start with a clone of this node, with the correct path set
+      POSIXFilesystemNode entry(*this);
+      entry._displayName = d_name;
 
-		// Skip files that are invalid for some reason (e.g. because we couldn't
-		// properly stat them).
-		if (!entry._isValid)
-			continue;
+      if (_path.lastChar() != '/')
+         entry._path += '/';
+      entry._path       += entry._displayName;
 
-		// Honor the chosen mode
-		if ((mode == Common::FSNode::kListFilesOnly && entry._isDirectory) ||
-			(mode == Common::FSNode::kListDirectoriesOnly && !entry._isDirectory))
-			continue;
+      entry._isValid     = true;
+      entry._isDirectory = retro_dirent_is_dir(dirp, d_name);
 
-		myList.push_back(new POSIXFilesystemNode(entry));
-	}
-	closedir(dirp);
+      // Skip files that are invalid for some reason (e.g. because we couldn't
+      // properly stat them).
+      if (!entry._isValid)
+         continue;
+
+      // Honor the chosen mode
+      if ((mode == Common::FSNode::kListFilesOnly && entry._isDirectory) ||
+            (mode == Common::FSNode::kListDirectoriesOnly && !entry._isDirectory))
+         continue;
+
+      myList.push_back(new POSIXFilesystemNode(entry));
+   }
+	retro_closedir(dirp);
 
 	return true;
 }
 
-AbstractFSNode *POSIXFilesystemNode::getParent() const {
+AbstractFSNode *POSIXFilesystemNode::getParent() const
+{
 	if (_path == "/")
 		return 0;	// The filesystem root has no parent
 
@@ -182,13 +158,8 @@ AbstractFSNode *POSIXFilesystemNode::getParent() const {
 	while (end > start && *(end-1) != '/')
 		end--;
 
-	if (end == start) {
-		// This only happens if we were called with a relative path, for which
-		// there simply is no parent.
-		// TODO: We could also resolve this by assuming that the parent is the
-		//       current working directory, and returning a node referring to that.
+	if (end == start)
 		return 0;
-	}
 
 	return makeNode(Common::String(start, end));
 }
