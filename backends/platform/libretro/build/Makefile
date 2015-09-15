@@ -32,6 +32,7 @@ ifeq ($(platform), unix)
    TARGET  := $(TARGET_NAME)_libretro.so
    DEFINES += -fPIC
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
+# OS X
 else ifeq ($(platform), osx)
    TARGET  := $(TARGET_NAME)_libretro.dylib
    DEFINES += -fPIC
@@ -40,6 +41,7 @@ else ifeq ($(platform), osx)
 ifeq ($(shell uname -p),powerpc)
 	arch = ppc
 endif
+# iOS
 else ifeq ($(platform), ios)
    TARGET  := $(TARGET_NAME)_libretro_ios.dylib
    DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
@@ -50,6 +52,8 @@ ifeq ($(IOSSDK),)
 endif
 
    CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
+
+# QNX
 else ifeq ($(platform), qnx)
    TARGET  := $(TARGET_NAME)_libretro_qnx.so
    DEFINES += -fPIC -DSYSTEM_NOT_SUPPORTING_D_TYPE
@@ -59,6 +63,8 @@ else ifeq ($(platform), qnx)
    LD = QCC -Vgcc_ntoarmv7le
    AR = qcc -Vgcc_ntoarmv7le -A
    RANLIB="${QNX_HOST}/usr/bin/ntoarmv7-ranlib"
+
+# PS3
 else ifeq ($(platform), ps3)
    TARGET  := $(TARGET_NAME)_libretro_ps3.a
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
@@ -66,6 +72,8 @@ else ifeq ($(platform), ps3)
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe rcs
    DEFINES += -DPLAYSTATION3
 	STATIC_LINKING=1
+
+# Nintendo Wii
 else ifeq ($(platform), wii)
    TARGET := $(TARGET_NAME)_libretro_wii.a
    CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
@@ -73,6 +81,16 @@ else ifeq ($(platform), wii)
    AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT) rcs
    DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float -D__ppc__ -I$(DEVKITPRO)/libogc/include
 	STATIC_LINKING=1
+
+# Vita
+else ifeq ($(platform), vita)
+	TARGET := $(TARGET_NAME)_libretro_vita.a
+	CC = arm-vita-eabi-gcc$(EXE_EXT)
+	CXX = arm-vita-eabi-g++$(EXE_EXT)
+	AR = arm-vita-eabi-ar$(EXE_EXT) rcs
+	DEFINES += -DVITA
+	STATIC_LINKING = 1
+
 else ifeq ($(platform), android-armv7)
    TARGET  := $(TARGET_NAME)_libretro_android.so
    DEFINES += -fPIC -Wno-multichar
