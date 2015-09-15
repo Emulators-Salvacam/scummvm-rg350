@@ -80,7 +80,7 @@ DEPDIRS = $(addsuffix $(DEPDIR),$(MODULE_DIRS))
 
 $(TARGET): $(OBJS)
 ifeq ($(STATIC_LINKING), 1)
-	$(AR) rcs $@ $(OBJS)
+	$(AR) $@ $(wildcard *.o) $(wildcard */*.o) $(wildcard */*/*.o) $(wildcard */*/*/*.o) $(wildcard */*/*/*/*.o)  $(wildcard */*/*/*/*/*.o)
 else
 	$(CXX) $(LDFLAGS) $+ $(LIBS) -o $@
 endif

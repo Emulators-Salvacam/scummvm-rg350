@@ -20,8 +20,6 @@
  *
  */
 
-#if defined(POSIX) || defined(PLAYSTATION3) || defined(__LIBRETRO__)
-
 // Re-enable some forbidden symbols to avoid clashes with stat.h and unistd.h.
 // Also with clock() in sys/time.h in some Mac OS X SDKs.
 #define FORBIDDEN_SYMBOL_EXCEPTION_time_h
@@ -171,5 +169,3 @@ Common::SeekableReadStream *POSIXFilesystemNode::createReadStream() {
 Common::WriteStream *POSIXFilesystemNode::createWriteStream() {
 	return StdioStream::makeFromPath(getPath(), true);
 }
-
-#endif //#if defined(POSIX)
