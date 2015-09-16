@@ -26,6 +26,7 @@
 #include "sherlock/scalpel/scalpel.h"
 #include "sherlock/scalpel/scalpel_people.h"
 #include "sherlock/scalpel/scalpel_scene.h"
+#include "sherlock/scalpel/scalpel_screen.h"
 #include "sherlock/tattoo/tattoo.h"
 #include "sherlock/tattoo/tattoo_scene.h"
 #include "sherlock/tattoo/tattoo_user_interface.h"
@@ -1090,9 +1091,9 @@ void Scene::checkSceneFlags(bool flag) {
 
 	for (uint idx = 0; idx < _bgShapes.size(); ++idx) {
 		Object &o = _bgShapes[idx];
-		bool objectFlag = true;
 
 		if (o._requiredFlag[0] || o._requiredFlag[1]) {
+			bool objectFlag = true;
 			if (o._requiredFlag[0] != 0)
 				objectFlag = _vm->readFlags(o._requiredFlag[0]);
 			if (o._requiredFlag[1] != 0)
@@ -1282,7 +1283,7 @@ void Scene::transitionToScene() {
 		} else {
 			// fade in for 3DO
 			screen.clear();
-			screen.fadeIntoScreen3DO(3);
+			static_cast<Scalpel::Scalpel3DOScreen *>(_vm->_screen)->fadeIntoScreen3DO(3);
 		}
 	} else {
 		screen.slamArea(screen._currentScroll.x, screen._currentScroll.y, SHERLOCK_SCREEN_WIDTH, SHERLOCK_SCREEN_HEIGHT);

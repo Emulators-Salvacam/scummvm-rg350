@@ -21,16 +21,18 @@
  */
 
 #include "engines/util.h"
+#include "gui/saveload.h"
+#include "common/translation.h"
 #include "sherlock/scalpel/scalpel.h"
 #include "sherlock/scalpel/scalpel_fixed_text.h"
 #include "sherlock/scalpel/scalpel_map.h"
 #include "sherlock/scalpel/scalpel_people.h"
 #include "sherlock/scalpel/scalpel_scene.h"
+#include "sherlock/scalpel/scalpel_screen.h"
 #include "sherlock/scalpel/tsage/logo.h"
 #include "sherlock/sherlock.h"
 #include "sherlock/music.h"
 #include "sherlock/animation.h"
-// for 3DO
 #include "sherlock/scalpel/3do/movie_decoder.h"
 
 namespace Sherlock {
@@ -174,29 +176,103 @@ const PeopleData PEOPLE_DATA[MAX_PEOPLE] = {
 	{ "INSP", "Inspector Lestrade", { 4, 0, 0 }, { 2, 0, 0 } }
 };
 
+uint INFO_BLACK;
+uint BORDER_COLOR;
+uint COMMAND_BACKGROUND;
+uint BUTTON_BACKGROUND;
+uint TALK_FOREGROUND;
+uint TALK_NULL;
+uint BUTTON_TOP;
+uint BUTTON_MIDDLE;
+uint BUTTON_BOTTOM;
+uint COMMAND_FOREGROUND;
+uint COMMAND_HIGHLIGHTED;
+uint COMMAND_NULL;
+uint INFO_FOREGROUND;
+uint INFO_BACKGROUND;
+uint INV_FOREGROUND;
+uint INV_BACKGROUND;
+uint PEN_COLOR;
+
 /*----------------------------------------------------------------*/
+
+#define FROM_RGB(r, g, b) pixelFormatRGB565.RGBToColor(r, g, b)
 
 ScalpelEngine::ScalpelEngine(OSystem *syst, const SherlockGameDescription *gameDesc) :
 		SherlockEngine(syst, gameDesc) {
 	_darts = nullptr;
 	_mapResult = 0;
+
+	if (getPlatform() == Common::kPlatform3DO) {
+		const Graphics::PixelFormat pixelFormatRGB565 = Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0);
+		INFO_BLACK = FROM_RGB(0, 0, 0);
+		BORDER_COLOR = FROM_RGB(0x6d, 0x38, 0x10);
+		COMMAND_BACKGROUND = FROM_RGB(0x38, 0x38, 0xce);
+		BUTTON_BACKGROUND = FROM_RGB(0x95, 0x5d, 0x24);
+		TALK_FOREGROUND = FROM_RGB(0xff, 0x55, 0x55);
+		TALK_NULL = FROM_RGB(0xce, 0xc6, 0xc2);
+		BUTTON_TOP = FROM_RGB(0xbe, 0x85, 0x3c);
+		BUTTON_MIDDLE = FROM_RGB(0x9d, 0x40, 0);
+		BUTTON_BOTTOM = FROM_RGB(0x69, 0x24, 0);
+		COMMAND_FOREGROUND = FROM_RGB(0xFF, 0xFF, 0xFF);
+		COMMAND_HIGHLIGHTED = FROM_RGB(0x55, 0xff, 0x55);
+		COMMAND_NULL = FROM_RGB(0x69, 0x24, 0);
+		INFO_FOREGROUND = FROM_RGB(0x55, 0xff, 0xff);
+		INFO_BACKGROUND = FROM_RGB(0, 0, 0x48);
+		INV_FOREGROUND = FROM_RGB(0xff, 0xff, 0x55);
+		INV_BACKGROUND = FROM_RGB(0, 0, 0x48);
+		PEN_COLOR = FROM_RGB(0x50, 0x18, 0);
+	} else {
+		INFO_BLACK = 1;
+		BORDER_COLOR = 237;
+		COMMAND_BACKGROUND = 4;
+		BUTTON_BACKGROUND = 235;
+		TALK_FOREGROUND = 12;
+		TALK_NULL = 16;
+		BUTTON_TOP = 233;
+		BUTTON_MIDDLE = 244;
+		BUTTON_BOTTOM = 248;
+		COMMAND_FOREGROUND = 15;
+		COMMAND_HIGHLIGHTED = 10;
+		COMMAND_NULL = 248;
+		INFO_FOREGROUND = 11;
+		INFO_BACKGROUND = 1;
+		INV_FOREGROUND = 14;
+		INV_BACKGROUND = 1;
+		PEN_COLOR = 250;
+	}
 }
 
 ScalpelEngine::~ScalpelEngine() {
 	delete _darts;
 }
 
-void ScalpelEngine::initialize() {
-	// 3DO actually uses RGB555, but some platforms of ours only support RGB565, so we use that
-
-	if (getPlatform() == Common::kPlatform3DO) {
-		const Graphics::PixelFormat pixelFormatRGB565 = Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0);
-		// 320x200 16-bit RGB565 for 3DO support
-		initGraphics(320, 200, false, &pixelFormatRGB565);
-	} else {
+void ScalpelEngine::setupGraphics() {
+	if (getPlatform() != Common::kPlatform3DO) {
 		// 320x200 palettized
 		initGraphics(320, 200, false);
+	} else {
+		// 3DO actually uses RGB555, but some platforms of ours only support RGB565, so we use that
+		const Graphics::PixelFormat pixelFormatRGB565 = Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0);
+
+		// First try for a 640x400 mode
+		g_system->beginGFXTransaction();
+		initCommonGFX(true);
+		g_system->initSize(640, 400, &pixelFormatRGB565);
+		OSystem::TransactionError gfxError = g_system->endGFXTransaction();
+
+		if (gfxError == OSystem::kTransactionSuccess) {
+			_isScreenDoubled = true;
+		} else {
+			// System doesn't support it, so fall back on 320x200 mode
+			initGraphics(320, 200, false, &pixelFormatRGB565);
+		}
 	}
+}
+
+void ScalpelEngine::initialize() {
+	// Setup graphics mode
+	setupGraphics();
 
 	// Let the base engine intialize
 	SherlockEngine::initialize();
@@ -599,7 +675,7 @@ bool ScalpelEngine::show3DOSplash() {
 
 	if (finished) {
 		// EA logo movie
-		Scalpel3DOMoviePlay("EAlogo.stream", Common::Point(20, 0));
+		play3doMovie("EAlogo.stream", Common::Point(20, 0));
 	}
 
 	// Always clear screen
@@ -608,9 +684,10 @@ bool ScalpelEngine::show3DOSplash() {
 }
 
 bool ScalpelEngine::showCityCutscene3DO() {
+	Scalpel3DOScreen &screen = *(Scalpel3DOScreen *)_screen;
 	_animation->_soundLibraryFilename = "TITLE.SND";
 
-	_screen->clear();
+	screen.clear();
 	bool finished = _events->delay(2500, true);
 
 	// rain.aiff seems to be playing in an endless loop until
@@ -623,8 +700,8 @@ bool ScalpelEngine::showCityCutscene3DO() {
 		_music->loadSong("prolog");
 
 		// Fade screen to grey
-		_screen->_backBuffer1.fill(0xCE59); // RGB565: 25, 50, 25 (grey)
-		_screen->fadeIntoScreen3DO(2);
+		screen._backBuffer1.fill(0xCE59); // RGB565: 25, 50, 25 (grey)
+		screen.fadeIntoScreen3DO(2);
 	}
 
 	if (finished) {
@@ -632,33 +709,33 @@ bool ScalpelEngine::showCityCutscene3DO() {
 	}
 
 	if (finished) {
-		_screen->_backBuffer1.fill(0); // fill backbuffer with black to avoid issues during fade from white
+		screen._backBuffer1.fill(0); // fill backbuffer with black to avoid issues during fade from white
 		finished = _animation->play3DO("26open1", true, 1, true, 2);
 	}
 
 	if (finished) {
-		_screen->_backBuffer1.blitFrom(*_screen); // save into backbuffer 1, used for fade
-		_screen->_backBuffer2.blitFrom(*_screen); // save into backbuffer 2, for restoring later
+		screen._backBuffer2.blitFrom(screen._backBuffer1);
 
 		// "London, England"
 		ImageFile3DO titleImage_London("title2a.cel", kImageFile3DOType_Cel);
-		_screen->_backBuffer1.transBlitFrom(titleImage_London[0]._frame, Common::Point(30, 50));
+		screen._backBuffer1.transBlitFrom(titleImage_London[0]._frame, Common::Point(30, 50));
 
-		_screen->fadeIntoScreen3DO(1);
+		screen.fadeIntoScreen3DO(1);
 		finished = _events->delay(1500, true);
 
 		if (finished) {
 			// "November, 1888"
 			ImageFile3DO titleImage_November("title2b.cel", kImageFile3DOType_Cel);
-			_screen->_backBuffer1.transBlitFrom(titleImage_November[0]._frame, Common::Point(100, 100));
+			screen._backBuffer1.transBlitFrom(titleImage_November[0]._frame, Common::Point(100, 100));
 
-			_screen->fadeIntoScreen3DO(1);
+			screen.fadeIntoScreen3DO(1);
 			finished = _music->waitUntilMSec(14700, 0, 0, 5000);
 		}
 
 		if (finished) {
 			// Restore screen
-			_screen->blitFrom(_screen->_backBuffer2);
+			_screen->_backBuffer1.blitFrom(screen._backBuffer2);
+			_screen->blitFrom(screen._backBuffer1);
 		}
 	}
 
@@ -666,21 +743,19 @@ bool ScalpelEngine::showCityCutscene3DO() {
 		finished = _animation->play3DO("26open2", true, 1, false, 2);
 
 	if (finished) {
-		_screen->_backBuffer1.blitFrom(*_screen); // save into backbuffer 1, used for fade
-
 		// "Sherlock Holmes" (title)
 		ImageFile3DO titleImage_SherlockHolmesTitle("title1ab.cel", kImageFile3DOType_Cel);
-		_screen->_backBuffer1.transBlitFrom(titleImage_SherlockHolmesTitle[0]._frame, Common::Point(34, 5));
+		screen._backBuffer1.transBlitFrom(titleImage_SherlockHolmesTitle[0]._frame, Common::Point(34, 5));
 
 		// Blend in
-		_screen->fadeIntoScreen3DO(2);
+		screen.fadeIntoScreen3DO(2);
 		finished = _events->delay(500, true);
 
 		// Title should fade in, Copyright should be displayed a bit after that
 		if (finished) {
 			ImageFile3DO titleImage_Copyright("title1c.cel", kImageFile3DOType_Cel);
 
-			_screen->transBlitFrom(titleImage_Copyright[0]._frame, Common::Point(20, 190));
+			screen.transBlitFrom(titleImage_Copyright[0]._frame, Common::Point(20, 190));
 			finished = _events->delay(3500, true);
 		}
 	}
@@ -690,27 +765,28 @@ bool ScalpelEngine::showCityCutscene3DO() {
 
 	if (finished) {
 		// Fade to black
-		_screen->_backBuffer1.clear();
-		_screen->fadeIntoScreen3DO(3);
+		screen._backBuffer1.clear();
+		screen.fadeIntoScreen3DO(3);
 	}
 
 	if (finished) {
 		// "In the alley behind the Regency Theatre..."
 		ImageFile3DO titleImage_InTheAlley("title1d.cel", kImageFile3DOType_Cel);
-		_screen->_backBuffer1.transBlitFrom(titleImage_InTheAlley[0]._frame, Common::Point(72, 51));
+		screen._backBuffer1.transBlitFrom(titleImage_InTheAlley[0]._frame, Common::Point(72, 51));
 
 		// Fade in
-		_screen->fadeIntoScreen3DO(4);
+		screen.fadeIntoScreen3DO(4);
 		finished = _music->waitUntilMSec(39900, 0, 0, 2500);
 
 		// Fade out
-		_screen->_backBuffer1.clear();
-		_screen->fadeIntoScreen3DO(4);
+		screen._backBuffer1.clear();
+		screen.fadeIntoScreen3DO(4);
 	}
 	return finished;
 }
 
 bool ScalpelEngine::showAlleyCutscene3DO() {
+	Scalpel3DOScreen &screen = *(Scalpel3DOScreen *)_screen;
 	bool finished = _music->waitUntilMSec(43500, 0, 0, 1000);
 
 	if (finished)
@@ -718,8 +794,8 @@ bool ScalpelEngine::showAlleyCutscene3DO() {
 
 	if (finished) {
 		// Fade out...
-		_screen->_backBuffer1.clear();
-		_screen->fadeIntoScreen3DO(3);
+		screen._backBuffer1.clear();
+		screen.fadeIntoScreen3DO(3);
 
 		finished = _music->waitUntilMSec(67100, 0, 0, 1000); // 66700
 	}
@@ -734,8 +810,8 @@ bool ScalpelEngine::showAlleyCutscene3DO() {
 		// Show screaming victim
 		ImageFile3DO titleImage_ScreamingVictim("scream.cel", kImageFile3DOType_Cel);
 
-		_screen->clear();
-		_screen->transBlitFrom(titleImage_ScreamingVictim[0]._frame, Common::Point(0, 0));
+		screen.clear();
+		screen.transBlitFrom(titleImage_ScreamingVictim[0]._frame, Common::Point(0, 0));
 
 		// Play "scream.aiff"
 		if (_sound->_voices)
@@ -746,8 +822,8 @@ bool ScalpelEngine::showAlleyCutscene3DO() {
 
 	if (finished) {
 		// Fade out
-		_screen->_backBuffer1.clear();
-		_screen->fadeIntoScreen3DO(5);
+		screen._backBuffer1.clear();
+		screen.fadeIntoScreen3DO(5);
 
 		finished = _music->waitUntilMSec(84400, 0, 0, 2000);
 	}
@@ -757,17 +833,17 @@ bool ScalpelEngine::showAlleyCutscene3DO() {
 
 	if (finished) {
 		// Fade out
-		_screen->_backBuffer1.clear();
-		_screen->fadeIntoScreen3DO(5);
+		screen._backBuffer1.clear();
+		screen.fadeIntoScreen3DO(5);
 	}
 
 	if (finished) {
 		// "Early the following morning on Baker Street..."
 		ImageFile3DO titleImage_EarlyTheFollowingMorning("title3.cel", kImageFile3DOType_Cel);
-		_screen->_backBuffer1.transBlitFrom(titleImage_EarlyTheFollowingMorning[0]._frame, Common::Point(35, 51));
+		screen._backBuffer1.transBlitFrom(titleImage_EarlyTheFollowingMorning[0]._frame, Common::Point(35, 51));
 
 		// Fade in
-		_screen->fadeIntoScreen3DO(4);
+		screen.fadeIntoScreen3DO(4);
 		finished = _music->waitUntilMSec(96700, 0, 0, 3000);
 	}
 
@@ -775,12 +851,13 @@ bool ScalpelEngine::showAlleyCutscene3DO() {
 }
 
 bool ScalpelEngine::showStreetCutscene3DO() {
+	Scalpel3DOScreen &screen = *(Scalpel3DOScreen *)_screen;
 	bool finished = true;
 
 	if (finished) {
 		// fade out "Early the following morning..."
-		_screen->_backBuffer1.clear();
-		_screen->fadeIntoScreen3DO(4);
+		screen._backBuffer1.clear();
+		screen.fadeIntoScreen3DO(4);
 
 		// wait for music a bit
 		finished = _music->waitUntilMSec(100300, 0, 0, 1000);
@@ -799,8 +876,8 @@ bool ScalpelEngine::showStreetCutscene3DO() {
 
 	if (finished) {
 		// Fade out
-		_screen->_backBuffer1.clear();
-		_screen->fadeIntoScreen3DO(4);
+		screen._backBuffer1.clear();
+		screen.fadeIntoScreen3DO(4);
 	}
 
 	return finished;
@@ -852,7 +929,7 @@ bool ScalpelEngine::showOfficeCutscene3DO() {
 		// TODO: Brighten the image, possibly by doing a partial fade
 		// to white.
 
-		_screen->_backBuffer1.blitFrom(*_screen);
+		_screen->_backBuffer2.blitFrom(_screen->_backBuffer1);
 
 		for (int nr = 1; finished && nr <= 4; nr++) {
 			char filename[15];
@@ -860,7 +937,7 @@ bool ScalpelEngine::showOfficeCutscene3DO() {
 			ImageFile3DO *creditsImage = new ImageFile3DO(filename, kImageFile3DOType_Cel);
 			ImageFrame *creditsFrame = &(*creditsImage)[0];
 			for (int i = 0; finished && i < 200 + creditsFrame->_height; i++) {
-				_screen->blitFrom(_screen->_backBuffer1);
+				_screen->blitFrom(_screen->_backBuffer2);
 				_screen->transBlitFrom(creditsFrame->_frame, Common::Point((320 - creditsFrame->_width) / 2, 200 - i));
 				if (!_events->delay(70, true))
 					finished = false;
@@ -1157,6 +1234,182 @@ void ScalpelEngine::flushBrumwellMirror() {
 	// If player is in range of the mirror, then draw the entire mirror area to the screen
 	if (Common::Rect(70, 100, 200, 200).contains(pt))
 		_screen->slamArea(137, 18, 47, 56);
+}
+
+
+void ScalpelEngine::showScummVMSaveDialog() {
+	GUI::SaveLoadChooser *dialog = new GUI::SaveLoadChooser(_("Save game:"), _("Save"), true);
+
+	int slot = dialog->runModalWithCurrentTarget();
+	if (slot >= 0) {
+		Common::String desc = dialog->getResultString();
+
+		saveGameState(slot, desc);
+	}
+
+	delete dialog;
+}
+
+void ScalpelEngine::showScummVMRestoreDialog() {
+	GUI::SaveLoadChooser *dialog = new GUI::SaveLoadChooser(_("Restore game:"), _("Restore"), false);
+
+	int slot = dialog->runModalWithCurrentTarget();
+	if (slot >= 0) {
+		loadGameState(slot);
+	}
+
+	delete dialog;
+}
+
+bool ScalpelEngine::play3doMovie(const Common::String &filename, const Common::Point &pos, bool isPortrait) {
+	Scalpel3DOScreen &screen = *(Scalpel3DOScreen *)_screen;
+	Scalpel3DOMovieDecoder *videoDecoder = new Scalpel3DOMovieDecoder();
+	Graphics::Surface tempSurface;
+
+	Common::Point framePos(pos.x, pos.y);
+	ImageFile3DO *frameImageFile = nullptr;
+	ImageFrame *frameImage = nullptr;
+	bool frameShown = false;
+
+	if (!videoDecoder->loadFile(filename)) {
+		warning("Scalpel3DOMoviePlay: could not open '%s'", filename.c_str());
+		return false;
+	}
+
+	bool halfSize = isPortrait && !_isScreenDoubled;
+	if (isPortrait) {
+		// only for portrait videos, not for EA intro logo and such
+		if ((framePos.x >= 8) && (framePos.y >= 8)) { // safety check
+			framePos.x -= 8;
+			framePos.y -= 8; // frame is 8 pixels on left + top, and 7 pixels on right + bottom
+		}
+
+		frameImageFile = new ImageFile3DO("vidframe.cel", kImageFile3DOType_Cel);
+		frameImage = &(*frameImageFile)[0];
+	}
+
+	bool skipVideo = false;
+	//byte bytesPerPixel = videoDecoder->getPixelFormat().bytesPerPixel;
+	uint16 width = videoDecoder->getWidth();
+	uint16 height = videoDecoder->getHeight();
+	//uint16 pitch = videoDecoder->getWidth() * bytesPerPixel;
+
+	_events->clearEvents();
+	videoDecoder->start();
+
+	// If we're to show the movie at half-size, we'll need a temporary intermediate surface
+	if (halfSize)
+		tempSurface.create(width / 2, height / 2, _screen->getPixelFormat());
+
+	while (!shouldQuit() && !videoDecoder->endOfVideo() && !skipVideo) {
+		if (videoDecoder->needsUpdate()) {
+			const Graphics::Surface *frame = videoDecoder->decodeNextFrame();
+
+			if (frame) {
+				if (halfSize) {
+					// movies are 152 x 200
+
+					// Downscale, but calculate average color out of 4 pixels and put that average into the target pixel
+					// TODO: 3DO actually did pixel weighting, exact details about this are unknown
+					// It's also unknown what 3DO exactly did for interpolation
+					// and it's also unknown atm if the CinePak videos contained pixel weighting information
+
+					if ((height & 1) || (width & 1)) {
+						error("Scalpel3DOMoviePlay: critical error, half-size requested on video with uneven height/width");
+					}
+
+					for (int downscaleY = 0; downscaleY < height / 2; downscaleY++) {
+						const uint16 *downscaleSource1Ptr = (const uint16 *)frame->getBasePtr(0, downscaleY * 2);
+						const uint16 *downscaleSource2Ptr = (const uint16 *)frame->getBasePtr(0, (downscaleY * 2) + 1);
+						uint16 *downscaleTargetPtr = (uint16 *)tempSurface.getBasePtr(0, downscaleY);
+
+						for (int downscaleX = 0; downscaleX < width / 2; downscaleX++) {
+							// get 4 pixel colors
+							uint16 downscaleColor = *downscaleSource1Ptr;
+							uint32 downscaleRed = downscaleColor >> 11; // 5 bits
+							uint32 downscaleGreen = (downscaleColor >> 5) & 0x3f; // 6 bits
+							uint32 downscaleBlue = downscaleColor & 0x1f;
+
+							downscaleSource1Ptr++;
+							downscaleColor = *downscaleSource1Ptr;
+							downscaleRed += downscaleColor >> 11;
+							downscaleGreen += (downscaleColor >> 5) & 0x3f;
+							downscaleBlue += downscaleColor & 0x1f;
+
+							downscaleColor = *downscaleSource2Ptr;
+							downscaleRed += downscaleColor >> 11;
+							downscaleGreen += (downscaleColor >> 5) & 0x3f;
+							downscaleBlue += downscaleColor & 0x1f;
+
+							downscaleSource2Ptr++;
+							downscaleColor = *downscaleSource2Ptr;
+							downscaleRed += downscaleColor >> 11;
+							downscaleGreen += (downscaleColor >> 5) & 0x3f;
+							downscaleBlue += downscaleColor & 0x1f;
+
+							// Divide colors by 4, so that we get the average
+							downscaleRed = downscaleRed >> 2;
+							downscaleGreen = downscaleGreen >> 2;
+							downscaleBlue = downscaleBlue >> 2;
+
+							// write new color to target pixel
+							downscaleColor = (downscaleRed << 11) | (downscaleGreen << 5) | downscaleBlue;
+							*downscaleTargetPtr = downscaleColor;
+
+							downscaleSource1Ptr++;
+							downscaleSource2Ptr++;
+							downscaleTargetPtr++;
+						}
+					}
+
+					// Point the drawing frame to the temporary surface
+					frame = &tempSurface;
+				}
+
+				if (isPortrait && !frameShown) {
+					// Draw the frame (not the frame of the video, but a frame around the video) itself
+					_screen->transBlitFrom(frameImage->_frame, framePos);
+					frameShown = true;
+				}
+
+				if (isPortrait && !halfSize) {
+					screen.rawBlitFrom(*frame, Common::Point(pos.x * 2, pos.y * 2));
+				} else {
+					_screen->blitFrom(*frame, pos);
+				}
+
+				_screen->update();
+			}
+		}
+
+		_events->pollEventsAndWait();
+		_events->setButtonState();
+
+		if (_events->kbHit()) {
+			Common::KeyState keyState = _events->getKey();
+			if (keyState.keycode == Common::KEYCODE_ESCAPE)
+				skipVideo = true;
+		} else if (_events->_pressed) {
+			skipVideo = true;
+		}
+	}
+
+	if (halfSize)
+		tempSurface.free();
+
+	videoDecoder->close();
+	delete videoDecoder;
+
+	if (isPortrait) {
+		delete frameImageFile;
+	}
+
+	// Restore scene
+	screen._backBuffer1.blitFrom(screen._backBuffer2);
+	_scene->updateBackground();
+	screen.slamArea(0, 0, screen.w(), CONTROLS_Y);
+
+	return !skipVideo;
 }
 
 } // End of namespace Scalpel

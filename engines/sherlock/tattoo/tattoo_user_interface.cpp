@@ -85,7 +85,6 @@ void TattooUserInterface::lookAtObject() {
 	Talk &talk = *_vm->_talk;
 	Common::Point mousePos = events.mousePos();
 	Common::String desc;
-	int cAnimSpeed = 0;
 
 	_lookPos = mousePos;
 	_menuMode = LOOK_MODE;
@@ -95,7 +94,7 @@ void TattooUserInterface::lookAtObject() {
 	} else {
 		// Check if there is a Look animation
 		if (_bgShape->_lookcAnim != 0) {
-			cAnimSpeed = _bgShape->_lookcAnim & 0xe0;
+			int cAnimSpeed = _bgShape->_lookcAnim & 0xe0;
 			cAnimSpeed >>= 5;
 			++cAnimSpeed;
 
@@ -216,9 +215,9 @@ void TattooUserInterface::doJournal() {
 	TattooJournal &journal = *(TattooJournal *)_vm->_journal;
 	TattooScene &scene = *(TattooScene *)_vm->_scene;
 	Screen &screen = *_vm->_screen;
-	byte lookupTable[PALETTE_SIZE];
+	byte lookupTable[PALETTE_COUNT];
 
-	Common::copy(&_lookupTable[0], &_lookupTable[PALETTE_SIZE], &lookupTable[0]);
+	Common::copy(&_lookupTable[0], &_lookupTable[PALETTE_COUNT], &lookupTable[0]);
 	_menuMode = JOURNAL_MODE;
 	journal.show();
 
@@ -229,7 +228,7 @@ void TattooUserInterface::doJournal() {
 	// Restore the the old screen palette and greyscale lookup table
 	screen.clear();
 	screen.setPalette(screen._cMap);
-	Common::copy(&lookupTable[0], &lookupTable[PALETTE_SIZE], &_lookupTable[0]);
+	Common::copy(&lookupTable[0], &lookupTable[PALETTE_COUNT], &_lookupTable[0]);
 
 	// Restore the scene
 	screen._backBuffer1.blitFrom(screen._backBuffer2);
@@ -377,7 +376,6 @@ void TattooUserInterface::doStandardControl() {
 	TattooScene &scene = *(TattooScene *)_vm->_scene;
 	Talk &talk = *_vm->_talk;
 	Common::Point mousePos = events.mousePos();
-	bool noDesc = false;
 
 	// Don't do any input processing whilst the prolog is running
 	if (vm._runningProlog)
@@ -458,6 +456,7 @@ void TattooUserInterface::doStandardControl() {
 		if (_arrowZone == -1 || events._rightReleased)
 			freeMenu();
 
+		bool noDesc = false;
 		if (_personFound) {
 			if (people[_bgFound - 1000]._description.empty() || people[_bgFound - 1000]._description.hasPrefix(" "))
 				noDesc = true;

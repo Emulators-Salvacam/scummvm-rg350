@@ -97,9 +97,27 @@ void Events::setCursor(const Graphics::Surface &src, int hotspotX, int hotspotY)
 	if (!IS_3DO) {
 		// PC 8-bit palettized
 		CursorMan.replaceCursor(src.getPixels(), src.w, src.h, hotspotX, hotspotY, 0xff);
-	} else {
-		// 3DO RGB565
+	} else if (!_vm->_isScreenDoubled) {
 		CursorMan.replaceCursor(src.getPixels(), src.w, src.h, hotspotX, hotspotY, 0x0000, false, &src.format);
+	} else {
+		Graphics::Surface tempSurface;
+		tempSurface.create(2 * src.w, 2 * src.h, src.format);
+
+		for (int y = 0; y < src.h; y++) {
+			const uint16 *srcP = (const uint16 *)src.getBasePtr(0, y);
+			uint16 *destP = (uint16 *)tempSurface.getBasePtr(0, 2 * y);
+			for (int x = 0; x < src.w; ++x, ++srcP, destP += 2) {
+				*destP = *srcP;
+				*(destP + 1) = *srcP;
+				*(destP + 2 * src.w) = *srcP;
+				*(destP + 2 * src.w + 1) = *srcP;
+			}
+		}
+
+		// 3DO RGB565
+		CursorMan.replaceCursor(tempSurface.getPixels(), tempSurface.w, tempSurface.h, 2 * hotspotX, 2 * hotspotY, 0x0000, false, &src.format);
+
+		tempSurface.free();
 	}
 	showCursor();
 }
@@ -176,6 +194,8 @@ void Events::pollEvents() {
 	Common::Event event;
 	while (g_system->getEventManager()->pollEvent(event)) {
 		_mousePos = event.mouse;
+		if (_vm->_isScreenDoubled)
+			_mousePos = Common::Point(_mousePos.x / 2, _mousePos.y / 2);
 
 		// Handle events
 		switch (event.type) {
@@ -219,7 +239,11 @@ void Events::pollEventsAndWait() {
 }
 
 void Events::warpMouse(const Common::Point &pt) {
-	_mousePos = pt - _vm->_screen->_currentScroll;	
+	Common::Point pos = pt;
+	if (_vm->_isScreenDoubled)
+		pos = Common::Point(pt.x / 2, pt.y);
+
+	_mousePos = pos - _vm->_screen->_currentScroll;
 	g_system->warpMouse(_mousePos.x, _mousePos.y);
 }
 

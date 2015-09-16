@@ -201,33 +201,33 @@ void Surface::transBlitFromUnscaled(const Graphics::Surface &src, const Common::
 	}
 }
 
-void Surface::fillRect(int x1, int y1, int x2, int y2, byte color) {
+void Surface::fillRect(int x1, int y1, int x2, int y2, uint color) {
 	fillRect(Common::Rect(x1, y1, x2, y2), color);
 }
 
-void Surface::fillRect(const Common::Rect &r, byte color) {
+void Surface::fillRect(const Common::Rect &r, uint color) {
 	_surface.fillRect(r, color);
 	addDirtyRect(r);
 }
 
-void Surface::fill(uint16 color) {
-	_surface.fillRect(Common::Rect(_surface.w, _surface.h), color);
+void Surface::fill(uint color) {
+	fillRect(Common::Rect(_surface.w, _surface.h), color);
 }
 
 bool Surface::clip(Common::Rect &srcBounds, Common::Rect &destBounds) {
-	if (destBounds.left >= _surface.w || destBounds.top >= _surface.h ||
+	if (destBounds.left >= w() || destBounds.top >= h() ||
 			destBounds.right <= 0 || destBounds.bottom <= 0)
 		return false;
 
 	// Clip the bounds if necessary to fit on-screen
-	if (destBounds.right > _surface.w) {
-		srcBounds.right -= destBounds.right - _surface.w;
-		destBounds.right = _surface.w;
+	if (destBounds.right > w()) {
+		srcBounds.right -= destBounds.right - w();
+		destBounds.right = w();
 	}
 
-	if (destBounds.bottom > _surface.h) {
-		srcBounds.bottom -= destBounds.bottom - _surface.h;
-		destBounds.bottom = _surface.h;
+	if (destBounds.bottom > h()) {
+		srcBounds.bottom -= destBounds.bottom - h();
+		destBounds.bottom = h();
 	}
 
 	if (destBounds.top < 0) {
@@ -244,7 +244,7 @@ bool Surface::clip(Common::Rect &srcBounds, Common::Rect &destBounds) {
 }
 
 void Surface::clear() {
-	fillRect(Common::Rect(0, 0, _surface.w, _surface.h), 0);
+	fillRect(Common::Rect(0, 0, w(), h()), 0);
 }
 
 void Surface::free() {
@@ -262,11 +262,11 @@ void Surface::setPixels(byte *pixels, int width, int height, Graphics::PixelForm
 	_surface.setPixels(pixels);
 }
 
-void Surface::writeString(const Common::String &str, const Common::Point &pt, byte overrideColor) {
+void Surface::writeString(const Common::String &str, const Common::Point &pt, uint overrideColor) {
 	Fonts::writeString(this, str, pt, overrideColor);
 }
 
-void Surface::writeFancyString(const Common::String &str, const Common::Point &pt, byte overrideColor1, byte overrideColor2) {
+void Surface::writeFancyString(const Common::String &str, const Common::Point &pt, uint overrideColor1, uint overrideColor2) {
 	writeString(str, Common::Point(pt.x, pt.y), overrideColor1);
 	writeString(str, Common::Point(pt.x + 1, pt.y), overrideColor1);
 	writeString(str, Common::Point(pt.x + 2, pt.y), overrideColor1);

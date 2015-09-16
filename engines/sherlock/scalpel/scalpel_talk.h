@@ -39,6 +39,11 @@ class ScalpelTalk : public Talk {
 private:
 	Common::Stack<SequenceEntry> _sequenceStack;
 
+	/**
+	 * Get the center position for the current speaker, if any
+	 */
+	Common::Point get3doPortraitPosition() const;
+
 	OpcodeReturn cmdSwitchSpeaker(const byte *&str);
 	OpcodeReturn cmdAssignPortraitLocation(const byte *&str);
 	OpcodeReturn cmdGotoScene(const byte *&str);
@@ -84,6 +89,12 @@ public:
 	virtual ~ScalpelTalk() {}
 
 	/**
+	 * Opens the talk file 'talk.tlk' and searches the index for the specified
+	 * conversation. If found, the data for that conversation is loaded
+	 */
+	virtual void loadTalkFile(const Common::String &filename);
+
+	/**
 	 * Called whenever a conversation or item script needs to be run. For standard conversations,
 	 * it opens up a description window similar to how 'talk' does, but shows a 'reply' directly
 	 * instead of waiting for a statement option.
@@ -92,6 +103,12 @@ public:
 	 *	doScript to implement whatever action is required.
 	 */
 	virtual void talkTo(const Common::String filename);
+
+	/**
+	 * When the talk window has been displayed, waits a period of time proportional to
+	 * the amount of text that's been displayed
+	 */
+	virtual int waitForMore(int delay);
 
 	/**
 	 * Draws the interface for conversation display
@@ -112,7 +129,7 @@ public:
 	/**
 	 * Trigger to play a 3DO talk dialog movie
 	 */
-	void talk3DOMovieTrigger(int subIndex);
+	bool talk3DOMovieTrigger(int subIndex);
 
 	/**
 	 * Push the details of a passed object onto the saved sequences stack

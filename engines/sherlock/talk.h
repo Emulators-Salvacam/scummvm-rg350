@@ -228,7 +228,7 @@ protected:
 	 * When the talk window has been displayed, waits a period of time proportional to
 	 * the amount of text that's been displayed
 	 */
-	int waitForMore(int delay);
+	virtual int waitForMore(int delay);
 
 	/**
 	 * Display the talk interface window
@@ -308,7 +308,7 @@ public:
 	 * Opens the talk file 'talk.tlk' and searches the index for the specified
 	 * conversation. If found, the data for that conversation is loaded
 	 */
-	void loadTalkFile(const Common::String &filename);
+	virtual void loadTalkFile(const Common::String &filename);
 
 	/**
 	 * Push the sequence of a background object that's an NPC that needs to be

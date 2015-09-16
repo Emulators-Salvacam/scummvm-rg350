@@ -528,6 +528,11 @@ OpcodeReturn ScalpelTalk::cmdSummonWindow(const byte *&str) {
 	return RET_SUCCESS;
 }
 
+void ScalpelTalk::loadTalkFile(const Common::String &filename) {
+	Talk::loadTalkFile(filename);
+	_3doSpeechIndex = 0;
+}
+
 void ScalpelTalk::talkWait(const byte *&str) {
 	UserInterface &ui = *_vm->_ui;
 	bool pauseFlag = _pauseFlag;
@@ -548,12 +553,49 @@ void ScalpelTalk::nothingToSay() {
 }
 
 void ScalpelTalk::switchSpeaker() {
-	// If it's the 3DO, pass on to start the actor's conversation movie
-	if (IS_3DO)
-		talk3DOMovieTrigger(_3doSpeechIndex++);
 }
 
-void ScalpelTalk::talk3DOMovieTrigger(int subIndex) {
+int ScalpelTalk::waitForMore(int delay) {
+	Events &events = *_vm->_events;
+
+	if (!IS_3DO) {
+		return Talk::waitForMore(delay);
+	}
+
+	// Hide the cursor
+	events.hideCursor();
+	events.wait(1);
+
+	switchSpeaker();
+
+	// Play the video
+	talk3DOMovieTrigger(_3doSpeechIndex++);
+
+	// Adjust _talkStealth mode:
+	// mode 1 - It was by a pause without stealth being on before the pause, so reset back to 0
+	// mode 3 - It was set by a pause with stealth being on before the pause, to set it to active
+	// mode 0/2 (Inactive/active) No change
+	switch (_talkStealth) {
+	case 1:
+		_talkStealth = 0;
+		break;
+	case 2:
+		_talkStealth = 2;
+		break;
+	default:
+		break;
+	}
+
+	events.showCursor();
+	events._pressed = events._released = false;
+
+	return 254;
+}
+
+bool ScalpelTalk::talk3DOMovieTrigger(int subIndex) {
+	ScalpelEngine &vm = *(ScalpelEngine *)_vm;
+	Screen &screen = *_vm->_screen;
+
 	// Find out a few things that we need
 	int userSelector = _vm->_ui->_selector;
 	int scriptSelector = _scriptSelect;
@@ -567,15 +609,14 @@ void ScalpelTalk::talk3DOMovieTrigger(int subIndex) {
 		if (scriptSelector >= 0) {
 			// Script-selected dialog
 			selector = scriptSelector;
-			subIndex--; // for scripts we adjust subIndex, b/c we won't get called from doTalkControl()
 		} else {
-		warning("talk3DOMovieTrigger: unable to find selector");
-		return;
+			warning("talk3DOMovieTrigger: unable to find selector");
+			return true;
 		}
 	}
 
 	// Make a quick update, so that current text is shown on screen
-	_vm->_screen->update();
+	screen.update();
 
 	// Figure out that movie filename
 	Common::String movieFilename;
@@ -597,10 +638,45 @@ void ScalpelTalk::talk3DOMovieTrigger(int subIndex) {
 	warning("selector: %d", selector);
 	warning("subindex: %d", subIndex);
 
-	Scalpel3DOMoviePlay(movieFilename.c_str(), Common::Point(5, 5));
+	bool result = vm.play3doMovie(movieFilename, get3doPortraitPosition(), true);
 
 	// Restore screen HACK
 	_vm->_screen->makeAllDirty();
+
+	return result;
+}
+
+Common::Point ScalpelTalk::get3doPortraitPosition() const {
+	// TODO: This current method is only an assumption of how the original figured 
+	// out where to place each character's portrait movie.
+	People &people = *_vm->_people;
+	Scene &scene = *_vm->_scene;
+	const int PORTRAIT_W = 100;
+	const int PORTRAIT_H = 76;
+
+	if (_speaker == -1)
+		return Common::Point();
+
+	// Get the position of the character
+	Common::Point pt;
+	if (_speaker == HOLMES) {
+		pt = Common::Point(people[HOLMES]._position.x / FIXED_INT_MULTIPLIER,
+			people[HOLMES]._position.y / FIXED_INT_MULTIPLIER);
+	} else {
+		int objNum = people.findSpeaker(_speaker);
+		if (objNum == -1)
+			return Common::Point();
+
+		pt = scene._bgShapes[objNum]._position;
+	}
+	
+	// Adjust the top-left so the center of the portrait will be on the character,
+	// but ensure the portrait will be entirely on-screen
+	pt -= Common::Point(PORTRAIT_W / 2, PORTRAIT_H / 2);
+	pt.x = CLIP((int)pt.x, 10, SHERLOCK_SCREEN_WIDTH - 10 - PORTRAIT_W);
+	pt.y = CLIP((int)pt.y, 10, CONTROLS_Y - PORTRAIT_H - 10);
+
+	return pt;
 }
 
 void ScalpelTalk::drawInterface() {

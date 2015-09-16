@@ -40,30 +40,32 @@ private:
 	bool _freePixels;
 
 	/**
+	 * Copy a surface into this one
+	 */
+	void blitFrom(const Graphics::Surface &src);
+protected:
+	Graphics::Surface _surface;
+
+	/**
 	 * Clips the given source bounds so the passed destBounds will be entirely on-screen
 	 */
 	bool clip(Common::Rect &srcBounds, Common::Rect &destBounds);
 
 	/**
-	 * Copy a surface into this one
+	 * Base method stub for signalling dirty rect areas
 	 */
-	void blitFrom(const Graphics::Surface &src);
+	virtual void addDirtyRect(const Common::Rect &r) {}
 
 	/**
 	 * Draws a sub-section of a surface at a given position within this surface
 	 */
-	void blitFrom(const Graphics::Surface &src, const Common::Point &pt, const Common::Rect &srcBounds);
+	virtual void blitFrom(const Graphics::Surface &src, const Common::Point &pt, const Common::Rect &srcBounds);
 
 	/**
 	 * Draws a surface at a given position within this surface with transparency
 	 */
-	void transBlitFromUnscaled(const Graphics::Surface &src, const Common::Point &pt, bool flipped, 
+	virtual void transBlitFromUnscaled(const Graphics::Surface &src, const Common::Point &pt, bool flipped, 
 		int overrideColor);
-
-protected:
-	Graphics::Surface _surface;
-
-	virtual void addDirtyRect(const Common::Rect &r) {}
 public:
 	Surface(uint16 width, uint16 height);
 	Surface();
@@ -133,14 +135,14 @@ public:
 	/**
 	 * Fill a given area of the surface with a given color
 	 */
-	void fillRect(int x1, int y1, int x2, int y2, byte color);
+	void fillRect(int x1, int y1, int x2, int y2, uint color);
 	
 	/**
 	 * Fill a given area of the surface with a given color
 	 */
-	void fillRect(const Common::Rect &r, byte color);
+	virtual void fillRect(const Common::Rect &r, uint color);
 
-	void fill(uint16 color);
+	void fill(uint color);
 
 	/**
 	 * Clear the surface
@@ -165,18 +167,18 @@ public:
 	/**
 	 * Draws the given string into the back buffer using the images stored in _font
 	 */
-	virtual void writeString(const Common::String &str, const Common::Point &pt, byte overrideColor);
-	void writeFancyString(const Common::String &str, const Common::Point &pt, byte overrideColor1, byte overrideColor2);
+	virtual void writeString(const Common::String &str, const Common::Point &pt, uint overrideColor);
+	void writeFancyString(const Common::String &str, const Common::Point &pt, uint overrideColor1, uint overrideColor2);
 
-	inline uint16 w() const { return _surface.w; }
-	inline uint16 h() const { return _surface.h; }
+	inline virtual uint16 w() const { return _surface.w; }
+	inline virtual uint16 h() const { return _surface.h; }
 	inline const byte *getPixels() const { return (const byte *)_surface.getPixels(); }
 	inline byte *getPixels() { return (byte *)_surface.getPixels(); }
 	inline byte *getBasePtr(int x, int y) { return (byte *)_surface.getBasePtr(x, y); }
 	inline const byte *getBasePtr(int x, int y) const { return (const byte *)_surface.getBasePtr(x, y); }
 	inline Graphics::Surface &getRawSurface() { return _surface; }
-	inline void hLine(int x, int y, int x2, uint32 color) { _surface.hLine(x, y, x2, color); }
-	inline void vLine(int x, int y, int y2, uint32 color) { _surface.vLine(x, y, y2, color); }
+	inline void hLine(int x, int y, int x2, uint color) { _surface.hLine(x, y, x2, color); }
+	inline void vLine(int x, int y, int y2, uint color) { _surface.vLine(x, y, y2, color); }
 };
 
 } // End of namespace Sherlock
