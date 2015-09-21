@@ -40,16 +40,16 @@
 #ifndef PLAYSTATION3
 #include <sys/param.h>
 #endif
-#include <sys/stat.h>
 #include <retro_dirent.h>
+#include <file/file_path.h>
 #include <stdio.h>
 
 void POSIXFilesystemNode::setFlags()
 {
-   struct stat st;
+   const char *fspath = _path.c_str();
 
-   _isValid = (0 == stat(_path.c_str(), &st));
-   _isDirectory = _isValid ? S_ISDIR(st.st_mode) : false;
+   _isValid     = path_is_valid(fspath);
+   _isDirectory = path_is_directory(fspath);
 }
 
 POSIXFilesystemNode::POSIXFilesystemNode(const Common::String &p)

@@ -162,8 +162,12 @@ USE_RGB_COLOR = true
 
 OBJS := $(retrodir)/libretro.o \
         $(retrodir)/os.o \
-		  $(retrodir)/libretro-common/file/retro_dirent.o \
 		  $(libcodir)/libco.o
+
+ifeq ($(STATIC_LINKING), 1)
+OBJS +=  $(retrodir)/libretro-common/file/retro_dirent.o \
+		  	$(retrodir)/libretro-common/file/file_path.o
+endif
 
 POSIX = 1
 DEFINES += -DFS_TYPE_POSIX
