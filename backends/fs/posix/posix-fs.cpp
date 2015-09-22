@@ -28,19 +28,12 @@
 #define FORBIDDEN_SYMBOL_EXCEPTION_getenv
 #define FORBIDDEN_SYMBOL_EXCEPTION_exit		//Needed for IRIX's unistd.h
 
-#ifdef PLAYSTATION3
-#define FORBIDDEN_SYMBOL_ALLOW_ALL
-#include <unistd.h>
-#endif
-
 #include "backends/fs/posix/posix-fs.h"
 #include "backends/fs/stdiostream.h"
 #include "common/algorithm.h"
 
-#ifndef PLAYSTATION3
-#include <sys/param.h>
-#endif
 #include <retro_dirent.h>
+#include <retro_stat.h>
 #include <file/file_path.h>
 #include <stdio.h>
 

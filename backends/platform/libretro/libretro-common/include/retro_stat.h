@@ -1,7 +1,7 @@
 /* Copyright  (C) 2010-2015 The RetroArch team
  *
  * ---------------------------------------------------------------------------------------
- * The following license statement only applies to this file (retro_dirent.h).
+ * The following license statement only applies to this file (retro_stat.h).
  * ---------------------------------------------------------------------------------------
  *
  * Permission is hereby granted, free of charge,
@@ -20,42 +20,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef __RETRO_DIRENT_H
-#define __RETRO_DIRENT_H
+#ifndef __RETRO_STAT_H
+#define __RETRO_STAT_H
+
+#include <stdint.h>
+#include <stddef.h>
 
 #include <boolean.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/**
+ * path_is_directory:
+ * @path               : path
+ *
+ * Checks if path is a directory.
+ *
+ * Returns: true (1) if path is a directory, otherwise false (0).
+ */
+bool path_is_directory(const char *path);
 
-struct RDIR;
-
-struct RDIR *retro_opendir(const char *name);
-
-int retro_readdir(struct RDIR *rdir);
-
-bool retro_dirent_error(struct RDIR *rdir);
-
-const char *retro_dirent_get_name(struct RDIR *rdir);
+bool path_is_valid(const char *path);
 
 /**
+ * path_mkdir_norecurse:
+ * @dir                : directory
  *
- * retro_dirent_is_dir:
- * @rdir         : pointer to the directory entry.
- * @path         : path to the directory entry.
+ * Create directory on filesystem.
  *
- * Is the directory listing entry a directory?
- *
- * Returns: true if directory listing entry is
- * a directory, false if not.
- */
-bool retro_dirent_is_dir(struct RDIR *rdir, const char *path);
-
-void retro_closedir(struct RDIR *rdir);
-
-#ifdef __cplusplus
-}
-#endif
+ * Returns: true (1) if directory could be created, otherwise false (0).
+ **/
+bool mkdir_norecurse(const char *dir);
 
 #endif

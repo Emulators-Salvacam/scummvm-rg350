@@ -166,6 +166,7 @@ OBJS := $(retrodir)/libretro.o \
 
 ifeq ($(STATIC_LINKING), 1)
 OBJS +=  $(retrodir)/libretro-common/file/retro_dirent.o \
+			$(retrodir)/libretro-common/file/retro_stat.o \
 		  	$(retrodir)/libretro-common/file/file_path.o
 endif
 
