@@ -215,9 +215,10 @@ void TattooUserInterface::doJournal() {
 	TattooJournal &journal = *(TattooJournal *)_vm->_journal;
 	TattooScene &scene = *(TattooScene *)_vm->_scene;
 	Screen &screen = *_vm->_screen;
-	byte lookupTable[PALETTE_COUNT];
+	byte lookupTable[PALETTE_COUNT], lookupTable1[PALETTE_COUNT];
 
 	Common::copy(&_lookupTable[0], &_lookupTable[PALETTE_COUNT], &lookupTable[0]);
+	Common::copy(&_lookupTable1[0], &_lookupTable1[PALETTE_COUNT], &lookupTable1[0]);
 	_menuMode = JOURNAL_MODE;
 	journal.show();
 
@@ -229,6 +230,7 @@ void TattooUserInterface::doJournal() {
 	screen.clear();
 	screen.setPalette(screen._cMap);
 	Common::copy(&lookupTable[0], &lookupTable[PALETTE_COUNT], &_lookupTable[0]);
+	Common::copy(&lookupTable1[0], &lookupTable1[PALETTE_COUNT], &_lookupTable1[0]);
 
 	// Restore the scene
 	screen._backBuffer1.blitFrom(screen._backBuffer2);
@@ -514,11 +516,9 @@ void TattooUserInterface::doStandardControl() {
 void TattooUserInterface::doLookControl() {
 	Events &events = *_vm->_events;
 	TattooScene &scene = *(TattooScene *)_vm->_scene;
-	Sound &sound = *_vm->_sound;
 
-	// See if a mouse button was released or a key pressed, and we want to initiate an action
-	// TODO: Not sure about _soundOn.. should be check for speaking voice for text being complete
-	if (events._released || events._rightReleased || _keyState.keycode || (sound._voices && !sound._soundOn)) {
+	// See if a mouse button was released or a key pressed to close the active look dialog
+	if (events._released || events._rightReleased || _keyState.keycode) {
 		// See if we were looking at an inventory object
 		if (!_invLookFlag) {
 			// See if there is any more text to display

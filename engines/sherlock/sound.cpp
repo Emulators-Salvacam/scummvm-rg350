@@ -90,7 +90,7 @@ Sound::Sound(SherlockEngine *vm, Audio::Mixer *mixer) : _vm(vm), _mixer(mixer) {
 void Sound::syncSoundSettings() {
 	_digitized = !ConfMan.getBool("mute");
 	_speechOn = !ConfMan.getBool("mute") && !ConfMan.getBool("speech_mute");
-	_voices = _speechOn ? 1 : 0;
+	_voices = _digitized ? 1 : 0;
 }
 
 void Sound::loadSound(const Common::String &name, int priority) {
@@ -166,6 +166,30 @@ bool Sound::playSound(const Common::String &name, WaitType waitType, int priorit
 	_mixer->stopHandle(soundHandle);
 
 	return retval;
+}
+
+void Sound::playAiff(const Common::String &name, int volume, bool loop) {
+	Common::File *file = new Common::File();
+	if (!file->open(name)) {
+		delete file;
+		return;
+	}
+	Audio::AudioStream *stream;
+	Audio::RewindableAudioStream *audioStream = Audio::makeAIFFStream(file, DisposeAfterUse::YES);
+	if (loop) {
+		Audio::AudioStream *loopingStream = Audio::makeLoopingAudioStream(audioStream, 0);
+		stream = loopingStream;
+	} else {
+		stream = audioStream;
+	}
+	stopAiff();
+	_mixer->playStream(Audio::Mixer::kSFXSoundType, &_aiffHandle, stream, -1, volume);
+}
+
+void Sound::stopAiff() {
+	if (_mixer->isSoundHandleActive(_aiffHandle)) {
+		_mixer->stopHandle(_aiffHandle);
+	}
 }
 
 void Sound::playLoadedSound(int bufNum, WaitType waitType) {
