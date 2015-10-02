@@ -79,7 +79,7 @@ enum stat_mode
    IS_VALID
 };
 
-static bool path_stat(const char *path, enum stat_mode mode)
+static bool path_stat(const char *path, enum stat_mode mode, int32_t *size)
 {
 #if defined(VITA) || defined(PSP)
    SceIoStat buf;
@@ -100,13 +100,22 @@ static bool path_stat(const char *path, enum stat_mode mode)
     if (cellFsStat(path, &buf) < 0)
        return false;
 #elif defined(_WIN32)
-   DWORD ret = GetFileAttributes(path);
+   WIN32_FILE_ATTRIBUTE_DATA file_info;
+   DWORD ret = GetFileAttributesEx(path, GetFileExInfoStandard, &file_info);
    if (ret == INVALID_FILE_ATTRIBUTES)
       return false;
 #else
    struct stat buf;
    if (stat(path, &buf) < 0)
       return false;
+#endif
+
+#if defined(_WIN32)
+   if (size)
+      *size = file_info.nFileSizeLow;
+#else
+   if (size)
+      *size = buf.st_size;
 #endif
 
    switch (mode)
@@ -144,17 +153,26 @@ static bool path_stat(const char *path, enum stat_mode mode)
  */
 bool path_is_directory(const char *path)
 {
-   return path_stat(path, IS_DIRECTORY);
+   return path_stat(path, IS_DIRECTORY, NULL);
 }
 
 bool path_is_character_special(const char *path)
 {
-   return path_stat(path, IS_CHARACTER_SPECIAL);
+   return path_stat(path, IS_CHARACTER_SPECIAL, NULL);
 }
 
 bool path_is_valid(const char *path)
 {
-   return path_stat(path, IS_VALID);
+   return path_stat(path, IS_VALID, NULL);
+}
+
+int32_t path_get_size(const char *path)
+{
+   int32_t filesize = 0;
+   if (path_stat(path, IS_VALID, &filesize))
+      return filesize;
+
+   return -1;
 }
 
 /**
