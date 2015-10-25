@@ -31,6 +31,10 @@
 #include <boolean.h>
 #include <retro_inline.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Order in this enum is equivalent to negative sort order in filelist
  *  (i.e. DIRECTORY is on top of PLAIN_FILE) */
 enum
@@ -384,5 +388,9 @@ void fill_pathname_application_path(char *buf, size_t size);
  * Returns: true (1) if directory could be created, otherwise false (0).
  **/
 bool path_mkdir(const char *dir);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

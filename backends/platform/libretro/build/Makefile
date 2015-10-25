@@ -171,7 +171,7 @@ OBJS := $(retrodir)/libretro.o \
         $(retrodir)/os.o \
 		  $(libcodir)/libco.o
 
-ifeq ($(STATIC_LINKING), 1)
+ifneq ($(STATIC_LINKING), 1)
 OBJS +=  $(retrodir)/libretro-common/file/retro_dirent.o \
 			$(retrodir)/libretro-common/file/retro_stat.o \
 		  	$(retrodir)/libretro-common/file/file_path.o
