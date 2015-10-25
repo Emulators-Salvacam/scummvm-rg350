@@ -72,6 +72,10 @@
 #include <retro_miscellaneous.h>
 #include <boolean.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum stat_mode
 {
    IS_DIRECTORY = 0,
@@ -200,7 +204,7 @@ bool mkdir_norecurse(const char *dir)
 #if defined(VITA)
    if ((ret == SCE_ERROR_ERRNO_EEXIST) && path_is_directory(dir))
       ret = 0;
-#elif defined(PSP)
+#elif defined(PSP) || defined(_3DS)
    if ((ret == -1) && path_is_directory(dir))
       ret = 0;
 #else 
@@ -211,3 +215,7 @@ bool mkdir_norecurse(const char *dir)
       printf("mkdir(%s) error: %s.\n", dir, strerror(errno));
    return ret == 0;
 }
+
+#ifdef __cplusplus
+}
+#endif

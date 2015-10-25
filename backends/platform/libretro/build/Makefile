@@ -41,8 +41,9 @@ else ifeq ($(platform), osx)
 ifeq ($(shell uname -p),powerpc)
 	arch = ppc
 endif
+
 # iOS
-else ifeq ($(platform), ios)
+else ifneq (,$(findstring ios,$(platform)))
    TARGET  := $(TARGET_NAME)_libretro_ios.dylib
    DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
    LDFLAGS += -dynamiclib -fPIC
@@ -52,6 +53,12 @@ ifeq ($(IOSSDK),)
 endif
 
    CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
+
+ifeq ($(platform),ios9)
+	CXX     += -miphoneos-version-min=8.0
+else
+	CXX     += -miphoneos-version-min=5.0
+endif
 
 # QNX
 else ifeq ($(platform), qnx)

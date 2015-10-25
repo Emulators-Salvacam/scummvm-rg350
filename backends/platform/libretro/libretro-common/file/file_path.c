@@ -41,6 +41,9 @@
 #include <retro_stat.h>
 #include <retro_miscellaneous.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * path_mkdir:
@@ -154,7 +157,7 @@ bool path_contains_compressed_file(const char *path)
  **/
 bool path_is_compressed_file(const char* path)
 {
-#ifdef HAVE_COMPRESSION
+#if defined(HAVE_COMPRESSION) && (defined(HAVE_ZLIB) || defined(HAVE_7ZIP))
    const char* file_ext   = path_get_extension(path);
 
 #ifdef HAVE_ZLIB
@@ -640,3 +643,7 @@ void fill_short_pathname_representation(char* out_rep,
    else
       strlcpy(out_rep, path_short, size);
 }
+
+#ifdef __cplusplus
+}
+#endif
