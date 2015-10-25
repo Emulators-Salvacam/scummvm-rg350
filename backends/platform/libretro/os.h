@@ -30,7 +30,7 @@
 #define F_OK 0
 #endif
 
-#ifndef _WOK
+#ifndef W_OK
 #define W_OK 2
 #endif
 

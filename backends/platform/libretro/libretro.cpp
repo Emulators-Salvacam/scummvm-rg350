@@ -103,7 +103,6 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-    // TODO
     info->geometry.base_width = RES_W;
     info->geometry.base_height = RES_H;
     info->geometry.max_width = RES_W;
@@ -210,7 +209,7 @@ bool retro_load_game(const struct retro_game_info *game)
     {
         FILE * gamefile;
         char filedata[200];
-        if(gamefile = fopen ( game->path, "r"))
+        if((gamefile = fopen ( game->path, "r")))
         {
             fgets (filedata , 200 , gamefile);
             fclose(gamefile);
