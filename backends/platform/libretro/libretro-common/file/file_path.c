@@ -41,7 +41,6 @@
 #include <retro_stat.h>
 #include <retro_miscellaneous.h>
 
-
 /**
  * path_mkdir:
  * @dir                : directory
