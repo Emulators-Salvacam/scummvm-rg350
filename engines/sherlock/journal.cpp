@@ -24,6 +24,7 @@
 #include "sherlock/scalpel/scalpel.h"
 #include "sherlock/scalpel/scalpel_fixed_text.h"
 #include "sherlock/scalpel/scalpel_journal.h"
+#include "sherlock/scalpel/scalpel_talk.h"
 #include "sherlock/tattoo/tattoo.h"
 #include "sherlock/tattoo/tattoo_fixed_text.h"
 #include "sherlock/tattoo/tattoo_journal.h"
@@ -485,9 +486,9 @@ void Journal::loadJournalFile(bool alreadyLoaded) {
 				// Copy text from the place until either the reply ends, a comment
 				// {} block is started, or a control character is encountered
 				journalString += c;
-				do {
+				while (*replyP && *replyP < opcodes[0] && *replyP != '{' && *replyP != '}') {
 					journalString += *replyP++;
-				} while (*replyP && *replyP < opcodes[0] && *replyP != '{' && *replyP != '}');
+				}
 
 				commentJustPrinted = false;
 			}
@@ -524,6 +525,9 @@ void Journal::loadJournalFile(bool alreadyLoaded) {
 				journalString += "the Inspector";
 			else
 				journalString += people._characters[c]._name;
+
+			if (IS_SERRATED_SCALPEL && _vm->getLanguage() == Common::DE_DEU)
+				Scalpel::ScalpelTalk::skipBadText(replyP);
 
 			const byte *strP = replyP;
 			byte v;

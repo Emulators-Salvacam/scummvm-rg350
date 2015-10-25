@@ -100,6 +100,21 @@ void ScalpelMap::loadData() {
 		while ((c = txtStream->readByte()) != '\0')
 			line += c;
 
+		// WORKAROUND: Special fixes for faulty translations
+		// Was obviously not done in the original interpreter
+		if (_vm->getLanguage() == Common::ES_ESP) {
+			// Spanish version
+			if (line == " Alley") {
+				// The "Alley" location was not translated, we do this now
+				// see bug #6931
+				line = " Callejon";
+			} else if (line == " Alamacen") {
+				// "Warehouse" location has a typo, we fix it
+				// see bug #6931
+				line = " Almacen";
+			}
+		}
+
 		_locationNames.push_back(line);
 	}
 

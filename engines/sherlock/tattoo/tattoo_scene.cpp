@@ -90,20 +90,25 @@ bool TattooScene::loadScene(const Common::String &filename) {
 		}
 	}
 
+	// Handle loading music for the scene
+	if (talk._scriptMoreFlag != 1 && talk._scriptMoreFlag != 3)
+		music._nextSongName = Common::String::format("res%02d", _currentScene);
+
 	// Set the NPC paths for the scene
 	setNPCPath(WATSON);
 
-	// Handle loading music for the scene
-	if (music._musicOn) {
-		if (talk._scriptMoreFlag != 1 && talk._scriptMoreFlag != 3)
-			music._nextSongName = Common::String::format("res%02d", _currentScene);
+	// If it's a new song, then start it up
+	if (music._currentSongName.compareToIgnoreCase(music._nextSongName)) {
+		// WORKAROUND: Stop playing music after Diogenes fire scene in the intro, 
+		// since it overlaps slightly into the next scene
+		if (talk._scriptName == "prol80p" && _currentScene == 80) {
+			music.stopMusic();
+			events.wait(5);
+		}
 
-		// If it's a new song, then start it up
-		if (music._currentSongName.compareToIgnoreCase(music._nextSongName)) {
-			if (music.loadSong(music._nextSongName)) {
-				if (music._musicOn)
-					music.startSong();
-			}
+		if (music.loadSong(music._nextSongName)) {
+			if (music._musicOn)
+				music.startSong();
 		}
 	}
 
@@ -655,8 +660,6 @@ int TattooScene::startCAnim(int cAnimNum, int playRate) {
 	if (ui._windowOpen)
 		ui.banishWindow();
 	
-	//_activeCAnim._filesize = cAnim._size;
-
 	// Open up the room resource file and get the data for the animation
 	Common::SeekableReadStream *stream = res.load(_roomFilename);
 	stream->seek(44 + cAnimNum * 4);
@@ -692,6 +695,7 @@ int TattooScene::startCAnim(int cAnimNum, int playRate) {
 				_goToScene = STARTING_GAME_SCENE;
 				talk._talkToAbort = true;
 				_activeCAnim.close();
+				break;
 			}
 		}
 	}
@@ -718,6 +722,7 @@ int TattooScene::startCAnim(int cAnimNum, int playRate) {
 	// Flag the Canimation to be cleared
 	_activeCAnim._zPlacement = REMOVE;
 	_activeCAnim._removeBounds = _activeCAnim._oldBounds;
+	_vm->_ui->_bgFound = -1;
 
 	// Free up the animation
 	_activeCAnim.close();

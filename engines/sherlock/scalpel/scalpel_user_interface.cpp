@@ -67,8 +67,6 @@ const int INVENTORY_POINTS[8][3] = {
 const char COMMANDS[13] = "LMTPOCIUGJFS";
 const char COMMANDS_3DO[13] = "LMTPOCIUGSFF";
 const char INVENTORY_COMMANDS[9] = { "ELUG-+,." };
-const char *const PRESS_KEY_FOR_MORE = "Press any Key for More.";
-const char *const PRESS_KEY_TO_CONTINUE = "Press any Key to Continue.";
 const int UI_OFFSET_3DO = 16;	// (320 - 288) / 2
 
 /*----------------------------------------------------------------*/
@@ -1300,9 +1298,11 @@ void ScalpelUserInterface::doMainControl() {
 		// Keyboard control
 		_keyboardInput = true;
 
-		if (_keyPress >= 'A' && _keyPress <= 'Z') {
-			const char *c = strchr(commands, _keyPress);
-			_temp = !c ? 12 : c - commands;
+		char key = toupper(_keyPress);
+		const char *c = strchr(commands, key);
+		if (c) {
+			_temp = c - commands;
+			_key = key;
 		} else {
 			_temp = 12;
 		}
@@ -1808,6 +1808,7 @@ void ScalpelUserInterface::printObjectDesc(const Common::String &str, bool first
 	ScalpelInventory &inv = *(ScalpelInventory *)_vm->_inventory;
 	ScalpelScreen &screen = *(ScalpelScreen *)_vm->_screen;
 	Talk &talk = *_vm->_talk;
+	FixedText &fixedText = *_vm->_fixedText;
 
 	if (str.hasPrefix("_")) {
 		_lookScriptFlag = true;
@@ -1938,20 +1939,26 @@ void ScalpelUserInterface::printObjectDesc(const Common::String &str, bool first
 
 	// Handle display depending on whether all the message was shown
 	if (!endOfStr) {
+		Common::String fixedText_PressKeyForMore = fixedText.getText(kFixedText_PressKey_ForMore);
+		Common::String fixedText_PressKeyForMoreHotkey = fixedText.getText(kFixedText_PressKey_ForMoreHotkey);
+		int fixedText_PressKeyForMoreLen = screen.stringWidth(fixedText_PressKeyForMore);
+
 		screen.makeButton(Common::Rect(46, CONTROLS_Y, 272, CONTROLS_Y + 10),
-			(SHERLOCK_SCREEN_WIDTH - screen.stringWidth(PRESS_KEY_FOR_MORE)) / 2,
-			PRESS_KEY_FOR_MORE);
-		screen.gPrint(Common::Point((SHERLOCK_SCREEN_WIDTH -
-			screen.stringWidth(PRESS_KEY_FOR_MORE)) / 2, CONTROLS_Y),
-			COMMAND_FOREGROUND, "P");
+			(SHERLOCK_SCREEN_WIDTH - fixedText_PressKeyForMoreLen) / 2,
+			fixedText_PressKeyForMore);
+		screen.gPrint(Common::Point((SHERLOCK_SCREEN_WIDTH - fixedText_PressKeyForMoreLen) / 2, CONTROLS_Y),
+			COMMAND_FOREGROUND, "%s", fixedText_PressKeyForMoreHotkey.c_str());
 		_descStr = msgP;
 	} else {
+		Common::String fixedText_PressKeyToContinue = fixedText.getText(kFixedText_PressKey_ToContinue);
+		Common::String fixedText_PressKeyToContinueHotkey = fixedText.getText(kFixedText_PressKey_ToContinueHotkey);
+		int fixedText_PressKeyToContinueLen = screen.stringWidth(fixedText_PressKeyToContinue);
+
 		screen.makeButton(Common::Rect(46, CONTROLS_Y, 272, CONTROLS_Y + 10),
-			(SHERLOCK_SCREEN_WIDTH - screen.stringWidth(PRESS_KEY_TO_CONTINUE)) / 2,
-			PRESS_KEY_TO_CONTINUE);
-		screen.gPrint(Common::Point((SHERLOCK_SCREEN_WIDTH -
-			screen.stringWidth(PRESS_KEY_TO_CONTINUE)) / 2, CONTROLS_Y),
-			COMMAND_FOREGROUND, "P");
+			(SHERLOCK_SCREEN_WIDTH - fixedText_PressKeyToContinueLen) / 2,
+			fixedText_PressKeyToContinue);
+		screen.gPrint(Common::Point((SHERLOCK_SCREEN_WIDTH - fixedText_PressKeyToContinueLen) / 2, CONTROLS_Y),
+			COMMAND_FOREGROUND, "%s", fixedText_PressKeyToContinueHotkey.c_str());
 		_descStr = "";
 	}
 

@@ -132,6 +132,11 @@ public:
 	bool talk3DOMovieTrigger(int subIndex);
 
 	/**
+	 * Handles skipping over bad text in conversations
+	 */
+	static void skipBadText(const byte *&msgP);
+
+	/**
 	 * Push the details of a passed object onto the saved sequences stack
 	 */
 	virtual void pushSequenceEntry(Object *obj);
@@ -145,7 +150,7 @@ public:
 	/**
 	 * Returns true if the script stack is empty
 	 */
-	virtual bool isSequencesEmpty() const { return _scriptStack.empty(); }
+	virtual bool isSequencesEmpty() const { return _sequenceStack.empty(); }
 
 	/**
 	 * Clears the stack of pending object sequences associated with speakers in the scene

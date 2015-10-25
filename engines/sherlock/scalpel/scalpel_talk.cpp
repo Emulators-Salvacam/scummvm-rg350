@@ -22,6 +22,7 @@
 
 #include "sherlock/scalpel/scalpel_talk.h"
 #include "sherlock/scalpel/scalpel_fixed_text.h"
+#include "sherlock/scalpel/scalpel_journal.h"
 #include "sherlock/scalpel/scalpel_map.h"
 #include "sherlock/scalpel/scalpel_people.h"
 #include "sherlock/scalpel/scalpel_scene.h"
@@ -188,6 +189,9 @@ void ScalpelTalk::talkInterface(const byte *&str) {
 	People &people = *_vm->_people;
 	ScalpelScreen &screen = *(ScalpelScreen *)_vm->_screen;
 	UserInterface &ui = *_vm->_ui;
+
+	if (_vm->getLanguage() == Common::DE_DEU)
+		skipBadText(str);
 
 	// If the window isn't yet open, draw the window before printing starts
 	if (!ui._windowOpen && _noTextYet) {
@@ -705,10 +709,14 @@ void ScalpelTalk::drawInterface() {
 		screen.makeButton(Common::Rect(181, CONTROLS_Y, 221, CONTROLS_Y + 10),
 			200 - screen.stringWidth(fixedText_Down) / 2, fixedText_Down);
 	} else {
-		int strWidth = screen.stringWidth(Scalpel::PRESS_KEY_TO_CONTINUE);
+		Common::String fixedText_PressKeyToContinue = fixedText.getText(kFixedText_PressKey_ToContinue);
+		Common::String fixedText_PressKeyToContinueHotkey = fixedText.getText(kFixedText_PressKey_ToContinueHotkey);
+		int fixedText_PressKeyToContinueLen = screen.stringWidth(fixedText_PressKeyToContinue);
+
 		screen.makeButton(Common::Rect(46, CONTROLS_Y, 273, CONTROLS_Y + 10),
-			160 - strWidth / 2, Scalpel::PRESS_KEY_TO_CONTINUE);
-		screen.gPrint(Common::Point(160 - strWidth / 2, CONTROLS_Y), COMMAND_FOREGROUND, "P");
+			160 - fixedText_PressKeyToContinueLen / 2, fixedText_PressKeyToContinue);
+		screen.gPrint(Common::Point(160 - fixedText_PressKeyToContinueLen / 2, CONTROLS_Y), COMMAND_FOREGROUND, 
+			"%s", fixedText_PressKeyToContinueHotkey.c_str());
 	}
 }
 
@@ -1004,6 +1012,14 @@ void ScalpelTalk::pullSequence(int slot) {
 
 void ScalpelTalk::clearSequences() {
 	_sequenceStack.clear();
+}
+
+void ScalpelTalk::skipBadText(const byte *&msgP) {
+	// WORKAROUND: Skip over bad text in the original game
+	const char *BAD_PHRASE1 = "Change Speaker to Sherlock Holmes ";
+
+	if (!strncmp((const char *)msgP, BAD_PHRASE1, strlen(BAD_PHRASE1)))
+		msgP += strlen(BAD_PHRASE1);
 }
 
 } // End of namespace Scalpel

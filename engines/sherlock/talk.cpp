@@ -575,6 +575,7 @@ void Talk::loadTalkFile(const Common::String &filename) {
 	_converseNum = res.resourceIndex();
 	talkStream->skip(2);	// Skip talk file version num
 
+	_statements.clear();
 	_statements.resize(talkStream->readByte());
 	for (uint idx = 0; idx < _statements.size(); ++idx)
 		_statements[idx].load(*talkStream, IS_ROSE_TATTOO);
@@ -597,7 +598,7 @@ void Talk::stripVoiceCommands() {
 				// rest of the name following it
 				statement._reply = Common::String(statement._reply.c_str(),
 					statement._reply.c_str() + idx) + " " +
-					Common::String(statement._reply.c_str() + 9);
+					Common::String(statement._reply.c_str() + idx + 9);
 			}
 		}
 
@@ -751,6 +752,22 @@ void Talk::doScript(const Common::String &script) {
 			while (*str++ != '}')
 				;
 		} else if (isOpcode(c)) {
+			// the original interpreter checked for c being >= 0x80
+			// and if that is the case, it tried to process it as opcode, BUT ALSO ALWAYS skipped over it
+			// This was done inside the Spanish + German interpreters of Serrated Scalpel, not the original
+			// English interpreter (reverse engineered from the binaries).
+			//
+			// This resulted in special characters not getting shown in case they occurred at the start
+			// of sentences like for example the inverted exclamation mark and the inverted question mark.
+			// For further study see fonts.cpp
+			//
+			// We create an inverted exclamation mark for the Spanish version and we show it.
+			//
+			// Us not skipping over those characters may result in an assert() happening inside fonts.cpp
+			// in case more invalid characters exist.
+			// More information see bug #6931
+			//
+
 			// Handle control code
 			switch ((this->*_opcodeTable[c - _opcodes[0]])(str)) {
 			case RET_EXIT:
@@ -830,7 +847,7 @@ int Talk::waitForMore(int delay) {
 	playingSpeech = sound.isSpeechPlaying();
 
 	do {
-		if (IS_SERRATED_SCALPEL && sound._speechOn && !sound.isSpeechPlaying())
+		if (IS_SERRATED_SCALPEL && playingSpeech && !sound.isSpeechPlaying())
 			people._portrait._frameNumber = -1;
 
 		scene.doBgAnim();
@@ -874,7 +891,7 @@ int Talk::waitForMore(int delay) {
 	} while (!_vm->shouldQuit() && key2 == 254 && (delay || (playingSpeech && sound.isSpeechPlaying()))
 		&& !events._released && !events._rightReleased);
 
-	// If voices was set 2 to indicate a voice file was place, then reset it back to 1
+	// If voices was set 2 to indicate a Scalpel voice file was playing, then reset it back to 1
 	if (sound._voices == 2)
 		sound._voices = 1;
 
@@ -1023,6 +1040,7 @@ OpcodeReturn Talk::cmdEndTextWindow(const byte *&str) {
 OpcodeReturn Talk::cmdHolmesOff(const byte *&str) {
 	People &people = *_vm->_people;
 	people[HOLMES]._type = REMOVE;
+	people._holmesOn = false;
 
 	return RET_SUCCESS;
 }
@@ -1030,6 +1048,7 @@ OpcodeReturn Talk::cmdHolmesOff(const byte *&str) {
 OpcodeReturn Talk::cmdHolmesOn(const byte *&str) {
 	People &people = *_vm->_people;
 	people[HOLMES]._type = CHARACTER;
+	people._holmesOn = true;
 
 	return RET_SUCCESS;
 }
@@ -1177,7 +1196,7 @@ void Talk::talkWait(const byte *&str) {
 		_endStr = true;
 
 	// If a key was pressed to finish the window, see if further voice files should be skipped
-	if (_wait >= 0 && _wait < 254) {
+	if (IS_SERRATED_SCALPEL && _wait >= 0 && _wait < 254) {
 		if (str[0] == _opcodes[OP_SFX_COMMAND])
 			str += 9;
 	}
