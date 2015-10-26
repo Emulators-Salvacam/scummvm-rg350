@@ -6,7 +6,7 @@
 #include "audio/mixer_intern.h"
 
 #include "os.h"
-#include "libco/libco.h"
+#include <libco.h>
 #include "libretro.h"
 
 #include <unistd.h>

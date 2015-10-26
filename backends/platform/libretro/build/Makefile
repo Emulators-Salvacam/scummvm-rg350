@@ -139,7 +139,7 @@ endif
 ###SCUMM VM
 srcdir = ../../../..
 retrodir = backends/platform/libretro
-libcodir = $(retrodir)/libco
+LIBRETROCOMMON_DIR = $(retrodir)/libretro-common
 VPATH = $(srcdir)
 
 # Define toolset
@@ -157,29 +157,24 @@ RM_REC        = rm -rf
 
 # Define build flags
 DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565 -DUSE_MT32EMU -Wno-multichar
-INCLUDES      += -I$(srcdir)/$(retrodir) \
-					  -I. \
-					  -I$(srcdir) \
-					  -I$(srcdir)/engines \
-					  -I../libco \
-					  -I../libretro-common/include
+INCLUDES      += -I$(srcdir)/$(retrodir) -I. -I$(srcdir) -I$(srcdir)/engines -I$(srcdir)/$(LIBRETROCOMMON_DIR)/include
 DEPDIR        = .deps
 HAVE_GCC3     = true
 USE_RGB_COLOR = true
 
 OBJS := $(retrodir)/libretro.o \
         $(retrodir)/os.o \
-		  $(libcodir)/libco.o
+		  $(srcdir)/$(LIBRETROCOMMON_DIR)/libco/libco.o
 
 ifneq ($(STATIC_LINKING), 1)
-OBJS +=  $(retrodir)/libretro-common/file/retro_dirent.o \
-			$(retrodir)/libretro-common/file/retro_stat.o \
-		  	$(retrodir)/libretro-common/file/file_path.o
+OBJS +=  $(srcdir)/$(LIBRETROCOMMON_DIR)/file/retro_dirent.o \
+			$(srcdir)/$(LIBRETROCOMMON_DIR)/file/retro_stat.o \
+		  	$(srcdir)/$(LIBRETROCOMMON_DIR)/file/file_path.o
 endif
 
 POSIX = 1
 DEFINES += -DFS_TYPE_POSIX
-MODULE_DIRS += $(retrodir) $(retrodir)/libco
+MODULE_DIRS += $(retrodir)
 
 BACKEND := libretro
 USE_MT32EMU = 1
