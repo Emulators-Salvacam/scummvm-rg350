@@ -169,7 +169,8 @@ OBJS := $(retrodir)/libretro.o \
 ifneq ($(STATIC_LINKING), 1)
 OBJS +=  $(srcdir)/$(LIBRETROCOMMON_DIR)/file/retro_dirent.o \
 			$(srcdir)/$(LIBRETROCOMMON_DIR)/file/retro_stat.o \
-		  	$(srcdir)/$(LIBRETROCOMMON_DIR)/file/file_path.o
+		  	$(srcdir)/$(LIBRETROCOMMON_DIR)/file/file_path.o \
+			$(srcdir)/$(LIBRETROCOMMON_DIR)/compat/compat_strl.o
 endif
 
 POSIX = 1
