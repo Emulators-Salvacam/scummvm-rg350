@@ -63,6 +63,8 @@ public:
 
 	void create(uint16 width, uint16 height);
 
+	bool empty() const { return w == 0 || h == 0 || pixels == nullptr; }
+
 	void clearBuffer();
 
 	bool clip(Common::Rect &r);
@@ -107,13 +109,13 @@ public:
 
 	virtual void transBlitFrom(ASurface &src);
 
-	virtual void blitFrom(Graphics::Surface &src);
+	virtual void blitFrom(const Graphics::Surface &src);
 
 	virtual void copyBuffer(Graphics::Surface *src);
 
 	virtual void addDirtyRect(const Common::Rect &r) {}
 
-	void copyTo(ASurface *dest) { dest->blitFrom(*this); }
+	void copyTo(ASurface *dest);
 
 	void saveBlock(const Common::Rect &bounds);
 

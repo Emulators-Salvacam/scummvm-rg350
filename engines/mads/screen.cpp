@@ -687,7 +687,6 @@ void ScreenSurface::panTransition(MSurface &newScreen, byte *palData, int entryS
 	int y1, y2;
 	int startX = 0;
 	int deltaX;
-	int xAt;
 	int loopStart;
 //	uint32 baseTicks, currentTicks;
 	byte paletteMap[256];
@@ -720,7 +719,7 @@ void ScreenSurface::panTransition(MSurface &newScreen, byte *palData, int entryS
 
 	loopStart = throughBlack == THROUGH_BLACK1 ? 0 : 1;
 	for (int loop = loopStart; loop < 2; ++loop) {
-		xAt = startX;
+		int xAt = startX;
 		for (int xCtr = 0; xCtr < size.x; ++xCtr, xAt += deltaX) {
 			if (!loop) {
 				fillRect(Common::Rect(xAt + destPos.x, y1 + destPos.y,
@@ -732,7 +731,7 @@ void ScreenSurface::panTransition(MSurface &newScreen, byte *palData, int entryS
 					srcPos.x + xAt + 1, srcPos.y + size.y));
 			} else {
 				newScreen.copyRectToSurface(*this, xAt, destPos.y,
-					Common::Rect(srcPos.x + xAt, srcPos.y, 
+					Common::Rect(srcPos.x + xAt, srcPos.y,
 					srcPos.x + xAt + 1, srcPos.y + size.y));
 			}
 
@@ -778,8 +777,8 @@ void ScreenSurface::swapForeground(byte newPalette[PALETTE_SIZE], byte *paletteM
 
 	Common::Rect oldClip = _clipBounds;
 	resetClipBounds();
-	
-	copyRectTranslate(*this, oldMap, Common::Point(0, 0), 
+
+	copyRectTranslate(*this, oldMap, Common::Point(0, 0),
 		Common::Rect(0, 0, MADS_SCREEN_WIDTH, MADS_SCREEN_HEIGHT));
 	palette.setFullPalette(oldPalette);
 
@@ -789,9 +788,9 @@ void ScreenSurface::swapForeground(byte newPalette[PALETTE_SIZE], byte *paletteM
 /**
  * Translates a given palette into a mapping table.
  * Palettes consist of 128 RGB entries for the foreground and background
- * respectively, with the two interleaved together. So the start 
+ * respectively, with the two interleaved together. So the start
  */
-void ScreenSurface::swapPalette(const byte *palData, byte swapTable[PALETTE_COUNT], 
+void ScreenSurface::swapPalette(const byte *palData, byte swapTable[PALETTE_COUNT],
 		bool foreground) {
 	int start = foreground ? 1 : 0;
 	const byte *dynamicList = &palData[start * RGB_SIZE];
@@ -807,7 +806,7 @@ void ScreenSurface::swapPalette(const byte *palData, byte swapTable[PALETTE_COUN
 	// Handle the 128 palette entries for the foreground or background
 	for (int idx = 0; idx < (PALETTE_COUNT / 2); ++idx) {
 		if (start >= PALETTE_START && start <= PALETTE_END) {
-			swapTable[start] = Palette::closestColor(dynamicList, staticList, 
+			swapTable[start] = Palette::closestColor(dynamicList, staticList,
 				2 * RGB_SIZE, PALETTE_COUNT / 2) * 2 + staticStart;
 		}
 

@@ -867,6 +867,7 @@ Special configuration feature:
                                            tizen for Samsung Tizen
                                            caanoo for Caanoo
                                            dingux for Dingux
+                                           raspberrypi for Raspberry Pi
                                            dreamcast for Sega Dreamcast
                                            ds for Nintendo DS
                                            gamecube for Nintendo GameCube
@@ -1304,6 +1305,13 @@ android-x86)
 arm-riscos)
 	_host_os=riscos
 	_host_cpu=arm
+	;;
+raspberrypi)
+	_host_os=linux
+	_host_cpu=arm
+	# This tuple is the one used by the official Rpi toolchain.
+	# It may change in the future.
+	_host_alias=bcm2708hardfp
 	;;
 caanoo)
 	_host_os=gph-linux
@@ -2559,6 +2567,30 @@ if test -n "$_host"; then
 			_seq_midi=no
 			_port_mk="backends/platform/dingux/dingux.mk"
 			;;
+		raspberrypi)
+			# This is needed because the official cross compiler doesn't have multiarch enabled
+			# but Raspbian does.
+			# Be careful as it's the linker (LDFLAGS) which must know about sysroot.
+			# These are needed to build against Raspbian's libSDL.
+			append_var LDFLAGS "--sysroot=$RPI_ROOT"
+			append_var LDFLAGS "-B$RPI_ROOT/usr/lib/arm-linux-gnueabihf"
+			append_var LDFLAGS "-Xlinker --rpath-link=$RPI_ROOT/usr/lib/arm-linux-gnueabihf"
+			append_var LDFLAGS "-Xlinker --rpath-link=$RPI_ROOT/lib/arm-linux-gnueabihf"
+			append_var LDFLAGS "-Xlinker --rpath-link=$RPI_ROOT/opt/vc/lib"
+			append_var LDFLAGS "-L$RPI_ROOT/opt/vc/lib"
+			# This is so optional OpenGL ES includes are found.
+			append_var CXXFLAGS "-I$RPI_ROOT/opt/vc/include"
+			_savegame_timestamp=no
+			_eventrec=no
+			_build_scalers=no
+			_build_hq_scalers=no
+			# We prefer SDL2 on the Raspberry Pi: acceleration now depends on it 
+			# since SDL2 manages dispmanx/GLES2 very well internally.
+			# SDL1 is bit-rotten on this platform.
+			_sdlconfig=sdl2-config
+			# We should add _opengles=yes later here if we wanted the GLES renderer.
+			# For now, we use plain SDL2 only, which in turn uses GLES2 by default.
+			;;
 		dreamcast)
 			append_var DEFINES "-DDISABLE_DEFAULT_SAVEFILEMANAGER"
 			append_var DEFINES "-DDISABLE_TEXT_CONSOLE"
@@ -3138,7 +3170,6 @@ case $_backend in
 		fi
 		;;
 esac
-
 
 #
 # Determine whether host is POSIX compliant, or at least POSIX
@@ -4006,6 +4037,13 @@ EOF
 int main(void) { return GL_OES_VERSION_1_1; }
 EOF
 			cc_check $DEFINES $OPENGL_CFLAGS $OPENGL_LIBS && _opengl=yes && _opengles=yes && break
+
+			# Test the current header for OpenGL ES on SBCs (Raspberry Pi, Cubieboard, etc)
+			cat > $TMPC << EOF
+#include <$i>
+int main(void) { return GL_VERSION_ES_CM_1_1; }
+EOF
+			cc_check $DEFINES $OPENGL_CFLAGS $OPENGL_LIBS && _opengl=yes && _opengles=yes && break
 		done
 	fi
 fi
@@ -4072,7 +4110,6 @@ fi
 
 define_in_config_if_yes "$_opengl" "USE_OPENGL"
 define_in_config_if_yes "$_opengles" "USE_GLES"
-
 
 #
 # Check for nasm
