@@ -518,6 +518,7 @@ void Music::freeSong() {
 		_midiParser->unloadMusic();
 	}
 
+	delete[] _midiMusicData;
 	_midiMusicData = nullptr;
 	_musicPlaying = false;
 }

@@ -1,21 +1,22 @@
 # Russian translation for ScummVM.
 # Copyright (C) 2010-2015 The ScummVM Team
 # This file is distributed under the same license as the ScummVM package.
-# Eugene Sandulenko <sev@scummvm.org>, 2010-2015
+# Eugene Sandulenko <sev@scummvm.org>, 2010-2014
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: ScummVM 1.8.0svn\n"
+"Project-Id-Version: ScummVM 1.3.0svn\n"
 "Report-Msgid-Bugs-To: scummvm-devel@lists.sf.net\n"
 "POT-Creation-Date: 2015-10-11 18:59+0100\n"
-"PO-Revision-Date: 2015-11-06 09:23+0300\n"
+"PO-Revision-Date: 2014-07-02 17:20+0300\n"
 "Last-Translator: Eugene Sandulenko <sev@scummvm.org>\n"
 "Language-Team: Russian\n"
 "Language: Russian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-5\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3;     plural=n%10==1 && n%100!=11 ? 0 :            n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Poedit 1.5.5\n"
 
 #: gui/about.cpp:94
@@ -74,7 +75,7 @@ msgstr "Выбрать"
 
 #: gui/editrecorddialog.cpp:58
 msgid "Author:"
-msgstr "Автор:"
+msgstr ""
 
 #: gui/editrecorddialog.cpp:59 gui/launcher.cpp:204
 msgid "Name:"
@@ -82,11 +83,11 @@ msgstr "Название:"
 
 #: gui/editrecorddialog.cpp:60
 msgid "Notes:"
-msgstr "Заметки:"
+msgstr ""
 
 #: gui/editrecorddialog.cpp:68 gui/predictivedialog.cpp:75
 msgid "Ok"
-msgstr "Ok"
+msgstr ""
 
 #: gui/gui-manager.cpp:117 backends/keymapper/remap-dialog.cpp:53
 #: engines/scumm/help.cpp:126 engines/scumm/help.cpp:141
@@ -544,7 +545,7 @@ msgstr "Много игр..."
 
 #: gui/launcher.cpp:1161
 msgid "Record..."
-msgstr "Запись..."
+msgstr ""
 
 #: gui/massadd.cpp:79 gui/massadd.cpp:82
 msgid "... progress ..."
@@ -571,19 +572,21 @@ msgstr "Найдено %d новых игр, пропущено %d ранее добавленных игр ..."
 
 #: gui/onscreendialog.cpp:101 gui/onscreendialog.cpp:103
 msgid "Stop"
-msgstr "Стоп"
+msgstr ""
 
 #: gui/onscreendialog.cpp:106
 msgid "Edit record description"
-msgstr "Редактировать описание записи"
+msgstr ""
 
 #: gui/onscreendialog.cpp:108
+#, fuzzy
 msgid "Switch to Game"
-msgstr "Переключиться в игру"
+msgstr "Переключить"
 
 #: gui/onscreendialog.cpp:110
+#, fuzzy
 msgid "Fast replay"
-msgstr "Быстрое воспроизведение"
+msgstr "Быстрый режим"
 
 #: gui/options.cpp:85
 msgid "Never"
@@ -984,28 +987,29 @@ msgstr ""
 #. I18N: You must leave "#" as is, only word 'next' is translatable
 #: gui/predictivedialog.cpp:87
 msgid "#  next"
-msgstr "#  след"
+msgstr ""
 
 #: gui/predictivedialog.cpp:88
 msgid "add"
-msgstr "доб"
+msgstr ""
 
 #: gui/predictivedialog.cpp:92
+#, fuzzy
 msgid "Delete char"
-msgstr "Удалить символ"
+msgstr "Удалить"
 
 #: gui/predictivedialog.cpp:96
 msgid "<"
-msgstr "<"
+msgstr ""
 
 #. I18N: Pre means 'Predictive', leave '*' as is
 #: gui/predictivedialog.cpp:98
 msgid "*  Pre"
-msgstr "*  Pre"
+msgstr ""
 
 #: gui/recorderdialog.cpp:64
 msgid "Recorder or Playback Gameplay"
-msgstr "Воспроизвести или записать игровой процесс"
+msgstr ""
 
 #: gui/recorderdialog.cpp:69 gui/recorderdialog.cpp:156
 #: gui/saveload-dialog.cpp:220 gui/saveload-dialog.cpp:276
@@ -1014,33 +1018,36 @@ msgstr "Удалить"
 
 #: gui/recorderdialog.cpp:71
 msgid "Record"
-msgstr "Записать"
+msgstr ""
 
 #: gui/recorderdialog.cpp:72
+#, fuzzy
 msgid "Playback"
-msgstr "Воспроизвести"
+msgstr "Играть"
 
 #: gui/recorderdialog.cpp:74
 msgid "Edit"
-msgstr "Редактировать"
+msgstr ""
 
 #: gui/recorderdialog.cpp:86 gui/recorderdialog.cpp:243
 #: gui/recorderdialog.cpp:253
 msgid "Author: "
-msgstr "Автор: "
+msgstr ""
 
 #: gui/recorderdialog.cpp:87 gui/recorderdialog.cpp:244
 #: gui/recorderdialog.cpp:254
 msgid "Notes: "
-msgstr "Заметки: "
+msgstr ""
 
 #: gui/recorderdialog.cpp:155
+#, fuzzy
 msgid "Do you really want to delete this record?"
-msgstr "Вы действительно хотите удалить эту запись?"
+msgstr "Вы действительно хотите удалить это сохранение?"
 
 #: gui/recorderdialog.cpp:174
+#, fuzzy
 msgid "Unknown Author"
-msgstr "Неизвестный автор"
+msgstr "Неизвестная ошибка"
 
 #: gui/saveload-dialog.cpp:167
 msgid "List view"
@@ -1504,7 +1511,7 @@ msgstr "Эмулятор DOSBox OPL"
 
 #: audio/fmopl.cpp:67
 msgid "ALSA Direct FM"
-msgstr "Прямой FM ALSA"
+msgstr ""
 
 #: audio/mididrv.cpp:209
 #, c-format
@@ -2198,25 +2205,25 @@ msgstr ""
 "ScummVM"
 
 #: engines/agi/detection.cpp:157
+#, fuzzy
 msgid "Use an alternative palette"
-msgstr "Использовать альтернативную палитру"
+msgstr "Использовать альтернативное вступление (только для CD версии игры)"
 
 #: engines/agi/detection.cpp:158
 msgid ""
 "Use an alternative palette, common for all Amiga games. This was the old "
 "behavior"
 msgstr ""
-"Использовать альтернативную палитру для всех игр Amiga. Это было старое поведение"
 
 #: engines/agi/detection.cpp:167
+#, fuzzy
 msgid "Mouse support"
-msgstr "Поддержка мыши"
+msgstr "Поддержка пропусков"
 
 #: engines/agi/detection.cpp:168
 msgid ""
 "Enables mouse support. Allows to use mouse for movement and in game menus."
 msgstr ""
-"Включает поддержку мыши. Позволяет использовать мышь для перемещения и в меню игры."
 
 #: engines/agi/saveload.cpp:816 engines/drascula/saveload.cpp:349
 #: engines/dreamweb/saveload.cpp:169 engines/neverhood/menumodule.cpp:886
@@ -2269,12 +2276,13 @@ msgid "Cutscene file '%s' not found!"
 msgstr "Файл заставки '%s' не найден!"
 
 #: engines/cge/detection.cpp:105 engines/cge2/detection.cpp:101
+#, fuzzy
 msgid "Color Blind Mode"
-msgstr "Режим без цвета"
+msgstr "Режим щелчка"
 
 #: engines/cge/detection.cpp:106 engines/cge2/detection.cpp:102
 msgid "Enable Color Blind Mode by default"
-msgstr "Включить режим для людей со слабым восприятием цвета"
+msgstr ""
 
 #: engines/drascula/saveload.cpp:47
 msgid ""
@@ -2330,11 +2338,11 @@ msgstr "Не удалось сохранить игру"
 
 #: engines/hopkins/detection.cpp:76 engines/hopkins/detection.cpp:86
 msgid "Gore Mode"
-msgstr "Режим с кровью"
+msgstr ""
 
 #: engines/hopkins/detection.cpp:77 engines/hopkins/detection.cpp:87
 msgid "Enable Gore Mode when available"
-msgstr "Включает режим с изображением крови, если доступно"
+msgstr ""
 
 #. I18N: Studio audience adds an applause and cheering sounds whenever
 #. Malcolm makes a joke.
@@ -2467,12 +2475,6 @@ msgid ""
 "Do you wish to use this save game file with ScummVM?\n"
 "\n"
 msgstr ""
-"Нижеследующий файл сохранения из оригинальной игры был найден в вашей игровой директории:\n"
-"\n"
-"%s %s\n"
-"\n"
-"Не желаете ли использовать это сохранение в ScummVM?\n"
-"\n"
 
 #: engines/kyra/saveload_eob.cpp:590
 #, c-format
@@ -2480,8 +2482,6 @@ msgid ""
 "A save game file was found in the specified slot %d. Overwrite?\n"
 "\n"
 msgstr ""
-"В указанном слоте %d уже есть сохранение игры. Перезаписать?\n"
-"\n"
 
 #: engines/kyra/saveload_eob.cpp:623
 #, c-format
@@ -2493,10 +2493,6 @@ msgid ""
 "'import_savefile'.\n"
 "\n"
 msgstr ""
-"%d оригинальных файлов сохранения были успешно импортированы в ScummVM.\n"
-"Если вы захотите импортировать оригинпльные сохранения, вам нужно будет\n"
-"открыть отладочную консоль ScummVM и ввести команду 'import_savefile'.\n"
-"\n"
 
 #. I18N: Option for fast scene switching
 #: engines/mohawk/dialogs.cpp:92 engines/mohawk/dialogs.cpp:167
@@ -2635,11 +2631,11 @@ msgstr "Использовать альтернативное вступление (только для CD версии игры)"
 
 #: engines/sci/detection.cpp:374
 msgid "Skip EGA dithering pass (full color backgrounds)"
-msgstr "Не делать аппроксимацию цветов EGA (полноцветные фоны)"
+msgstr ""
 
 #: engines/sci/detection.cpp:375
 msgid "Skip dithering pass in EGA games, graphics are shown with full colors"
-msgstr "Пропускает проход аппроксимации цветов EGA, графика будет показана со всеми цветами"
+msgstr ""
 
 #: engines/sci/detection.cpp:384
 msgid "Prefer digital sound effects"
@@ -2716,13 +2712,15 @@ msgstr "Игра остановлена.  Нажмите пробел, чтобы продолжить."
 #. "Moechten Sie wirklich neu starten?  (J/N)J"
 #. Will react to J as 'Yes'
 #: engines/scumm/dialogs.cpp:183
+#, fuzzy
 msgid "Are you sure you want to restart?  (Y/N)Y"
-msgstr "Вы уверены, что хотите начать снова?  (Y/N)Y"
+msgstr "Вы уверены, что хотите начать снова?  (Y/N)"
 
 #. I18N: you may specify 'Yes' symbol at the end of the line. See previous comment
 #: engines/scumm/dialogs.cpp:185
+#, fuzzy
 msgid "Are you sure you want to quit?  (Y/N)Y"
-msgstr "Вы уверены, что хотите выйти?  (Y/N)Y"
+msgstr "Вы уверены, что хотите выйти?  (Y/N)"
 
 #: engines/scumm/dialogs.cpp:190
 msgid "Play"
@@ -3230,24 +3228,25 @@ msgid "Third kid"
 msgstr "Третий герой"
 
 #: engines/scumm/help.cpp:292
+#, fuzzy
 msgid "Toggle Inventory/IQ Points display"
-msgstr "Переключить показ инвентаря/очков IQ"
+msgstr "Включить показ данных в центре экрана"
 
 #: engines/scumm/help.cpp:293
 msgid "Toggle Keyboard/Mouse Fighting (*)"
-msgstr "Переключить управление боями Клввиатурой/Мышью (*)"
+msgstr ""
 
 #: engines/scumm/help.cpp:295
 msgid "* Keyboard Fighting is always on,"
-msgstr "* Управление клавиатурой всегда включено,"
+msgstr ""
 
 #: engines/scumm/help.cpp:296
 msgid "  so despite the in-game message this"
-msgstr "  твк что несмотря на сообщение игры,"
+msgstr ""
 
 #: engines/scumm/help.cpp:297
 msgid "  actually toggles Mouse Fighting Off/On"
-msgstr "  на самом деле это вкл/выкл управление мышью"
+msgstr ""
 
 #: engines/scumm/help.cpp:304
 msgid "Fighting controls (numpad):"
@@ -3284,7 +3283,7 @@ msgstr "Удар снизу"
 
 #: engines/scumm/help.cpp:315
 msgid "Sucker punch"
-msgstr "Удар сзади"
+msgstr ""
 
 #: engines/scumm/help.cpp:318
 msgid "These are for Indy on left."
@@ -3343,20 +3342,23 @@ msgid "Fly to lower right"
 msgstr "Лететь вправо-вниз"
 
 #: engines/scumm/input.cpp:572
+#, fuzzy
 msgid "Snap scroll on"
-msgstr "Прокрутка скачками включена"
+msgstr "Плавная прокрутка"
 
 #: engines/scumm/input.cpp:574
 msgid "Snap scroll off"
-msgstr "Прокрутка скачками выкл"
+msgstr ""
 
 #: engines/scumm/input.cpp:587
+#, fuzzy
 msgid "Music volume: "
-msgstr "Громк. музыки: "
+msgstr "Громк. музыки:"
 
 #: engines/scumm/input.cpp:604
+#, fuzzy
 msgid "Subtitle speed: "
-msgstr "Скорость титров: "
+msgstr "Скорость титров:"
 
 #: engines/scumm/scumm.cpp:1832
 #, c-format
@@ -3368,30 +3370,27 @@ msgstr ""
 "LucasArts, но не хватает %s. Переключаюсь на AdLib."
 
 #: engines/scumm/scumm.cpp:2644
+#, fuzzy
 msgid ""
 "Usually, Maniac Mansion would start now. But for that to work, the game "
 "files for Maniac Mansion have to be in the 'Maniac' directory inside the "
 "Tentacle game directory, and the game has to be added to ScummVM."
 msgstr ""
-"Сейчас должна запуститься игра Maniac Mansion. Но чтобы это работало, файлы "
-"игры Maniac Mansion должны быть скопированы в директорию 'Maniac' внутри "
-"директории игры Tentacle, и сама игра должна быть добавлена в ScummVM."
+"Сейчас должна запуститься игра Maniac Mansion. Но ScummVM пока этого не "
+"умеет. Чтобы сыграть, нажмите 'Новая игра' в стартовом меню ScummVM, а затем "
+"выберите директорию Maniac внутри директории с игрой Tentacle."
 
 #: engines/scumm/players/player_v3m.cpp:129
 msgid ""
 "Could not find the 'Loom' Macintosh executable to read the\n"
 "instruments from. Music will be disabled."
 msgstr ""
-"Не удалось найти исполнимый файл 'Loom' Macintosh, чтобы прочитать\n"
-"данные об инструментах. Музыка будет выключена."
 
 #: engines/scumm/players/player_v5m.cpp:107
 msgid ""
 "Could not find the 'Monkey Island' Macintosh executable to read the\n"
 "instruments from. Music will be disabled."
 msgstr ""
-"Не удалось найти исполнимый файл 'Monkey Island' Macintosh, чтобы прочитать\n"
-"данные об инструментах. Музыка будет выключена."
 
 #: engines/sky/compact.cpp:130
 msgid ""
@@ -3507,13 +3506,14 @@ msgstr ""
 
 #: engines/wintermute/detection.cpp:58
 msgid "Show FPS-counter"
-msgstr "Показать счётчик кадров в секунду"
+msgstr ""
 
 #: engines/wintermute/detection.cpp:59
 msgid "Show the current number of frames per second in the upper left corner"
-msgstr "Показать в верхнем левом углу текущее количество кадров в секунду"
+msgstr ""
 
 #: engines/zvision/detection_tables.h:52
+#, fuzzy
 msgid "Use the original save/load screens instead of the ScummVM interface"
 msgstr ""
 "Использовать оригинальные экраны записи и сохранения игры вместо сделанных в "
@@ -3521,36 +3521,39 @@ msgstr ""
 
 #: engines/zvision/detection_tables.h:61
 msgid "Double FPS"
-msgstr "Двойноq FPS"
+msgstr ""
 
 #: engines/zvision/detection_tables.h:62
 msgid "Increase framerate from 30 to 60 FPS"
-msgstr "Увеличить частоту кадров с 30 до 60 Гц"
+msgstr ""
 
 #: engines/zvision/detection_tables.h:71
+#, fuzzy
 msgid "Enable Venus"
-msgstr "Включить Venus"
+msgstr "Включить режим гелия"
 
 #: engines/zvision/detection_tables.h:72
+#, fuzzy
 msgid "Enable the Venus help system"
-msgstr "Включить систему помощи Venus"
+msgstr "Включить режим гелия"
 
 #: engines/zvision/detection_tables.h:81
 msgid "Disable animation while turning"
-msgstr "Выключить анимацию во время поворотов"
+msgstr ""
 
 #: engines/zvision/detection_tables.h:82
 msgid "Disable animation while turning in panorama mode"
-msgstr "Выключить анимацию во время поворотов в режиме панормаы"
+msgstr ""
 
 #: engines/zvision/detection_tables.h:91
 msgid "Use high resolution MPEG video"
-msgstr "Использовать видео MPEG высокого разрешения"
+msgstr ""
 
 #: engines/zvision/detection_tables.h:92
+#, fuzzy
 msgid "Use MPEG video from the DVD version, instead of lower resolution AVI"
 msgstr ""
-"Использовать MPEG видео из DVD версии, вместо видео низкого разрешения в формате AVI"
+"Использовать альтернативный набор серебряных курсоров вместо обычных золотых"
 
 #~ msgid "EGA undithering"
 #~ msgstr "EGA без растра"

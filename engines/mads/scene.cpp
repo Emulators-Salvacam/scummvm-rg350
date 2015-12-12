@@ -24,7 +24,6 @@
 #include "mads/scene.h"
 #include "mads/compression.h"
 #include "mads/mads.h"
-#include "mads/audio.h"
 #include "mads/dragonsphere/dragonsphere_scenes.h"
 #include "mads/nebular/nebular_scenes.h"
 #include "mads/phantom/phantom_scenes.h"
@@ -50,8 +49,7 @@ Scene::Scene(MADSEngine *vm)
 	_reloadSceneFlag = false;
 	_freeAnimationFlag = false;
 	_animationData = nullptr;
-	for (int i = 0; i < 10; i++)
-		_animation[i] = nullptr;
+	_activeAnimation = nullptr;
 	_textSpacing = -1;
 	_frameStartTime = 0;
 	_mode = SCREENMODE_VGA;
@@ -61,8 +59,6 @@ Scene::Scene(MADSEngine *vm)
 	_interfaceY = 0;
 	_spritesCount = 0;
 	_variant = 0;
-
-	_speechReady = -1;
 
 	_paletteUsageF.push_back(PaletteUsage::UsageEntry(0xF));
 
@@ -154,8 +150,6 @@ void Scene::loadScene(int sceneId, const Common::String &prefix, bool palFlag) {
 	_sequences.clear();
 	_kernelMessages.clear();
 	_vm->_palette->_paletteUsage.load(&_scenePaletteUsage);
-	if (_vm->getGameID() != GType_RexNebular)
-		setCamera(Common::Point(0, 0));
 
 	int flags = SCENEFLAG_LOAD_SHADOW;
 	if (_vm->_dithering)
@@ -391,7 +385,6 @@ void Scene::doFrame() {
 				!_vm->_game->_fx);
 	}
 
-	_vm->_game->camUpdate();
 	if (_action._selectedAction && player._stepEnabled && !player._needToWalk &&
 			!_vm->_game->_trigger && !player._trigger) {
 		_action.startAction();
@@ -437,7 +430,8 @@ void Scene::doFrame() {
 				_sequences.tick();
 
 				// Handle any active animation
-				animations_tick();
+				if (_activeAnimation)
+					_activeAnimation->update();
 			}
 
 			// If the debugget flag is set, show the mouse position
@@ -486,10 +480,8 @@ void Scene::doFrame() {
 	_vm->_game->_fx = kTransitionNone;
 
 	// Handle freeing animation if necessary
-	for (int i = 0; i < 10; i++) {
-		if (_animation[i] && _animation[i]->freeFlag())
-			_freeAnimationFlag = true;
-	}
+	if (_activeAnimation && _activeAnimation->freeFlag())
+		_freeAnimationFlag = true;
 	if (_freeAnimationFlag)
 		freeAnimation();
 }
@@ -613,29 +605,19 @@ void Scene::checkKeyboard() {
 	}
 }
 
-int Scene::loadAnimation(const Common::String &resName, int trigger) {
+void Scene::loadAnimation(const Common::String &resName, int trigger) {
 	// WORKAROUND: If there's already a previous active animation used by the
 	// scene, then free it before we create the new one
-	if ((_vm->getGameID() == GType_RexNebular) && _animation[0])
-		freeAnimation(0);
+	if (_activeAnimation)
+		freeAnimation();
 
 	DepthSurface depthSurface;
 	UserInterface interfaceSurface(_vm);
 
-	for (int i = 0; i < 10; i++) {
-		if (!_animation[i]) {
-			_animation[i] = Animation::init(_vm, this);
-			_animation[i]->load(interfaceSurface, depthSurface, resName,
-				_vm->_dithering ? ANIMFLAG_DITHER : 0, nullptr, nullptr);
-			_animation[i]->startAnimation(trigger);
-
-			return i;
-		}
-	}
-
-	error("Unable to find an available animation slot");
-
-	return -1;
+	_activeAnimation = Animation::init(_vm, this);
+	_activeAnimation->load(interfaceSurface, depthSurface, resName,
+		_vm->_dithering ? ANIMFLAG_DITHER : 0, nullptr, nullptr);
+	_activeAnimation->startAnimation(trigger);
 }
 
 void Scene::updateCursor() {
@@ -676,12 +658,9 @@ void Scene::freeCurrentScene() {
 		delete _animationData;
 		_animationData = nullptr;
 	}
-
-	for (int i = 0; i < 10; i++) {
-		if (_animation[i]) {
-			delete _animation[i];
-			_animation[i] = nullptr;
-		}
+	if (_activeAnimation) {
+		delete _activeAnimation;
+		_activeAnimation = nullptr;
 	}
 
 	_vm->_palette->_paletteUsage.load(nullptr);
@@ -713,40 +692,33 @@ void Scene::resetScene() {
 }
 
 void Scene::freeAnimation() {
-	for (int j = 0; j < 10; j++)
-		freeAnimation(j);
+	if (_activeAnimation) {
+		Player &player = _vm->_game->_player;
 
-	_freeAnimationFlag = false;
-}
+		if (!_freeAnimationFlag) {
+			_spriteSlots.fullRefresh(true);
+			_sequences.scan();
+		}
 
-void Scene::freeAnimation(int idx) {
-	if (_animation[idx]) {
-		if (idx == 0) {
-			Player &player = _vm->_game->_player;
-
-			if (!_freeAnimationFlag) {
-				_spriteSlots.fullRefresh(true);
-				_sequences.scan();
-			}
-
-			// Refresh the player
-			if (player._visible) {
-				player._forceRefresh = true;
-				player.update();
-			}
+		// Refresh the player
+		if (player._visible) {
+			player._forceRefresh = true;
+			player.update();
 		}
 
 		// Remove any kernel messages in use by the animation
-		for (uint i = 0; i < _animation[idx]->_messages.size(); ++i) {
-			int msgIndex = _animation[idx]->_messages[i]._kernelMsgIndex;
+		for (uint i = 0; i < _activeAnimation->_messages.size(); ++i) {
+			int msgIndex = _activeAnimation->_messages[i]._kernelMsgIndex;
 			if (msgIndex >= 0)
 				_kernelMessages.remove(msgIndex);
 		}
 
 		// Delete the animation
-		delete _animation[idx];
-		_animation[idx] = nullptr;
+		delete _activeAnimation;
+		_activeAnimation = nullptr;
 	}
+
+	_freeAnimationFlag = false;
 }
 
 void Scene::synchronize(Common::Serializer &s) {
@@ -757,107 +729,7 @@ void Scene::synchronize(Common::Serializer &s) {
 	s.syncAsByte(_roomChanged);
 	s.syncAsUint16LE(_nextSceneId);
 	s.syncAsUint16LE(_priorSceneId);
-	s.syncAsSint16LE(_variant);
 	_dynamicHotspots.synchronize(s);
-}
-
-void Scene::setAnimFrame(int id, int val) {
-	if ((id >= 0) && _animation[id])
-		_animation[id]->setCurrentFrame(val);
-}
-
-int Scene::getAnimFrame(int id) {
-	if ((id >= 0) && _animation[id])
-		return _animation[id]->getCurrentFrame();
-
-	return -1;
-}
-
-void Scene::setDynamicAnim(int id, int anim_id, int segment) {
-	if (id >= 0 && id <= DYNAMIC_HOTSPOTS_SIZE && _animation[anim_id]) {
-		_animation[anim_id]->_dynamicHotspotIndex = id;
-		if (_dynamicHotspots[id]._animIndex < 0)
-			_dynamicHotspots[id]._active = false;
-		_dynamicHotspots[id]._animIndex = anim_id;
-
-		// TODO: Anim segments
-
-		// NOTE: Only remove the TODO below when _dynamicHotspotIndex
-		// in the Animation class is actually used in the engine!
-
-		warning("TODO: Scene::setDynamicAnim");
-	}
-}
-
-void Scene::setCamera(Common::Point pos) {
-	_posAdjust = pos;
-	warning("setCamera: Incomplete function");
-}
-
-void Scene::drawToBackground(int spriteId, int frameId, Common::Point pos, int depth, int scale) {
-	SpriteAsset &asset = *_sprites[spriteId];
-
-	if (pos.x == -32000)
-		pos.x = asset.getFramePos(frameId - 1).x;
-	if (pos.y == -32000)
-		pos.y = asset.getFramePos(frameId - 1).y;
-
-	int slotIndex = _spriteSlots.add();
-	SpriteSlot &slot = _spriteSlots[slotIndex];
-	slot._spritesIndex = spriteId;
-	slot._frameNumber = frameId;
-	slot._seqIndex = 1;
-	slot._position = pos;
-	slot._depth = depth;
-	slot._scale = scale;
-	slot._flags = IMG_DELTA;
-}
-
-void Scene::deleteSequence(int idx) {
-	if (_sequences[idx]._active && _sequences[idx]._dynamicHotspotIndex >= 0)
-		_dynamicHotspots.remove(_sequences[idx]._dynamicHotspotIndex);
-
-	_sequences[idx]._active = false;
-
-	if (!_sequences[idx]._doneFlag) {
-		warning("TODO: deleteSequence: Sequence %d not done", idx);
-		// TODO: This is wrong, and crashes Phantom at scene 102 when the door is opened
-		//doFrame();	// FIXME/CHECKME: Is this correct?
-	} else {
-		_sequences.remove(idx);
-	}
-}
-
-void Scene::loadSpeech(int idx) {
-	_vm->_audio->setDefaultSoundGroup();
-	// NOTE: The original actually preloads the speech sample here, but the samples
-	// are so small that it's not really worth it...
-
-	// TODO: As the speech samples aren't cached anymore, _speechReady should be remove
-	_speechReady = idx;
-}
-
-void Scene::playSpeech(int idx) {
-	_vm->_audio->stop();
-	_vm->_audio->playSound(idx - 1);
-}
-
-void Scene::sceneScale(int yFront, int maxScale, int yBack,  int minScale) {
-	_sceneInfo->_yBandsEnd = yFront;
-	_sceneInfo->_maxScale = maxScale;
-	_sceneInfo->_yBandsStart = yBack;
-	_sceneInfo->_minScale = minScale;
-
-	_bandsRange = _sceneInfo->_yBandsEnd - _sceneInfo->_yBandsStart;
-	_scaleRange = _sceneInfo->_maxScale - _sceneInfo->_minScale;
-}
-
-void Scene::animations_tick() {
-	//warning("TODO: Implement _animations as an AnimationList and refactor (and check implementation)");
-	for (int i = 0; i < 10; i++) {
-		if (_animation[i])
-			_animation[i]->update();
-	}
 }
 
 } // End of namespace MADS

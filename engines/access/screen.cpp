@@ -89,9 +89,6 @@ void Screen::setPanel(int num) {
 }
 
 void Screen::updateScreen() {
-	if (_vm->_startup > 0)
-		return;
-
 	// Merge the dirty rects
 	mergeDirtyRects();
 
@@ -184,7 +181,7 @@ void Screen::forceFadeOut() {
 			int v = *srcP;
 			if (v) {
 				repeatFlag = true;
-				*srcP = MAX((int)*srcP - FADE_AMOUNT, 0);
+				*srcP = MAX(*srcP - FADE_AMOUNT, 0);
 			}
 		}
 
@@ -299,7 +296,7 @@ void Screen::transBlitFrom(ASurface *src, const Common::Rect &bounds) {
 	ASurface::transBlitFrom(src, bounds);
 }
 
-void Screen::blitFrom(const Graphics::Surface &src) {
+void Screen::blitFrom(Graphics::Surface &src) {
 	addDirtyRect(Common::Rect(0, 0, src.w, src.h));
 	ASurface::blitFrom(src);
 }

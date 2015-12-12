@@ -152,9 +152,6 @@ void TestbedEngine::invokeTestsuites(TestbedConfigManager &cfMan) {
 	Common::Point pt = Testsuite::getDisplayRegionCoordinates();
 	int numSuitesEnabled = cfMan.getNumSuitesEnabled();
 
-	if (!numSuitesEnabled)
-		return;
-
 	for (iter = _testsuiteList.begin(); iter != _testsuiteList.end(); iter++) {
 		if (shouldQuit()) {
 			return;

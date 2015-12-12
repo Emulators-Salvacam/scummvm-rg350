@@ -51,18 +51,9 @@ void SoundManager::clearSounds() {
 		_mixer->stopHandle(_effectsHandle);
 
 	while (_queue.size()) {
-		delete _queue[0]._stream;
+		delete _queue[0];
 		_queue.remove_at(0);
 	}
-}
-
-bool SoundManager::isSoundQueued(int soundId) const {
-	for (uint idx = 0; idx < _queue.size(); ++idx) {
-		if (_queue[idx]._soundId == soundId)
-			return true;
-	}
-
-	return false;
 }
 
 void SoundManager::loadSoundTable(int idx, int fileNum, int subfile, int priority) {
@@ -86,15 +77,12 @@ Resource *SoundManager::loadSound(int fileNum, int subfile) {
 
 void SoundManager::playSound(int soundIndex, bool loop) {
 	debugC(1, kDebugSound, "playSound(%d, %d)", soundIndex, loop);
-	if (isSoundQueued(soundIndex))
-		// Prevent duplicate copies of a sound from being queued
-		return;
 
 	int priority = _soundTable[soundIndex]._priority;
-	playSound(_soundTable[soundIndex]._res, priority, loop, soundIndex);
+	playSound(_soundTable[soundIndex]._res, priority, loop);
 }
 
-void SoundManager::playSound(Resource *res, int priority, bool loop, int soundIndex) {
+void SoundManager::playSound(Resource *res, int priority, bool loop) {
 	debugC(1, kDebugSound, "playSound");
 
 	byte *resourceData = res->data();
@@ -121,7 +109,7 @@ void SoundManager::playSound(Resource *res, int priority, bool loop, int soundIn
 		byte internalSampleRate = resourceData[5];
 		int sampleSize = READ_LE_UINT16(resourceData + 7);
 
-		assert( (sampleSize + 32) <= res->_size);
+		assert( (sampleSize + 32) == res->_size);
 
 		int sampleRate = 0;
 		switch (internalSampleRate) {
@@ -151,15 +139,14 @@ void SoundManager::playSound(Resource *res, int priority, bool loop, int soundIn
 		error("Unknown format");
 
 	if (loop) {
-		_queue.push_back(QueuedSound(new Audio::LoopingAudioStream(audioStream, 0, 
-			DisposeAfterUse::NO), soundIndex));
+		_queue.push_back(new Audio::LoopingAudioStream(audioStream, 0, DisposeAfterUse::NO));
 	} else {
-		_queue.push_back(QueuedSound(audioStream, soundIndex));
+		_queue.push_back(audioStream);
 	}
 
 	if (!_mixer->isSoundHandleActive(_effectsHandle))
 		_mixer->playStream(Audio::Mixer::kSFXSoundType, &_effectsHandle,
-						_queue[0]._stream, -1, _mixer->kMaxChannelVolume, 0,
+						_queue[0], -1, _mixer->kMaxChannelVolume, 0,
 						DisposeAfterUse::NO);
 }
 
@@ -169,12 +156,12 @@ void SoundManager::checkSoundQueue() {
 	if (_queue.empty() || _mixer->isSoundHandleActive(_effectsHandle))
 		return;
 
-	delete _queue[0]._stream;
+	delete _queue[0];
 	_queue.remove_at(0);
 
-	if (_queue.size() && _queue[0]._stream)
+	if (_queue.size() && _queue[0])
 		_mixer->playStream(Audio::Mixer::kSFXSoundType, &_effectsHandle,
-		   _queue[0]._stream, -1, _mixer->kMaxChannelVolume, 0,
+		   _queue[0], -1, _mixer->kMaxChannelVolume, 0,
 		   DisposeAfterUse::NO);
 }
 
@@ -226,7 +213,7 @@ MusicManager::MusicManager(AccessEngine *vm) : _vm(vm) {
 	//
 	switch (musicType) {
 	case MT_ADLIB: {
-		if (_vm->getGameID() == GType_Amazon && !_vm->isDemo()) {
+		if (_vm->getGameID() == GType_Amazon) {
 			Resource   *midiDrvResource = _vm->_files->loadFile(92, 1);
 			Common::MemoryReadStream *adLibInstrumentStream = new Common::MemoryReadStream(midiDrvResource->data(), midiDrvResource->_size);
 

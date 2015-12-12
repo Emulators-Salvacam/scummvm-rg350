@@ -310,6 +310,8 @@ private:
 	uint _frameTimeSampleSlot;
 
 private:
+	byte *_backBuffer;
+
 	RenderObjectPtr<Panel> _mainPanelPtr;
 
 	Common::ScopedPtr<RenderObjectManager> _renderObjectManagerPtr;

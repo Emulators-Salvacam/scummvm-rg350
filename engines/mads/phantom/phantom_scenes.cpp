@@ -29,10 +29,6 @@
 #include "mads/phantom/game_phantom.h"
 #include "mads/phantom/phantom_scenes.h"
 #include "mads/phantom/phantom_scenes1.h"
-#include "mads/phantom/phantom_scenes2.h"
-#include "mads/phantom/phantom_scenes3.h"
-#include "mads/phantom/phantom_scenes4.h"
-#include "mads/phantom/phantom_scenes5.h"
 
 namespace MADS {
 
@@ -41,9 +37,8 @@ namespace Phantom {
 SceneLogic *SceneFactory::createScene(MADSEngine *vm) {
 	Scene &scene = vm->_game->_scene;
 
-	// When changing from one section to the other, set the scaling velocity
-	if ((scene._nextSceneId / 100) != (scene._priorSceneId / 100))
-		vm->_game->_player._scalingVelocity = true;
+	// TODO
+	//scene.addActiveVocab(NOUN_DROP);
 
 	switch (scene._nextSceneId) {
 	// Scene group #1 (theater, stage and dressing rooms)
@@ -52,107 +47,107 @@ SceneLogic *SceneFactory::createScene(MADSEngine *vm) {
 	case 102:	// music stands
 		return new Scene102(vm);
 	case 103:	// below stage
-		return new Scene103(vm);
+		return new DummyScene(vm);	// TODO
 	case 104:	// stage
-		return new Scene104(vm);
+		return new DummyScene(vm);	// TODO
 	case 105:	// ground floor, storage room
-		return new Scene105(vm);
+		return new DummyScene(vm);	// TODO
 	case 106:	// behind stage
-		return new Scene106(vm);
+		return new DummyScene(vm);	// TODO
 	case 107:	// stage right wing
-		return new Scene107(vm);
+		return new DummyScene(vm);	// TODO
 	case 108:	// stage left wing
-		return new Scene108(vm);
+		return new DummyScene(vm);	// TODO
 	case 109:	// upper floor, staircase
-		return new Scene109(vm);
+		return new DummyScene(vm);	// TODO
 	case 110:	// outside dressing rooms 1
-		return new Scene110(vm);
+		return new DummyScene(vm);	// TODO
 	case 111:	// outside dressing rooms 2
-		return new Scene111(vm);
+		return new DummyScene(vm);	// TODO
 	case 112:	// inside dressing room 1
-		return new Scene112(vm);
+		return new DummyScene(vm);	// TODO
 	case 113:	// inside dressing room 2
-		return new Scene113(vm);
+		return new DummyScene(vm);	// TODO
 	case 114:	// lower floor, storage room
-		return new Scene114(vm);
+		return new DummyScene(vm);	// TODO
 	case 150:	// cutscene
-		return new Scene150(vm);
+		return new DummyScene(vm);	// TODO
 
 	// Scene group #2 (theater entrance, offices, balcony)
 	case 201:	// entrance / ticket office
-		return new Scene201(vm);
+		return new DummyScene(vm);	// TODO
 	case 202:	// outside offices / paintings room
-		return new Scene202(vm);
+		return new DummyScene(vm);	// TODO
 	case 203:	// office
-		return new Scene203(vm);
+		return new DummyScene(vm);	// TODO
 	case 204:	// library
-		return new Scene204(vm);
+		return new DummyScene(vm);	// TODO
 	case 205:	// upper floor, outside balcony boxes
-		return new Scene205(vm);
+		return new DummyScene(vm);	// TODO
 	case 206:	// balcony box #1
-		return new Scene206(vm);
+		return new DummyScene(vm);	// TODO
 	case 207:	// balcony box #2
-		return new Scene207(vm);
+		return new DummyScene(vm);	// TODO
 	case 208:	// stage and balcony view
-		return new Scene208(vm);
+		return new DummyScene(vm);	// TODO
 	case 250:	// cutscene
-		return new Scene250(vm);
+		return new DummyScene(vm);	// TODO
 
 	// Scene group #3 (catwalks, chandelier, lake / catacombs entrance)
 	case 301:	// catwalk #1 above stage
-		return new Scene301(vm);
+		return new DummyScene(vm);	// TODO
 	case 302:	// catwalk #2 above stage
-		return new Scene302(vm);
+		return new DummyScene(vm);	// TODO
 	case 303:	// above chandelier
-		return new Scene303(vm);
+		return new DummyScene(vm);	// TODO
 	case 304:	// chandelier
-		return new Scene304(vm);
+		return new DummyScene(vm);	// TODO
 	case 305:	// chandelier fight, phantom closeup
-		return new Scene305(vm);
+		return new DummyScene(vm);	// TODO
 	case 306:	// chandelier #2
-		return new Scene306(vm);
+		return new DummyScene(vm);	// TODO
 	case 307:	// catwalk #3 above stage
-		return new Scene307(vm);
+		return new DummyScene(vm);	// TODO
 	case 308:	// hidden staircase behind balcony box
-		return new Scene308(vm);
+		return new DummyScene(vm);	// TODO
 	case 309:	// lake and archway
-		return new Scene309(vm);
+		return new DummyScene(vm);	// TODO
 	case 310:	// lake
-		return new Scene310(vm);
+		return new DummyScene(vm);	// TODO
 
 	// Scene group #4 (labyrinth)
 	case 401:	// labyrinth room, 3 exits
-		return new Scene401(vm);
+		return new DummyScene(vm);	// TODO
 	case 403:	// labyrinth room (big), 4 exits + 1 bricked door, left
-		return new Scene403(vm);
+		return new DummyScene(vm);	// TODO
 	case 404:	// labyrinth room, 3 exits
-		return new Scene404(vm);
+		return new DummyScene(vm);	// TODO
 	case 406:	// labyrinth room, 2 exits
-		return new Scene406(vm);
+		return new DummyScene(vm);	// TODO
 	case 407:	// catacomb room / lake
-		return new Scene407(vm);
+		return new DummyScene(vm);	// TODO
 	case 408:	// catacomb corridor
-		return new Scene408(vm);
+		return new DummyScene(vm);	// TODO
 	case 409:	// catacomb room, door with switch panel
-		return new Scene409(vm);
+		return new DummyScene(vm);	// TODO
 	case 410:	// skull switch panel
-		return new Scene410(vm);
+		return new DummyScene(vm);	// TODO
 	case 453:	// Labyrinth room (big), 4 exits + 1 bricked door, right
-		return new Scene453(vm);
+		return new DummyScene(vm);	// TODO
 	case 456:	// Labyrinth room, 2 exits
-		return new Scene456(vm);
+		return new DummyScene(vm);	// TODO
 
 	// Scene group #5 (Phantom's hideout)
 	case 501:	// catacombs, outside phantom's hideout, lake and boat
-		return new Scene501(vm);
+		return new DummyScene(vm);	// TODO
 	case 502:	// push panel trap
-		return new Scene502(vm);
+		return new DummyScene(vm);	// TODO
 	case 504:	// Phantom's hideout, church organ
-		return new Scene504(vm);
+		return new DummyScene(vm);	// TODO
 	case 505:	// Phantom's hideout, sarcophagus
-		return new Scene505(vm);
+		return new DummyScene(vm);	// TODO
 	case 506:	// catacomb room with ramp
-		return new Scene506(vm);
+		return new DummyScene(vm);	// TODO
 
 	default:
 		error("Invalid scene %d called", scene._nextSceneId);
@@ -175,12 +170,12 @@ Common::String PhantomScene::formAnimName(char sepChar, int suffixNum) {
 /*------------------------------------------------------------------------*/
 
 void SceneInfoPhantom::loadCodes(MSurface &depthSurface, int variant) {
-	Common::String ext = Common::String::format(".WW%d", variant);
-	Common::String fileName = Resources::formatName(RESPREFIX_RM, _sceneId, ext);
-	if (!Common::File::exists(fileName))
+	// The intro scenes do not have any codes
+	if (_sceneId >= 900)
 		return;
 
-	File f(fileName);
+	Common::String ext = Common::String::format(".WW%d", variant);
+	File f(Resources::formatName(RESPREFIX_RM, _sceneId, ext));
 	MadsPack codesPack(&f);
 	Common::SeekableReadStream *stream = codesPack.getItemStream(0);
 

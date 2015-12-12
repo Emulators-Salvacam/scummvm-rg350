@@ -21,7 +21,6 @@ MODULE_OBJS := \
 	scripts.o \
 	sound.o \
 	video.o \
-	video/movie_decoder.o \
 	amazon/amazon_game.o \
 	amazon/amazon_logic.o \
 	amazon/amazon_player.o \

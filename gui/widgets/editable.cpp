@@ -79,7 +79,7 @@ bool EditableWidget::tryInsertChar(byte c, int pos) {
 
 void EditableWidget::handleTickle() {
 	uint32 time = g_system->getMillis();
-	if (_caretTime < time && isEnabled()) {
+	if (_caretTime < time) {
 		_caretTime = time + kCaretBlinkTime;
 		drawCaret(_caretVisible);
 	}
@@ -89,9 +89,6 @@ bool EditableWidget::handleKeyDown(Common::KeyState state) {
 	bool handled = true;
 	bool dirty = false;
 	bool forcecaret = false;
-
-	if (!isEnabled())
-		return false;
 
 	// First remove caret
 	if (_caretVisible)

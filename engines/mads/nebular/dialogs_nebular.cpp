@@ -82,14 +82,11 @@ bool DialogsNebular::show(int messageId, int objectId) {
 						if (centerFlag) {
 							crFlag = true;
 						} else {
-							if (dialog)
-								delete dialog;
-
-							if (objectId == -1)
+							if (objectId == -1) {
 								dialog = new TextDialog(_vm, FONT_INTERFACE, _defaultPosition, _dialogWidth);
-							else
+							} else {
 								dialog = new PictureDialog(_vm, _defaultPosition, _dialogWidth, objectId);
-
+							}
 							dialog->wordWrap(dialogText);
 							dialog->incNumLines();
 						}
@@ -149,10 +146,11 @@ bool DialogsNebular::show(int messageId, int objectId) {
 		}
 
 		if (!dialog) {
-			if (objectId == -1)
+			if (objectId == -1) {
 				dialog = new TextDialog(_vm, FONT_INTERFACE, _defaultPosition, _dialogWidth);
-			else
+			} else {
 				dialog = new PictureDialog(_vm, _defaultPosition, _dialogWidth, objectId);
+			}
 		}
 
 		if (centerFlag) {
@@ -368,8 +366,6 @@ void DialogsNebular::showScummVMSaveDialog() {
 
 	// Flag for scene loading that we're returning from a dialog
 	scene._currentSceneId = RETURNING_FROM_DIALOG;
-
-	delete dialog;
 }
 
 void DialogsNebular::showScummVMRestoreDialog() {
@@ -386,8 +382,6 @@ void DialogsNebular::showScummVMRestoreDialog() {
 		// Flag for scene loading that we're returning from a dialog
 		scene._currentSceneId = RETURNING_FROM_DIALOG;
 	}
-
-	delete dialog;
 }
 
 /*------------------------------------------------------------------------*/

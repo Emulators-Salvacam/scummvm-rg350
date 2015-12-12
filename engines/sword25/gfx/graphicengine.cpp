@@ -60,13 +60,13 @@ enum {
 
 namespace Sword25 {
 
-static const uint FRAMETIME_SAMPLE_COUNT = 5;       // Frame duration is averaged over FRAMETIME_SAMPLE_COUNT frames
+static const uint FRAMETIME_SAMPLE_COUNT = 5;       // Anzahl der Framezeiten über die, die Framezeit gemittelt wird
 
 GraphicEngine::GraphicEngine(Kernel *pKernel) :
 	_width(0),
 	_height(0),
 	_bitDepth(0),
-	_lastTimeStamp((uint) -1), // force reset of _UpdateLastFrameDuration() on first call
+	_lastTimeStamp((uint) -1), // max. BS_INT64 um beim ersten Aufruf von _UpdateLastFrameDuration() einen Reset zu erzwingen
 	_lastFrameDuration(0),
 	_timerActive(true),
 	_frameTimeSampleSlot(0),
@@ -87,18 +87,19 @@ GraphicEngine::~GraphicEngine() {
 }
 
 bool GraphicEngine::init(int width, int height, int bitDepth, int backbufferCount) {
-	// Warn when an unsupported bit depth has been selected.
+	// Warnung ausgeben, wenn eine nicht unterstützte Bittiefe gewählt wurde.
 	if (bitDepth != BIT_DEPTH) {
 		warning("Can't use a bit depth of %d (not supported). Falling back to %d.", bitDepth, BIT_DEPTH);
 		_bitDepth = BIT_DEPTH;
 	}
 
-	// Warn when wrong BackBuffer is specified.
+	// Warnung ausgeben, wenn nicht genau ein Backbuffer gewählt wurde.
 	if (backbufferCount != BACKBUFFER_COUNT) {
 		warning("Can't use %d backbuffers (not supported). Falling back to %d.", backbufferCount, BACKBUFFER_COUNT);
 		backbufferCount = BACKBUFFER_COUNT;
 	}
 
+	// Parameter in lokale Variablen kopieren
 	_width = width;
 	_height = height;
 	_bitDepth = bitDepth;
@@ -111,13 +112,13 @@ bool GraphicEngine::init(int width, int height, int bitDepth, int backbufferCoun
 
 	_backSurface.create(width, height, format);
 
-	// By default Vsync is on.
+	// Standardmäßig ist Vsync an.
 	setVsync(true);
 
-	// Layer-Manager initialization
+	// Layer-Manager initialisieren.
 	_renderObjectManagerPtr.reset(new RenderObjectManager(width, height, backbufferCount + 1));
 
-	// Create the main panel
+	// Hauptpanel erstellen
 	_mainPanelPtr = _renderObjectManagerPtr->getTreeRoot()->addPanel(width, height, BS_ARGB(0, 0, 0, 0));
 	if (!_mainPanelPtr.isValid())
 		return false;
@@ -127,10 +128,11 @@ bool GraphicEngine::init(int width, int height, int bitDepth, int backbufferCoun
 }
 
 bool GraphicEngine::startFrame(bool updateAll) {
-	// Calculate how much time has elapsed since the last frame.
+	// Berechnen, wie viel Zeit seit dem letzten Frame vergangen ist.
+	// Dieser Wert kann über GetLastFrameDuration() von Modulen abgefragt werden, die zeitabhängig arbeiten.
 	updateLastFrameDuration();
 
-	// Prepare the Layer Manager for the next frame
+	// Den Layer-Manager auf den nächsten Frame vorbereiten
 	_renderObjectManagerPtr->startFrame();
 
 	return true;
@@ -274,7 +276,7 @@ Resource *GraphicEngine::loadResource(const Common::String &filename) {
 		PackageManager *pPackage = Kernel::getInstance()->getPackage();
 		assert(pPackage);
 
-		// Loading data
+		// Datei laden
 		byte *pFileData;
 		uint fileSize;
 		pFileData = pPackage->getFile(filename, &fileSize);
@@ -373,10 +375,10 @@ bool GraphicEngine::saveThumbnailScreenshot(const Common::String &filename) {
 
 void GraphicEngine::ARGBColorToLuaColor(lua_State *L, uint color) {
 	lua_Number components[4] = {
-		(lua_Number)((color >> 16) & 0xff),	// Red
-		(lua_Number)((color >> 8) & 0xff),	// Green
-		(lua_Number)(color & 0xff),			// Blue
-		(lua_Number)(color >> 24),			// Alpha
+		(lua_Number)((color >> 16) & 0xff),   // Rot
+		(lua_Number)((color >> 8) & 0xff),    // Grün
+		(lua_Number)(color & 0xff),          // Blau
+		(lua_Number)(color >> 24),           // Alpha
 	};
 
 	lua_newtable(L);
@@ -393,11 +395,11 @@ uint GraphicEngine::luaColorToARGBColor(lua_State *L, int stackIndex) {
 	int __startStackDepth = lua_gettop(L);
 #endif
 
-	// Make sure that we really look at a table
+	// Sicherstellen, dass wir wirklich eine Tabelle betrachten
 	luaL_checktype(L, stackIndex, LUA_TTABLE);
-	// getting table size
+	// Größe der Tabelle auslesen
 	uint n = luaL_getn(L, stackIndex);
-	// only RGB or RGBA colors are supported
+	// RGB oder RGBA Farben werden unterstützt und sonst keine
 	if (n != 3 && n != 4)
 		luaL_argcheck(L, 0, stackIndex, "at least 3 of the 4 color components have to be specified");
 

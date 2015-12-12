@@ -104,6 +104,8 @@ public:
 	void saveLoadWithSerializer(Serializer *ser);
 	void restoreAfterLoad();
 
+	TownsEuphonyDriver *driver() { return _driver; }
+
 private:
 	void restartLoopingSounds();
 	void startSoundEx(int sound, int velo, int pan, int note);
@@ -135,7 +137,7 @@ private:
 	uint8 _cdaCurrentSoundTemp;
 	uint8 _cdaNumLoopsTemp;
 
-	EuphonyPlayer *_player;
+	TownsEuphonyDriver *_driver;
 };
 
 class Player_Towns_v2 : public Player_Towns {

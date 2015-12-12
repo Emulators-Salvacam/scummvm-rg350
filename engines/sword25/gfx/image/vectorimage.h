@@ -228,7 +228,6 @@ private:
 	byte *_pixelData;
 
 	Common::String _fname;
-	uint _bgColor;
 };
 
 } // End of namespace Sword25

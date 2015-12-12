@@ -50,7 +50,6 @@ private:
 	bool Cmd_SetObj(int argc, const char **argv);
 	bool Cmd_RunOpcode(int argc, const char **argv);
 	bool Cmd_Agiver(int argc, const char **argv);
-	bool Cmd_Version(int argc, const char **argv);
 	bool Cmd_Flags(int argc, const char **argv);
 	bool Cmd_Vars(int argc, const char **argv);
 	bool Cmd_Objs(int argc, const char **argv);

@@ -25,7 +25,6 @@
  * PKWARE DCL ("explode") ("PKWARE data compression library") decompressor used in engines:
  * - agos (exclusively for Simon 2 setup.shr file)
  * - mohawk
- * - neverhood
  * - sci
  */
 
