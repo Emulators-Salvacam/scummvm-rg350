@@ -158,7 +158,7 @@ private:
 	void handlePrisonerDialog();
 	void handlePrisonerEncounter();
 	void setDialogNode(int node);
-	void handlePrisonerSpeech(int firstQuoteId, int number, uint32 timeout);
+	void handlePrisonerSpeech(int firstQuoteId, int number, long timeout);
 
 public:
 	Scene307(MADSEngine *vm);

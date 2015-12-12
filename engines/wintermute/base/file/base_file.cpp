@@ -57,7 +57,7 @@ bool BaseFile::isEOF() {
 Common::SeekableReadStream *BaseFile::getMemStream() {
 	uint32 oldPos = getPos();
 	seek(0);
-	byte *data = (byte *)malloc(getSize());
+	byte *data = new byte[getSize()];
 	read(data, getSize());
 	seek(oldPos);
 	Common::MemoryReadStream *memStream = new Common::MemoryReadStream(data, getSize(), DisposeAfterUse::YES);

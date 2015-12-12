@@ -41,7 +41,10 @@ AmazonRoom::~AmazonRoom() {
 }
 
 void AmazonRoom::loadRoom(int roomNumber) {
-	loadRoomData(&AMRES.ROOMTBL[roomNumber]._data[0]);
+	if (_vm->isDemo())
+		loadRoomData(ROOM_TABLE_DEMO[roomNumber]);
+	else
+		loadRoomData(ROOM_TABLE[roomNumber]);
 }
 
 void AmazonRoom::reloadRoom() {

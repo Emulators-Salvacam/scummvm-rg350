@@ -528,6 +528,8 @@ void SetNewScene(SCNHANDLE scene, int entrance, int transition) {
  * Store a scene as hooked
  */
 void SetHookScene(SCNHANDLE scene, int entrance, int transition) {
+	assert(g_HookScene.scene == 0); // scene already hooked
+
 	g_HookScene.scene = scene;
 	g_HookScene.entry = entrance;
 	g_HookScene.trans = transition;

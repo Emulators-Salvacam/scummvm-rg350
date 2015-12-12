@@ -48,8 +48,6 @@ public:
 	SoundManager(MADSEngine *vm, Audio::Mixer *mixer);
 	~SoundManager();
 
-	bool _preferRoland;
-
 	/**
 	 * Initializes the sound driver for a given game section
 	 */

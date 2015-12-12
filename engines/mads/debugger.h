@@ -51,7 +51,6 @@ protected:
 	bool Cmd_Item(int argc, const char **argv);
 	bool Cmd_PlayAnim(int argc, const char **argv);
 	bool Cmd_PlayText(int argc, const char **argv);
-	bool Cmd_SetCamera(int argc, const char **argv);
 public:
 	bool _showMousePos;
 public:

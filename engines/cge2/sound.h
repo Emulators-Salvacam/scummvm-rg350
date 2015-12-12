@@ -68,7 +68,7 @@ class Sound {
 public:
 	SmpInfo _smpinf;
 
-	explicit Sound(CGE2Engine *vm);
+	Sound(CGE2Engine *vm);
 	~Sound();
 	void open();
 	void close();
@@ -116,7 +116,7 @@ private:
 	// Stop MIDI File
 	void sndMidiStop();
 public:
-	explicit MusicPlayer(CGE2Engine *vm);
+	MusicPlayer(CGE2Engine *vm);
 	~MusicPlayer();
 
 	void loadMidi(int ref);

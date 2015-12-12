@@ -552,19 +552,10 @@ begin_credits("Credits");
 				add_person("Oliver Kiehl", "olki", "(retired)");
 				add_person("Ludvig Strigeus", "ludde", "(retired)");
 			end_section();
-
-			begin_section("Access");
-				add_person("Arnaud Boutonn&eacute;", "Strangerke", "");
-				add_person("Paul Gilbert", "dreammaster", "");
-			end_section();
-
+			
 			begin_section("Avalanche");
 				add_person("Peter Bozs&oacute;", "uruk", "");
 				add_person("Arnaud Boutonn&eacute;", "Strangerke", "");
-			end_section();
-
-			begin_section("BBVS");
-				add_person("Benjamin Haisch", "john_doe", "");
 			end_section();
 
 			begin_section("CGE");
@@ -717,11 +708,6 @@ begin_credits("Credits");
 				add_person("Willem Jan Palenstijn", "wjp", "");
 				add_person("Jordi Vilalta Prat", "jvprat", "");
 				add_person("Lars Skovlund", "lskovlun", "");
-			end_section();
-
-			begin_section("Sherlock");
-				add_person("Paul Gilbert", "dreammaster", "");
-				add_person("Martin Kiewitz", "m_kiewitz", "");
 			end_section();
 
 			begin_section("Sky");
@@ -889,10 +875,6 @@ begin_credits("Credits");
 
 			begin_section("Wii");
 				add_person("Andre Heider", "dhewg", "");
-			end_section();
-
-			begin_section("Raspberry Pi");
-				add_person("Manuel Alfayate", "vanfanel", "");
 			end_section();
 
 		end_section();
@@ -1303,15 +1285,6 @@ begin_credits("Credits");
 	add_paragraph(
     "Bob Bell, Michel Kripalani, Tommy Yune, from Presto Studios for ".
     "providing the source code of The Journeyman Project: Pegasus Prime.");
-
-	add_paragraph(
-    "Electronic Arts IP Preservation Team, particularly Stefan Serbicki, and Vasyl Tsvirkunov of ".
-    "Electronic Arts for providing the source code of the two Lost Files of Sherlock Holmes games. ".
-    "James M. Ferguson and Barry Duncan for their tenacious efforts to recover the sources.");
-
-	add_paragraph(
-    "The mindFactory team for writing Broken Sword 2.5, a splendid fan-made sequel, and for sharing ".
-    "the source code with us.");
 
 	end_section();
 

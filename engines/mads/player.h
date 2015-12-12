@@ -95,8 +95,6 @@ private:
 	void startMovement();
 
 	void changeFacing();
-
-	void activateTrigger();
 public:
 	MADSAction *_action;
 
@@ -133,17 +131,13 @@ public:
 	int _trigger;
 	bool _scalingVelocity;
 	bool _forceRefresh;
-	bool _forcePrefix;
 	bool _needToWalk;
 	bool _readyToWalk;
-	bool _commandsAllowed;
-	bool _enableAtTarget;
 	int _stopWalkerIndex;
 	int _centerOfGravity;
 	int _currentDepth;
 	int _currentScale;
 	Common::String _spritesPrefix;
-	int _walkTrigger;
 public:
 	Player(MADSEngine *vm);
 
@@ -227,13 +221,6 @@ public:
 	}
 
 	void removePlayerSprites();
-
-	void firstWalk(Common::Point fromPos, Facing fromFacing, Common::Point destPos, Facing destFacing, bool enableFl);
-
-	void setWalkTrigger(int val);
-
-	void resetFacing(Facing facing);
-
 };
 
 } // End of namespace MADS

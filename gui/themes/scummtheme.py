@@ -35,15 +35,11 @@ def buildAllThemes():
 		if os.path.isdir(os.path.join('.', f)) and not f[0] == '.':
 			buildTheme(f)
 
-def parseSTX(theme_file, def_file, subcount):
+def parseSTX(theme_file, def_file):
 	comm = re.compile("<!--(.*?)-->", re.DOTALL)
 	head = re.compile("<\?(.*?)\?>")
 
 	strlitcount = 0
-	subcount += 1
-
-	def_file.write(";\n const char *defaultXML" + str(subcount) + " = ")
-
 	output = ""
 	for line in theme_file:
 		output +=  line.rstrip("\r\n\t ").lstrip()
@@ -59,12 +55,8 @@ def parseSTX(theme_file, def_file, subcount):
 	for line in output.splitlines():
 		if line and not line.isspace():
 			strlitcount += len(line)
-			if strlitcount > 65535:
-				subcount += 1
-				def_file.write(";\n const char *defaultXML" + str(subcount) + " = ")
-				strlitcount = len(line)
 			def_file.write("\"" + line + "\"\n")
-	return subcount
+	return strlitcount
 
 def buildDefTheme(themeName):
 	def_file = open("default.inc", "w")
@@ -72,8 +64,8 @@ def buildDefTheme(themeName):
 	if not os.path.isdir(themeName):
 		print ("Cannot open default theme dir.")
 
-	def_file.write("""const char *defaultXML1 = "<?xml version = '1.0'?>"\n""")
-	subcount = 1
+	def_file.write(""" "<?xml version = '1.0'?>"\n""")
+	strlitcount = 24
 
 	filenames = os.listdir(themeName)
 	filenames.sort()
@@ -81,16 +73,16 @@ def buildDefTheme(themeName):
 		filename = os.path.join(themeName, filename)
 		if os.path.isfile(filename) and filename.endswith(".stx"):
 			theme_file = open(filename, "r")
-			subcount = parseSTX(theme_file, def_file, subcount)
+			strlitcount += parseSTX(theme_file, def_file)
 			theme_file.close()
 
-	def_file.write(";\nconst char *defaultXML[] = { defaultXML1")
-	for sub in range(2, subcount + 1):
-		def_file.write(", defaultXML" + str(sub))
-
-	def_file.write(" };\n")
-
 	def_file.close()
+
+	if strlitcount > 65535:
+		print("WARNING: default.inc string literal is of length %d which exceeds the" % strlitcount)
+		print("         maximum length of 65536 that C++ compilers are required to support.")
+		print("         It is likely that bugs will occur dependent on compiler behaviour.")
+		print("         To avoid this, reduce the size of the theme.")
 
 def printUsage():
 	print ("===============================")

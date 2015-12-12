@@ -18,9 +18,12 @@ clean :
 	del ScummVM.hlp
 	del ScummVM.hlp.hrh
 
+bld :
+	cshlpcmp ScummVM.xml
+
 ifeq (WINS,$(findstring WINS, $(PLATFORM)))
 	copy ScummVM.hlp $(EPOCROOT)epoc32\$(PLATFORM)\c\resource\help
 endif
 
-bld freeze lib cleanlib final resource savespace releasables :
+freeze lib cleanlib final resource savespace releasables :
 

@@ -28,7 +28,6 @@
 #include "mads/scene.h"
 #include "mads/dragonsphere/game_dragonsphere.h"
 #include "mads/dragonsphere/dragonsphere_scenes.h"
-#include "mads/dragonsphere/dragonsphere_scenes1.h"
 
 namespace MADS {
 
@@ -43,15 +42,15 @@ SceneLogic *SceneFactory::createScene(MADSEngine *vm) {
 	switch (scene._nextSceneId) {
 	// Scene group #1 (Castle, river and caves)
 	case 101:	// king's bedroom
-		return new Scene101(vm);
+		return new DummyScene(vm);	// TODO
 	case 102:	// queen's bedroom
-		return new Scene102(vm);
+		return new DummyScene(vm);	// TODO
 	case 103:	// outside king's bedroom
-		return new Scene103(vm);
+		return new DummyScene(vm);	// TODO
 	case 104:	// fireplace / bookshelf
-		return new Scene104(vm);
+		return new DummyScene(vm);	// TODO
 	case 105:	// dining room
-		return new Scene105(vm);
+		return new DummyScene(vm);	// TODO
 	case 106:	// throne room
 		return new DummyScene(vm);	// TODO
 	case 107:	// council chamber
@@ -202,12 +201,12 @@ Common::String DragonsphereScene::formAnimName(char sepChar, int suffixNum) {
 /*------------------------------------------------------------------------*/
 
 void SceneInfoDragonsphere::loadCodes(MSurface &depthSurface, int variant) {
-	Common::String ext = Common::String::format(".WW%d", variant);
-	Common::String fileName = Resources::formatName(RESPREFIX_RM, _sceneId, ext);
-	if (!Common::File::exists(fileName))
+	// The intro scenes do not have any codes
+	if (_sceneId >= 900)
 		return;
 
-	File f(fileName);
+	Common::String ext = Common::String::format(".WW%d", variant);
+	File f(Resources::formatName(RESPREFIX_RM, _sceneId, ext));
 	MadsPack codesPack(&f);
 	Common::SeekableReadStream *stream = codesPack.getItemStream(0);
 

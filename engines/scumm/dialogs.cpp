@@ -308,8 +308,6 @@ void HelpDialog::reflowLayout() {
 	int16 x, y;
 	uint16 w, h;
 
-	assert(lineHeight);
-
 	g_gui.xmlEval()->getWidgetData("ScummHelp.HelpText", x, y, w, h);
 
 	// Make sure than we don't have more lines than what we can fit

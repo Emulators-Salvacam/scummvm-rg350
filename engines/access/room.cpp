@@ -111,7 +111,8 @@ void Room::takePicture() {
 			return;
 		}
 
-		if ((_vm->_scrollCol < 35) || (_vm->_scrollRow >= 20)){
+		// TODO: simplify the second part of the test when tested
+		if ((_vm->_scrollCol < 35) || ((_vm->_scrollRow >= 10) && (_vm->_scrollRow >= 20))){
 			Common::String msg = "THAT ISN'T INTERESTING ENOUGH TO WASTE FILM ON.";
 			_vm->_scripts->doCmdPrint_v1(msg);
 			return;
@@ -611,7 +612,6 @@ void Room::handleCommand(int commandId) {
 
 void Room::executeCommand(int commandId) {
 	EventsManager &events = *_vm->_events;
-	Screen &screen = *_vm->_screen;
 	_selectCommand = commandId;
 
 	if (_vm->getGameID() == GType_MartianMemorandum) {
@@ -698,8 +698,8 @@ void Room::executeCommand(int commandId) {
 			break;
 		}
 	}
-	screen.saveScreen();
-	screen.setDisplayScan();
+	_vm->_screen->saveScreen();
+	_vm->_screen->setDisplayScan();
 
 	// Get the toolbar icons resource
 	Resource *iconData = _vm->_files->loadFile("ICONS.LZ");
@@ -707,9 +707,7 @@ void Room::executeCommand(int commandId) {
 	delete iconData;
 
 	// Draw the button as selected
-	screen.plotImage(spr, 0, Common::Point(0, 177));
-	screen.plotImage(spr, 1, Common::Point(143, 177));
-	screen.plotImage(spr, _selectCommand + 2,
+	_vm->_screen->plotImage(spr, _selectCommand + 2,
 		Common::Point(_rMouse[_selectCommand][0], (_vm->getGameID() == GType_MartianMemorandum) ? 184 : 176));
 
 	_vm->_screen->restoreScreen();
@@ -930,9 +928,16 @@ RoomInfo::RoomInfo(const byte *data, int gameType, bool isCD, bool isDemo) {
 
 	_roomFlag = stream.readByte();
 
-	_estIndex = -1;
-	if (gameType == GType_Amazon && isCD)
-		_estIndex = stream.readSint16LE();
+	if (gameType == GType_Amazon) {
+		if (isCD)
+			_estIndex = stream.readSint16LE();
+		else {
+			_estIndex = -1;
+			if (!isDemo)
+				stream.readSint16LE();
+		}
+	} else
+		_estIndex = -1;
 
 	_musicFile.load(stream);
 	_scaleH1 = stream.readByte();

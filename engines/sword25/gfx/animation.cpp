@@ -119,10 +119,6 @@ void Animation::initMembers() {
 	_animationResourcePtr = 0;
 	_animationTemplateHandle = 0;
 	_framesLocked = false;
-
-	_loopPointCallback = 0;
-	_actionCallback = 0;
-	_deleteCallback = 0;
 }
 
 Animation::~Animation() {

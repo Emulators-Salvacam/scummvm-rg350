@@ -84,6 +84,20 @@ byte *Resource::data() {
 /*------------------------------------------------------------------------*/
 
 FileManager::FileManager(AccessEngine *vm) : _vm(vm) {
+	switch (vm->getGameID()) {
+	case GType_Amazon:
+		if (_vm->isDemo())
+			_filenames = &Amazon::FILENAMES_DEMO[0];
+		else
+			_filenames = &Amazon::FILENAMES[0];
+		break;
+	case GType_MartianMemorandum:
+		_filenames = &Martian::FILENAMES[0];
+		break;
+	default:
+		error("Unknown game");
+	}
+
 	_fileNumber = -1;
 	_setPaletteFlag = true;
 }
@@ -201,8 +215,8 @@ void FileManager::handleFile(Resource *res) {
 
 void FileManager::setAppended(Resource *res, int fileNum) {
 	// Open the file for access
-	if (!res->_file.open(_vm->_res->FILENAMES[fileNum]))
-		error("Could not open file %s", _vm->_res->FILENAMES[fileNum].c_str());
+	if (!res->_file.open(_filenames[fileNum]))
+		error("Could not open file %s", _filenames[fileNum]);
 
 	// If a different file has been opened then previously, load its index
 	if (_fileNumber != fileNum) {

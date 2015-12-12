@@ -35,10 +35,7 @@ class MADSEngine;
 
 namespace Nebular {
 
-enum MADSGameAction { 
-	START_GAME, RESUME_GAME, SHOW_INTRO, CREDITS, QUOTES, EXIT,
-	SETS, EVOLVE
-};
+enum MADSGameAction { START_GAME, RESUME_GAME, SHOW_INTRO, CREDITS, QUOTES, EXIT };
 
 class MainMenu: public MenuView {
 private:
@@ -48,7 +45,6 @@ private:
 	int _frameIndex;
 	uint32 _delayTimeout;
 	bool _skipFlag;
-	bool _showEvolve, _showSets;
 
 	/**
 	 * Currently highlighted menu item
@@ -85,16 +81,7 @@ private:
 	 */
 	void addSpriteSlot();
 
-	/**
-	 * Returns true if the Quotes item should be shown.
-	 * i.e. if the player has completed the game
-	 */
 	bool shouldShowQuotes();
-
-	/**
-	 * Show the bonus item icons, if available
-	 */
-	void showBonusItems();
 protected:
 	/**
 	 * Display the menu

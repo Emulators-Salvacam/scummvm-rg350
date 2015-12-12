@@ -191,6 +191,8 @@ private:
 	 */
 	void writeVocab(ScrCategory category, int id);
 
+	void refresh();
+
 	void updateRect(const Common::Rect &bounds);
 public:
 	MSurface _surface;
@@ -302,8 +304,6 @@ public:
 	 * Synchronize the data
 	 */
 	void synchronize(Common::Serializer &s);
-
-	void refresh();
 };
 
 } // End of namespace MADS

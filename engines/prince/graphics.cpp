@@ -375,30 +375,30 @@ byte GraphicsMan::getBlendTableColor(byte pixelColor, byte backgroundPixelColor,
 		const byte *originalPalette = _vm->_roomBmp->getPalette();
 
 		int redFirstOrg = originalPalette[pixelColor * 3] * _vm->_mst_shadow / 256;
-		redFirstOrg = CLIP(redFirstOrg, 0, 255);
+		CLIP(redFirstOrg, 0, 255);
 		if (_vm->_mst_shadow <= 256) {
 			int redFirstBack = originalPalette[backgroundPixelColor * 3] * (256 - _vm->_mst_shadow) / 256;
-			redFirstBack = CLIP(redFirstBack, 0, 255);
+			CLIP(redFirstBack, 0, 255);
 			redFirstOrg += redFirstBack;
-			redFirstOrg = CLIP(redFirstOrg, 0, 255);
+			CLIP(redFirstOrg, 0, 255);
 		}
 
 		int greenFirstOrg = originalPalette[pixelColor * 3 + 1] * _vm->_mst_shadow / 256;
-		greenFirstOrg = CLIP(greenFirstOrg, 0, 255);
+		CLIP(greenFirstOrg, 0, 255);
 		if (_vm->_mst_shadow <= 256) {
 			int greenFirstBack = originalPalette[backgroundPixelColor * 3 + 1] * (256 - _vm->_mst_shadow) / 256;
-			greenFirstBack = CLIP(greenFirstBack, 0, 255);
+			CLIP(greenFirstBack, 0, 255);
 			greenFirstOrg += greenFirstBack;
-			greenFirstOrg = CLIP(greenFirstOrg, 0, 255);
+			CLIP(greenFirstOrg, 0, 255);
 		}
 
 		int blueFirstOrg = originalPalette[pixelColor * 3 + 2] * _vm->_mst_shadow / 256;
-		blueFirstOrg = CLIP(blueFirstOrg, 0, 255);
+		CLIP(blueFirstOrg, 0, 255);
 		if (_vm->_mst_shadow <= 256) {
 			int blueFirstBack = originalPalette[backgroundPixelColor * 3 + 2] * (256 - _vm->_mst_shadow) / 256;
-			blueFirstBack = CLIP(blueFirstBack, 0, 255);
+			CLIP(blueFirstBack, 0, 255);
 			blueFirstOrg += blueFirstBack;
-			blueFirstOrg = CLIP(blueFirstOrg, 0, 255);
+			CLIP(blueFirstOrg, 0, 255);
 		}
 
 		int bigValue = PrinceEngine::kIntMax; // infinity
