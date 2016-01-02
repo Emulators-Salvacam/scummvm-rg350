@@ -66,6 +66,7 @@
 #endif
 
 #include "backends/keymapper/keymapper.h"
+#include "gui/message.h"
 
 #if defined(_WIN32_WCE)
 #include "backends/platform/wince/CELauncherDialog.h"
@@ -454,6 +455,10 @@ extern "C" int scummvm_main(int argc, const char * const argv[]) {
 
 	// Now as the event manager is created, setup the keymapper
 	setupKeymapper(system);
+
+	// Hack to initialize graphics
+	GUI::TimedMessageDialog hackdialog("", 0);
+	hackdialog.runModal();
 
 	// Unless a game was specified, show the launcher dialog
 	if (0 == ConfMan.getActiveDomain())
