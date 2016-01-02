@@ -123,6 +123,11 @@ DEFINES += -DENABLE_MADE=$(ENABLE_MADE)
 MODULES += engines/made
 endif
 
+ifdef ENABLE_MADS
+DEFINES += -DENABLE_MADS=$(ENABLE_MADS)
+MODULES += engines/mads
+endif
+
 ifdef ENABLE_MOHAWK
 DEFINES += -DENABLE_MOHAWK=$(ENABLE_MOHAWK)
 MODULES += engines/mohawk
@@ -185,6 +190,11 @@ MODULES += engines/sci
 ifdef ENABLE_SCI32
 DEFINES += -DENABLE_SCI32
 endif
+endif
+
+ifdef ENABLE_SHERLOCK
+DEFINES += -DENABLE_SHERLOCK=$(ENABLE_SHERLOCK)
+MODULES += engines/sherlock
 endif
 
 ifdef ENABLE_SKY
