@@ -991,7 +991,7 @@ public:
         ev.type = down ? Common::EVENT_KEYDOWN : Common::EVENT_KEYUP;
         ev.kbd.keycode = (Common::KeyCode)keycode;
         ev.kbd.flags = _keyflags;
-        ev.kbd.ascii = character & 0x7F;
+        ev.kbd.ascii = character;
         _events.push_back(ev);
     }
 
