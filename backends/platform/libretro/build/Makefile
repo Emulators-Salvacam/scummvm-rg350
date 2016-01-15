@@ -100,9 +100,10 @@ else ifeq ($(platform), vita)
 
 else ifeq ($(platform), android-armv7)
    TARGET  := $(TARGET_NAME)_libretro_android.so
-   DEFINES += -fPIC -Wno-multichar
-   LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
+   DEFINES += -fPIC -Wno-multichar -DUSE_VORBIS -DUSE_TREMOR -DUSE_ZLIB
+   LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC -lz
    TOOLSET = arm-linux-androideabi-
+   USE_TREMOR = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    SHARED := -shared -Wl,--no-undefined
@@ -165,6 +166,22 @@ USE_RGB_COLOR = true
 OBJS := $(retrodir)/libretro.o \
         $(retrodir)/os.o \
 		  $(srcdir)/$(LIBRETROCOMMON_DIR)/libco/libco.o
+
+ifeq ($(USE_TREMOR), 1)
+OBJS +=  $(srcdir)/$(retrodir)/tremor/bitwise.o \
+			$(srcdir)/$(retrodir)/tremor/codebook.o \
+			$(srcdir)/$(retrodir)/tremor/dsp.o \
+			$(srcdir)/$(retrodir)/tremor/floor0.o \
+			$(srcdir)/$(retrodir)/tremor/floor1.o \
+			$(srcdir)/$(retrodir)/tremor/floor_lookup.o \
+			$(srcdir)/$(retrodir)/tremor/framing.o \
+			$(srcdir)/$(retrodir)/tremor/info.o \
+			$(srcdir)/$(retrodir)/tremor/mapping0.o \
+			$(srcdir)/$(retrodir)/tremor/mdct.o \
+			$(srcdir)/$(retrodir)/tremor/misc.o \
+			$(srcdir)/$(retrodir)/tremor/res012.o \
+			$(srcdir)/$(retrodir)/tremor/vorbisfile.o
+endif
 
 ifneq ($(STATIC_LINKING), 1)
 OBJS +=  $(srcdir)/$(LIBRETROCOMMON_DIR)/file/retro_dirent.o \
