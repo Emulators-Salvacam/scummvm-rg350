@@ -101,8 +101,9 @@ else ifeq ($(platform), vita)
 else ifeq ($(platform), android-armv7)
    TARGET  := $(TARGET_NAME)_libretro_android.so
    DEFINES += -fPIC -Wno-multichar -DUSE_VORBIS -DUSE_TREMOR -DUSE_ZLIB
-   LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC -lz
+   LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
+   USE_ZLIB = 1
    USE_TREMOR = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
@@ -181,6 +182,24 @@ OBJS +=  $(srcdir)/$(retrodir)/tremor/bitwise.o \
 			$(srcdir)/$(retrodir)/tremor/misc.o \
 			$(srcdir)/$(retrodir)/tremor/res012.o \
 			$(srcdir)/$(retrodir)/tremor/vorbisfile.o
+endif
+
+ifeq ($(USE_ZLIB), 1)
+OBJS +=   $(srcdir)/$(retrodir)/zlib/deflate.o \
+					$(srcdir)/$(retrodir)/zlib/gzlib.o \
+					$(srcdir)/$(retrodir)/zlib/uncompr.o \
+					$(srcdir)/$(retrodir)/zlib/zutil.o \
+					$(srcdir)/$(retrodir)/zlib/inffast.o \
+					$(srcdir)/$(retrodir)/zlib/gzread.o \
+					$(srcdir)/$(retrodir)/zlib/crc32.o \
+					$(srcdir)/$(retrodir)/zlib/gzwrite.o \
+					$(srcdir)/$(retrodir)/zlib/inflate.o \
+					$(srcdir)/$(retrodir)/zlib/infback.o \
+					$(srcdir)/$(retrodir)/zlib/inftrees.o \
+					$(srcdir)/$(retrodir)/zlib/trees.o \
+					$(srcdir)/$(retrodir)/zlib/gzclose.o \
+					$(srcdir)/$(retrodir)/zlib/compress.o \
+					$(srcdir)/$(retrodir)/zlib/adler32.o
 endif
 
 ifneq ($(STATIC_LINKING), 1)
