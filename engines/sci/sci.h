@@ -70,6 +70,7 @@ class GfxPaint;
 class GfxPaint16;
 class GfxPaint32;
 class GfxPalette;
+class GfxPalette32;
 class GfxPorts;
 class GfxScreen;
 class GfxText16;
@@ -200,7 +201,9 @@ enum SciVersion {
 	SCI_VERSION_1_LATE, // Dr. Brain 1, EcoQuest 1, Longbow, PQ3, SQ1, LSL5, KQ5 CD
 	SCI_VERSION_1_1, // Dr. Brain 2, EcoQuest 1 CD, EcoQuest 2, KQ6, QFG3, SQ4CD, XMAS 1992 and many more
 	SCI_VERSION_2, // GK1, PQ4 floppy, QFG4 floppy
-	SCI_VERSION_2_1, // GK2, KQ7, LSL6 hires, MUMG Deluxe, Phantasmagoria 1, PQ4CD, PQ:SWAT, QFG4CD, Shivers 1, SQ6, Torin
+	SCI_VERSION_2_1_EARLY, // GK2 demo, KQ7, LSL6 hires, PQ4, QFG4 floppy
+	SCI_VERSION_2_1_MIDDLE, // GK2, KQ7, MUMG Deluxe, Phantasmagoria 1, PQ4CD, PQ:SWAT, QFG4CD, Shivers 1, SQ6, Torin
+	SCI_VERSION_2_1_LATE, // demos of LSL7, Lighthouse, RAMA
 	SCI_VERSION_3 // LSL7, Lighthouse, RAMA, Phantasmagoria 2
 };
 
@@ -233,6 +236,8 @@ public:
 	bool canLoadGameStateCurrently();
 	bool canSaveGameStateCurrently();
 	void syncSoundSettings();
+	uint32 getTickCount();
+	void setTickCount(const uint32 ticks);
 
 	/**
 	 * Syncs the audio options of the ScummVM launcher (speech, subtitles or
@@ -264,6 +269,7 @@ public:
 	Common::Platform getPlatform() const;
 	bool isDemo() const;
 	bool isCD() const;
+	bool forceHiresGraphics() const;
 
 	/** Returns true if the game's original platform is big-endian. */
 	bool isBE() const;
@@ -341,7 +347,8 @@ public:
 	GfxCoordAdjuster *_gfxCoordAdjuster;
 	GfxCursor *_gfxCursor;
 	GfxMenu *_gfxMenu; // Menu for 16-bit gfx
-	GfxPalette *_gfxPalette;
+	GfxPalette *_gfxPalette16;
+	GfxPalette32 *_gfxPalette32; // Palette for 32-bit gfx
 	GfxPaint *_gfxPaint;
 	GfxPaint16 *_gfxPaint16; // Painting in 16-bit gfx
 	GfxPaint32 *_gfxPaint32; // Painting in 32-bit gfx
@@ -416,6 +423,7 @@ private:
 	Console *_console;
 	Common::RandomSource _rng;
 	Common::MacResManager _macExecutable;
+	bool _forceHiresGraphics; // user-option for GK1, KQ6, PQ4
 };
 
 

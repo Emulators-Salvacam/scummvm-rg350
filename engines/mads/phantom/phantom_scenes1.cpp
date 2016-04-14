@@ -67,7 +67,7 @@ void Scene1xx::sceneEntrySound() {
 			break;
 
 		case 104:
-			if ((_vm->_gameConv->_restoreRunning == 7) || (_scene->_priorSceneId == 301)) {
+			if ((_vm->_gameConv->restoreRunning() == 7) || (_scene->_priorSceneId == 301)) {
 				_vm->_sound->command(33);
 			} else if (!_globals[kRoom103104Transition] && !_globals[kObservedPhan104]) {
 				_vm->_sound->command(37);
@@ -168,9 +168,9 @@ void Scene101::enter() {
 		_startSittingFl = false;
 	}
 
-	// Load Dialogs
-	_vm->_gameConv->get(0);
-	_vm->_gameConv->get(1);
+	// Load conversations
+	_vm->_gameConv->load(0);
+	_vm->_gameConv->load(1);
 
 	if (_globals[kCurrentYear] == 1993) {
 		_globals._spriteIndexes[0] = _scene->_sprites.addSprites(formAnimName('z', -1));
@@ -218,7 +218,7 @@ void Scene101::enter() {
 		_talkCounter = 0;
 		_chandelierStatus = 3;
 
-		if (_vm->_gameConv->_restoreRunning == 1) {
+		if (_vm->_gameConv->restoreRunning() == 1) {
 			_vm->_gameConv->run(1);
 			_vm->_gameConv->exportPointer(&_globals[kPlayerScore]);
 			_chandelierStatus = 4;
@@ -300,9 +300,9 @@ void Scene101::preActions() {
 }
 
 void Scene101::actions() {
-	if (_vm->_gameConv->_running == 0)
+	if (_vm->_gameConv->activeConvId() == 0)
 		handleConversation0();
-	else if (_vm->_gameConv->_running == 1)
+	else if (_vm->_gameConv->activeConvId() == 1)
 		handleConversation1();
 	else if (_action._lookFlag) {
 		if (_globals[kCurrentYear] == 1993)
@@ -525,7 +525,7 @@ void Scene101::handleAnimation1() {
 		}
 
 		if (_startWalkingFl) {
-			if (_vm->_gameConv->_running == 1) {
+			if (_vm->_gameConv->activeConvId() == 1) {
 				if (_talkCounter > 13)
 					_chandelierStatus = 1;
 			} else
@@ -541,7 +541,7 @@ void Scene101::handleAnimation1() {
 		case 1:
 			_globals[kBrieTalkStatus] = 2;
 			resetFrame = 45;
-			if (_vm->_gameConv->_running == 1)
+			if (_vm->_gameConv->activeConvId() == 1)
 				_vm->_gameConv->stop();
 			_scene->_dynamicHotspots.remove(_brieAnimId);
 			_game._player._stepEnabled = false;
@@ -906,7 +906,7 @@ void Scene103::enter() {
 	_scene->_hotspots.activate(NOUN_JACQUES, false);
 	_scene->_hotspots.activate(NOUN_KEY, false);
 
-	_vm->_gameConv->get(12);
+	_vm->_gameConv->load(12);
 
 	if (_globals[kTrapDoorStatus] == 0) {
 		_globals._sequenceIndexes[0] = _scene->_sequences.addStampCycle(_globals._spriteIndexes[0], false, 5);
@@ -1118,7 +1118,7 @@ void Scene103::enter() {
 			_anim3ActvFl = true;
 			_game._player._stepEnabled = true;
 			_scene->setAnimFrame(_globals._animationIndexes[3], 36);
-		} else if (_vm->_gameConv->_restoreRunning == 12) {
+		} else if (_vm->_gameConv->restoreRunning() == 12) {
 			_vm->_gameConv->run(12);
 			_vm->_gameConv->exportPointer(&_globals[kPlayerScore]);
 			_vm->_gameConv->exportValue(_globals[kMusicSelected]);
@@ -1376,7 +1376,7 @@ void Scene103::actions() {
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 12) {
+	if (_vm->_gameConv->activeConvId() == 12) {
 		process_conv_jacques();
 		_action._inProgress = false;
 		return;
@@ -2493,7 +2493,7 @@ void Scene104::enter() {
 	if (_globals[kCurrentYear] == 1993)
 		_globals._spriteIndexes[2] = _scene->_sprites.addSprites(formAnimName('z', 0));
 
-	_vm->_gameConv->get(7);
+	_vm->_gameConv->load(7);
 
 	if (_globals[kTrapDoorStatus] == 1) {
 		_globals._sequenceIndexes[0] = _scene->_sequences.addStampCycle(_globals._spriteIndexes[0], false, 1);
@@ -2504,7 +2504,7 @@ void Scene104::enter() {
 	}
 
 	if (_scene->_priorSceneId == RETURNING_FROM_LOADING) {
-		if (_vm->_gameConv->_restoreRunning == 7) {
+		if (_vm->_gameConv->restoreRunning() == 7) {
 			_globals._animationIndexes[1] = _scene->loadAnimation(formAnimName('r', 1), 1);
 			_globals._animationIndexes[2] = _scene->loadAnimation(formAnimName('d', 1), 1);
 			_walkStatus = 0;
@@ -2678,7 +2678,7 @@ void Scene104::preActions() {
 }
 
 void Scene104::actions() {
-	if (_vm->_gameConv->_running == 7) {
+	if (_vm->_gameConv->activeConvId() == 7) {
 		processConversations();
 		_action._inProgress = false;
 		return;
@@ -5056,7 +5056,7 @@ void Scene108::enter() {
 		_maxTalkCount = 15;
 	}
 
-	_vm->_gameConv->get(2);
+	_vm->_gameConv->load(2);
 
 	if (_globals[kCurrentYear] == 1993) {
 		_globals._spriteIndexes[0] = _scene->_sprites.addSprites(formAnimName('z', -1));
@@ -5076,7 +5076,7 @@ void Scene108::enter() {
 		_globals._animationIndexes[0] = _scene->loadAnimation(formAnimName('c', 1), 1);
 		_anim0ActvFl = true;
 
-		if (_vm->_gameConv->_running == 2) {
+		if (_vm->_gameConv->activeConvId() == 2) {
 			_globals[kWalkerConverse] = _vm->getRandomNumber(1, 4);
 			_charAction = 0;
 			_vm->_gameConv->run(2);
@@ -5133,7 +5133,7 @@ void Scene108::step() {
 }
 
 void Scene108::actions() {
-	if (_vm->_gameConv->_running == 2) {
+	if (_vm->_gameConv->activeConvId() == 2) {
 		handleCharlesConversation();
 		_action._inProgress = false;
 		return;
@@ -6508,7 +6508,7 @@ void Scene111::enter() {
 		_scene->_hotspots.activate(NOUN_FIRE_AXE, false);
 	}
 
-	_vm->_gameConv->get(14);
+	_vm->_gameConv->load(14);
 
 	_globals._spriteIndexes[0] = _scene->_sprites.addSprites("*RDR_9");
 	_globals._spriteIndexes[2] = _scene->_sprites.addSprites(formAnimName('a', 1));
@@ -6641,7 +6641,7 @@ void Scene111::step() {
 }
 
 void Scene111::actions() {
-	if (_vm->_gameConv->_running == 14) {
+	if (_vm->_gameConv->activeConvId() == 14) {
 		handleListenConversation();
 		_action._inProgress = false;
 		return;
@@ -7039,7 +7039,7 @@ void Scene112::enter() {
 		_didOptionFl = 0;
 	}
 
-	_vm->_gameConv->get(3);
+	_vm->_gameConv->load(3);
 
 	_globals._animationIndexes[0] = _scene->loadAnimation(formAnimName('j', 1), 1);
 	_anim0ActvFl = true;
@@ -7056,7 +7056,7 @@ void Scene112::enter() {
 	_scene->setAnimFrame(_globals._animationIndexes[1], 82);
 	_raoulAction = 2;
 
-	if (_vm->_gameConv->_restoreRunning == 3) {
+	if (_vm->_gameConv->restoreRunning() == 3) {
 		_vm->_gameConv->run(3);
 		_vm->_gameConv->exportPointer(&_globals[kPlayerScore]);
 		_scene->setAnimFrame(_globals._animationIndexes[1], 17);
@@ -7081,7 +7081,7 @@ void Scene112::step() {
 }
 
 void Scene112::actions() {
-	if (_vm->_gameConv->_running == 3) {
+	if (_vm->_gameConv->activeConvId() == 3) {
 		handleConversation();
 		_action._inProgress = false;
 		return;
@@ -7763,13 +7763,13 @@ void Scene113::enter() {
 	}
 
 	if (_globals[kCurrentYear] == 1993) {
-		_vm->_gameConv->get(4);
+		_vm->_gameConv->load(4);
 		if ((_globals[kDoneBrieConv203] == 1) || (_globals[kDoneBrieConv203] == 3))
-			_vm->_gameConv->get(6);
+			_vm->_gameConv->load(6);
 	} else {
 		_globals._spriteIndexes[4] = _scene->_sprites.addSprites("*faceral", false);
 		_globals._spriteIndexes[5] = _scene->_sprites.addSprites("*facecrsd", false);
-		_vm->_gameConv->get(13);
+		_vm->_gameConv->load(13);
 	}
 
 	if (_globals[kCurrentYear] == 1993) {
@@ -7983,7 +7983,7 @@ void Scene113::enter() {
 		_game._player._facing = FACING_NORTH;
 	}
 
-	switch (_vm->_gameConv->_restoreRunning) {
+	switch (_vm->_gameConv->restoreRunning()) {
 	case 4:
 		_vm->_gameConv->run(4);
 		_vm->_gameConv->exportPointer(&_globals[kPlayerScore]);
@@ -8081,19 +8081,19 @@ void Scene113::step() {
 }
 
 void Scene113::actions() {
-	if (_vm->_gameConv->_running == 13) {
+	if (_vm->_gameConv->activeConvId() == 13) {
 		handleLoveConversation();
 		_action._inProgress = false;
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 4) {
+	if (_vm->_gameConv->activeConvId() == 4) {
 		handleFlorentConversation();
 		_action._inProgress = false;
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 6) {
+	if (_vm->_gameConv->activeConvId() == 6) {
 		handleDeadConversation();
 		_action._inProgress = false;
 		return;

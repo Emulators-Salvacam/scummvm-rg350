@@ -593,7 +593,7 @@ engine_enable() {
 		parent=`get_subengine_parent ${engine}`
 		if test `get_engine_build ${parent}` = "no" ; then
 			set_var _engine_${parent}_build "yes"
-		fi		
+		fi
 	fi
 
 	if test "$opt" = "static" -o "$opt" = "dynamic" -o "$opt" = "yes" ; then
@@ -809,6 +809,12 @@ get_subengines_build_string() {
 #
 echo "Running ScummVM configure..."
 echo "Configure run on" `date` > $TMPLOG
+cat >> $TMPLOG <<EOF
+Invocation command line was:
+$0 $@
+Saved environment variables:
+LDFLAGS="$SAVED_LDFLAGS" CXX="$SAVED_CXX" CXXFLAGS="$SAVED_CXXFLAGS" CPPFLAGS="$SAVED_CPPFLAGS" ASFLAGS="$SAVED_ASFLAGS" WINDRESFLAGS="$SAVED_WINDRESFLAGS" SDL_CONFIG="$SAVED_SDL_CONFIG"
+EOF
 
 #
 # Check any parameters we received
@@ -834,7 +840,7 @@ Usage: $0 [OPTIONS]...
 Configuration:
   -h, --help              display this help and exit
   --backend=BACKEND       backend to build (android, tizen, dc, dingux, ds, gcw0,
-                          gph, iphone, linuxmoto, maemo, n64, null, openpandora,
+                          gph, iphone, ios7, linuxmoto, maemo, n64, null, openpandora,
                           ps2, psp, samsungtv, sdl, webos, wii, wince) [sdl]
 
 Installation directories:
@@ -874,7 +880,8 @@ Special configuration feature:
                                            gcw0 for GCW Zero
                                            gp2x for GP2X
                                            gp2xwiz for GP2X Wiz
-                                           iphone for Apple iPhone
+                                           iphone for Apple iPhone (iOS <= 6)
+                                           ios7 for Apple iPhone / iPad (iOS >= 7)
                                            linupy for Yopy PDA
                                            maemo for Nokia Maemo
                                            motoezx for MotoEZX
@@ -896,7 +903,7 @@ Game engines:
   --disable-all-engines    disable all engines
   --enable-engine=<engine name>[,<engine name>...] enable engine(s) listed
   --disable-engine=<engine name>[,<engine name>...] disable engine(s) listed
-  --enable-engine-static=<engine name>[,<engine name>...] 
+  --enable-engine-static=<engine name>[,<engine name>...]
       enable engine(s) listed as static builtin (when plugins are enabled)
   --enable-engine-dynamic=<engine name>[,<engine name>...]
       enable engine(s) listed as dynamic plugin (when plugins are enabled)
@@ -1311,7 +1318,7 @@ raspberrypi)
 	_host_cpu=arm
 	# This tuple is the one used by the official Rpi toolchain.
 	# It may change in the future.
-	_host_alias=bcm2708hardfp
+	_host_alias=arm-linux-gnueabihf
 	;;
 caanoo)
 	_host_os=gph-linux
@@ -1358,6 +1365,11 @@ iphone)
 	_host_os=iphone
 	_host_cpu=arm
 	_host_alias=arm-apple-darwin9
+	;;
+ios7)
+	_host_os=iphone
+	_host_cpu=arm
+	_host_alias=arm-apple-darwin11
 	;;
 linupy)
 	_host_os=linux
@@ -1686,23 +1698,33 @@ LD=$CXX
 #
 echocheck "compiler version"
 
-# We first check whether we have an Intel compiler here, since the Intel compiler
-# can also fake itself as an gcc (to ease compatibility with common Linux etc.
-# programs).
+# Some compilers pretend to be gcc to ease compatibility with
+# common Linux etc. programs. We first check for some of these here.
+have_gcc=no
+cc_check_define __GNUC__ && have_gcc=yes
 have_icc=no
 cc_check_define __INTEL_COMPILER && have_icc=yes
+have_clang=no
+cc_check_define __clang__ && have_clang=yes
 
 if test "$have_icc" = yes; then
 	add_line_to_config_mk 'HAVE_ICC = 1'
 
-	# Make ICC error our on unknown command line options instead of printing
+	# Make ICC error out on unknown command line options instead of printing
 	# a warning. This is for example required to make the -Wglobal-destructors
 	# detection work correctly.
 	append_var CXXFLAGS "-diag-error 10006,10148"
+
+	# ICC doesn't accept all gcc options, so we disable have_gcc, even if
+	# ICC does have the gcc-compatibility defines.
+	have_gcc=no
 fi
 
-have_gcc=no
-cc_check_define __GNUC__ && have_gcc=yes
+if test "$have_clang" = yes; then
+	add_line_to_config_mk 'HAVE_CLANG = 1'
+
+	# clang does accept all gcc options we use, so we keep have_gcc
+fi
 
 if test "$have_gcc" = yes; then
 	add_line_to_config_mk 'HAVE_GCC = 1'
@@ -1710,11 +1732,17 @@ if test "$have_gcc" = yes; then
 	_cxx_minor=`gcc_get_define __GNUC_MINOR__`
 	cxx_version="`( $CXX -dumpversion ) 2>&1`"
 
-	if test -n "`gcc_get_define __clang__`"; then
-		add_line_to_config_mk 'HAVE_CLANG = 1'
-	fi
+	if test "$have_clang" = yes; then
+		# Clang sets a gcc version number for compatibility.
+		# We keep that as _cxx_minor/_cxx_major for later
+		# compiler version checks.
 
-	if test "$_cxx_major" -eq 2 && test "$_cxx_minor" -ge 95 || \
+		# For the version reported in the configure log (cxx_version),
+		# we get the actual clang version.
+		cxx_version=`gcc_get_define __clang_version__`
+		cxx_version="`echo "${cxx_version}" | sed -e 's/"\([^ ]*\) .*/\1/'`"
+		cxx_version="clang $cxx_version, ok"
+	elif test "$_cxx_major" -eq 2 && test "$_cxx_minor" -ge 95 || \
 	   test "$_cxx_major" -gt 2 ; then
 		cxx_version="$cxx_version, ok"
 		cxx_verc_fail=no
@@ -2047,13 +2075,31 @@ echo_n "Checking host CPU architecture... "
 case $_host_cpu in
 	arm*)
 		echo "ARM"
-		define_in_config_if_yes yes 'USE_ARM_SCALER_ASM'
-		define_in_config_if_yes yes 'USE_ARM_SOUND_ASM'
-		define_in_config_if_yes yes 'USE_ARM_SMUSH_ASM'
-		define_in_config_if_yes yes 'USE_ARM_GFX_ASM'
-		# FIXME: The following feature exhibits a bug during the intro scene of Indy 4
-		# (on Pandora and iPhone at least)
-		#define_in_config_if_yes yes 'USE_ARM_COSTUME_ASM'
+		case $_host_alias in
+			# Apple's as does not support the syntax we use in our ARM
+			# assembly. We simply do not enable it.
+			arm-apple-darwin9)
+				;;
+			arm-apple-darwin10)
+				;;
+			arm-apple-darwin11)
+				;;
+
+			*)
+				define_in_config_if_yes yes 'USE_ARM_SCALER_ASM'
+				# FIXME: The following feature exhibits a bug. It produces distorted
+				# sound since 9003ce517ff9906b0288f9f7c02197fd091d4554. The ARM
+				# assembly will need to be properly adapted to the changes to the C
+				# code in 8f5a7cde2f99de9fef849b0ff688906f05f4643e.
+				# See bug #6957: "AUDIO: ARM ASM sound code causes distorted audio on 32 bit armv6"
+				#define_in_config_if_yes yes 'USE_ARM_SOUND_ASM'
+				define_in_config_if_yes yes 'USE_ARM_SMUSH_ASM'
+				define_in_config_if_yes yes 'USE_ARM_GFX_ASM'
+				# FIXME: The following feature exhibits a bug during the intro scene of Indy 4
+				# (on Pandora and iPhone at least)
+				#define_in_config_if_yes yes 'USE_ARM_COSTUME_ASM'
+				;;
+		esac
 
 		append_var DEFINES "-DARM_TARGET"
 		;;
@@ -2086,7 +2132,7 @@ echo_n "Checking hosttype... "
 echo $_host_os
 case $_host_os in
 	amigaos*)
-		append_var LDFLAGS "-use-dynld -Wl,--export-dynamic"
+		append_var LDFLAGS "-Wl,--export-dynamic"
 		append_var LDFLAGS "-L/sdk/local/newlib/lib"
 		# We have to use 'long' for our 4 byte typedef because AmigaOS already typedefs (u)int32
 		# as (unsigned) long, and consequently we'd get a compiler error otherwise.
@@ -2237,7 +2283,7 @@ case $_host_os in
 
 			LDFLAGS="-L${macport_prefix}/lib $LDFLAGS"
 			CXXFLAGS="-I${macport_prefix}/include $CXXFLAGS"
-			
+
 			if test -z "$_staticlibpath"; then
 				_staticlibpath=${macport_prefix}
 				echo "Set staticlib-prefix to ${_staticlibpath}"
@@ -2414,6 +2460,7 @@ case $_host_os in
 		;;
 	ps3)
 		# Force use of SDL and freetype from the ps3 toolchain
+		_sdlconfig=sdl2-config
 		_sdlpath="$PS3DEV/portlibs/ppu:$PS3DEV/portlibs/ppu/bin"
 		_freetypepath="$PS3DEV/portlibs/ppu:$PS3DEV/portlibs/ppu/bin"
 
@@ -2557,7 +2604,7 @@ if test -n "$_host"; then
 			_mt32emu=no
 			_optimization_level=-O3
 			# Disable alsa midi to get the port build on OpenDingux toolchain
-			_alsa=no 
+			_alsa=no
 			_vkeybd=yes
 			_build_hq_scalers=no
 			_keymapper=no
@@ -2584,12 +2631,14 @@ if test -n "$_host"; then
 			_eventrec=no
 			_build_scalers=no
 			_build_hq_scalers=no
-			# We prefer SDL2 on the Raspberry Pi: acceleration now depends on it 
+			# We prefer SDL2 on the Raspberry Pi: acceleration now depends on it
 			# since SDL2 manages dispmanx/GLES2 very well internally.
 			# SDL1 is bit-rotten on this platform.
 			_sdlconfig=sdl2-config
-			# We should add _opengles=yes later here if we wanted the GLES renderer.
-			# For now, we use plain SDL2 only, which in turn uses GLES2 by default.
+			# OpenGL(ES) support is mature enough as to be the best option on
+			# the Raspberry Pi, so it's enabled by default.
+			_opengl=yes
+			_opengles=yes
 			;;
 		dreamcast)
 			append_var DEFINES "-DDISABLE_DEFAULT_SAVEFILEMANAGER"
@@ -2610,7 +2659,11 @@ if test -n "$_host"; then
 			_build_scalers=no
 			_mad=yes
 			_zlib=yes
-			add_line_to_config_mk 'ronindir = /usr/local/ronin'
+			if test -z "$RONINDIR"; then
+				add_line_to_config_mk "ronindir := /usr/local/ronin"
+			else
+				add_line_to_config_mk "ronindir := $RONINDIR"
+			fi
 			_port_mk="backends/platform/dc/dreamcast.mk"
 			;;
 		ds)
@@ -2643,7 +2696,9 @@ if test -n "$_host"; then
 			add_line_to_config_h "/* #define DEBUG_WII_GDB */"
 			add_line_to_config_h "#define USE_WII_DI"
 			;;
-               gcw0)
+		gcw0)
+			_sysroot=`$CXX --print-sysroot`
+			_sdlpath=$_sysroot/usr/bin
 			append_var DEFINES "-DDINGUX -DGCW0"
 			append_var DEFINES "-DREDUCE_MEMORY_USAGE"
 			append_var CXXFLAGS "-mips32"
@@ -2698,6 +2753,13 @@ if test -n "$_host"; then
 			_seq_midi=no
 			_timidity=no
 			;;
+		ios7)
+			append_var DEFINES "-DIPHONE"
+			_backend="ios7"
+			_build_scalers=no
+			_seq_midi=no
+			_timidity=no
+			;;
 		m68k-atari-mint)
 			append_var DEFINES "-DSYSTEM_NOT_SUPPORTING_D_TYPE"
 			_ranlib=m68k-atari-mint-ranlib
@@ -2711,7 +2773,7 @@ if test -n "$_host"; then
 			append_var INCLUDES "-I/usr/X11R6/include"
 			append_var LIBS "-lX11"
 			append_var LIBS "-L/usr/lib"
-			
+
 			_backend="maemo"
 			_vkeybd=yes
 			_keymapper=yes
@@ -2991,6 +3053,19 @@ case $_backend in
 		append_var LIBS "-framework QuartzCore -framework CoreFoundation -framework Foundation"
 		append_var LIBS "-framework AudioToolbox -framework CoreAudio"
 		;;
+	ios7)
+		append_var LIBS "-lobjc -framework UIKit -framework CoreGraphics -framework OpenGLES"
+		append_var LIBS "-framework QuartzCore -framework CoreFoundation -framework Foundation"
+		append_var LIBS "-framework AudioToolbox -framework CoreAudio"
+		append_var LDFLAGS "-miphoneos-version-min=7.1 -arch armv7"
+		append_var CFLAGS "-miphoneos-version-min=7.1 -arch armv7"
+		append_var CXXFLAGS "-miphoneos-version-min=7.1 -arch armv7"
+		if test -n "$SDKROOT"; then
+			append_var LDFLAGS "-mlinker-version=134.9 -B/usr/local/bin/arm-apple-darwin11-"
+			append_var CFLAGS "-isysroot $SDKROOT -F$SDKROOT/System/Library/Frameworks"
+			append_var CXXFLAGS "-isysroot $SDKROOT -I$SDKROOT/usr/include/c++/4.2.1 -F$SDKROOT/System/Library/Frameworks"
+		fi
+		;;
 	linuxmoto)
 		append_var DEFINES "-DLINUXMOTO"
 		;;
@@ -3108,9 +3183,6 @@ case $_backend in
 
 		_sdlversion=`$_sdlconfig --version`
 		case $_sdlversion in
-			1.3.*)
-				add_line_to_config_mk "USE_SDL13 = 1"
-				;;
 			2.0.*)
 				add_line_to_config_mk "USE_SDL2 = 1"
 				;;
@@ -3125,7 +3197,7 @@ esac
 # Enable 16bit support only for backends which support it
 #
 case $_backend in
-	android | dingux | dc | gph | iphone | maemo | openpandora | psp | samsungtv | sdl | tizen | webos | wii)
+	android | dingux | dc | gph | iphone | ios7 | maemo | openpandora | psp | samsungtv | sdl | tizen | webos | wii)
 		if test "$_16bit" = auto ; then
 			_16bit=yes
 		else
@@ -3184,7 +3256,7 @@ case $_host_os in
 	amigaos* | cygwin* | dreamcast | ds | gamecube | mingw* | n64 | ps2 | ps3 | psp | wii | wince)
 		_posix=no
 		;;
-	android | beos* | bsd* | darwin* | freebsd* | gnu* | gph-linux | haiku* | hpux* | iphone | irix*| k*bsd*-gnu* | linux* | maemo | mint* | netbsd* | openbsd* | solaris* | sunos* | uclinux* | webos)
+	android | beos* | bsd* | darwin* | freebsd* | gnu* | gph-linux | haiku* | hpux* | iphone | ios7 | irix*| k*bsd*-gnu* | linux* | maemo | mint* | netbsd* | openbsd* | solaris* | sunos* | uclinux* | webos)
 		_posix=yes
 		;;
 	os2-emx*)
@@ -3829,26 +3901,47 @@ fi
 echo "$_sparkle"
 
 #
-# Check for libfluidsynth
+# Check for FluidSynth
 #
-echocheck "libfluidsynth"
-if test "$_fluidsynth" = auto ; then
+echocheck "FluidSynth"
+
+append_var FLUIDSYNTH_LIBS "-lfluidsynth"
+case $_host_os in
+	mingw*)
+		# NOTE: Windows builds use an older FluidSynth version (1.0.9)
+		# which doesn't require glib, to avoid bundling the complete glib
+		# libraries with Windows builds.
+		FLUIDSYNTH_STATIC_LIBS="$FLUIDSYNTH_LIBS -ldsound -lwinmm"
+	;;
+
+	darwin*)
+		FLUIDSYNTH_STATIC_LIBS="$FLUIDSYNTH_LIBS -framework Foundation -framework CoreMIDI -framework CoreAudio -lglib-2.0 -lintl -liconv -lreadline"
+	;;
+
+	iphone)
+		FLUIDSYNTH_STATIC_LIBS="$FLUIDSYNTH_LIBS -framework Foundation -framework CoreMIDI -lglib-2.0 -lintl -liconv"
+	;;
+
+	*)
+		FLUIDSYNTH_STATIC_LIBS="$FLUIDSYNTH_LIBS -lglib-2.0 -lintl -liconv"
+	;;
+esac
+
+if test "$_fluidsynth" = auto; then
 	_fluidsynth=no
 	cat > $TMPC << EOF
 #include <fluidsynth.h>
-int main(void) { return 0; }
+int main(void) { delete_fluid_settings(new_fluid_settings()); return 0; }
 EOF
-	cc_check $FLUIDSYNTH_CFLAGS $FLUIDSYNTH_LIBS -lfluidsynth && _fluidsynth=yes
+	cc_check_no_clean $FLUIDSYNTH_CFLAGS $FLUIDSYNTH_LIBS && _fluidsynth=yes
+	if test "$_fluidsynth" != yes; then
+		FLUIDSYNTH_LIBS="$FLUIDSYNTH_STATIC_LIBS"
+		cc_check_no_clean $FLUIDSYNTH_CFLAGS $FLUIDSYNTH_LIBS && _fluidsynth=yes
+	fi
+	cc_check_clean
 fi
-if test "$_fluidsynth" = yes ; then
-	case $_host_os in
-		mingw*)
-			append_var LIBS "$FLUIDSYNTH_LIBS -lfluidsynth -ldsound -lwinmm"
-		;;
-		*)
-			append_var LIBS "$FLUIDSYNTH_LIBS -lfluidsynth"
-		;;
-	esac
+if test "$_fluidsynth" = yes; then
+	append_var LIBS "$FLUIDSYNTH_LIBS"
 	append_var INCLUDES "$FLUIDSYNTH_CFLAGS"
 fi
 define_in_config_if_yes "$_fluidsynth" 'USE_FLUIDSYNTH'
@@ -3980,7 +4073,15 @@ int main(int argc, char *argv[]) {
 }
 EOF
 
-			cc_check $FREETYPE2_CFLAGS $FREETYPE2_LIBS && _freetype2=yes
+			cc_check_no_clean $FREETYPE2_CFLAGS $FREETYPE2_LIBS && _freetype2=yes
+			# Modern freetype-config scripts accept --static to get all
+			# required flags for static linking. We abuse this to detect
+			# FreeType2 builds which are static themselves.
+			if test "$_freetype2" != "yes"; then
+				FREETYPE2_LIBS=`$_freetypeconfig --prefix="$_freetypepath" --static --libs 2>/dev/null`
+				cc_check_no_clean $FREETYPE2_CFLAGS $FREETYPE2_LIBS && _freetype2=yes
+			fi
+			cc_check_clean
 		fi
 
 		if test "$_freetype2" = "yes"; then
@@ -4593,6 +4694,7 @@ STAGINGPATH=$_stagingpath
 WIN32PATH=$_win32path
 AMIGAOSPATH=$_amigaospath
 STATICLIBPATH=$_staticlibpath
+SDLCONFIG=$_sdlconfig
 
 ABI := $ABI
 

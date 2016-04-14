@@ -43,7 +43,7 @@ void Scene5xx::sceneEntrySound() {
 	if ((_globals[kCoffinStatus] == 2) && !_game._visitedScenes.exists(506) && (_globals[kFightStatus] == 0) && (_scene->_currentSceneId == 504))
 		_vm->_sound->command(33);
 	else if (_scene->_currentSceneId == 505)
-		_vm->_sound->command((_vm->_gameConv->_restoreRunning == 20) ? 39 : 16);
+		_vm->_sound->command((_vm->_gameConv->restoreRunning() == 20) ? 39 : 16);
 	else
 		_vm->_sound->command(16);
 }
@@ -92,7 +92,7 @@ void Scene501::enter() {
 		_skipFl = false;
 	}
 
-	_vm->_gameConv->get(26);
+	_vm->_gameConv->load(26);
 
 	_globals._spriteIndexes[0] = _scene->_sprites.addSprites(formAnimName('x', 0));
 	_globals._spriteIndexes[1] = _scene->_sprites.addSprites(formAnimName('x', 1));
@@ -257,7 +257,7 @@ void Scene501::step() {
 }
 
 void Scene501::actions() {
-	if (_vm->_gameConv->_running == 26) {
+	if (_vm->_gameConv->activeConvId() == 26) {
 		_action._inProgress = false;
 		return;
 	}
@@ -403,7 +403,7 @@ void Scene501::actions() {
 					break;
 
 				case 68:
-					_vm->_gameConv->abortConv();
+					_vm->_gameConv->stop();
 					_scene->_nextSceneId = 506;
 					break;
 				}
@@ -620,7 +620,7 @@ void Scene501::preActions() {
 			break;
 
 		case 1:
-			if (_vm->_gameConv->_running >= 0)
+			if (_vm->_gameConv->activeConvId() >= 0)
 				_scene->_sequences.addTimer(6, 1);
 			else {
 				_game._player._stepEnabled = true;
@@ -1853,12 +1853,12 @@ void Scene504::enter() {
 	_scene->_hotspots.activate(NOUN_CHRISTINE, false);
 
 	if (!_globals[kRightDoorIsOpen504]) {
-		_vm->_gameConv->get(19);
-		_vm->_gameConv->get(27);
+		_vm->_gameConv->load(19);
+		_vm->_gameConv->load(27);
 	} else
-		_vm->_gameConv->get(21);
+		_vm->_gameConv->load(21);
 
-	_vm->_gameConv->get(26);
+	_vm->_gameConv->load(26);
 
 	_globals._spriteIndexes[14] = _scene->_sprites.addSprites("*RDR_9");
 	_globals._spriteIndexes[15] = _scene->_sprites.addSprites(formAnimName('x', 8));
@@ -1987,7 +1987,7 @@ void Scene504::enter() {
 			_scene->_sequences.setDepth(_globals._sequenceIndexes[2], 14);
 		}
 
-		if (_vm->_gameConv->_restoreRunning == 19) {
+		if (_vm->_gameConv->restoreRunning() == 19) {
 			_scene->drawToBackground(_globals._spriteIndexes[0], 1, Common::Point(-32000, -32000), 0, 100);
 			_globals._sequenceIndexes[1] = _scene->_sequences.addStampCycle(_globals._spriteIndexes[1], false, 1);
 			_scene->_sequences.setDepth(_globals._sequenceIndexes[1], 14);
@@ -2002,7 +2002,7 @@ void Scene504::enter() {
 			_scene->setAnimFrame(_globals._animationIndexes[0], 8);
 			_vm->_gameConv->run(19);
 			_vm->_gameConv->exportValue(_game._difficulty);
-		} else if (_vm->_gameConv->_restoreRunning == 27) {
+		} else if (_vm->_gameConv->restoreRunning() == 27) {
 			_scene->drawToBackground(_globals._spriteIndexes[0], 1, Common::Point(-32000, -32000), 0, 100);
 			_globals._sequenceIndexes[1] = _scene->_sequences.addStampCycle(_globals._spriteIndexes[1], false, 1);
 			_scene->_sequences.setDepth(_globals._sequenceIndexes[1], 14);
@@ -2054,7 +2054,7 @@ void Scene504::enter() {
 				_game._player._visible = false;
 				_anim3ActvFl = true;
 
-				if (_vm->_gameConv->_restoreRunning == 21) {
+				if (_vm->_gameConv->restoreRunning() == 21) {
 					_game._player._stepEnabled = false;
 					_vm->_gameConv->run(21);
 					_vm->_gameConv->exportValue(_game._objects.isInInventory(OBJ_MUSIC_SCORE));
@@ -2263,7 +2263,7 @@ void Scene504::step() {
 }
 
 void Scene504::actions() {
-	if (_vm->_gameConv->_running == 26) {
+	if (_vm->_gameConv->activeConvId() == 26) {
 		_action._inProgress = false;
 		return;
 	}
@@ -2304,19 +2304,19 @@ void Scene504::actions() {
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 19) {
+	if (_vm->_gameConv->activeConvId() == 19) {
 		handleListenConversation();
 		_action._inProgress = false;
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 27) {
+	if (_vm->_gameConv->activeConvId() == 27) {
 		handlePlayConversation();
 		_action._inProgress = false;
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 21) {
+	if (_vm->_gameConv->activeConvId() == 21) {
 		handleFightConversation();
 		_action._inProgress = false;
 		return;
@@ -2360,8 +2360,8 @@ void Scene504::actions() {
 
 	if (_action.isAction(VERB_WALK_THROUGH, NOUN_RIGHT_DOOR) || _action.isAction(VERB_OPEN, NOUN_RIGHT_DOOR)) {
 		if (_globals[kRightDoorIsOpen504]) {
-			if (_vm->_gameConv->_running == 26)
-				_vm->_gameConv->abortConv();
+			if (_vm->_gameConv->activeConvId() == 26)
+				_vm->_gameConv->stop();
 
 			_scene->_nextSceneId = 505;
 		} else
@@ -2580,7 +2580,7 @@ void Scene504::preActions() {
 					break;
 
 				case 1:
-					if (_vm->_gameConv->_running >= 0)
+					if (_vm->_gameConv->activeConvId() >= 0)
 						_scene->_sequences.addTimer(6, 1);
 					else {
 						_game._player._stepEnabled = true;
@@ -3043,43 +3043,43 @@ void Scene504::handleListenConversation() {
 void Scene504::handlePlayConversation() {
 	switch (_action._activeAction._verbId) {
 	case 2:
-		*_vm->_gameConv->_nextStartNode = 1;
-		_vm->_gameConv->abortConv();
+		_vm->_gameConv->setStartNode(1);
+		_vm->_gameConv->stop();
 		_playStatus = 1;
 		_songNum = 1;
 		break;
 
 	case 3:
-		*_vm->_gameConv->_nextStartNode = 1;
-		_vm->_gameConv->abortConv();
+		_vm->_gameConv->setStartNode(1);
+		_vm->_gameConv->stop();
 		_playStatus = 1;
 		_songNum = 2;
 		break;
 
 	case 4:
-		*_vm->_gameConv->_nextStartNode = 1;
-		_vm->_gameConv->abortConv();
+		_vm->_gameConv->setStartNode(1);
+		_vm->_gameConv->stop();
 		_playStatus = 1;
 		_songNum = 3;
 		break;
 
 	case 5:
-		*_vm->_gameConv->_nextStartNode = 1;
-		_vm->_gameConv->abortConv();
+		_vm->_gameConv->setStartNode(1);
+		_vm->_gameConv->stop();
 		_playStatus = 1;
 		_songNum = 4;
 		break;
 
 	case 6:
-		*_vm->_gameConv->_nextStartNode = 1;
-		_vm->_gameConv->abortConv();
+		_vm->_gameConv->setStartNode(1);
+		_vm->_gameConv->stop();
 		_playStatus = 1;
 		_songNum = 5;
 		break;
 
 	case 8:
-		*_vm->_gameConv->_nextStartNode = 1;
-		_vm->_gameConv->abortConv();
+		_vm->_gameConv->setStartNode(1);
+		_vm->_gameConv->stop();
 		_playStatus = 1;
 		break;
 
@@ -3186,7 +3186,7 @@ void Scene505::enter() {
 		_checkFrame106 = false;
 	}
 
-	_vm->_gameConv->get(20);
+	_vm->_gameConv->load(20);
 	_scene->_hotspots.activateAtPos(NOUN_LID, false, Common::Point(216, 44));
 	_scene->_hotspots.activate(NOUN_CHRISTINE, false);
 
@@ -3201,7 +3201,7 @@ void Scene505::enter() {
 	_globals._spriteIndexes[8] = _scene->_sprites.addSprites(formAnimName('a', 4));
 
 	if (_scene->_priorSceneId == RETURNING_FROM_LOADING) {
-		if (_vm->_gameConv->_restoreRunning == 20) {
+		if (_vm->_gameConv->restoreRunning() == 20) {
 			_scene->_hotspots.activate(NOUN_LID, false);
 			_scene->_hotspots.activateAtPos(NOUN_LID, true, Common::Point(216, 44));
 			_globals._sequenceIndexes[7] = _scene->_sequences.addStampCycle(_globals._spriteIndexes[7], false, 12);
@@ -3314,7 +3314,7 @@ void Scene505::actions() {
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 20) {
+	if (_vm->_gameConv->activeConvId() == 20) {
 		handleCoffinDialog();
 		_action._inProgress = false;
 		return;
@@ -3939,7 +3939,7 @@ void Scene506::enter() {
 		_ascendingFl = false;
 	}
 
-	_vm->_gameConv->get(26);
+	_vm->_gameConv->load(26);
 
 	_globals._spriteIndexes[0] = _scene->_sprites.addSprites(formAnimName('x', 0));
 	_globals._spriteIndexes[1] = _scene->_sprites.addSprites(formAnimName('x', 1));
@@ -4077,7 +4077,7 @@ void Scene506::step() {
 			_scene->_nextSceneId = 501;
 	}
 
-	if (_ascendingFl && (_vm->_gameConv->_running != 26)) {
+	if (_ascendingFl && (_vm->_gameConv->activeConvId() != 26)) {
 		_ascendingFl = false;
 		_game._player._stepEnabled = false;
 	}
@@ -4193,7 +4193,7 @@ void Scene506::actions() {
 				break;
 
 			case 90:
-				_vm->_gameConv->abortConv();
+				_vm->_gameConv->stop();
 				_scene->_nextSceneId = 504;
 				break;
 
@@ -4205,7 +4205,7 @@ void Scene506::actions() {
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 26) {
+	if (_vm->_gameConv->activeConvId() == 26) {
 		_action._inProgress = false;
 		return;
 	}

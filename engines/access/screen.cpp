@@ -62,6 +62,7 @@ Screen::Screen(AccessEngine *vm) : _vm(vm) {
 	_startCycle = 0;
 	_cycleStart = 0;
 	_endCycle = 0;
+	_fadeIn = false;
 }
 
 void Screen::clearScreen() {
@@ -89,8 +90,11 @@ void Screen::setPanel(int num) {
 }
 
 void Screen::updateScreen() {
-	if (_vm->_startup > 0)
+	if (_vm->_startup >= 0) {
+		if (--_vm->_startup == -1)
+			_fadeIn = true;
 		return;
+	}
 
 	// Merge the dirty rects
 	mergeDirtyRects();

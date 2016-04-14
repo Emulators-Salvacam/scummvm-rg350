@@ -39,6 +39,7 @@
 #include "sci/engine/vm_types.h"
 #include "sci/engine/script.h"	// for SCI_OBJ_EXPORTS and SCI_OBJ_SYNONYMS
 #include "sci/graphics/helpers.h"
+#include "sci/graphics/menu.h"
 #include "sci/graphics/palette.h"
 #include "sci/graphics/ports.h"
 #include "sci/graphics/screen.h"
@@ -47,6 +48,7 @@
 #include "sci/sound/music.h"
 
 #ifdef ENABLE_SCI32
+#include "sci/graphics/palette32.h"
 #include "sci/graphics/frameout.h"
 #endif
 
@@ -272,7 +274,11 @@ static void sync_SavegameMetadata(Common::Serializer &s, SavegameMetadata &obj) 
 		if (s.getVersion() >= 26)
 			s.syncAsUint32LE(obj.playTime);
 	} else {
-		obj.playTime = g_engine->getTotalPlayTime() / 1000;
+		if (s.getVersion() >= 34) {
+			obj.playTime = g_sci->getTickCount();
+		} else {
+			obj.playTime = g_engine->getTotalPlayTime() / 1000;
+		}
 		s.syncAsUint32LE(obj.playTime);
 	}
 }
@@ -304,7 +310,8 @@ void EngineState::saveLoadWithSerializer(Common::Serializer &s) {
 	_segMan->saveLoadWithSerializer(s);
 
 	g_sci->_soundCmd->syncPlayList(s);
-	g_sci->_gfxPalette->saveLoadWithSerializer(s);
+	// NOTE: This will be GfxPalette32 for SCI32 engine games
+	g_sci->_gfxPalette16->saveLoadWithSerializer(s);
 }
 
 void Vocabulary::saveLoadWithSerializer(Common::Serializer &s) {
@@ -465,7 +472,7 @@ void Script::syncStringHeap(Common::Serializer &s) {
 				break;
 		} while (1);
 
-	} else if (getSciVersion() >= SCI_VERSION_1_1 && getSciVersion() <= SCI_VERSION_2_1){
+	} else if (getSciVersion() >= SCI_VERSION_1_1 && getSciVersion() <= SCI_VERSION_2_1_LATE){
 		// Strings in SCI1.1 come after the object instances
 		byte *buf = _heapStart + 4 + READ_SCI11ENDIAN_UINT16(_heapStart + 2) * 2;
 
@@ -721,6 +728,91 @@ void GfxPalette::saveLoadWithSerializer(Common::Serializer &s) {
 	}
 }
 
+#ifdef ENABLE_SCI32
+void saveLoadPalette32(Common::Serializer &s, Palette *const palette) {
+	s.syncAsUint32LE(palette->timestamp);
+	for (int i = 0; i < ARRAYSIZE(palette->colors); ++i) {
+		s.syncAsByte(palette->colors[i].used);
+		s.syncAsByte(palette->colors[i].r);
+		s.syncAsByte(palette->colors[i].g);
+		s.syncAsByte(palette->colors[i].b);
+	}
+}
+
+void saveLoadOptionalPalette32(Common::Serializer &s, Palette **const palette) {
+	bool hasPalette;
+	if (s.isSaving()) {
+		hasPalette = (*palette != nullptr);
+	}
+	s.syncAsByte(hasPalette);
+	if (hasPalette) {
+		if (s.isLoading()) {
+			*palette = new Palette;
+		}
+		saveLoadPalette32(s, *palette);
+	}
+}
+
+void GfxPalette32::saveLoadWithSerializer(Common::Serializer &s) {
+	if (s.getVersion() < 34) {
+		return;
+	}
+
+	if (s.isLoading()) {
+		++_version;
+	}
+
+	s.syncAsSint16LE(_varyDirection);
+	s.syncAsSint16LE(_varyPercent);
+	s.syncAsSint16LE(_varyTargetPercent);
+	s.syncAsSint16LE(_varyFromColor);
+	s.syncAsSint16LE(_varyToColor);
+	s.syncAsUint16LE(_varyNumTimesPaused);
+	s.syncAsByte(_versionUpdated);
+	s.syncAsSint32LE(_varyTime);
+	s.syncAsUint32LE(_varyLastTick);
+
+	for (int i = 0; i < ARRAYSIZE(_fadeTable); ++i) {
+		s.syncAsByte(_fadeTable[i]);
+	}
+	for (int i = 0; i < ARRAYSIZE(_cycleMap); ++i) {
+		s.syncAsByte(_cycleMap[i]);
+	}
+
+	saveLoadOptionalPalette32(s, &_varyTargetPalette);
+	saveLoadOptionalPalette32(s, &_varyStartPalette);
+	// NOTE: _sourcePalette and _nextPalette are not saved
+	// by SCI engine
+
+	for (int i = 0; i < ARRAYSIZE(_cyclers); ++i) {
+		PalCycler *cycler = nullptr;
+
+		bool hasCycler;
+		if (s.isSaving()) {
+			cycler = _cyclers[i];
+			hasCycler = (cycler != nullptr);
+		}
+		s.syncAsByte(hasCycler);
+
+		if (hasCycler) {
+			if (s.isLoading()) {
+				_cyclers[i] = cycler = new PalCycler;
+			}
+
+			s.syncAsByte(cycler->fromColor);
+			s.syncAsUint16LE(cycler->numColorsToCycle);
+			s.syncAsByte(cycler->currentCycle);
+			s.syncAsByte(cycler->direction);
+			s.syncAsUint32LE(cycler->lastUpdateTick);
+			s.syncAsSint16LE(cycler->delay);
+			s.syncAsUint16LE(cycler->numTimesPaused);
+		}
+	}
+
+	// TODO: _clutTable
+}
+#endif
+
 void GfxPorts::saveLoadWithSerializer(Common::Serializer &s) {
 	// reset() is called directly way earlier in gamestate_restore()
 	if (s.getVersion() >= 27) {
@@ -866,7 +958,8 @@ bool gamestate_save(EngineState *s, Common::WriteStream *fh, const Common::Strin
 extern void showScummVMDialog(const Common::String &message);
 
 void gamestate_delayedrestore(EngineState *s) {
-	Common::String fileName = g_sci->getSavegameName(s->_delayedRestoreGameId);
+	int savegameId = s->_delayedRestoreGameId; // delayedRestoreGameId gets destroyed within gamestate_restore()!
+	Common::String fileName = g_sci->getSavegameName(savegameId);
 	Common::SeekableReadStream *in = g_sci->getSaveFileManager()->openForLoading(fileName);
 
 	if (in) {
@@ -874,11 +967,59 @@ void gamestate_delayedrestore(EngineState *s) {
 		gamestate_restore(s, in);
 		delete in;
 		if (s->r_acc != make_reg(0, 1)) {
+			gamestate_afterRestoreFixUp(s, savegameId);
 			return;
 		}
 	}
 
 	error("Restoring gamestate '%s' failed", fileName.c_str());
+}
+
+void gamestate_afterRestoreFixUp(EngineState *s, int savegameId) {
+	switch (g_sci->getGameId()) {
+	case GID_MOTHERGOOSE:
+		// WORKAROUND: Mother Goose SCI0
+		//  Script 200 / rm200::newRoom will set global C5h directly right after creating a child to the
+		//   current number of children plus 1.
+		//  We can't trust that global, that's why we set the actual savedgame id right here directly after
+		//   restoring a saved game.
+		//  If we didn't, the game would always save to a new slot
+		s->variables[VAR_GLOBAL][0xC5].setOffset(SAVEGAMEID_OFFICIALRANGE_START + savegameId);
+		break;
+	case GID_MOTHERGOOSE256:
+		// WORKAROUND: Mother Goose SCI1/SCI1.1 does some weird things for
+		//  saving a previously restored game.
+		// We set the current savedgame-id directly and remove the script
+		//  code concerning this via script patch.
+		s->variables[VAR_GLOBAL][0xB3].setOffset(SAVEGAMEID_OFFICIALRANGE_START + savegameId);
+		break;
+	case GID_JONES:
+		// HACK: The code that enables certain menu items isn't called when a game is restored from the
+		// launcher, or the "Restore game" option in the game's main menu - bugs #6537 and #6723.
+		// These menu entries are disabled when the game is launched, and are enabled when a new game is
+		// started. The code for enabling these entries is is all in script 1, room1::init, but that code
+		// path is never followed in these two cases (restoring game from the menu, or restoring a game
+		// from the ScummVM launcher). Thus, we perform the calls to enable the menus ourselves here.
+		// These two are needed when restoring from the launcher
+		// FIXME: The original interpreter saves and restores the menu state, so these attributes
+		// are automatically reset there. We may want to do the same.
+		g_sci->_gfxMenu->kernelSetAttribute(257 >> 8, 257 & 0xFF, SCI_MENU_ATTRIBUTE_ENABLED, TRUE_REG);    // Sierra -> About Jones
+		g_sci->_gfxMenu->kernelSetAttribute(258 >> 8, 258 & 0xFF, SCI_MENU_ATTRIBUTE_ENABLED, TRUE_REG);    // Sierra -> Help
+		// The rest are normally enabled from room1::init
+		g_sci->_gfxMenu->kernelSetAttribute(769 >> 8, 769 & 0xFF, SCI_MENU_ATTRIBUTE_ENABLED, TRUE_REG);    // Options -> Delete current player
+		g_sci->_gfxMenu->kernelSetAttribute(513 >> 8, 513 & 0xFF, SCI_MENU_ATTRIBUTE_ENABLED, TRUE_REG);    // Game -> Save Game
+		g_sci->_gfxMenu->kernelSetAttribute(515 >> 8, 515 & 0xFF, SCI_MENU_ATTRIBUTE_ENABLED, TRUE_REG);    // Game -> Restore Game
+		g_sci->_gfxMenu->kernelSetAttribute(1025 >> 8, 1025 & 0xFF, SCI_MENU_ATTRIBUTE_ENABLED, TRUE_REG);  // Status -> Statistics
+		g_sci->_gfxMenu->kernelSetAttribute(1026 >> 8, 1026 & 0xFF, SCI_MENU_ATTRIBUTE_ENABLED, TRUE_REG);  // Status -> Goals
+		break;
+	case GID_PQ2:
+		// HACK: Same as above - enable the save game menu option when loading in PQ2 (bug #6875).
+		// It gets disabled in the game's death screen.
+		g_sci->_gfxMenu->kernelSetAttribute(2, 1, SCI_MENU_ATTRIBUTE_ENABLED, TRUE_REG);	// Game -> Save Game
+		break;
+	default:
+		break;
+	}
 }
 
 void gamestate_restore(EngineState *s, Common::SeekableReadStream *fh) {
@@ -944,7 +1085,11 @@ void gamestate_restore(EngineState *s, Common::SeekableReadStream *fh) {
 	// Time state:
 	s->lastWaitTime = g_system->getMillis();
 	s->_screenUpdateTime = g_system->getMillis();
-	g_engine->setTotalPlayTime(meta.playTime * 1000);
+	if (meta.version >= 34) {
+		g_sci->setTickCount(meta.playTime);
+	} else {
+		g_engine->setTotalPlayTime(meta.playTime * 1000);
+	}
 
 	if (g_sci->_gfxPorts)
 		g_sci->_gfxPorts->saveLoadWithSerializer(ser);

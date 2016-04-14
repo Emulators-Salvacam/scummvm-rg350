@@ -50,11 +50,13 @@ GfxScreen::GfxScreen(ResourceManager *resMan) : _resMan(resMan) {
 	// to provide that under DOS as well, but as gk1/floppy does support
 	// upscaled hires scriptswise, but doesn't actually have the hires content
 	// we need to limit it to platform windows.
-	if (g_sci->getPlatform() == Common::kPlatformWindows) {
+	if ((g_sci->getPlatform() == Common::kPlatformWindows) || (g_sci->forceHiresGraphics())) {
 		if (g_sci->getGameId() == GID_KQ6)
 			_upscaledHires = GFX_SCREEN_UPSCALED_640x440;
 #ifdef ENABLE_SCI32
 		if (g_sci->getGameId() == GID_GK1)
+			_upscaledHires = GFX_SCREEN_UPSCALED_640x480;
+		if (g_sci->getGameId() == GID_PQ4)
 			_upscaledHires = GFX_SCREEN_UPSCALED_640x480;
 #endif
 	}
@@ -268,17 +270,26 @@ void GfxScreen::copyToScreen() {
 }
 
 void GfxScreen::copyFromScreen(byte *buffer) {
-	// TODO this ignores the pitch
 	Graphics::Surface *screen = g_system->lockScreen();
-	memcpy(buffer, screen->getPixels(), _displayPixels);
+
+	if (screen->pitch == _displayWidth) {
+		memcpy(buffer, screen->getPixels(), _displayPixels);
+	} else {
+		const byte *src = (const byte *)screen->getPixels();
+		uint height = _displayHeight;
+
+		while (height--) {
+			memcpy(buffer, src, _displayWidth);
+			buffer += _displayWidth;
+			src    += screen->pitch;
+		}
+	}
+
 	g_system->unlockScreen();
 }
 
 void GfxScreen::kernelSyncWithFramebuffer() {
-	// TODO this ignores the pitch
-	Graphics::Surface *screen = g_system->lockScreen();
-	memcpy(_displayScreen, screen->getPixels(), _displayPixels);
-	g_system->unlockScreen();
+	copyFromScreen(_displayScreen);
 }
 
 void GfxScreen::copyRectToScreen(const Common::Rect &rect) {
@@ -613,7 +624,7 @@ int GfxScreen::bitsGetDataSize(Common::Rect rect, byte mask) {
 		} else {
 			int rectHeight = _upscaledHeightMapping[rect.bottom] - _upscaledHeightMapping[rect.top];
 			int rectWidth = _upscaledWidthMapping[rect.right] - _upscaledWidthMapping[rect.left];
-			byteCount += rectHeight * rect.width() * rectWidth; // _displayScreen (upscaled hires)
+			byteCount += rectHeight * rectWidth; // _displayScreen (upscaled hires)
 		}
 	}
 	if (mask & GFX_SCREEN_MASK_PRIORITY) {

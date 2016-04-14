@@ -20,48 +20,19 @@
  *
  */
 
-#ifndef BACKENDS_MIXER_SDL13_H
-#define BACKENDS_MIXER_SDL13_H
+#ifndef BACKENDS_PLATFORM_IOS7_IOS7_APP_DELEGATE_H
+#define BACKENDS_PLATFORM_IOS7_IOS7_APP_DELEGATE_H
 
-#include "backends/mixer/sdl/sdl-mixer.h"
+#include <UIKit/UIKit.h>
 
-/**
- * SDL mixer manager. It wraps the actual implementation
- * of the Audio:Mixer used by the engine, and setups
- * the SDL audio subsystem and the callback for the
- * audio mixer implementation.
- */
-class Sdl13MixerManager : public SdlMixerManager {
-public:
-	Sdl13MixerManager();
-	virtual ~Sdl13MixerManager();
+@class iPhoneView;
 
-	/**
-	 * Initialize and setups the mixer
-	 */
-	virtual void init();
 
-	/**
-	 * Pauses the audio system
-	 */
-	virtual void suspendAudio();
+@interface iOS7AppDelegate : NSObject<UIApplicationDelegate>
 
-	/**
-	 * Resumes the audio system
-	 */
-	virtual int resumeAudio();
++ (iOS7AppDelegate *)iOS7AppDelegate;
++ (iPhoneView *)iPhoneView;
 
-protected:
-
-	/**
-	 * The opened SDL audio device
-	 */
-	SDL_AudioDeviceID _device;
-
-	/**
-	 * Starts SDL audio
-	 */
-	virtual void startAudio();
-};
+@end
 
 #endif

@@ -113,7 +113,7 @@ void Scene201::enter() {
 	_sellerCount = 0;
 	_needHoldFl = false;
 
-	_vm->_gameConv->get(16);
+	_vm->_gameConv->load(16);
 	_globals._spriteIndexes[0] = _scene->_sprites.addSprites(formAnimName('x', 0));
 	_globals._spriteIndexes[1] = _scene->_sprites.addSprites(formAnimName('f', 0));
 
@@ -128,7 +128,7 @@ void Scene201::enter() {
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[0], 14);
 	}
 
-	if (_vm->_gameConv->_restoreRunning == 16) {
+	if (_vm->_gameConv->restoreRunning() == 16) {
 		_game._player._playerPos = Common::Point(72, 101);
 		_game._player._facing = FACING_NORTHWEST;
 		_globals._animationIndexes[0] = _scene->loadAnimation(formAnimName('r', 1), 0);
@@ -156,14 +156,14 @@ void Scene201::step() {
 	if (_anim1ActvFl)
 		handleSellerAnimation();
 
-	if ((_needHoldFl) && (_vm->_gameConv->_running != 16)) {
+	if ((_needHoldFl) && (_vm->_gameConv->activeConvId() != 16)) {
 		_game._player._stepEnabled = false;
 		_needHoldFl = false;
 	}
 }
 
 void Scene201::actions() {
-	if (_vm->_gameConv->_running == 16) {
+	if (_vm->_gameConv->activeConvId() == 16) {
 		handleConversation();
 		_action._inProgress = false;
 		return;
@@ -651,8 +651,8 @@ void Scene202::enter() {
 	}
 
 	_conversationCount = 0;
-	_vm->_gameConv->get(17);
-	_vm->_gameConv->get(9);
+	_vm->_gameConv->load(17);
+	_vm->_gameConv->load(9);
 
 	_globals._spriteIndexes[1] = _scene->_sprites.addSprites("*RDR_9");
 	_globals._spriteIndexes[0] = _scene->_sprites.addSprites(formAnimName('x', 0));
@@ -674,7 +674,7 @@ void Scene202::enter() {
 		_degasStatus = 4;
 	}
 
-	if (_vm->_gameConv->_restoreRunning == 17) {
+	if (_vm->_gameConv->restoreRunning() == 17) {
 		_vm->_gameConv->run(17);
 		_vm->_gameConv->exportValue(_game._objects.isInInventory(OBJ_TICKET));
 		_vm->_gameConv->exportValue(0);
@@ -683,7 +683,7 @@ void Scene202::enter() {
 		_globals[kWalkerConverse] = _vm->getRandomNumber(1, 4);
 	}
 
-	if (_vm->_gameConv->_restoreRunning == 9) {
+	if (_vm->_gameConv->restoreRunning() == 9) {
 		_vm->_gameConv->run(9);
 		_vm->_gameConv->exportPointer(&_globals[kPlayerScore]);
 		_game._player._playerPos = Common::Point(400, 141);
@@ -786,13 +786,13 @@ void Scene202::step() {
 }
 
 void Scene202::actions() {
-	if (_vm->_gameConv->_running == 17) {
+	if (_vm->_gameConv->activeConvId() == 17) {
 		handleConversation1();
 		_action._inProgress = false;
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 9) {
+	if (_vm->_gameConv->activeConvId() == 9) {
 		handleConversation2();
 		_action._inProgress = false;
 		return;
@@ -1563,10 +1563,10 @@ void Scene203::enter() {
 
 	if (_globals[kCurrentYear] == 1993) {
 		_globals._spriteIndexes[0] = _scene->_sprites.addSprites(formAnimName('z', -1));
-		_vm->_gameConv->get(5);
+		_vm->_gameConv->load(5);
 	} else {
-		_vm->_gameConv->get(8);
-		_vm->_gameConv->get(15);
+		_vm->_gameConv->load(8);
+		_vm->_gameConv->load(15);
 	}
 
 	if (_globals[kCurrentYear] == 1993) {
@@ -1588,7 +1588,7 @@ void Scene203::enter() {
 			_scene->_hotspots.activate(NOUN_MANAGERS_CHAIR, true);
 		}
 
-		if ((_scene->_priorSceneId == RETURNING_FROM_LOADING) && (_vm->_gameConv->_restoreRunning == 5)) {
+		if ((_scene->_priorSceneId == RETURNING_FROM_LOADING) && (_vm->_gameConv->restoreRunning() == 5)) {
 			_brieStatus = 4;
 			_raoulStatus = 0;
 			_anim1ActvFl = true;
@@ -1625,7 +1625,7 @@ void Scene203::enter() {
 			_scene->_hotspots.activate(NOUN_MANAGERS_CHAIR, true);
 		}
 
-		if ((_scene->_priorSceneId == RETURNING_FROM_LOADING) && (_vm->_gameConv->_restoreRunning == 8)) {
+		if ((_scene->_priorSceneId == RETURNING_FROM_LOADING) && (_vm->_gameConv->restoreRunning() == 8)) {
 			_globals._animationIndexes[1] = _scene->loadAnimation(formAnimName('c', 1), 0);
 			_scene->setAnimFrame(_globals._animationIndexes[1], 9);
 			_anim1ActvFl = true;
@@ -1652,7 +1652,7 @@ void Scene203::enter() {
 		_scene->_hotspots.activate(NOUN_DESK_LAMP, false);
 	}
 
-	if (_vm->_gameConv->_restoreRunning == 15) {
+	if (_vm->_gameConv->restoreRunning() == 15) {
 		_globals._sequenceIndexes[5] = _scene->_sequences.addStampCycle(_globals._spriteIndexes[5], false, -1);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[5], 14);
 		_game._player._playerPos = Common::Point(98, 137);
@@ -1725,7 +1725,7 @@ void Scene203::step() {
 		_vm->_sound->command(25);
 		_globals._sequenceIndexes[5] = _scene->_sequences.addStampCycle(_globals._spriteIndexes[5], false, -1);
 		_scene->_sequences.setDepth(_globals._sequenceIndexes[5], 14);
-		if (_vm->_gameConv->_running != 15)
+		if (_vm->_gameConv->activeConvId() != 15)
 			_game._player._stepEnabled = true;
 		break;
 
@@ -1735,19 +1735,19 @@ void Scene203::step() {
 }
 
 void Scene203::actions() {
-	if (_vm->_gameConv->_running == 5) {
+	if (_vm->_gameConv->activeConvId() == 5) {
 		handleBrieConversation();
 		_action._inProgress = false;
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 8) {
+	if (_vm->_gameConv->activeConvId() == 8) {
 		handleRichardConversation();
 		_action._inProgress = false;
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 15) {
+	if (_vm->_gameConv->activeConvId() == 15) {
 		handleRichardAndDaaeConversation();
 		_action._inProgress = false;
 		return;
@@ -3323,7 +3323,7 @@ void Scene204::enter() {
 	warning("TODO: If end of game, remove the walking areas");
 
 	_scene->_hotspots.activate(NOUN_BOOK, false);
-	_vm->_gameConv->get(22);
+	_vm->_gameConv->load(22);
 
 	_globals._spriteIndexes[2] = _scene->_sprites.addSprites(formAnimName('p', 0));
 	_globals._spriteIndexes[3] = _scene->_sprites.addSprites(formAnimName('x', 6));
@@ -3481,7 +3481,7 @@ void Scene204::step() {
 	if (_game._trigger == 85)
 		_scene->_nextSceneId = 250;
 
-	if ((_vm->_gameConv->_running != 22) && !_skip1Fl && _endGameFl) {
+	if ((_vm->_gameConv->activeConvId() != 22) && !_skip1Fl && _endGameFl) {
 		_game._player._stepEnabled = false;
 		_skip1Fl = true;
 	}
@@ -3500,7 +3500,7 @@ void Scene204::step() {
 }
 
 void Scene204::actions() {
-	if (_vm->_gameConv->_running == 22) {
+	if (_vm->_gameConv->activeConvId() == 22) {
 		handleConversation();
 
 		_action._inProgress = false;
@@ -4277,9 +4277,9 @@ void Scene205::enter() {
 	_scene->_hotspots.activate(NOUN_MADAME_GIRY, false);
 	_scene->_hotspots.activate(NOUN_WOMAN, false);
 
-	_vm->_gameConv->get(18);
-	_vm->_gameConv->get(10);
-	_vm->_gameConv->get(11);
+	_vm->_gameConv->load(18);
+	_vm->_gameConv->load(10);
+	_vm->_gameConv->load(11);
 
 	if (_globals[kCurrentYear] == 1881) {
 		if ((_globals[kMadameGiryShowsUp]) && (_globals[kJacquesStatus] == 0)) {
@@ -4321,7 +4321,7 @@ void Scene205::enter() {
 		}
 
 		if (_scene->_priorSceneId == RETURNING_FROM_LOADING) {
-			if (_vm->_gameConv->_restoreRunning == 10) {
+			if (_vm->_gameConv->restoreRunning() == 10) {
 				int count = 0;
 
 				if (_game._objects.isInInventory(OBJ_RED_FRAME))
@@ -4349,7 +4349,7 @@ void Scene205::enter() {
 					_scene->setAnimFrame(_globals._animationIndexes[1], 66);
 				else
 					_giryStatus = 2;
-			} else if (_vm->_gameConv->_restoreRunning == 11) {
+			} else if (_vm->_gameConv->restoreRunning() == 11) {
 				_vm->_gameConv->run(11);
 				_vm->_gameConv->exportValue(_game._objects.isInInventory(OBJ_TICKET));
 				_vm->_gameConv->exportValue(0);
@@ -4372,7 +4372,7 @@ void Scene205::enter() {
 			_richardStatus = 3;
 			_scene->_hotspots.activate(NOUN_MONSIEUR_RICHARD, true);
 
-			if (_vm->_gameConv->_restoreRunning == 18) {
+			if (_vm->_gameConv->restoreRunning() == 18) {
 				_globals[kWalkerConverse] = _vm->getRandomNumber(1, 4);
 				_richardStatus = 3;
 				_vm->_gameConv->run(18);
@@ -4525,19 +4525,19 @@ void Scene205::step() {
 }
 
 void Scene205::actions() {
-	if (_vm->_gameConv->_running == 18) {
+	if (_vm->_gameConv->activeConvId() == 18) {
 		handleConversation18();
 		_action._inProgress = false;
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 10) {
+	if (_vm->_gameConv->activeConvId() == 10) {
 		handleConversation10();
 		_action._inProgress = false;
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 11) {
+	if (_vm->_gameConv->activeConvId() == 11) {
 		handleConversation11();
 		_action._inProgress = false;
 		return;
@@ -5864,7 +5864,7 @@ void Scene206::enter() {
 	_skip2Fl = false;
 
 	_scene->loadSpeech(1);
-	_vm->_gameConv->get(26);
+	_vm->_gameConv->load(26);
 
 	_globals._spriteIndexes[0] = _scene->_sprites.addSprites(formAnimName('x', 0));
 	_globals._spriteIndexes[1] = _scene->_sprites.addSprites(formAnimName('x', 1));

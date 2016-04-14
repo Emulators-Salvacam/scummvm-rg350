@@ -72,11 +72,11 @@ Name ScummVM
 # General Symbol Definitions
 #########################################################################################
 !define REGKEY      "Software\$(^Name)\$(^Name)"
-!define VERSION     "1.8.0git"
+!define VERSION     "1.8.0"
 !define COMPANY     "ScummVM Team"
 !define URL         "http://scummvm.org/"
 !define DESCRIPTION "ScummVM Installer. Look! A three headed monkey (TM)!"
-!define COPYRIGHT   "Copyright © 2001-2015 The ScummVM Team"
+!define COPYRIGHT   "Copyright © 2001-2016 The ScummVM Team"
 
 #########################################################################################
 # Installer configuration

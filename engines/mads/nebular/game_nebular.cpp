@@ -827,7 +827,7 @@ void GameNebular::step() {
 	if (_player._visible && _player._stepEnabled && !_player._moving &&
 		(_player._facing == _player._turnToFacing)) {
 		if (_scene._frameStartTime >= (uint32)_globals[kWalkerTiming]) {
-			if (!_player._stopWalkerIndex) {
+			if (_player._stopWalkers.empty()) {
 				int randomVal = _vm->getRandomNumber(29999);
 				if (_globals[kSexOfRex] == REX_MALE) {
 					switch (_player._facing) {

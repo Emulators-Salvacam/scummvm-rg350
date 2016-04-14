@@ -104,6 +104,7 @@ public:
 	 * Some sort of random noise generation?
 	 */
 	void noise();
+
 	//@}
 };
 

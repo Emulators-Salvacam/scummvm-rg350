@@ -81,8 +81,10 @@ maniac	Maniac Mansion
 	183d7464902d40d00800e8ee1f04117c	1988	de	DOS	V2	V2	-	Fingolfin
 	87f6e8037b7cc996e13474b491a7a98e	-1	it	DOS	V2	V2	from DOTT	Andrea Petrucci
 	0d1b69471605201ef2fa9cec1f5f02d2	-1	es	DOS	V2	V2	-	abnog, Andrea Petrucci
+	f0d294891b813d3dcc525b89bc318815	1988	ru	DOS	V2	V2	-	sev
 
 	40564ec47da48a67787d1f9bd043902a	1988	en	DOS	V2 Demo	V2 Demo	non-interactive	Fingolfin
+	3a988de37118873ad129246b452909c0	1988	ru	DOS	V2 Demo	V2 Demo	non-interactive	sev
 
 zak	Zak McKracken and the Alien Mindbenders
 	254fede2f15dbb32a23760d601b01816	-1	en	C64	V1	-	-	
@@ -106,6 +108,7 @@ zak	Zak McKracken and the Alien Mindbenders
 	d06fbe28818fef7bfc45c2cdf0c0849d	-1	de	DOS	V2	V2	from 5.25\" floppies	Nicolas Sauz&egrave;de, Andrea Petrucci
 	1900e501a52fbf55bde6e4196f6d2aa6	-1	it	DOS	V2	V2	-	Andrea Petrucci
 	75ba23fff4fd63fa446c02864f2a5a4b	-1	it	DOS	V2	V2	alt?	Antti Leimi, Andrea Petrucci
+	a77d0efbe786ea7f490c2021dbfa3f2f	-1	ru	DOS	V2	V2	-	sev
 
 	2d4536a56e01da4b02eb021e7770afa2	7520	en	FM-TOWNS	FM-TOWNS	-	-	
 	1ca86e2cf9aaa2068738a1e5ba477e60	-1	jp	FM-TOWNS	FM-TOWNS	-	-	Andrea Petrucci
@@ -369,6 +372,7 @@ dig	The Dig
 	aad201302286c1cfee92321cd406e427	811008	en	Windows	Steam	Steam	Steam Version	Ben Castricum, Filippos Karapetis
 	d93cc8be628ed5d3b3a29188fc7105d3	1061296	en	Mac	Steam	Steam	Steam Version	Filippos Karapetis
 	d62047a6729349ab36f7ee065bf26509	-1	ru	All	-	-	-	sev
+	ebdd2fbc995a321605375dc57766db79	16304	ru	All	-	With Subtitles	-	sev
 	35a2d3040fa512f8232d9e443319d84d	659335495	en	Mac	-	-	Mac bundle	Fingolfin
 	21a6592322f92550f144f68a8a4e685e	-1	fr	Mac	-	-	Mac bundle	kaminari
 

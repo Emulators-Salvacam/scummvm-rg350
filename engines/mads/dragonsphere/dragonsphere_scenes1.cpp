@@ -32,35 +32,35 @@ namespace MADS {
 namespace Dragonsphere {
 
 void Scene1xx::setAAName() {
-	int interface;
+	int idx;
 
 	switch (_scene->_nextSceneId) {
 	case 108:
 	case 109:
-		interface = 3;
+		idx = 3;
 		break;
 	case 110:
-		interface = 5;
+		idx = 5;
 		break;
 	case 113:
 	case 114:
 	case 115:
 	case 117:
 	case 119:
-		interface = 1;
+		idx = 1;
 		break;
 	case 116:
-		interface = 2;
+		idx = 2;
 		break;
 	case 120:
-		interface = 8;
+		idx = 8;
 		break;
 	default:
-		interface = 0;
+		idx = 0;
 		break;
 	}
 
-	_game._aaName = Resources::formatAAName(interface);
+	_game._aaName = Resources::formatAAName(idx);
 	_vm->_palette->setEntry(254, 56, 47, 32);
 
 }
@@ -305,12 +305,9 @@ void Scene102::enter() {
 }
 
 void Scene102::step() {
-	int resetFrame;
-
 	if ((_animRunning == 1) && _scene->_animation[_globals._animationIndexes[0]]) {
 		if (_scene->_animation[_globals._animationIndexes[0]]->getCurrentFrame() != _diaryFrame) {
 			_diaryFrame = _scene->_animation[_globals._animationIndexes[0]]->getCurrentFrame();
-			resetFrame = -1;
 
 			switch (_diaryFrame) {
 			case 6:
@@ -330,13 +327,6 @@ void Scene102::step() {
 
 			default:
 				break;
-			}
-
-			if (resetFrame >= 0) {
-				if (resetFrame != _scene->_animation[_globals._animationIndexes[0]]->getCurrentFrame()) {
-					_scene->setAnimFrame(_globals._animationIndexes[0], resetFrame);
-					_diaryFrame = resetFrame;
-				}
 			}
 		}
 	}
@@ -1141,7 +1131,7 @@ void Scene104::setup() {
 }
 
 void Scene104::enter() {
-	_vm->_gameConv->get(1);
+	_vm->_gameConv->load(1);
 
 	if (_globals[kPlayerPersona] == 1) {
 		_scene->_sprites.addSprites(formAnimName('e', 8));
@@ -1332,7 +1322,7 @@ void Scene104::enter() {
 		_scene->_dynamicHotspots[idx]._articleNumber = PREP_ON;
 		_scene->setDynamicAnim(idx, _globals._animationIndexes[0], 0);
 
-		if (_vm->_gameConv->_restoreRunning == 1) {
+		if (_vm->_gameConv->restoreRunning() == 1) {
 			_game._player._stepEnabled = false;
 			_vm->_gameConv->run(1);
 			_vm->_gameConv->exportValue(0);
@@ -1486,7 +1476,7 @@ void Scene104::step() {
 }
 
 void Scene104::actions() {
-	if (_vm->_gameConv->_running == 1) {
+	if (_vm->_gameConv->activeConvId() == 1) {
 		handleFinalConversation();
 		_action._inProgress = false;
 		return;
@@ -2304,8 +2294,8 @@ void Scene104::handleFinalConversation() {
 		break;
 
 	case 30:
-		*_vm->_gameConv->_nextStartNode = 31;
-		_vm->_gameConv->abortConv();
+		_vm->_gameConv->setStartNode(31);
+		_vm->_gameConv->stop();
 
 		if (_globals[kLlanieStatus] == 2) {
 			_globals._animationIndexes[3] = _scene->loadAnimation(formAnimName('l', 1), 0);
@@ -3157,7 +3147,7 @@ void Scene105::enter() {
 		_scene->_dynamicHotspots.setPosition(_boneHotspotId, Common::Point(255, 145), FACING_EAST);
 	}
 
-	_vm->_gameConv->get(2);
+	_vm->_gameConv->load(2);
 	_newStatus = 1;
 	_previousStatus = 0;
 	_maidTalkingFl = false;
@@ -3341,7 +3331,7 @@ void Scene105::actions() {
 		return;
 	}
 
-	if (_vm->_gameConv->_running == 2) {
+	if (_vm->_gameConv->activeConvId() == 2) {
 		handleConversation();
 		_action._inProgress = false;
 		return;

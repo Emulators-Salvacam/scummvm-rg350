@@ -172,12 +172,14 @@ void Room::doRoom() {
 		reloadFlag = false;
 		_vm->_startup = 8;
 		_function = FN_NONE;
+		_vm->_screen->_fadeIn = false;
 
 		while (!_vm->shouldQuit()) {
 			_vm->_images.clear();
-			if (_vm->_startup != -1 && --_vm->_startup == 0) {
+			if (_vm->_screen->_fadeIn) {
 				_vm->_events->showCursor();
 				_vm->_screen->fadeIn();
+				_vm->_screen->_fadeIn = false;
 			}
 
 			// Poll for events
@@ -396,6 +398,7 @@ void Room::setWallCodes() {
 
 	_vm->_player->_rawXTemp = _vm->_player->_rawPlayer.x;
 	_vm->_player->_rawYTemp = _vm->_player->_rawPlayer.y;
+	codeWalls();
 }
 
 void Room::buildScreen() {
