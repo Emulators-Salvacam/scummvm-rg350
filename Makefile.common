@@ -102,6 +102,7 @@ ifdef CXX_UPDATE_DEP_FLAG
 
 %.o: %.cpp
 	$(QUIET)$(MKDIR) $(*D)/$(DEPDIR)
+	echo $(CPPFLAGS)
 	$(QUIET_CXX)$(CXX) $(CXX_UPDATE_DEP_FLAG) $(CXXFLAGS) $(CPPFLAGS) -c $(<) -o $*.o
 
 
