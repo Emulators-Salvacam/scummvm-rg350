@@ -4717,7 +4717,7 @@ docdir = $docdir
 
 $_config_mk_data
 
-INCLUDES += $INCLUDES
+INCLUDES += $INCLUDES -Ibackends/platform/libretro/libretro-common/include
 OBJS += $OBJS
 DEFINES += $DEFINES
 LDFLAGS += $LDFLAGS
