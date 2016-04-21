@@ -194,7 +194,7 @@ bool mkdir_norecurse(const char *dir)
 #elif defined(VITA) || defined(PSP)
    ret = sceIoMkdir(dir, 0777);
 #else
-   ret = mkdir(dir, 0750);
+   ret = mkdir(dir, 0755);
 #endif
    /* Don't treat this as an error. */
 #if defined(VITA)

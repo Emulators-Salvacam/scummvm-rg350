@@ -32,9 +32,9 @@
 #include "backends/fs/stdiostream.h"
 #include "common/algorithm.h"
 
-#include <retro_dirent.h>
-#include <retro_stat.h>
-#include <file/file_path.h>
+#include "../../platform/libretro/libretro-common/include/retro_dirent.h"
+#include "../../platform/libretro/libretro-common/include/retro_stat.h"
+#include "../../platform/libretro/libretro-common/include/file/file_path.h"
 #include <stdio.h>
 #include <errno.h>
 
@@ -170,12 +170,12 @@ bool assureDirectoryExists(const Common::String &dir, const char *prefix) {
 	struct stat sb;
 
 	// Check whether the prefix exists if one is supplied.
-	if (prefix) {
-		if (stat(prefix, &sb) != 0) {
+	if (prefix)
+   {
+		if (!path_is_valid(prefix))
 			return false;
-		} else if (!S_ISDIR(sb.st_mode)) {
+		else if (!path_is_directory(prefix))
 			return false;
-		}
 	}
 
 	// Obtain absolute path.
@@ -197,9 +197,8 @@ bool assureDirectoryExists(const Common::String &dir, const char *prefix) {
 
 	do {
 		if (cur + 1 != end) {
-			if (*cur != '/') {
+			if (*cur != '/')
 				continue;
-			}
 
 			// It is kind of ugly and against the purpose of Common::String to
 			// insert 0s inside, but this is just for a local string and
@@ -207,17 +206,18 @@ bool assureDirectoryExists(const Common::String &dir, const char *prefix) {
 			*cur = '\0';
 		}
 
-		if (mkdir(path.c_str(), 0755) != 0) {
-			if (errno == EEXIST) {
-				if (stat(path.c_str(), &sb) != 0) {
-					return false;
-				} else if (!S_ISDIR(sb.st_mode)) {
-					return false;
-				}
-			} else {
-				return false;
-			}
-		}
+		if (!mkdir_norecurse(path.c_str()))
+      {
+         if (errno == EEXIST)
+         {
+            if (!path_is_valid(path.c_str()))
+               return false;
+            else if (!path_is_directory(path.c_str()))
+               return false;
+         }
+         else
+            return false;
+      }
 
 		*cur = '/';
 	} while (cur++ != end);
@@ -226,5 +226,3 @@ bool assureDirectoryExists(const Common::String &dir, const char *prefix) {
 }
 
 } // End of namespace Posix
-
-#endif //#if defined(POSIX)
