@@ -86,10 +86,6 @@ GfxPalette::GfxPalette(ResourceManager *resMan, GfxScreen *screen)
 	_macClut = 0;
 	loadMacIconBarPalette();
 
-#ifdef ENABLE_SCI32
-	_clutTable = 0;
-#endif
-
 	switch (_resMan->getViewType()) {
 	case kViewEga:
 		_totalScreenColors = 16;
@@ -117,10 +113,6 @@ GfxPalette::~GfxPalette() {
 		palVaryRemoveTimer();
 
 	delete[] _macClut;
-
-#ifdef ENABLE_SCI32
-	unloadClut();
-#endif
 }
 
 bool GfxPalette::isMerging() {
@@ -144,7 +136,7 @@ void GfxPalette::setDefault() {
 #define SCI_PAL_FORMAT_CONSTANT 1
 #define SCI_PAL_FORMAT_VARIABLE 0
 
-void GfxPalette::createFromData(byte *data, int bytesLeft, Palette *paletteOut) {
+void GfxPalette::createFromData(byte *data, int bytesLeft, Palette *paletteOut) const {
 	int palFormat = 0;
 	int palOffset = 0;
 	int palColorStart = 0;
@@ -658,7 +650,7 @@ bool GfxPalette::kernelAnimate(byte fromColor, byte toColor, int speed) {
 	Color col;
 	//byte colorNr;
 	int16 colorCount;
-	uint32 now = g_system->getMillis() * 60 / 1000;
+	uint32 now = g_sci->getTickCount();
 
 	// search for sheduled animations with the same 'from' value
 	// schedule animation...
@@ -983,7 +975,7 @@ void GfxPalette::palVaryProcess(int signal, bool setPalette) {
 		_palVaryResourceId = -1;
 
 	// Calculate inbetween palette
-	Sci::Color inbetween;
+	Color inbetween;
 	int16 color;
 	for (int colorNr = 1; colorNr < 255; colorNr++) {
 		inbetween.used = _sysPalette.colors[colorNr].used;
@@ -994,7 +986,7 @@ void GfxPalette::palVaryProcess(int signal, bool setPalette) {
 		color = _palVaryTargetPalette.colors[colorNr].b - _palVaryOriginPalette.colors[colorNr].b;
 		inbetween.b = ((color * _palVaryStep) / 64) + _palVaryOriginPalette.colors[colorNr].b;
 
-		if (memcmp(&inbetween, &_sysPalette.colors[colorNr], sizeof(Sci::Color))) {
+		if (memcmp(&inbetween, &_sysPalette.colors[colorNr], sizeof(Color))) {
 			_sysPalette.colors[colorNr] = inbetween;
 			_sysPaletteChanged = true;
 		}
@@ -1086,59 +1078,5 @@ void GfxPalette::loadMacIconBarPalette() {
 bool GfxPalette::colorIsFromMacClut(byte index) {
 	return index != 0 && _macClut && (_macClut[index * 3] != 0 || _macClut[index * 3 + 1] != 0 || _macClut[index * 3 + 2] != 0);
 }
-
-#ifdef ENABLE_SCI32
-
-bool GfxPalette::loadClut(uint16 clutId) {
-	// loadClut() will load a color lookup table from a clu file and set
-	// the palette found in the file. This is to be used with Phantasmagoria 2.
-
-	unloadClut();
-
-	Common::String filename = Common::String::format("%d.clu", clutId);
-	Common::File clut;
-
-	if (!clut.open(filename) || clut.size() != 0x10000 + 236 * 3)
-		return false;
-
-	// Read in the lookup table
-	// It maps each RGB565 color to a palette index
-	_clutTable = new byte[0x10000];
-	clut.read(_clutTable, 0x10000);
-
-	Palette pal;
-	memset(&pal, 0, sizeof(Palette));
-
-	// Setup 1:1 mapping
-	for (int i = 0; i < 256; i++) {
-		pal.mapping[i] = i;
-	}
-
-	// Now load in the palette
-	for (int i = 1; i <= 236; i++) {
-		pal.colors[i].used = 1;
-		pal.colors[i].r = clut.readByte();
-		pal.colors[i].g = clut.readByte();
-		pal.colors[i].b = clut.readByte();
-	}
-
-	set(&pal, true);
-	setOnScreen();
-	return true;
-}
-
-byte GfxPalette::matchClutColor(uint16 color) {
-	// Match a color in RGB565 format to a palette index based on the loaded CLUT
-	assert(_clutTable);
-	return _clutTable[color];
-}
-
-void GfxPalette::unloadClut() {
-	// This will only unload the actual table, but not reset any palette
-	delete[] _clutTable;
-	_clutTable = 0;
-}
-
-#endif
 
 } // End of namespace Sci

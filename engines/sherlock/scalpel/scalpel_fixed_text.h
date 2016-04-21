@@ -30,8 +30,10 @@ namespace Sherlock {
 namespace Scalpel {
 
 enum FixedTextId {
+	// Game hotkeys
+	kFixedText_Game_Hotkeys = 0,
 	// Window buttons
-	kFixedText_Window_Exit = 0,
+	kFixedText_Window_Exit,
 	kFixedText_Window_Up,
 	kFixedText_Window_Down,
 	// Inventory buttons
@@ -57,11 +59,41 @@ enum FixedTextId {
 	kFixedText_JournalSearch_Backward,
 	kFixedText_JournalSearch_Forward,
 	kFixedText_JournalSearch_NotFound,
+	// Settings
+	kFixedText_Settings_Exit,
+	kFixedText_Settings_MusicOn,
+	kFixedText_Settings_MusicOff,
+	kFixedText_Settings_PortraitsOn,
+	kFixedText_Settings_PortraitsOff,
+	kFixedText_Settings_JoystickOff,
+	kFixedText_Settings_NewFontStyle,
+	kFixedText_Settings_SoundEffectsOn,
+	kFixedText_Settings_SoundEffectsOff,
+	kFixedText_Settings_WindowsSlide,
+	kFixedText_Settings_WindowsAppear,
+	kFixedText_Settings_CalibrateJoystick,
+	kFixedText_Settings_AutoHelpLeft,
+	kFixedText_Settings_AutoHelpRight,
+	kFixedText_Settings_VoicesOn,
+	kFixedText_Settings_VoicesOff,
+	kFixedText_Settings_FadeByPixel,
+	kFixedText_Settings_FadeDirectly,
+	kFixedText_Settings_KeyPadSlow,
+	kFixedText_Settings_KeyPadFast,
+	// Load/Save
+	kFixedText_LoadSave_Exit,
+	kFixedText_LoadSave_Load,
+	kFixedText_LoadSave_Save,
+	kFixedText_LoadSave_Up,
+	kFixedText_LoadSave_Down,
+	kFixedText_LoadSave_Quit,
+	// Quit Game
+	kFixedText_QuitGame_Question,
+	kFixedText_QuitGame_Yes,
+	kFixedText_QuitGame_No,
 	// Press key text
 	kFixedText_PressKey_ForMore,
-	kFixedText_PressKey_ForMoreHotkey,
 	kFixedText_PressKey_ToContinue,
-	kFixedText_PressKey_ToContinueHotkey,
 	// Initial inventory
 	kFixedText_InitInventory_Message,
 	kFixedText_InitInventory_HolmesCard,
@@ -75,6 +107,14 @@ enum FixedTextId {
 	kFixedText_InitInventory_Tarot,
 	kFixedText_InitInventory_OrnateKey,
 	kFixedText_InitInventory_PawnTicket,
+	// SH1: User Interface
+	kFixedText_UserInterface_NoThankYou,
+	kFixedText_UserInterface_YouCantDoThat,
+	kFixedText_UserInterface_Done,
+	kFixedText_UserInterface_Use,
+	kFixedText_UserInterface_UseOn,
+	kFixedText_UserInterface_Give,
+	kFixedText_UserInterface_GiveTo,
 	// People names
 	kFixedText_People_SherlockHolmes,
 	kFixedText_People_DrWatson,

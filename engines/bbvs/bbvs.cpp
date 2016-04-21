@@ -39,6 +39,8 @@
 #include "common/error.h"
 #include "common/fs.h"
 #include "common/timer.h"
+#include "common/translation.h"
+#include "engines/advancedDetector.h"
 #include "engines/util.h"
 #include "graphics/cursorman.h"
 #include "graphics/font.h"
@@ -116,9 +118,19 @@ BbvsEngine::BbvsEngine(OSystem *syst, const ADGameDescription *gd) :
 
 	Engine::syncSoundSettings();
 
+#ifdef USE_TRANSLATION
+	_oldGUILanguage	= TransMan.getCurrentLanguage();
+
+	if (gd->flags & GF_GUILANGSWITCH)
+		TransMan.setLanguage(getLanguageLocale(gd->language));
+#endif
 }
 
 BbvsEngine::~BbvsEngine() {
+#ifdef USE_TRANSLATION
+	if (TransMan.getCurrentLanguage() != _oldGUILanguage)
+		TransMan.setLanguage(_oldGUILanguage);
+#endif
 
 	delete _random;
 
@@ -1376,7 +1388,7 @@ void BbvsEngine::checkEasterEgg(char key) {
 	};
 
 	if (_currSceneNum == kCredits) {
-		memcpy(&_easterEggInput[1], &_easterEggInput[0], 6);
+		memmove(&_easterEggInput[1], &_easterEggInput[0], 6);
 		_easterEggInput[0] = key;
 		for (int i = 0; i < ARRAYSIZE(kEasterEggStrings); ++i) {
 			if (!scumm_strnicmp(kEasterEggStrings[i], _easterEggInput, kEasterEggLengths[i])) {

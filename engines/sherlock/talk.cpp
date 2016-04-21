@@ -401,7 +401,7 @@ void Talk::talkTo(const Common::String filename) {
 					_talkHistory[_converseNum][select] = true;
 				}
 
-				ui._key = ui._oldKey = Scalpel::COMMANDS[TALK_MODE - 1];
+				ui._key = ui._oldKey = 'T'; // FIXME: I'm not sure what to do here, I need ScalpelUI->_hotkeyTalk
 				ui._temp = ui._oldTemp = 0;
 				ui._menuMode = TALK_MODE;
 				_talkToFlag = 2;
@@ -993,6 +993,10 @@ OpcodeReturn Talk::cmdAdjustObjectSequence(const byte *&str) {
 	// Get number of bytes to change
 	_seqCount = str[1];
 	str += (str[0] & 127) + 2;
+
+	// WORKAROUND: Original German Scalpel crash when moving box at Tobacconists
+	if (_vm->getLanguage() == Common::DE_DEU && _scriptName == "Alfr30Z")
+		_seqCount = 16;
 
 	// Copy in the new sequence
 	for (int idx = 0; idx < _seqCount; ++idx, ++str)

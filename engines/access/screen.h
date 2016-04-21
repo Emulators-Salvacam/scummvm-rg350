@@ -85,6 +85,7 @@ public:
 	int _bufferBytesWide;
 	int _vWindowLinesTall;
 	bool _screenChangeFlag;
+	bool _fadeIn;
 public:
 	virtual void copyBlock(ASurface *src, const Common::Rect &bounds);
 
@@ -98,7 +99,7 @@ public:
 
 	virtual void transBlitFrom(ASurface *src, const Common::Rect &bounds);
 
-	virtual void blitFrom(Graphics::Surface &src);
+	virtual void blitFrom(const Graphics::Surface &src);
 
 	virtual void copyBuffer(Graphics::Surface *src);
 

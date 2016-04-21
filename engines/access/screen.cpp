@@ -62,6 +62,7 @@ Screen::Screen(AccessEngine *vm) : _vm(vm) {
 	_startCycle = 0;
 	_cycleStart = 0;
 	_endCycle = 0;
+	_fadeIn = false;
 }
 
 void Screen::clearScreen() {
@@ -89,6 +90,12 @@ void Screen::setPanel(int num) {
 }
 
 void Screen::updateScreen() {
+	if (_vm->_startup >= 0) {
+		if (--_vm->_startup == -1)
+			_fadeIn = true;
+		return;
+	}
+
 	// Merge the dirty rects
 	mergeDirtyRects();
 
@@ -181,7 +188,7 @@ void Screen::forceFadeOut() {
 			int v = *srcP;
 			if (v) {
 				repeatFlag = true;
-				*srcP = MAX(*srcP - FADE_AMOUNT, 0);
+				*srcP = MAX((int)*srcP - FADE_AMOUNT, 0);
 			}
 		}
 
@@ -296,7 +303,7 @@ void Screen::transBlitFrom(ASurface *src, const Common::Rect &bounds) {
 	ASurface::transBlitFrom(src, bounds);
 }
 
-void Screen::blitFrom(Graphics::Surface &src) {
+void Screen::blitFrom(const Graphics::Surface &src) {
 	addDirtyRect(Common::Rect(0, 0, src.w, src.h));
 	ASurface::blitFrom(src);
 }

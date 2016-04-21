@@ -102,6 +102,7 @@ ifdef CXX_UPDATE_DEP_FLAG
 
 %.o: %.cpp
 	$(QUIET)$(MKDIR) $(*D)/$(DEPDIR)
+	echo $(CPPFLAGS)
 	$(QUIET_CXX)$(CXX) $(CXX_UPDATE_DEP_FLAG) $(CXXFLAGS) $(CPPFLAGS) -c $(<) -o $*.o
 
 
@@ -251,6 +252,9 @@ DIST_FILES_THEMES:=$(addprefix $(srcdir)/gui/themes/,$(DIST_FILES_THEMES))
 
 # Engine data files
 DIST_FILES_ENGINEDATA=
+ifdef ENABLE_ACCESS
+DIST_FILES_ENGINEDATA+=access.dat
+endif
 ifdef ENABLE_DRASCULA
 DIST_FILES_ENGINEDATA+=drascula.dat
 endif

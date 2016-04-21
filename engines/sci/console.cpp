@@ -483,14 +483,12 @@ bool Console::cmdGetVersion(int argc, const char **argv) {
 	debugPrintf("Move count type: %s\n", (_engine->_features->handleMoveCount()) ? "increment" : "ignore");
 	debugPrintf("SetCursor type: %s\n", getSciVersionDesc(_engine->_features->detectSetCursorType()));
 #ifdef ENABLE_SCI32
-	if (getSciVersion() >= SCI_VERSION_2)
-		debugPrintf("kString type: %s\n", (_engine->_features->detectSci2StringFunctionType() == kSci2StringFunctionOld) ? "SCI2 (old)" : "SCI2.1 (new)");
-	if (getSciVersion() == SCI_VERSION_2_1)
+	if ((getSciVersion() >= SCI_VERSION_2_1_EARLY) && (getSciVersion() <= SCI_VERSION_2_1_LATE))
 		debugPrintf("SCI2.1 kernel table: %s\n", (_engine->_features->detectSci21KernelType() == SCI_VERSION_2) ? "modified SCI2 (old)" : "SCI2.1 (new)");
 #endif
 	debugPrintf("View type: %s\n", viewTypeDesc[g_sci->getResMan()->getViewType()]);
-	debugPrintf("Uses palette merging: %s\n", g_sci->_gfxPalette->isMerging() ? "yes" : "no");
-	debugPrintf("Uses 16 bit color matching: %s\n", g_sci->_gfxPalette->isUsing16bitColorMatch() ? "yes" : "no");
+	debugPrintf("Uses palette merging: %s\n", g_sci->_gfxPalette16->isMerging() ? "yes" : "no");
+	debugPrintf("Uses 16 bit color matching: %s\n", g_sci->_gfxPalette16->isUsing16bitColorMatch() ? "yes" : "no");
 	debugPrintf("Resource volume version: %s\n", g_sci->getResMan()->getVolVersionDesc());
 	debugPrintf("Resource map version: %s\n", g_sci->getResMan()->getMapVersionDesc());
 	debugPrintf("Contains selector vocabulary (vocab.997): %s\n", hasVocab997 ? "yes" : "no");
@@ -1046,7 +1044,7 @@ bool Console::cmdVerifyScripts(int argc, const char **argv) {
 		if (!script)
 			debugPrintf("Error: script %d couldn't be loaded\n", itr->getNumber());
 
-		if (getSciVersion() <= SCI_VERSION_2_1) {
+		if (getSciVersion() <= SCI_VERSION_2_1_LATE) {
 			heap = _engine->getResMan()->findResource(ResourceId(kResourceTypeHeap, itr->getNumber()), false);
 			if (!heap)
 				debugPrintf("Error: script %d doesn't have a corresponding heap\n", itr->getNumber());
@@ -1620,7 +1618,7 @@ bool Console::cmdSetPalette(int argc, const char **argv) {
 
 	uint16 resourceId = atoi(argv[1]);
 
-	_engine->_gfxPalette->kernelSetFromResource(resourceId, true);
+	_engine->_gfxPalette16->kernelSetFromResource(resourceId, true);
 	return true;
 }
 
