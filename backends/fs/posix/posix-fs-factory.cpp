@@ -51,6 +51,7 @@ static inline char *getcwd (char *buf, size_t len)
 
 #include "backends/fs/posix/posix-fs-factory.h"
 #include "backends/fs/posix/posix-fs.h"
+#include "backends/fs/zip/zip-fs.h"
 
 AbstractFSNode *POSIXFilesystemFactory::makeRootFileNode() const {
 	return new POSIXFilesystemNode("/");
@@ -67,6 +68,24 @@ AbstractFSNode *POSIXFilesystemFactory::makeCurrentDirectoryFileNode() const {
 
 AbstractFSNode *POSIXFilesystemFactory::makeFileNodePath(const Common::String &path) const {
 	assert(!path.empty());
+   if (path.matchString("*.scummz"))
+   {
+      Common::String zipFile = normalizePath(path, '/');
+      Common::String pathInZip;
+
+      /* Split 'path' into a path to the zip file 
+       * and a path within the ZIP */
+      while (!zipFile.hasSuffix(".scummz"))
+      {
+         pathInZip = lastPathComponent(zipFile, '/') + '/' + pathInZip;
+         zipFile   = ZipFilesystemNode::getParentPath(zipFile, '/');
+      }
+
+      if (pathInZip.lastChar() == '/')
+         pathInZip.deleteLastChar();
+
+      return new ZipFilesystemNode(zipFile, pathInZip, '/');
+   }
 	return new POSIXFilesystemNode(path);
 }
 #endif
