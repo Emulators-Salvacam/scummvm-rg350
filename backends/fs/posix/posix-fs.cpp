@@ -30,7 +30,6 @@
 
 #include "backends/fs/posix/posix-fs.h"
 #include "backends/fs/stdiostream.h"
-#include "backends/fs/zip/zip-fs.h"
 #include "common/algorithm.h"
 
 #include "../../platform/libretro/libretro-common/include/retro_dirent.h"
@@ -120,12 +119,6 @@ bool POSIXFilesystemNode::getChildren(AbstractFSList &myList, ListMode mode, boo
 
       entry._isValid     = true;
       entry._isDirectory = retro_dirent_is_dir(dirp, d_name);
-
-      if (entry._displayName.hasSuffix(".scummz"))
-      {
-         myList.push_back(new ZipFilesystemNode(entry._path, "", '/'));
-         continue;
-      }
 
       // Skip files that are invalid for some reason (e.g. because we couldn't
       // properly stat them).

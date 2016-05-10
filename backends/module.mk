@@ -88,7 +88,6 @@ ifdef POSIX
 MODULE_OBJS += \
 	fs/posix/posix-fs.o \
 	fs/posix/posix-fs-factory.o \
-	fs/zip/zip-fs.o \
 	fs/chroot/chroot-fs-factory.o \
 	fs/chroot/chroot-fs.o \
 	plugins/posix/posix-provider.o \
