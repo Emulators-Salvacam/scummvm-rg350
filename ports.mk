@@ -53,8 +53,43 @@ ifdef DYNAMIC_MODULES
 endif
 
 # Special target to create a application wrapper for Mac OS X
+
+ifdef USE_DOCKTILEPLUGIN
+
+# The NsDockTilePlugIn needs to be compiled in both 32 and 64 bits irrespective of how ScummVM itself is compiled.
+# Therefore do not use $(CXXFLAGS) and $(LDFLAGS).
+
+ScummVMDockTilePlugin32.o:
+	$(CXX) -mmacosx-version-min=10.6 -arch i386 -O2 -c $(srcdir)/backends/taskbar/macosx/dockplugin/dockplugin.m -o ScummVMDockTilePlugin32.o
+
+ScummVMDockTilePlugin32: ScummVMDockTilePlugin32.o
+	$(CXX) -mmacosx-version-min=10.6 -arch i386 -bundle -framework Foundation -framework AppKit -fobjc-link-runtime ScummVMDockTilePlugin32.o -o ScummVMDockTilePlugin32
+
+ScummVMDockTilePlugin64.o:
+	$(CXX) -mmacosx-version-min=10.6 -arch x86_64 -O2 -c $(srcdir)/backends/taskbar/macosx/dockplugin/dockplugin.m -o ScummVMDockTilePlugin64.o
+	
+ScummVMDockTilePlugin64: ScummVMDockTilePlugin64.o
+	$(CXX) -mmacosx-version-min=10.6 -arch x86_64 -bundle -framework Foundation -framework AppKit -fobjc-link-runtime ScummVMDockTilePlugin64.o -o ScummVMDockTilePlugin64
+	
+ScummVMDockTilePlugin: ScummVMDockTilePlugin32 ScummVMDockTilePlugin64
+	lipo -create ScummVMDockTilePlugin32 ScummVMDockTilePlugin64 -output ScummVMDockTilePlugin
+
+scummvm.docktileplugin: ScummVMDockTilePlugin
+	mkdir -p scummvm.docktileplugin/Contents
+	cp $(srcdir)/dists/macosx/dockplugin/Info.plist scummvm.docktileplugin/Contents
+	mkdir -p scummvm.docktileplugin/Contents/MacOS
+	cp ScummVMDockTilePlugIn scummvm.docktileplugin/Contents/MacOS/
+	chmod 644 scummvm.docktileplugin/Contents/MacOS/ScummVMDockTilePlugIn
+	
+endif
+
 bundle_name = ScummVM.app
+
+ifdef USE_DOCKTILEPLUGIN
+bundle: scummvm-static scummvm.docktileplugin
+else
 bundle: scummvm-static
+endif
 	mkdir -p $(bundle_name)/Contents/MacOS
 	mkdir -p $(bundle_name)/Contents/Resources
 	echo "APPL????" > $(bundle_name)/Contents/PkgInfo
@@ -62,7 +97,8 @@ bundle: scummvm-static
 ifdef USE_SPARKLE
 	mkdir -p $(bundle_name)/Contents/Frameworks
 	cp $(srcdir)/dists/macosx/dsa_pub.pem $(bundle_name)/Contents/Resources/
-	cp -R $(STATICLIBPATH)/Sparkle.framework $(bundle_name)/Contents/Frameworks/
+	rm -rf $(bundle_name)/Contents/Frameworks/Sparkle.framework
+	cp -R $(SPARKLEPATH)/Sparkle.framework $(bundle_name)/Contents/Frameworks/
 endif
 	cp $(srcdir)/icons/scummvm.icns $(bundle_name)/Contents/Resources/
 	cp $(DIST_FILES_DOCS) $(bundle_name)/
@@ -75,6 +111,10 @@ endif
 	cp scummvm-static $(bundle_name)/Contents/MacOS/scummvm
 	chmod 755 $(bundle_name)/Contents/MacOS/scummvm
 	$(STRIP) $(bundle_name)/Contents/MacOS/scummvm
+ifdef USE_DOCKTILEPLUGIN
+	mkdir -p $(bundle_name)/Contents/PlugIns
+	cp -r scummvm.docktileplugin $(bundle_name)/Contents/PlugIns/
+endif
 
 iphonebundle: iphone
 	mkdir -p $(bundle_name)
@@ -288,7 +328,10 @@ OSX_ZLIB ?= $(STATICLIBPATH)/lib/libz.a
 endif
 
 ifdef USE_SPARKLE
-OSX_STATIC_LIBS += -framework Sparkle -F$(STATICLIBPATH)
+ifneq ($(SPARKLEPATH),)
+OSX_STATIC_LIBS += -F$(SPARKLEPATH)
+endif
+OSX_STATIC_LIBS += -framework Sparkle -Wl,-rpath,@loader_path/../Frameworks
 endif
 
 # Special target to create a static linked binary for Mac OS X.
@@ -341,7 +384,7 @@ osxsnap: bundle
 	mkdir ScummVM-snapshot/doc/se
 	cp $(srcdir)/doc/se/LasMig ./ScummVM-snapshot/doc/se/LasMig
 	cp $(srcdir)/doc/se/Snabbstart ./ScummVM-snapshot/doc/se/Snabbstart
-	/Developer/Tools/SetFile -t ttro -c ttxt ./ScummVM-snapshot/*
+	$(XCODETOOLSPATH)/SetFile -t ttro -c ttxt ./ScummVM-snapshot/*
 	xattr -w "com.apple.TextEncoding" "utf-8;134217984" ./ScummVM-snapshot/doc/cz/*
 	xattr -w "com.apple.TextEncoding" "utf-8;134217984" ./ScummVM-snapshot/doc/da/*
 	xattr -w "com.apple.TextEncoding" "utf-8;134217984" ./ScummVM-snapshot/doc/de/*
@@ -350,16 +393,19 @@ osxsnap: bundle
 	xattr -w "com.apple.TextEncoding" "utf-8;134217984" ./ScummVM-snapshot/doc/it/*
 	xattr -w "com.apple.TextEncoding" "utf-8;134217984" ./ScummVM-snapshot/doc/no-nb/*
 	xattr -w "com.apple.TextEncoding" "utf-8;134217984" ./ScummVM-snapshot/doc/se/*
-	/Developer/Tools/CpMac -r $(bundle_name) ./ScummVM-snapshot/
+	$(XCODETOOLSPATH)/CpMac -r $(bundle_name) ./ScummVM-snapshot/
 	cp $(srcdir)/dists/macosx/DS_Store ./ScummVM-snapshot/.DS_Store
 	cp $(srcdir)/dists/macosx/background.jpg ./ScummVM-snapshot/background.jpg
-	/Developer/Tools/SetFile -a V ./ScummVM-snapshot/.DS_Store
-	/Developer/Tools/SetFile -a V ./ScummVM-snapshot/background.jpg
+	$(XCODETOOLSPATH)/SetFile -a V ./ScummVM-snapshot/.DS_Store
+	$(XCODETOOLSPATH)/SetFile -a V ./ScummVM-snapshot/background.jpg
 	hdiutil create -ov -format UDZO -imagekey zlib-level=9 -fs HFS+ \
 					-srcfolder ScummVM-snapshot \
 					-volname "ScummVM" \
 					ScummVM-snapshot.dmg
 	rm -rf ScummVM-snapshot
+
+publish-appcast:
+	scp dists/macosx/scummvm_appcast.xml www.scummvm.org:/var/www/html/
 
 #
 # Windows specific

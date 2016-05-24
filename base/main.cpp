@@ -76,6 +76,9 @@
 #include "gui/launcher.h"
 #endif
 
+#ifdef USE_UPDATES
+#include "gui/updates-dialog.h"
+#endif
 
 static bool launcherDialog() {
 
@@ -459,9 +462,12 @@ extern "C" int scummvm_main(int argc, const char * const argv[]) {
 	// Now as the event manager is created, setup the keymapper
 	setupKeymapper(system);
 
-	// Hack to initialize graphics
-	GUI::TimedMessageDialog hackdialog("", 0);
-	hackdialog.runModal();
+#ifdef USE_UPDATES
+	if (!ConfMan.hasKey("updates_check")) {
+		GUI::UpdatesDialog dlg;
+		dlg.runModal();
+	}
+#endif
 
 	// Unless a game was specified, show the launcher dialog
 	if (0 == ConfMan.getActiveDomain())
