@@ -286,7 +286,7 @@ void GuiManager::runLoop() {
 
 	Common::EventManager *eventMan = _system->getEventManager();
 	uint32 lastRedraw = 0;
-	const uint32 waitTime = 1000 / 45;
+	const uint32 waitTime = 1000 / 60;
 
 	bool tooltipCheck = false;
 
@@ -304,9 +304,9 @@ void GuiManager::runLoop() {
 //		_system->updateScreen();
 
 		if (lastRedraw + waitTime < _system->getMillis(true)) {
+			lastRedraw = _system->getMillis(true);
 			_theme->updateScreen();
 			_system->updateScreen();
-			lastRedraw = _system->getMillis(true);
 		}
 
 		Common::Event event;
@@ -342,9 +342,9 @@ void GuiManager::runLoop() {
 
 
 			if (lastRedraw + waitTime < _system->getMillis(true)) {
+				lastRedraw = _system->getMillis(true);
 				_theme->updateScreen();
 				_system->updateScreen();
-				lastRedraw = _system->getMillis(true);
 			}
 		}
 

@@ -238,6 +238,8 @@ void LabEngine::doActions(const ActionList &actionList) {
 	ActionList::const_iterator action;
 	for (action = actionList.begin(); action != actionList.end(); ++action) {
 		updateEvents();
+		if (_quitLab || shouldQuit())
+			return;
 
 		switch (action->_actionType) {
 		case kActionPlaySound:
@@ -252,16 +254,9 @@ void LabEngine::doActions(const ActionList &actionList) {
 			_music->loadSoundEffect(action->_messages[0], true, false);
 			break;
 
-		case kActionShowDiff: {
-			bool curWait = _anim->_waitForEffect;
-			// Pause the engine until the sound is finished
-			_anim->_waitForEffect = true;
+		case kActionShowDiff:
 			_graphics->readPict(action->_messages[0], true);
-
-			// Restore the previous value of _waitForEffect
-			_anim->_waitForEffect = curWait;
 			break;
-			}
 
 		case kActionShowDiffLooping:	// used in scene 44 (heart of the labyrinth, minotaur)
 			_graphics->readPict(action->_messages[0], false);
@@ -381,6 +376,8 @@ void LabEngine::doActions(const ActionList &actionList) {
 
 				while (_system->getMillis() < targetMillis) {
 					updateEvents();
+					if (_quitLab || shouldQuit())
+						return;
 					_anim->diffNextFrame();
 				}
 			}
@@ -409,6 +406,8 @@ void LabEngine::doActions(const ActionList &actionList) {
 		case kActionWaitSound:	// used in scene 44 (heart of the labyrinth / ending)
 			while (_music->isSoundEffectActive()) {
 				updateEvents();
+				if (_quitLab || shouldQuit())
+					return;
 				_anim->diffNextFrame();
 				waitTOF();
 			}
