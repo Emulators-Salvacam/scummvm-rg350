@@ -1,7 +1,5 @@
 ##LIBRETRO
 DEBUG=0
-USE_ZLIB = 1
-USE_TREMOR = 1
 
 ifeq ($(platform),)
 platform = unix
@@ -32,8 +30,10 @@ RANLIB    = ranlib
 
 ifeq ($(platform), unix)
    TARGET  := $(TARGET_NAME)_libretro.so
-   DEFINES += -fPIC
+   DEFINES += -fPIC -DUSE_VORBIS -DUSE_TREMOR -DUSE_ZLIB
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
+   USE_ZLIB = 1
+   USE_TREMOR = 1
 # OS X
 else ifeq ($(platform), osx)
    TARGET  := $(TARGET_NAME)_libretro.dylib
@@ -102,9 +102,11 @@ else ifeq ($(platform), vita)
 
 else ifeq ($(platform), android-armv7)
    TARGET  := $(TARGET_NAME)_libretro_android.so
-   DEFINES += -fPIC -Wno-multichar
+   DEFINES += -fPIC -Wno-multichar -DUSE_VORBIS -DUSE_TREMOR -DUSE_ZLIB
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
+   USE_ZLIB = 1
+   USE_TREMOR = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    SHARED := -shared -Wl,--no-undefined
@@ -210,7 +212,7 @@ OBJS +=  $(srcdir)/$(LIBRETROCOMMON_DIR)/file/retro_dirent.o \
 endif
 
 POSIX = 1
-DEFINES += -DFS_TYPE_POSIX -DUSE_VORBIS -DUSE_TREMOR -DUSE_ZLIB
+DEFINES += -DFS_TYPE_POSIX
 MODULE_DIRS += $(retrodir)
 
 BACKEND := libretro
