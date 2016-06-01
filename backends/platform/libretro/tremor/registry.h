@@ -11,36 +11,30 @@
  *                                                                  *
  ********************************************************************
 
- function: #ifdef jail to whip a few platforms into the UNIX ideal.
+ function: registry for time, floor, res backends and channel mappings
 
  ********************************************************************/
-#ifndef _OS_TYPES_H
-#define _OS_TYPES_H
 
-#ifdef _LOW_ACCURACY_
-#  define X(n) (((((n)>>22)+1)>>1) - ((((n)>>22)+1)>>9))
-#  define LOOKUP_T const unsigned char
+#ifndef _V_REG_H_
+#define _V_REG_H_
+
+#define VI_TRANSFORMB 1
+#define VI_WINDOWB 1
+#define VI_TIMEB 1
+#define VI_FLOORB 2
+#define VI_RESB 3
+#define VI_MAPB 1
+
+#include "backends.h"
+
+#if defined(_WIN32) && defined(VORBISDLL_IMPORT)
+# define EXTERN __declspec(dllimport) extern
 #else
-#  define X(n) (n)
-#  define LOOKUP_T const ogg_int32_t
+# define EXTERN extern
 #endif
 
-/* make it easy on the folks that want to compile the libs with a
-   different malloc than stdlib */
-#define _ogg_malloc  malloc
-#define _ogg_calloc  calloc
-#define _ogg_realloc realloc
-#define _ogg_free    free
+EXTERN vorbis_func_floor     *_floor_P[];
+EXTERN vorbis_func_residue   *_residue_P[];
+EXTERN vorbis_func_mapping   *_mapping_P[];
 
-#if defined(_WIN32) && defined(__LIBRETRO__)
-#include <stdint.h>
-#else
-#include <inttypes.h>
 #endif
-
-typedef int64_t ogg_int64_t;
-typedef int32_t ogg_int32_t;
-typedef uint32_t ogg_uint32_t;
-typedef int16_t ogg_int16_t;
-
-#endif  /* _OS_TYPES_H */

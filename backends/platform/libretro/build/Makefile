@@ -1,5 +1,7 @@
 ##LIBRETRO
 DEBUG=0
+USE_ZLIB = 1
+USE_TREMOR = 1
 
 ifeq ($(platform),)
 platform = unix
@@ -30,10 +32,8 @@ RANLIB    = ranlib
 
 ifeq ($(platform), unix)
    TARGET  := $(TARGET_NAME)_libretro.so
-   DEFINES += -fPIC -DUSE_VORBIS -DUSE_TREMOR -DUSE_ZLIB
+   DEFINES += -fPIC
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
-   USE_ZLIB = 1
-   USE_TREMOR = 1
 # OS X
 else ifeq ($(platform), osx)
    TARGET  := $(TARGET_NAME)_libretro.dylib
@@ -102,15 +102,13 @@ else ifeq ($(platform), vita)
 
 else ifeq ($(platform), android-armv7)
    TARGET  := $(TARGET_NAME)_libretro_android.so
-   DEFINES += -fPIC -Wno-multichar -DUSE_VORBIS -DUSE_TREMOR -DUSE_ZLIB
+   DEFINES += -fPIC -Wno-multichar -D_ARM_ASSEM_
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
-   USE_ZLIB = 1
-   USE_TREMOR = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    SHARED := -shared -Wl,--no-undefined
-   DEFINES += -fPIC -Wno-multichar
+   DEFINES += -fPIC -Wno-multichar -D_ARM_ASSEM_
    CC = gcc
 ifneq (,$(findstring cortexa8,$(platform)))
    DEFINES += -marm -mcpu=cortex-a8
@@ -172,18 +170,20 @@ OBJS := $(retrodir)/libretro.o \
 
 ifeq ($(USE_TREMOR), 1)
 OBJS +=  $(srcdir)/$(retrodir)/tremor/bitwise.o \
+			$(srcdir)/$(retrodir)/tremor/block.o \
 			$(srcdir)/$(retrodir)/tremor/codebook.o \
-			$(srcdir)/$(retrodir)/tremor/dsp.o \
 			$(srcdir)/$(retrodir)/tremor/floor0.o \
 			$(srcdir)/$(retrodir)/tremor/floor1.o \
-			$(srcdir)/$(retrodir)/tremor/floor_lookup.o \
 			$(srcdir)/$(retrodir)/tremor/framing.o \
 			$(srcdir)/$(retrodir)/tremor/info.o \
 			$(srcdir)/$(retrodir)/tremor/mapping0.o \
 			$(srcdir)/$(retrodir)/tremor/mdct.o \
-			$(srcdir)/$(retrodir)/tremor/misc.o \
+			$(srcdir)/$(retrodir)/tremor/registry.o \
 			$(srcdir)/$(retrodir)/tremor/res012.o \
-			$(srcdir)/$(retrodir)/tremor/vorbisfile.o
+			$(srcdir)/$(retrodir)/tremor/sharedbook.o \
+			$(srcdir)/$(retrodir)/tremor/synthesis.o \
+			$(srcdir)/$(retrodir)/tremor/vorbisfile.o \
+			$(srcdir)/$(retrodir)/tremor/window.o
 endif
 
 ifeq ($(USE_ZLIB), 1)
@@ -212,7 +212,7 @@ OBJS +=  $(srcdir)/$(LIBRETROCOMMON_DIR)/file/retro_dirent.o \
 endif
 
 POSIX = 1
-DEFINES += -DFS_TYPE_POSIX
+DEFINES += -DFS_TYPE_POSIX -DUSE_VORBIS -DUSE_TREMOR -DUSE_ZLIB 
 MODULE_DIRS += $(retrodir)
 
 BACKEND := libretro
