@@ -160,7 +160,11 @@ void parse_command_params(char* cmdline)
   int j =0 ;
   int cmdlen = strlen(cmdline);
   bool quotes = false;
-    
+
+  // Append a new line to the end of the command to signify it's finished.
+  cmdline[cmdlen] = '\n';
+  cmdline[++cmdlen] = '\0';
+
   // parse command line into array of arguments
   for(int i=0; i<cmdlen; i++)
   {
