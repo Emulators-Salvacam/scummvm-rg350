@@ -10,6 +10,12 @@
 #include "libretro.h"
 
 #include <unistd.h>
+/**
+ * Include libgen.h for basename() and dirname().
+ * @see http://linux.die.net/man/3/basename
+ */
+#include <libgen.h>
+#include <string.h>
 
 retro_log_printf_t log_cb = NULL;
 static retro_video_refresh_t video_cb = NULL;
@@ -208,19 +214,35 @@ bool retro_load_game(const struct retro_game_info *game)
     cmd_params_num = 1;
     strcpy(cmd_params[0],"scummvm\0");
 
-    // read command line from gamefile
-    if(game)
+    if (game)
     {
-        FILE * gamefile;
-        char filedata[200];
-        if((gamefile = fopen ( game->path, "r")))
-        {
-            fgets (filedata , 200 , gamefile);
-            fclose(gamefile);
-            parse_command_params(filedata);
+        // Retrieve the game path.
+        char* path = strdup(game->path);
+
+        // See if we are acting on a .scummvm file.
+        if (strstr(path, ".scummvm") != NULL) {
+            FILE * gamefile;
+            char filedata[200];
+            if((gamefile = fopen ( game->path, "r")))
+            {
+                fgets (filedata , 200 , gamefile);
+                fclose(gamefile);
+                parse_command_params(filedata);
+            }
+        }
+        // Acting on a ScummVM rom file.
+        else {
+            // Assume the parent folder is the game id.
+            char* gamedir = dirname(path);
+            char* gameid = basename(gamedir);
+
+            // Construct the game launching arguments.
+            char buffer[200];
+            sprintf(buffer, "-p \"%s\" %s", gamedir, gameid);
+            parse_command_params(buffer);
         }
     }
-       
+
    struct retro_input_descriptor desc[] = {
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Mouse Left" },
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Mouse Up" },
