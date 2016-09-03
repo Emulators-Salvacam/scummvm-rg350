@@ -1,7 +1,8 @@
 ##LIBRETRO
 DEBUG=0
-USE_ZLIB = 1
+USE_ZLIB   = 1
 USE_TREMOR = 1
+USE_FLAC   = 0
 
 ifeq ($(platform),)
 platform = unix
@@ -139,10 +140,9 @@ else
 endif
 
 ###SCUMM VM
-srcdir = ../../../..
-retrodir = backends/platform/libretro
-LIBRETROCOMMON_DIR = $(retrodir)/libretro-common
-VPATH = $(srcdir)
+CORE_DIR = ../../../..
+srcdir   = $(CORE_DIR)
+VPATH    = $(CORE_DIR)
 
 # Define toolset
 ifdef TOOLSET
@@ -159,61 +159,12 @@ RM_REC        = rm -rf
 
 # Define build flags
 DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565 -DUSE_MT32EMU -Wno-multichar
-INCLUDES      += -I$(srcdir)/$(retrodir) -I. -I$(srcdir) -I$(srcdir)/engines -I$(srcdir)/$(LIBRETROCOMMON_DIR)/include
 DEPDIR        = .deps
 HAVE_GCC3     = true
 USE_RGB_COLOR = true
 
-OBJS := $(retrodir)/libretro.o \
-        $(retrodir)/os.o \
-		  $(srcdir)/$(LIBRETROCOMMON_DIR)/libco/libco.o
-
-ifeq ($(USE_TREMOR), 1)
-OBJS +=  $(srcdir)/$(retrodir)/tremor/bitwise.o \
-			$(srcdir)/$(retrodir)/tremor/block.o \
-			$(srcdir)/$(retrodir)/tremor/codebook.o \
-			$(srcdir)/$(retrodir)/tremor/floor0.o \
-			$(srcdir)/$(retrodir)/tremor/floor1.o \
-			$(srcdir)/$(retrodir)/tremor/framing.o \
-			$(srcdir)/$(retrodir)/tremor/info.o \
-			$(srcdir)/$(retrodir)/tremor/mapping0.o \
-			$(srcdir)/$(retrodir)/tremor/mdct.o \
-			$(srcdir)/$(retrodir)/tremor/registry.o \
-			$(srcdir)/$(retrodir)/tremor/res012.o \
-			$(srcdir)/$(retrodir)/tremor/sharedbook.o \
-			$(srcdir)/$(retrodir)/tremor/synthesis.o \
-			$(srcdir)/$(retrodir)/tremor/vorbisfile.o \
-			$(srcdir)/$(retrodir)/tremor/window.o
-endif
-
-ifeq ($(USE_ZLIB), 1)
-OBJS +=   $(srcdir)/$(retrodir)/zlib/deflate.o \
-					$(srcdir)/$(retrodir)/zlib/gzlib.o \
-					$(srcdir)/$(retrodir)/zlib/uncompr.o \
-					$(srcdir)/$(retrodir)/zlib/zutil.o \
-					$(srcdir)/$(retrodir)/zlib/inffast.o \
-					$(srcdir)/$(retrodir)/zlib/gzread.o \
-					$(srcdir)/$(retrodir)/zlib/crc32.o \
-					$(srcdir)/$(retrodir)/zlib/gzwrite.o \
-					$(srcdir)/$(retrodir)/zlib/inflate.o \
-					$(srcdir)/$(retrodir)/zlib/infback.o \
-					$(srcdir)/$(retrodir)/zlib/inftrees.o \
-					$(srcdir)/$(retrodir)/zlib/trees.o \
-					$(srcdir)/$(retrodir)/zlib/gzclose.o \
-					$(srcdir)/$(retrodir)/zlib/compress.o \
-					$(srcdir)/$(retrodir)/zlib/adler32.o
-endif
-
-ifneq ($(STATIC_LINKING), 1)
-OBJS +=  $(srcdir)/$(LIBRETROCOMMON_DIR)/file/retro_dirent.o \
-			$(srcdir)/$(LIBRETROCOMMON_DIR)/file/retro_stat.o \
-		  	$(srcdir)/$(LIBRETROCOMMON_DIR)/file/file_path.o \
-			$(srcdir)/$(LIBRETROCOMMON_DIR)/compat/compat_strl.o
-endif
-
 POSIX = 1
-DEFINES += -DFS_TYPE_POSIX -DUSE_VORBIS -DUSE_TREMOR -DUSE_ZLIB 
-MODULE_DIRS += $(retrodir)
+DEFINES += -DFS_TYPE_POSIX
 
 BACKEND := libretro
 USE_MT32EMU = 1
