@@ -26,6 +26,8 @@
 #include <sys/time.h>
 #include <list>
 
+#include <retro_miscellaneous.h>
+
 #include "graphics/surface.libretro.h"
 #include "backends/base-backend.h"
 #include "common/events.h"
@@ -47,7 +49,6 @@
 #endif
 #elif defined(__CELLOS_LV2__)
 #include <sys/sys_time.h>
-#include <sys/timer.h>
 #elif defined(GEKKO)
 #include <ogc/lwp_watchdog.h>
 #else
@@ -632,15 +633,7 @@ public:
 	virtual void delayMillis(uint msecs)
 	{
 		if(!retroCheckThread(msecs))
-      {
-#if defined(_WIN32)
-         Sleep(1000 * msecs);
-#elif defined(__CELLOS_LV2__)
-         sys_timer_usleep(1000 * msecs);
-#else
-         usleep(1000 * msecs);
-#endif
-      }
+         retro_sleep(msecs);
 	}
 
 
