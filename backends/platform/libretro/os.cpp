@@ -62,186 +62,186 @@ extern retro_log_printf_t log_cb;
 
 struct RetroPalette
 {
-    unsigned char _colors[256 * 3];
+   unsigned char _colors[256 * 3];
 
-    RetroPalette()
-    {
-        memset(_colors, 0, sizeof(_colors));
-    }
+   RetroPalette()
+   {
+      memset(_colors, 0, sizeof(_colors));
+   }
 
-    void set(const byte *colors, uint start, uint num)
-    {
-        memcpy(_colors + start * 3, colors, num * 3);
-    }
+   void set(const byte *colors, uint start, uint num)
+   {
+      memcpy(_colors + start * 3, colors, num * 3);
+   }
 
-    void get(byte* colors, uint start, uint num)
-    {
-        memcpy(colors, _colors + start * 3, num * 3);
-    }
+   void get(byte* colors, uint start, uint num)
+   {
+      memcpy(colors, _colors + start * 3, num * 3);
+   }
 
-    unsigned char *getColor(uint aIndex) const
-    {
-       return (unsigned char*)&_colors[aIndex * 3];
-    }
+   unsigned char *getColor(uint aIndex) const
+   {
+      return (unsigned char*)&_colors[aIndex * 3];
+   }
 };
 
 static INLINE void blit_uint8_uint16_fast(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
 {
-    for(int i = 0; i < aIn.h; i ++)
-    {
-        if(i >= aOut.h)
-           continue;
+   for(int i = 0; i < aIn.h; i ++)
+   {
+      if(i >= aOut.h)
+         continue;
 
-        uint8_t * const in  = (uint8_t*)aIn.pixels + (i * aIn.w);
-        uint16_t* const out = (uint16_t*)aOut.pixels + (i * aOut.w);
+      uint8_t * const in  = (uint8_t*)aIn.pixels + (i * aIn.w);
+      uint16_t* const out = (uint16_t*)aOut.pixels + (i * aOut.w);
 
-        for(int j = 0; j < aIn.w; j ++)
-        {
-            if (j >= aOut.w)
-               continue;
+      for(int j = 0; j < aIn.w; j ++)
+      {
+         if (j >= aOut.w)
+            continue;
 
-            uint8 r, g, b;
+         uint8 r, g, b;
 
-            const uint8_t val = in[j];
-            if(val != 0xFFFFFFFF)
+         const uint8_t val = in[j];
+         if(val != 0xFFFFFFFF)
+         {
+            if(aIn.format.bytesPerPixel == 1)
             {
-                if(aIn.format.bytesPerPixel == 1)
-                {
-                    unsigned char *col = aColors.getColor(val);
-                    r = *col++;
-                    g = *col++;
-                    b = *col++;
-                }
-                else
-                    aIn.format.colorToRGB(in[j], r, g, b);
-
-                out[j] = aOut.format.RGBToColor(r, g, b);
+               unsigned char *col = aColors.getColor(val);
+               r = *col++;
+               g = *col++;
+               b = *col++;
             }
-        }
-    }
+            else
+               aIn.format.colorToRGB(in[j], r, g, b);
+
+            out[j] = aOut.format.RGBToColor(r, g, b);
+         }
+      }
+   }
 }
 
 static INLINE void blit_uint32_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
 {
-    for(int i = 0; i < aIn.h; i ++)
-    {
-        if(i >= aOut.h)
-           continue;
+   for(int i = 0; i < aIn.h; i ++)
+   {
+      if(i >= aOut.h)
+         continue;
 
-        uint32_t* const in = (uint32_t*)aIn.pixels + (i * aIn.w);
-        uint16_t* const out = (uint16_t*)aOut.pixels + (i * aOut.w);
+      uint32_t* const in = (uint32_t*)aIn.pixels + (i * aIn.w);
+      uint16_t* const out = (uint16_t*)aOut.pixels + (i * aOut.w);
 
-        for(int j = 0; j < aIn.w; j ++)
-        {
-            if(j >= aOut.w)
-               continue;
+      for(int j = 0; j < aIn.w; j ++)
+      {
+         if(j >= aOut.w)
+            continue;
 
-            uint8 r, g, b;
+         uint8 r, g, b;
 
-            const uint32_t val = in[j];
-            if(val != 0xFFFFFFFF)
-            {
-               aIn.format.colorToRGB(in[j], r, g, b);
-               out[j] = aOut.format.RGBToColor(r, g, b);
-            }
-        }
-    }
+         const uint32_t val = in[j];
+         if(val != 0xFFFFFFFF)
+         {
+            aIn.format.colorToRGB(in[j], r, g, b);
+            out[j] = aOut.format.RGBToColor(r, g, b);
+         }
+      }
+   }
 }
 
 static INLINE void blit_uint16_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
 {
-    for(int i = 0; i < aIn.h; i ++)
-    {
-        if(i >= aOut.h)
-           continue;
+   for(int i = 0; i < aIn.h; i ++)
+   {
+      if(i >= aOut.h)
+         continue;
 
-        uint16_t* const in = (uint16_t*)aIn.pixels + (i * aIn.w);
-        uint16_t* const out = (uint16_t*)aOut.pixels + (i * aOut.w);
+      uint16_t* const in = (uint16_t*)aIn.pixels + (i * aIn.w);
+      uint16_t* const out = (uint16_t*)aOut.pixels + (i * aOut.w);
 
-        for(int j = 0; j < aIn.w; j ++)
-        {
-            if(j >= aOut.w)
-               continue;
+      for(int j = 0; j < aIn.w; j ++)
+      {
+         if(j >= aOut.w)
+            continue;
 
-            uint8 r, g, b;
+         uint8 r, g, b;
 
-            const uint16_t val = in[j];
-            if(val != 0xFFFFFFFF)
-            {
-               aIn.format.colorToRGB(in[j], r, g, b);
-               out[j] = aOut.format.RGBToColor(r, g, b);
-            }
-        }
-    }
+         const uint16_t val = in[j];
+         if(val != 0xFFFFFFFF)
+         {
+            aIn.format.colorToRGB(in[j], r, g, b);
+            out[j] = aOut.format.RGBToColor(r, g, b);
+         }
+      }
+   }
 }
 
 static void blit_uint8_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
 {
-    for(int i = 0; i < aIn.h; i ++)
-    {
-        if((i + aY) < 0 || (i + aY) >= aOut.h)
-           continue;
+   for(int i = 0; i < aIn.h; i ++)
+   {
+      if((i + aY) < 0 || (i + aY) >= aOut.h)
+         continue;
 
-        uint8_t* const in = (uint8_t*)aIn.pixels + (i * aIn.w);
-        uint16_t* const out = (uint16_t*)aOut.pixels + ((i + aY) * aOut.w);
+      uint8_t* const in = (uint8_t*)aIn.pixels + (i * aIn.w);
+      uint16_t* const out = (uint16_t*)aOut.pixels + ((i + aY) * aOut.w);
 
-        for(int j = 0; j < aIn.w; j ++)
-        {
-            if((j + aX) < 0 || (j + aX) >= aOut.w)
-               continue;
+      for(int j = 0; j < aIn.w; j ++)
+      {
+         if((j + aX) < 0 || (j + aX) >= aOut.w)
+            continue;
 
-            uint8 r, g, b;
+         uint8 r, g, b;
 
-            const uint8_t val = in[j];
-            if(val != aKeyColor)
-            {
-                unsigned char *col = aColors.getColor(val);
-                r = *col++;
-                g = *col++;
-                b = *col++;
-                out[j + aX] = aOut.format.RGBToColor(r, g, b);
-            }
-        }
-    }
+         const uint8_t val = in[j];
+         if(val != aKeyColor)
+         {
+            unsigned char *col = aColors.getColor(val);
+            r = *col++;
+            g = *col++;
+            b = *col++;
+            out[j + aX] = aOut.format.RGBToColor(r, g, b);
+         }
+      }
+   }
 }
 
 static void blit_uint16_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, int aX, int aY, const RetroPalette& aColors, uint32 aKeyColor)
 {
-    for(int i = 0; i < aIn.h; i ++)
-    {
-        if((i + aY) < 0 || (i + aY) >= aOut.h)
-           continue;
+   for(int i = 0; i < aIn.h; i ++)
+   {
+      if((i + aY) < 0 || (i + aY) >= aOut.h)
+         continue;
 
-        uint16_t* const in = (uint16_t*)aIn.pixels + (i * aIn.w);
-        uint16_t* const out = (uint16_t*)aOut.pixels + ((i + aY) * aOut.w);
+      uint16_t* const in = (uint16_t*)aIn.pixels + (i * aIn.w);
+      uint16_t* const out = (uint16_t*)aOut.pixels + ((i + aY) * aOut.w);
 
-        for(int j = 0; j < aIn.w; j ++)
-        {
-            if((j + aX) < 0 || (j + aX) >= aOut.w)
-               continue;
+      for(int j = 0; j < aIn.w; j ++)
+      {
+         if((j + aX) < 0 || (j + aX) >= aOut.w)
+            continue;
 
-            uint8 r, g, b;
+         uint8 r, g, b;
 
-            const uint16_t val = in[j];
-            if(val != aKeyColor)
-            {
-              aIn.format.colorToRGB(in[j], r, g, b);
-              out[j + aX] = aOut.format.RGBToColor(r, g, b);
-            }
-        }
-    }
+         const uint16_t val = in[j];
+         if(val != aKeyColor)
+         {
+            aIn.format.colorToRGB(in[j], r, g, b);
+            out[j + aX] = aOut.format.RGBToColor(r, g, b);
+         }
+      }
+   }
 }
 
 static INLINE void copyRectToSurface(uint8_t *pixels, int out_pitch, const uint8_t *src, int pitch, int x, int y, int w, int h, int out_bpp)
 {
-    uint8_t *dst = pixels + y * out_pitch + x * out_bpp;
+   uint8_t *dst = pixels + y * out_pitch + x * out_bpp;
 
-    do
-    {
-       memcpy(dst, src, w * out_bpp);
-       src += pitch;
-       dst += out_pitch;
-    }while(--h);
+   do
+   {
+      memcpy(dst, src, w * out_bpp);
+      src += pitch;
+      dst += out_pitch;
+   }while(--h);
 }
 
 static Common::String s_systemDir;
@@ -279,661 +279,661 @@ static Common::String s_systemDir;
 std::list<Common::Event> _events;
 
 class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
-public:
-    Graphics::Surface _screen;
+   public:
+      Graphics::Surface _screen;
 
-    Graphics::Surface _gameScreen;
-    RetroPalette _gamePalette;
+      Graphics::Surface _gameScreen;
+      RetroPalette _gamePalette;
 
-    Graphics::Surface _overlay;
-    bool _overlayVisible;
+      Graphics::Surface _overlay;
+      bool _overlayVisible;
 
-    Graphics::Surface _mouseImage;
-    RetroPalette _mousePalette;
-    bool _mousePaletteEnabled;
-    bool _mouseVisible;
-    int _mouseX;
-    int _mouseY;
-    int _mouseHotspotX;
-    int _mouseHotspotY;
-    int _mouseKeyColor;
-    bool _mouseDontScale;
-    bool _mouseButtons[2];
-    bool _joypadmouseButtons[2];
-    bool _joypadstartButton;
+      Graphics::Surface _mouseImage;
+      RetroPalette _mousePalette;
+      bool _mousePaletteEnabled;
+      bool _mouseVisible;
+      int _mouseX;
+      int _mouseY;
+      int _mouseHotspotX;
+      int _mouseHotspotY;
+      int _mouseKeyColor;
+      bool _mouseDontScale;
+      bool _mouseButtons[2];
+      bool _joypadmouseButtons[2];
+      bool _joypadstartButton;
 
-    uint32 _startTime;
-    uint32 _threadExitTime;
-
-
-    Audio::MixerImpl* _mixer;
+      uint32 _startTime;
+      uint32 _threadExitTime;
 
 
-	OSystem_RETRO() :
-	    _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
-	    _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _startTime(0), _threadExitTime(10)
-	{
-        _fsFactory = new FS_SYSTEM_FACTORY();
-        memset(_mouseButtons, 0, sizeof(_mouseButtons));
-        memset(_joypadmouseButtons, 0, sizeof(_joypadmouseButtons));
-        _joypadstartButton = false;
-
-        _startTime = getMillis();
-
-        if(s_systemDir.empty())
-            s_systemDir = ".";
-	}
-
-	virtual ~OSystem_RETRO()
-	{
-	    _gameScreen.free();
-	    _overlay.free();
-	    _mouseImage.free();
-	    _screen.free();
-
-	    delete _mixer;
-	}
-
-	virtual void initBackend()
-	{
-	    _savefileManager = new DefaultSaveFileManager();
-#ifdef FRONTEND_SUPPORTS_RGB565
-       _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
-#else
-       _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
-#endif
-        _mixer = new Audio::MixerImpl(this, 44100);
-        _timerManager = new DefaultTimerManager();
-
-        _mixer->setReady(true);
-
-        BaseBackend::initBackend();
-	}
-
-	virtual bool hasFeature(Feature f)
-	{
-    	return (f == OSystem::kFeatureCursorPalette);
-	}
-
-	virtual void setFeatureState(Feature f, bool enable)
-	{
-        if (f == kFeatureCursorPalette)
-            _mousePaletteEnabled = enable;
-	}
-
-	virtual bool getFeatureState(Feature f)
-	{
-        return (f == kFeatureCursorPalette) ? _mousePaletteEnabled : false;
-	}
-
-	virtual const GraphicsMode *getSupportedGraphicsModes() const
-	{
-        static const OSystem::GraphicsMode s_noGraphicsModes[] = { {0, 0, 0} };
-        return s_noGraphicsModes;
-	}
-
-	virtual int getDefaultGraphicsMode() const
-	{
-	    return 0;
-	}
-
-	virtual bool setGraphicsMode(int mode)
-	{
-        return true;
-	}
-
-	virtual int getGraphicsMode() const
-	{
-	    return 0;
-	}
-
-	virtual void initSize(uint width, uint height, const Graphics::PixelFormat *format)
-	{
-        _gameScreen.create(width, height, format ? *format : Graphics::PixelFormat::createFormatCLUT8());
-	}
-
-	virtual int16 getHeight()
-	{
-	    return _gameScreen.h;
-	}
-
-	virtual int16 getWidth()
-	{
-	    return _gameScreen.w;
-	}
-
-	virtual Graphics::PixelFormat getScreenFormat() const
-	{
-	    return _gameScreen.format;
-	}
-
-	virtual Common::List<Graphics::PixelFormat> getSupportedFormats() const
-	{
-        Common::List<Graphics::PixelFormat> result;
-
-        /* RGBA8888 */
-        result.push_back(Graphics::PixelFormat(4, 8, 8, 8, 8, 24, 16, 8, 0));
-
-#ifdef FRONTEND_SUPPORTS_RGB565
-        /* RGB565 - overlay */
-        result.push_back(Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
-#endif
-        /* RGB555 - fmtowns */
-        result.push_back(Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
-
-        /* Palette - most games */
-        result.push_back(Graphics::PixelFormat::createFormatCLUT8());
-        return result;
-	}
+      Audio::MixerImpl* _mixer;
 
 
-
-	virtual PaletteManager *getPaletteManager() { return this; }
-protected:
-	// PaletteManager API
-	virtual void setPalette(const byte *colors, uint start, uint num)
-	{
-        _gamePalette.set(colors, start, num);
-	}
-
-	virtual void grabPalette(byte *colors, uint start, uint num)
-	{
-        _gamePalette.get(colors, start, num);
-	}
-
-
-public:
-	virtual void copyRectToScreen(const void *buf, int pitch, int x, int y, int w, int h)
-	{
-      const uint8_t *src = (const uint8_t*)buf;
-      uint8_t *pix = (uint8_t*)_gameScreen.pixels;
-      copyRectToSurface(pix, _gameScreen.pitch, src, pitch, x, y, w, h, _gameScreen.format.bytesPerPixel);
-	}
-
-	virtual void updateScreen()
+      OSystem_RETRO() :
+         _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
+         _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _startTime(0), _threadExitTime(10)
    {
-      const Graphics::Surface& srcSurface = (_overlayVisible) ? _overlay : _gameScreen;
-      if(srcSurface.w && srcSurface.h)
+      _fsFactory = new FS_SYSTEM_FACTORY();
+      memset(_mouseButtons, 0, sizeof(_mouseButtons));
+      memset(_joypadmouseButtons, 0, sizeof(_joypadmouseButtons));
+      _joypadstartButton = false;
+
+      _startTime = getMillis();
+
+      if(s_systemDir.empty())
+         s_systemDir = ".";
+   }
+
+      virtual ~OSystem_RETRO()
       {
-         switch(srcSurface.format.bytesPerPixel)
+         _gameScreen.free();
+         _overlay.free();
+         _mouseImage.free();
+         _screen.free();
+
+         delete _mixer;
+      }
+
+      virtual void initBackend()
+      {
+         _savefileManager = new DefaultSaveFileManager();
+#ifdef FRONTEND_SUPPORTS_RGB565
+         _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
+#else
+         _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+#endif
+         _mixer = new Audio::MixerImpl(this, 44100);
+         _timerManager = new DefaultTimerManager();
+
+         _mixer->setReady(true);
+
+         BaseBackend::initBackend();
+      }
+
+      virtual bool hasFeature(Feature f)
+      {
+         return (f == OSystem::kFeatureCursorPalette);
+      }
+
+      virtual void setFeatureState(Feature f, bool enable)
+      {
+         if (f == kFeatureCursorPalette)
+            _mousePaletteEnabled = enable;
+      }
+
+      virtual bool getFeatureState(Feature f)
+      {
+         return (f == kFeatureCursorPalette) ? _mousePaletteEnabled : false;
+      }
+
+      virtual const GraphicsMode *getSupportedGraphicsModes() const
+      {
+         static const OSystem::GraphicsMode s_noGraphicsModes[] = { {0, 0, 0} };
+         return s_noGraphicsModes;
+      }
+
+      virtual int getDefaultGraphicsMode() const
+      {
+         return 0;
+      }
+
+      virtual bool setGraphicsMode(int mode)
+      {
+         return true;
+      }
+
+      virtual int getGraphicsMode() const
+      {
+         return 0;
+      }
+
+      virtual void initSize(uint width, uint height, const Graphics::PixelFormat *format)
+      {
+         _gameScreen.create(width, height, format ? *format : Graphics::PixelFormat::createFormatCLUT8());
+      }
+
+      virtual int16 getHeight()
+      {
+         return _gameScreen.h;
+      }
+
+      virtual int16 getWidth()
+      {
+         return _gameScreen.w;
+      }
+
+      virtual Graphics::PixelFormat getScreenFormat() const
+      {
+         return _gameScreen.format;
+      }
+
+      virtual Common::List<Graphics::PixelFormat> getSupportedFormats() const
+      {
+         Common::List<Graphics::PixelFormat> result;
+
+         /* RGBA8888 */
+         result.push_back(Graphics::PixelFormat(4, 8, 8, 8, 8, 24, 16, 8, 0));
+
+#ifdef FRONTEND_SUPPORTS_RGB565
+         /* RGB565 - overlay */
+         result.push_back(Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
+#endif
+         /* RGB555 - fmtowns */
+         result.push_back(Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+
+         /* Palette - most games */
+         result.push_back(Graphics::PixelFormat::createFormatCLUT8());
+         return result;
+      }
+
+
+
+      virtual PaletteManager *getPaletteManager() { return this; }
+   protected:
+      // PaletteManager API
+      virtual void setPalette(const byte *colors, uint start, uint num)
+      {
+         _gamePalette.set(colors, start, num);
+      }
+
+      virtual void grabPalette(byte *colors, uint start, uint num)
+      {
+         _gamePalette.get(colors, start, num);
+      }
+
+
+   public:
+      virtual void copyRectToScreen(const void *buf, int pitch, int x, int y, int w, int h)
+      {
+         const uint8_t *src = (const uint8_t*)buf;
+         uint8_t *pix = (uint8_t*)_gameScreen.pixels;
+         copyRectToSurface(pix, _gameScreen.pitch, src, pitch, x, y, w, h, _gameScreen.format.bytesPerPixel);
+      }
+
+      virtual void updateScreen()
+      {
+         const Graphics::Surface& srcSurface = (_overlayVisible) ? _overlay : _gameScreen;
+         if(srcSurface.w && srcSurface.h)
          {
-            case 1:
-            case 3:
-               blit_uint8_uint16_fast(_screen, srcSurface, _gamePalette);
-               break;
-            case 2:
-               blit_uint16_uint16(_screen, srcSurface, _gamePalette);
-               break;
-            case 4:
-               blit_uint32_uint16(_screen, srcSurface, _gamePalette);
-               break;
+            switch(srcSurface.format.bytesPerPixel)
+            {
+               case 1:
+               case 3:
+                  blit_uint8_uint16_fast(_screen, srcSurface, _gamePalette);
+                  break;
+               case 2:
+                  blit_uint16_uint16(_screen, srcSurface, _gamePalette);
+                  break;
+               case 4:
+                  blit_uint32_uint16(_screen, srcSurface, _gamePalette);
+                  break;
+            }
+         }
+
+         // Draw Mouse
+         if(_mouseVisible && _mouseImage.w && _mouseImage.h)
+         {
+            const int x = _mouseX - _mouseHotspotX;
+            const int y = _mouseY - _mouseHotspotY;
+
+            if(_mouseImage.format.bytesPerPixel == 1)
+               blit_uint8_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
+            else
+               blit_uint16_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
          }
       }
 
-      // Draw Mouse
-      if(_mouseVisible && _mouseImage.w && _mouseImage.h)
+      virtual Graphics::Surface *lockScreen()
       {
-         const int x = _mouseX - _mouseHotspotX;
-         const int y = _mouseY - _mouseHotspotY;
-
-         if(_mouseImage.format.bytesPerPixel == 1)
-            blit_uint8_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
-         else
-            blit_uint16_uint16(_screen, _mouseImage, x, y, _mousePaletteEnabled ? _mousePalette : _gamePalette, _mouseKeyColor);
+         return &_gameScreen;
       }
-   }
 
-	virtual Graphics::Surface *lockScreen()
-	{
-        return &_gameScreen;
-	}
+      virtual void unlockScreen()
+      {
+         /* EMPTY */
+      }
 
-	virtual void unlockScreen()
-	{
-	    /* EMPTY */
-	}
+      virtual void setShakePos(int shakeOffset)
+      {
+         // TODO
+      }
 
-	virtual void setShakePos(int shakeOffset)
-	{
-	    // TODO
-	}
+      virtual void showOverlay()
+      {
+         _overlayVisible = true;
+      }
 
-	virtual void showOverlay()
-	{
-	    _overlayVisible = true;
-	}
+      virtual void hideOverlay()
+      {
+         _overlayVisible = false;
+      }
 
-	virtual void hideOverlay()
-	{
-	    _overlayVisible = false;
-	}
+      virtual void clearOverlay()
+      {
+         _overlay.fillRect(Common::Rect(_overlay.w, _overlay.h), 0);
+      }
 
-	virtual void clearOverlay()
-	{
-        _overlay.fillRect(Common::Rect(_overlay.w, _overlay.h), 0);
-	}
+      virtual void grabOverlay(void *buf, int pitch)
+      {
+         const unsigned char *src = (unsigned char*)_overlay.pixels;
+         unsigned char *dst = (byte *)buf;
+         unsigned i = RES_H;
 
-	virtual void grabOverlay(void *buf, int pitch)
-	{
-        const unsigned char *src = (unsigned char*)_overlay.pixels;
-        unsigned char *dst = (byte *)buf;
-        unsigned i = RES_H;
+         do{
+            memcpy(dst, src, RES_W << 1);
+            dst += pitch;
+            src += RES_W << 1;
+         }while(--i);
+      }
 
-        do{
-           memcpy(dst, src, RES_W << 1);
-           dst += pitch;
-           src += RES_W << 1;
-        }while(--i);
-	}
+      virtual void copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h)
+      {
+         const uint8_t *src = (const uint8_t*)buf;
+         uint8_t *pix = (uint8_t*)_overlay.pixels;
+         copyRectToSurface(pix, _overlay.pitch, src, pitch, x, y, w, h, _overlay.format.bytesPerPixel);
+      }
 
-	virtual void copyRectToOverlay(const void *buf, int pitch, int x, int y, int w, int h)
-	{
-      const uint8_t *src = (const uint8_t*)buf;
-      uint8_t *pix = (uint8_t*)_overlay.pixels;
-      copyRectToSurface(pix, _overlay.pitch, src, pitch, x, y, w, h, _overlay.format.bytesPerPixel);
-	}
+      virtual int16 getOverlayHeight()
+      {
+         return _overlay.h;
+      }
 
-	virtual int16 getOverlayHeight()
-	{
-	    return _overlay.h;
-	}
+      virtual int16 getOverlayWidth()
+      {
+         return _overlay.w;
+      }
 
-	virtual int16 getOverlayWidth()
-	{
-	    return _overlay.w;
-	}
-
-	virtual Graphics::PixelFormat getOverlayFormat() const
-	{
-	    return _overlay.format;
-	}
+      virtual Graphics::PixelFormat getOverlayFormat() const
+      {
+         return _overlay.format;
+      }
 
 
 
-	virtual bool showMouse(bool visible)
-	{
-        const bool wasVisible = _mouseVisible;
-        _mouseVisible = visible;
-        return wasVisible;
-	}
+      virtual bool showMouse(bool visible)
+      {
+         const bool wasVisible = _mouseVisible;
+         _mouseVisible = visible;
+         return wasVisible;
+      }
 
-	virtual void warpMouse(int x, int y)
-	{
-        _mouseX = x;
-        _mouseY = y;
-	}
+      virtual void warpMouse(int x, int y)
+      {
+         _mouseX = x;
+         _mouseY = y;
+      }
 
-	virtual void setMouseCursor(const void *buf, uint w, uint h, int hotspotX, int hotspotY, uint32 keycolor = 255, bool dontScale = false, const Graphics::PixelFormat *format = NULL)
-	{
-	    const Graphics::PixelFormat mformat = format ? *format : Graphics::PixelFormat::createFormatCLUT8();
+      virtual void setMouseCursor(const void *buf, uint w, uint h, int hotspotX, int hotspotY, uint32 keycolor = 255, bool dontScale = false, const Graphics::PixelFormat *format = NULL)
+      {
+         const Graphics::PixelFormat mformat = format ? *format : Graphics::PixelFormat::createFormatCLUT8();
 
-        if(_mouseImage.w != w || _mouseImage.h != h || _mouseImage.format != mformat)
-        {
+         if(_mouseImage.w != w || _mouseImage.h != h || _mouseImage.format != mformat)
+         {
             _mouseImage.create(w, h, mformat);
-        }
+         }
 
-    	memcpy(_mouseImage.pixels, buf, h * _mouseImage.pitch);
+         memcpy(_mouseImage.pixels, buf, h * _mouseImage.pitch);
 
-        _mouseHotspotX = hotspotX;
-        _mouseHotspotY = hotspotY;
-        _mouseKeyColor = keycolor;
-        _mouseDontScale = dontScale;
-	}
+         _mouseHotspotX = hotspotX;
+         _mouseHotspotY = hotspotY;
+         _mouseKeyColor = keycolor;
+         _mouseDontScale = dontScale;
+      }
 
-	virtual void setCursorPalette(const byte *colors, uint start, uint num)
-	{
-        _mousePalette.set(colors, start, num);
-        _mousePaletteEnabled = true;
-	}
+      virtual void setCursorPalette(const byte *colors, uint start, uint num)
+      {
+         _mousePalette.set(colors, start, num);
+         _mousePaletteEnabled = true;
+      }
 
-    bool retroCheckThread(uint32 offset = 0)
-    {
-        if(_threadExitTime <= (getMillis() + offset))
-        {
+      bool retroCheckThread(uint32 offset = 0)
+      {
+         if(_threadExitTime <= (getMillis() + offset))
+         {
             extern void retro_leave_thread();
             retro_leave_thread();
 
             _threadExitTime = getMillis() + 10;
             return true;
-        }
+         }
 
-        return false;
-    }
+         return false;
+      }
 
-	virtual bool pollEvent(Common::Event &event)
-	{
-	    retroCheckThread();
+      virtual bool pollEvent(Common::Event &event)
+      {
+         retroCheckThread();
 
-        ((DefaultTimerManager*)_timerManager)->handler();
+         ((DefaultTimerManager*)_timerManager)->handler();
 
 
-        if(!_events.empty())
-        {
+         if(!_events.empty())
+         {
             event = _events.front();
             _events.pop_front();
             return true;
-        }
+         }
 
-        return false;
-	}
+         return false;
+      }
 
-	virtual uint32 getMillis(bool skipRecord = false)
-	{
+      virtual uint32 getMillis(bool skipRecord = false)
+      {
 #if defined(GEKKO)
-   return (ticks_to_microsecs(gettime()) / 1000.0) - _startTime;
+         return (ticks_to_microsecs(gettime()) / 1000.0) - _startTime;
 #elif defined(__CELLOS_LV2__)
-   return (sys_time_get_system_time() / 1000.0) - _startTime;
+         return (sys_time_get_system_time() / 1000.0) - _startTime;
 #else
-        struct timeval t;
-        gettimeofday(&t, 0);
+         struct timeval t;
+         gettimeofday(&t, 0);
 
-        return ((t.tv_sec * 1000) + (t.tv_usec / 1000)) - _startTime;
+         return ((t.tv_sec * 1000) + (t.tv_usec / 1000)) - _startTime;
 #endif
-	}
+      }
 
-	virtual void delayMillis(uint msecs)
-	{
-		if(!retroCheckThread(msecs))
-         retro_sleep(msecs);
-	}
+      virtual void delayMillis(uint msecs)
+      {
+         if(!retroCheckThread(msecs))
+            retro_sleep(msecs);
+      }
 
 
-	virtual MutexRef createMutex(void)
-	{
-	    return MutexRef();
-	}
+      virtual MutexRef createMutex(void)
+      {
+         return MutexRef();
+      }
 
-	virtual void lockMutex(MutexRef mutex)
-	{
-	    /* EMPTY */
-	}
+      virtual void lockMutex(MutexRef mutex)
+      {
+         /* EMPTY */
+      }
 
-	virtual void unlockMutex(MutexRef mutex)
-	{
-	    /* EMPTY */
-	}
+      virtual void unlockMutex(MutexRef mutex)
+      {
+         /* EMPTY */
+      }
 
-	virtual void deleteMutex(MutexRef mutex)
-	{
-	    /* EMPTY */
-	}
+      virtual void deleteMutex(MutexRef mutex)
+      {
+         /* EMPTY */
+      }
 
-	virtual void quit()
-	{
-	    // TODO:
-	}
+      virtual void quit()
+      {
+         // TODO:
+      }
 
-	virtual void addSysArchivesToSearchSet(Common::SearchSet &s, int priority = 0)
-	{
-	    // TODO: NOTHING?
-	}
+      virtual void addSysArchivesToSearchSet(Common::SearchSet &s, int priority = 0)
+      {
+         // TODO: NOTHING?
+      }
 
-	virtual void getTimeAndDate(TimeDate &t) const
-   {
-      time_t curTime = time(NULL);
+      virtual void getTimeAndDate(TimeDate &t) const
+      {
+         time_t curTime = time(NULL);
 
 #define YEAR0 1900
 #define EPOCH_YR 1970
 #define SECS_DAY (24L * 60L * 60L)
 #define LEAPYEAR(year) (!((year) % 4) && (((year) % 100) || !((year) % 400)))
 #define YEARSIZE(year) (LEAPYEAR(year) ? 366 : 365)
-      const int _ytab[2][12] = {
-         {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
-         {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
-      };
-      int year = EPOCH_YR;
-      unsigned long dayclock = (unsigned long)curTime % SECS_DAY;
-      unsigned long dayno = (unsigned long)curTime / SECS_DAY;
-      t.tm_sec = dayclock % 60;
-      t.tm_min = (dayclock % 3600) / 60;
-      t.tm_hour = dayclock / 3600;
-      t.tm_wday = (dayno + 4) % 7; /* day 0 was a thursday */
-      while (dayno >= YEARSIZE(year)) {
-         dayno -= YEARSIZE(year);
-         year++;
+         const int _ytab[2][12] = {
+            {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
+            {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+         };
+         int year = EPOCH_YR;
+         unsigned long dayclock = (unsigned long)curTime % SECS_DAY;
+         unsigned long dayno = (unsigned long)curTime / SECS_DAY;
+         t.tm_sec = dayclock % 60;
+         t.tm_min = (dayclock % 3600) / 60;
+         t.tm_hour = dayclock / 3600;
+         t.tm_wday = (dayno + 4) % 7; /* day 0 was a thursday */
+         while (dayno >= YEARSIZE(year)) {
+            dayno -= YEARSIZE(year);
+            year++;
+         }
+         t.tm_year = year - YEAR0;
+         t.tm_mon = 0;
+         while (dayno >= _ytab[LEAPYEAR(year)][t.tm_mon]) {
+            dayno -= _ytab[LEAPYEAR(year)][t.tm_mon];
+            t.tm_mon++;
+         }
+         t.tm_mday = dayno + 1;
       }
-      t.tm_year = year - YEAR0;
-      t.tm_mon = 0;
-      while (dayno >= _ytab[LEAPYEAR(year)][t.tm_mon]) {
-         dayno -= _ytab[LEAPYEAR(year)][t.tm_mon];
-         t.tm_mon++;
+
+      virtual Audio::Mixer *getMixer()
+      {
+         return _mixer;
       }
-      t.tm_mday = dayno + 1;
-   }
 
-	virtual Audio::Mixer *getMixer()
-	{
-	    return _mixer;
-	}
+      virtual Common::String getDefaultConfigFileName()
+      {
+         return s_systemDir + "/scummvm.ini";
+      }
 
-	virtual Common::String getDefaultConfigFileName()
-	{
-	    return s_systemDir + "/scummvm.ini";
-	}
-
-	virtual void logMessage(LogMessageType::Type type, const char *message)
-	{
-      if (log_cb)
-         log_cb(RETRO_LOG_INFO, "%s\n", message);
-	}
+      virtual void logMessage(LogMessageType::Type type, const char *message)
+      {
+         if (log_cb)
+            log_cb(RETRO_LOG_INFO, "%s\n", message);
+      }
 
 
-	//
+      //
 
-	const Graphics::Surface& getScreen()
-	{
-        const Graphics::Surface& srcSurface = (_overlayVisible) ? _overlay : _gameScreen;
+      const Graphics::Surface& getScreen()
+      {
+         const Graphics::Surface& srcSurface = (_overlayVisible) ? _overlay : _gameScreen;
 
-        if(srcSurface.w != _screen.w || srcSurface.h != _screen.h)
-        {
+         if(srcSurface.w != _screen.w || srcSurface.h != _screen.h)
+         {
 #ifdef FRONTEND_SUPPORTS_RGB565
             _screen.create(srcSurface.w, srcSurface.h, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
 #else
             _screen.create(srcSurface.w, srcSurface.h, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
 #endif
-        }
+         }
 
 
-        return _screen;
-	}
+         return _screen;
+      }
 
-  #define ANALOG_VALUE_X_ADD 1
-  #define ANALOG_VALUE_Y_ADD 1
-  #define ANALOG_THRESHOLD1 10000
-  #define ANALOG_THRESHOLD2 23000
-  #define ANALOG_THRESHOLD3 31000
+#define ANALOG_VALUE_X_ADD 1
+#define ANALOG_VALUE_Y_ADD 1
+#define ANALOG_THRESHOLD1 10000
+#define ANALOG_THRESHOLD2 23000
+#define ANALOG_THRESHOLD3 31000
 
-	void processMouse(retro_input_state_t aCallback)
-    {
-        int16_t joy_x, joy_y, x, y;
-        bool do_joystick, down;
+      void processMouse(retro_input_state_t aCallback)
+      {
+         int16_t joy_x, joy_y, x, y;
+         bool do_joystick, down;
 
-        static const uint32_t retroButtons[2] = {RETRO_DEVICE_ID_MOUSE_LEFT, RETRO_DEVICE_ID_MOUSE_RIGHT};
-        static const Common::EventType eventID[2][2] =
-        {
+         static const uint32_t retroButtons[2] = {RETRO_DEVICE_ID_MOUSE_LEFT, RETRO_DEVICE_ID_MOUSE_RIGHT};
+         static const Common::EventType eventID[2][2] =
+         {
             {Common::EVENT_LBUTTONDOWN, Common::EVENT_LBUTTONUP},
             {Common::EVENT_RBUTTONDOWN, Common::EVENT_RBUTTONUP}
-        };
+         };
 
-        down = false;
-        do_joystick = false;
-        x = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-        y = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
-        joy_x = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
-        joy_y = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
+         down = false;
+         do_joystick = false;
+         x = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+         y = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+         joy_x = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+         joy_y = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
 
-        if (joy_x > ANALOG_THRESHOLD3)
-        {
+         if (joy_x > ANALOG_THRESHOLD3)
+         {
             _mouseX += 4*ANALOG_VALUE_X_ADD;
             _mouseX = (_mouseX < 0) ? 0 : _mouseX;
             _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
             do_joystick = true;
-        }
-        else if (joy_x < -ANALOG_THRESHOLD3)
-        {
+         }
+         else if (joy_x < -ANALOG_THRESHOLD3)
+         {
             _mouseX -= 4*ANALOG_VALUE_X_ADD;
             _mouseX = (_mouseX < 0) ? 0 : _mouseX;
             _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
             do_joystick = true;
-        }
-        else if (joy_x > ANALOG_THRESHOLD2)
-        {
+         }
+         else if (joy_x > ANALOG_THRESHOLD2)
+         {
             _mouseX += 2*ANALOG_VALUE_X_ADD;
             _mouseX = (_mouseX < 0) ? 0 : _mouseX;
             _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
             do_joystick = true;
-        }
-        else if (joy_x < -ANALOG_THRESHOLD2)
-        {
+         }
+         else if (joy_x < -ANALOG_THRESHOLD2)
+         {
             _mouseX -= 2*ANALOG_VALUE_X_ADD;
             _mouseX = (_mouseX < 0) ? 0 : _mouseX;
             _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
             do_joystick = true;
-        }
-        else if (joy_x > ANALOG_THRESHOLD1)
-        {
-           _mouseX += ANALOG_VALUE_X_ADD;
-           _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-           _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+         }
+         else if (joy_x > ANALOG_THRESHOLD1)
+         {
+            _mouseX += ANALOG_VALUE_X_ADD;
+            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
             do_joystick = true;
-        }
-        else if (joy_x < -ANALOG_THRESHOLD1)
-        {
-           _mouseX -= ANALOG_VALUE_X_ADD;
-           _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-           _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+         }
+         else if (joy_x < -ANALOG_THRESHOLD1)
+         {
+            _mouseX -= ANALOG_VALUE_X_ADD;
+            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
             do_joystick = true;
-        }
+         }
 
-        if (joy_y > ANALOG_THRESHOLD3)
-        {
+         if (joy_y > ANALOG_THRESHOLD3)
+         {
             _mouseY += 4*ANALOG_VALUE_Y_ADD;
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
             _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
             do_joystick = true;
-        }
-        else if (joy_y < -ANALOG_THRESHOLD3)
-        {
+         }
+         else if (joy_y < -ANALOG_THRESHOLD3)
+         {
             _mouseY -= 4*ANALOG_VALUE_Y_ADD;
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
             _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
             do_joystick = true;
-        }
-        else if (joy_y > ANALOG_THRESHOLD2)
-        {
+         }
+         else if (joy_y > ANALOG_THRESHOLD2)
+         {
             _mouseY += 2*ANALOG_VALUE_Y_ADD;
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
             _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
             do_joystick = true;
-        }
-        else if (joy_y < -ANALOG_THRESHOLD2)
-        {
+         }
+         else if (joy_y < -ANALOG_THRESHOLD2)
+         {
             _mouseY -= 2*ANALOG_VALUE_Y_ADD;
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
             _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
             do_joystick = true;
-        }
-        else if (joy_y > ANALOG_THRESHOLD1)
-        {
+         }
+         else if (joy_y > ANALOG_THRESHOLD1)
+         {
             _mouseY += ANALOG_VALUE_Y_ADD; 
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
             _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
             do_joystick = true;
-        }
-        else if (joy_y < -ANALOG_THRESHOLD1)
-        {
+         }
+         else if (joy_y < -ANALOG_THRESHOLD1)
+         {
             _mouseY -= ANALOG_VALUE_Y_ADD; 
             _mouseY = (_mouseY < 0) ? 0 : _mouseY;
             _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
             do_joystick = true;
-        }
+         }
 
-        {
-           if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
-           {
-              _mouseX -= 2*ANALOG_VALUE_X_ADD;
-              _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-              _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
-              do_joystick = true;
-           }
+         {
+            if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
+            {
+               _mouseX -= 2*ANALOG_VALUE_X_ADD;
+               _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+               _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+               do_joystick = true;
+            }
 
-           if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
-           {
-              _mouseX += 2*ANALOG_VALUE_X_ADD;
-              _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-              _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
-              do_joystick = true;
-           }
+            if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
+            {
+               _mouseX += 2*ANALOG_VALUE_X_ADD;
+               _mouseX = (_mouseX < 0) ? 0 : _mouseX;
+               _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+               do_joystick = true;
+            }
 
-           if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
-           {
-              _mouseY -= 2*ANALOG_VALUE_Y_ADD; 
-              _mouseY = (_mouseY < 0) ? 0 : _mouseY;
-              _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
-              do_joystick = true;
-           }
+            if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
+            {
+               _mouseY -= 2*ANALOG_VALUE_Y_ADD; 
+               _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+               _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+               do_joystick = true;
+            }
 
-           if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
-           {
-              _mouseY += 2*ANALOG_VALUE_Y_ADD; 
-              _mouseY = (_mouseY < 0) ? 0 : _mouseY;
-              _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
-              do_joystick = true;
-           }
-        }
+            if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
+            {
+               _mouseY += 2*ANALOG_VALUE_Y_ADD; 
+               _mouseY = (_mouseY < 0) ? 0 : _mouseY;
+               _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+               do_joystick = true;
+            }
+         }
 
-        if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
-        {
+         if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
+         {
             Common::Event ev;
             ev.type = Common::EVENT_MAINMENU;
             _events.push_back(ev);
-        }
+         }
 
-        if (do_joystick)
-        {
+         if (do_joystick)
+         {
             Common::Event ev;
             ev.type = Common::EVENT_MOUSEMOVE;
             ev.mouse.x = _mouseX;
             ev.mouse.y = _mouseY;
             _events.push_back(ev);
-        }
+         }
 
-        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A);
+         down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A);
 
-        if(down != _joypadmouseButtons[0])
-        {
-           _joypadmouseButtons[0] = down;
+         if(down != _joypadmouseButtons[0])
+         {
+            _joypadmouseButtons[0] = down;
 
-           Common::Event ev;
-           ev.type = eventID[0][down ? 0 : 1];
-           ev.mouse.x = _mouseX;
-           ev.mouse.y = _mouseY;
-           _events.push_back(ev);
-        }
+            Common::Event ev;
+            ev.type = eventID[0][down ? 0 : 1];
+            ev.mouse.x = _mouseX;
+            ev.mouse.y = _mouseY;
+            _events.push_back(ev);
+         }
 
-        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B);
+         down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B);
 
-        if(down != _joypadmouseButtons[1])
-        {
-           _joypadmouseButtons[1] = down;
+         if(down != _joypadmouseButtons[1])
+         {
+            _joypadmouseButtons[1] = down;
 
-           Common::Event ev;
-           ev.type = eventID[1][down ? 0 : 1];
-           ev.mouse.x = _mouseX;
-           ev.mouse.y = _mouseY;
-           _events.push_back(ev);
-        }
-        
-        down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START);
-        if (down != _joypadstartButton)
-        {
-          _joypadstartButton = down;
-          bool state = down ? true : false;
-          processKeyEvent(state, 27, 27, 0);
-        }
+            Common::Event ev;
+            ev.type = eventID[1][down ? 0 : 1];
+            ev.mouse.x = _mouseX;
+            ev.mouse.y = _mouseY;
+            _events.push_back(ev);
+         }
 
-        if(x || y)
-        {
+         down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START);
+         if (down != _joypadstartButton)
+         {
+            _joypadstartButton = down;
+            bool state = down ? true : false;
+            processKeyEvent(state, 27, 27, 0);
+         }
+
+         if(x || y)
+         {
             _mouseX += x;
             _mouseX = (_mouseX < 0) ? 0 : _mouseX;
             _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
@@ -947,79 +947,79 @@ public:
             ev.mouse.x = _mouseX;
             ev.mouse.y = _mouseY;
             _events.push_back(ev);
-        }
+         }
 
 
-        for(int i = 0; i < 2; i ++)
-        {
-           Common::Event ev;
+         for(int i = 0; i < 2; i ++)
+         {
+            Common::Event ev;
             bool down = aCallback(0, RETRO_DEVICE_MOUSE, 0, retroButtons[i]);
             if(down != _mouseButtons[i])
             {
-                _mouseButtons[i] = down;
+               _mouseButtons[i] = down;
 
-                ev.type = eventID[i][down ? 0 : 1];
-                ev.mouse.x = _mouseX;
-                ev.mouse.y = _mouseY;
-                _events.push_back(ev);
+               ev.type = eventID[i][down ? 0 : 1];
+               ev.mouse.x = _mouseX;
+               ev.mouse.y = _mouseY;
+               _events.push_back(ev);
             }
 
-        }
-    }
+         }
+      }
 
-    void processKeyEvent(bool down, unsigned keycode, uint32_t character, uint16_t key_modifiers)
-    {
-        int _keyflags = 0;
-        _keyflags |= (key_modifiers & RETROKMOD_CTRL) ? Common::KBD_CTRL : 0;
-        _keyflags |= (key_modifiers & RETROKMOD_ALT) ? Common::KBD_ALT : 0;
-        _keyflags |= (key_modifiers & RETROKMOD_SHIFT) ? Common::KBD_SHIFT : 0;
-        _keyflags |= (key_modifiers & RETROKMOD_META) ? Common::KBD_META : 0;
-        _keyflags |= (key_modifiers & RETROKMOD_CAPSLOCK) ? Common::KBD_CAPS : 0;
-        _keyflags |= (key_modifiers & RETROKMOD_NUMLOCK) ? Common::KBD_NUM : 0;
-        _keyflags |= (key_modifiers & RETROKMOD_SCROLLOCK) ? Common::KBD_SCRL : 0;
+      void processKeyEvent(bool down, unsigned keycode, uint32_t character, uint16_t key_modifiers)
+      {
+         int _keyflags = 0;
+         _keyflags |= (key_modifiers & RETROKMOD_CTRL) ? Common::KBD_CTRL : 0;
+         _keyflags |= (key_modifiers & RETROKMOD_ALT) ? Common::KBD_ALT : 0;
+         _keyflags |= (key_modifiers & RETROKMOD_SHIFT) ? Common::KBD_SHIFT : 0;
+         _keyflags |= (key_modifiers & RETROKMOD_META) ? Common::KBD_META : 0;
+         _keyflags |= (key_modifiers & RETROKMOD_CAPSLOCK) ? Common::KBD_CAPS : 0;
+         _keyflags |= (key_modifiers & RETROKMOD_NUMLOCK) ? Common::KBD_NUM : 0;
+         _keyflags |= (key_modifiers & RETROKMOD_SCROLLOCK) ? Common::KBD_SCRL : 0;
 
-        if (keycode == RETROK_SPACE)
-           keycode &= ~(RETROK_SPACE);
+         if (keycode == RETROK_SPACE)
+            keycode &= ~(RETROK_SPACE);
 
-        Common::Event ev;
-        ev.type = down ? Common::EVENT_KEYDOWN : Common::EVENT_KEYUP;
-        ev.kbd.keycode = (Common::KeyCode)keycode;
-        ev.kbd.flags = _keyflags;
-        ev.kbd.ascii = character;
-        _events.push_back(ev);
-    }
+         Common::Event ev;
+         ev.type = down ? Common::EVENT_KEYDOWN : Common::EVENT_KEYUP;
+         ev.kbd.keycode = (Common::KeyCode)keycode;
+         ev.kbd.flags = _keyflags;
+         ev.kbd.ascii = character;
+         _events.push_back(ev);
+      }
 
-    void postQuit()
-    {
-        Common::Event ev;
-        ev.type = Common::EVENT_QUIT;
-        _events.push_back(ev);
-    }
+      void postQuit()
+      {
+         Common::Event ev;
+         ev.type = Common::EVENT_QUIT;
+         _events.push_back(ev);
+      }
 };
 
 OSystem* retroBuildOS()
 {
-    return new OSystem_RETRO();
+   return new OSystem_RETRO();
 }
 
 const Graphics::Surface& getScreen()
 {
-    return ((OSystem_RETRO*)g_system)->getScreen();
+   return ((OSystem_RETRO*)g_system)->getScreen();
 }
 
 void retroProcessMouse(retro_input_state_t aCallback)
 {
-    ((OSystem_RETRO*)g_system)->processMouse(aCallback);
+   ((OSystem_RETRO*)g_system)->processMouse(aCallback);
 }
 
 void retroPostQuit()
 {
-    ((OSystem_RETRO*)g_system)->postQuit();
+   ((OSystem_RETRO*)g_system)->postQuit();
 }
 
 void retroSetSystemDir(const char* aPath)
 {
-    s_systemDir = Common::String(aPath ? aPath : ".");
+   s_systemDir = Common::String(aPath ? aPath : ".");
 }
 
 void retroKeyEvent(bool down, unsigned keycode, uint32_t character, uint16_t key_modifiers)

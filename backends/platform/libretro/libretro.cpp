@@ -37,8 +37,6 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &tmp);
 }
 
-
-//
 bool FRONTENDwantsExit;
 bool EMULATORexited;
 
@@ -50,48 +48,44 @@ static char cmd_params_num;
 
 void retro_leave_thread(void)
 {
-    co_switch(mainThread);
+   co_switch(mainThread);
 }
 
 static void retro_start_emulator(void)
 {
-    g_system = retroBuildOS();
+   g_system = retroBuildOS();
 
-    static const char* argv[20];
-    for(int i=0; i<cmd_params_num; i++)
-    {
-        argv[i] = cmd_params[i];
-    }
+   static const char* argv[20];
+   for(int i=0; i<cmd_params_num; i++)
+      argv[i] = cmd_params[i];
 
-    scummvm_main(cmd_params_num, argv);
-    EMULATORexited = true;
+   scummvm_main(cmd_params_num, argv);
+   EMULATORexited = true;
 
-    if (log_cb)
-       log_cb(RETRO_LOG_INFO, "Emulator loop has ended.\n");
+   if (log_cb)
+      log_cb(RETRO_LOG_INFO, "Emulator loop has ended.\n");
 
-    // NOTE: Deleting g_system here will crash...
+   // NOTE: Deleting g_system here will crash...
 }
 
 static void retro_wrap_emulator()
 {
-    retro_start_emulator();
+   retro_start_emulator();
 
-    if(!FRONTENDwantsExit)
-       environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
+   if(!FRONTENDwantsExit)
+      environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
 
-    // Were done here
-    co_switch(mainThread);
+   /* Were done here */
+   co_switch(mainThread);
 
-    // Dead emulator, but libco says not to return
-    while(true)
-    {
-        if (log_cb)
-           log_cb(RETRO_LOG_ERROR, "Running a dead emulator.\n");
-        co_switch(mainThread);
-    }
+   /* Dead emulator, but libco says not to return */
+   while(true)
+   {
+      if (log_cb)
+         log_cb(RETRO_LOG_ERROR, "Running a dead emulator.\n");
+      co_switch(mainThread);
+   }
 }
-
-//
 
 unsigned retro_api_version(void)
 {
@@ -109,13 +103,13 @@ void retro_get_system_info(struct retro_system_info *info)
 
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
-    info->geometry.base_width = RES_W;
-    info->geometry.base_height = RES_H;
-    info->geometry.max_width = RES_W;
-    info->geometry.max_height = RES_H;
-    info->geometry.aspect_ratio = 4.0f / 3.0f;
-    info->timing.fps = 60.0;
-    info->timing.sample_rate = 44100.0;
+   info->geometry.base_width = RES_W;
+   info->geometry.base_height = RES_H;
+   info->geometry.max_width = RES_W;
+   info->geometry.max_height = RES_H;
+   info->geometry.aspect_ratio = 4.0f / 3.0f;
+   info->timing.fps = 60.0;
+   info->timing.sample_rate = 44100.0;
 }
 
 void retro_init (void)
@@ -125,123 +119,127 @@ void retro_init (void)
       log_cb = log.log;
    else
       log_cb = NULL;
-    // Get color mode: 32 first as VGA has 6 bits per pixel
-/*    RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_XRGB8888;
-    if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
-    {
-        RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_RGB565;
-        if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
-        {
-            RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_0RGB1555;
-        }
-    }*/
+
+   /* Get color mode: 32 first as VGA has 6 bits per pixel */
+
+#if 0
+   RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_XRGB8888;
+   if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
+   {
+      RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_RGB565;
+      if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
+         RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_0RGB1555;
+   }
+#endif
+
 #ifdef FRONTEND_SUPPORTS_RGB565
    enum retro_pixel_format rgb565 = RETRO_PIXEL_FORMAT_RGB565;
    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565) && log_cb)
       log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 -will use that instead of XRGB1555.\n");
 #endif
 
-    retro_keyboard_callback cb = {retroKeyEvent};
-    environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
+   retro_keyboard_callback cb = {retroKeyEvent};
+   environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
 }
 
 void retro_deinit(void)
 {
-    if(!emuThread)
-       return;
+   if(!emuThread)
+      return;
 
-    FRONTENDwantsExit = true;
-    while(!EMULATORexited)
-    {
-       retroPostQuit();
-       co_switch(emuThread);
-    }
+   FRONTENDwantsExit = true;
+   while(!EMULATORexited)
+   {
+      retroPostQuit();
+      co_switch(emuThread);
+   }
 
-    co_delete(emuThread);
-    emuThread = 0;
+   co_delete(emuThread);
+   emuThread = 0;
 }
 
 void parse_command_params(char* cmdline)
 {
-  int j =0 ;
-  int cmdlen = strlen(cmdline);
-  bool quotes = false;
+   int j =0 ;
+   int cmdlen = strlen(cmdline);
+   bool quotes = false;
 
-  // Append a new line to the end of the command to signify it's finished.
-  cmdline[cmdlen] = '\n';
-  cmdline[++cmdlen] = '\0';
+   /* Append a new line to the end of the command to signify it's finished. */
+   cmdline[cmdlen] = '\n';
+   cmdline[++cmdlen] = '\0';
 
-  // parse command line into array of arguments
-  for(int i=0; i<cmdlen; i++)
-  {
+   /* parse command line into array of arguments */
+   for(int i=0; i<cmdlen; i++)
+   {
       switch(cmdline[i])
       {
-          case '\"' :
-              if(quotes)
-              {
-                  cmdline[i] = '\0';
+         case '\"' :
+            if(quotes)
+            {
+               cmdline[i] = '\0';
+               strcpy(cmd_params[cmd_params_num],cmdline+j);
+               cmd_params_num++;
+               quotes = false;
+            }
+            else
+               quotes = true;
+            j = i + 1;
+            break;
+         case ' ' :
+         case '\n' :
+            if(!quotes)
+            {
+               if(i != j && !quotes)
+               {
+                  cmdline[i] = '\0';                        
                   strcpy(cmd_params[cmd_params_num],cmdline+j);
                   cmd_params_num++;
-                  quotes = false;
-              }
-              else
-              {
-                  quotes = true;
-              }
-              j = i + 1;
-              break;
-          case ' ' :
-          case '\n' :
-              if(!quotes)
-              {
-                  if(i != j && !quotes)
-                  {
-                      cmdline[i] = '\0';                        
-                      strcpy(cmd_params[cmd_params_num],cmdline+j);
-                      cmd_params_num++;
-                  }
-                  j = i + 1;
-              }
-              break;
+               }
+               j = i + 1;
+            }
+            break;
       }
-  }
+   }
 }
 
 bool retro_load_game(const struct retro_game_info *game)
 {
-    const char* sysdir;
+   const char* sysdir;
 
-    cmd_params_num = 1;
-    strcpy(cmd_params[0],"scummvm\0");
+   cmd_params_num = 1;
+   strcpy(cmd_params[0],"scummvm\0");
 
-    if (game)
-    {
-        // Retrieve the game path.
-        char* path = strdup(game->path);
+   if (game)
+   {
+      /* Retrieve the game path. */
+      char* path = strdup(game->path);
 
-        // See if we are acting on a .scummvm file.
-        if (strstr(path, ".scummvm") != NULL) {
-            FILE * gamefile;
-            char filedata[200];
-            if((gamefile = fopen ( game->path, "r")))
-            {
-                fgets (filedata , 200 , gamefile);
-                fclose(gamefile);
-                parse_command_params(filedata);
-            }
-        }
-        // Acting on a ScummVM rom file.
-        else {
-            // Assume the parent folder is the game id.
-            char* gamedir = dirname(path);
-            char* gameid = basename(gamedir);
+      /* See if we are acting on a .scummvm file. */
+      if (strstr(path, ".scummvm") != NULL)
+      {
+         FILE * gamefile;
+         char filedata[200];
+         if((gamefile = fopen ( game->path, "r")))
+         {
+            fgets (filedata , 200 , gamefile);
+            fclose(gamefile);
+            parse_command_params(filedata);
+         }
+      }
+      else
+      {
+         /* Acting on a ScummVM rom file. */
 
-            // Construct the game launching arguments.
-            char buffer[200];
-            sprintf(buffer, "-p \"%s\" %s", gamedir, gameid);
-            parse_command_params(buffer);
-        }
-    }
+         /* Assume the parent folder is the game id. */
+         char* gamedir = dirname(path);
+         char* gameid = basename(gamedir);
+
+         // Construct the game launching arguments.
+         char buffer[200];
+         sprintf(buffer, "-p \"%s\" %s", gamedir, gameid);
+         parse_command_params(buffer);
+      }
+   }
 
    struct retro_input_descriptor desc[] = {
       { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Mouse Left" },
@@ -257,27 +255,27 @@ bool retro_load_game(const struct retro_game_info *game)
 
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
-    if(environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &sysdir))
-        retroSetSystemDir(sysdir);
-    else
-    {
-       if (log_cb)
-          log_cb(RETRO_LOG_WARN, "No System directory specified, using current directory.\n");
-        retroSetSystemDir(".");
-    }
+   if(environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &sysdir))
+      retroSetSystemDir(sysdir);
+   else
+   {
+      if (log_cb)
+         log_cb(RETRO_LOG_WARN, "No System directory specified, using current directory.\n");
+      retroSetSystemDir(".");
+   }
 
-    if(!emuThread && !mainThread)
-    {
-        mainThread = co_active();
-        emuThread = co_create(65536*sizeof(void*), retro_wrap_emulator);
-    }
+   if(!emuThread && !mainThread)
+   {
+      mainThread = co_active();
+      emuThread = co_create(65536*sizeof(void*), retro_wrap_emulator);
+   }
 
-    return true;
+   return true;
 }
 
 bool retro_load_game_special(unsigned game_type, const struct retro_game_info *info, size_t num_info)
 {
-    return false;
+   return false;
 }
 
 void retro_run (void)
@@ -285,19 +283,19 @@ void retro_run (void)
    if(!emuThread)
       return;
 
-   // Mouse
+   /* Mouse */
    if(g_system)
    {
       poll_cb();
       retroProcessMouse(input_cb);
    }
 
-   // Run emu
+   /* Run emu */
    co_switch(emuThread);
 
    if(g_system)
    {
-      // Upload video: TODO: Check the CANDUPE env value
+      /* Upload video: TODO: Check the CANDUPE env value */
       const Graphics::Surface& screen = getScreen();
       video_cb(screen.pixels, screen.w, screen.h, screen.pitch);
 
