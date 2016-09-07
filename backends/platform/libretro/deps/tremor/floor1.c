@@ -25,6 +25,7 @@
 #include "codebook.h"
 #include "misc.h"
 #include "block.h"
+#include "tremor_shared.h"
 
 #define floor1_rangedB 140 /* floor 1 fixed at -140dB to 0dB range */
 
@@ -59,13 +60,8 @@ static void floor1_free_look(vorbis_look_floor *i){
   }
 }
 
-static int ilog(unsigned int v){
-  int ret=0;
-  while(v){
-    ret++;
-    v>>=1;
-  }
-  return(ret);
+static int icomp(const void *a,const void *b){
+  return(**(int **)a-**(int **)b);
 }
 
 static vorbis_info_floor *floor1_unpack (vorbis_info *vi,oggpack_buffer *opb){
@@ -77,6 +73,7 @@ static vorbis_info_floor *floor1_unpack (vorbis_info *vi,oggpack_buffer *opb){
   info->partitions=oggpack_read(opb,5); /* only 0 to 31 legal */
   for(j=0;j<info->partitions;j++){
     info->partitionclass[j]=oggpack_read(opb,4); /* only 0 to 15 legal */
+    if(info->partitionclass[j]<0)goto err_out;
     if(maxclass<info->partitionclass[j])maxclass=info->partitionclass[j];
   }
 
@@ -99,9 +96,11 @@ static vorbis_info_floor *floor1_unpack (vorbis_info *vi,oggpack_buffer *opb){
   /* read the post list */
   info->mult=oggpack_read(opb,2)+1;     /* only 1,2,3,4 legal now */ 
   rangebits=oggpack_read(opb,4);
+  if(rangebits<0)goto err_out;
 
   for(j=0,k=0;j<info->partitions;j++){
     count+=info->class_dim[info->partitionclass[j]]; 
+    if(count>VIF_POSIT)goto err_out;
     for(;k<count;k++){
       int t=info->postlist[k+2]=oggpack_read(opb,rangebits);
       if(t<0 || t>=(1<<rangebits))
@@ -111,15 +110,22 @@ static vorbis_info_floor *floor1_unpack (vorbis_info *vi,oggpack_buffer *opb){
   info->postlist[0]=0;
   info->postlist[1]=1<<rangebits;
 
+  /* don't allow repeated values in post list as they'd result in
+     zero-length segments */
+  {
+    int *sortpointer[VIF_POSIT+2];
+    for(j=0;j<count+2;j++)sortpointer[j]=info->postlist+j;
+    qsort(sortpointer,count+2,sizeof(*sortpointer),icomp);
+
+    for(j=1;j<count+2;j++)
+      if(*sortpointer[j-1]==*sortpointer[j])goto err_out;
+  }
+
   return(info);
   
  err_out:
   floor1_free_info(info);
   return(NULL);
-}
-
-static int icomp(const void *a,const void *b){
-  return(**(int **)a-**(int **)b);
 }
 
 static vorbis_look_floor *floor1_look(vorbis_dsp_state *vd,vorbis_info_mode *mi,
@@ -381,7 +387,7 @@ static void *floor1_inverse1(vorbis_block *vb,vorbis_look_floor *in){
 	  }
 	}
 
-	fit_value[i]=val+predicted;
+	fit_value[i]=(val+predicted)&0x7fff;;
 	fit_value[look->loneighbor[i-2]]&=0x7fff;
 	fit_value[look->hineighbor[i-2]]&=0x7fff;
 
@@ -412,14 +418,19 @@ static int floor1_inverse2(vorbis_block *vb,vorbis_look_floor *in,void *memo,
     int hx=0;
     int lx=0;
     int ly=fit_value[0]*info->mult;
+    /* guard lookup against out-of-range values */
+    ly=(ly<0?0:ly>255?255:ly);
+
     for(j=1;j<look->posts;j++){
       int current=look->forward_index[j];
       int hy=fit_value[current]&0x7fff;
       if(hy==fit_value[current]){
 	
-	hy*=info->mult;
 	hx=info->postlist[current];
-	
+	hy*=info->mult;
+        /* guard lookup against out-of-range values */
+        hy=(hy<0?0:hy>255?255:hy);
+
 	render_line(n,lx,hx,ly,hy,out);
 	
 	lx=hx;

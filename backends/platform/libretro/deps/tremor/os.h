@@ -1,3 +1,5 @@
+#ifndef _OS_H
+#define _OS_H
 /********************************************************************
  *                                                                  *
  * THIS FILE IS PART OF THE OggVorbis 'TREMOR' CODEC SOURCE CODE.   *
@@ -14,33 +16,48 @@
  function: #ifdef jail to whip a few platforms into the UNIX ideal.
 
  ********************************************************************/
-#ifndef _OS_TYPES_H
-#define _OS_TYPES_H
 
-#ifdef _LOW_ACCURACY_
-#  define X(n) (((((n)>>22)+1)>>1) - ((((n)>>22)+1)>>9))
-#  define LOOKUP_T const unsigned char
+#include <math.h>
+#include "os_types.h"
+
+#ifndef _V_IFDEFJAIL_H_
+#  define _V_IFDEFJAIL_H_
+
+#  ifdef __GNUC__
+#    define STIN static __inline__
+#  elif _WIN32
+#    define STIN static __inline
+#  endif
 #else
-#  define X(n) (n)
-#  define LOOKUP_T const ogg_int32_t
+#  define STIN static
 #endif
 
-/* make it easy on the folks that want to compile the libs with a
-   different malloc than stdlib */
-#define _ogg_malloc  malloc
-#define _ogg_calloc  calloc
-#define _ogg_realloc realloc
-#define _ogg_free    free
-
-#if defined(_WIN32) && defined(__LIBRETRO__)
-#include <stdint.h>
-#else
-#include <inttypes.h>
+#ifndef M_PI
+#  define M_PI (3.1415926536f)
 #endif
 
-typedef int64_t ogg_int64_t;
-typedef int32_t ogg_int32_t;
-typedef uint32_t ogg_uint32_t;
-typedef int16_t ogg_int16_t;
+#ifdef _WIN32
+#  include <malloc.h>
+#  define rint(x)   (floor((x)+0.5f)) 
+#  define NO_FLOAT_MATH_LIB
+#  define FAST_HYPOT(a, b) sqrt((a)*(a) + (b)*(b))
+#  define LITTLE_ENDIAN 1
+#endif
 
-#endif  /* _OS_TYPES_H */
+#ifdef HAVE_ALLOCA_H
+#  include <alloca.h>
+#endif
+
+#ifdef USE_MEMORY_H
+#  include <memory.h>
+#endif
+
+#ifndef min
+#  define min(x,y)  ((x)>(y)?(y):(x))
+#endif
+
+#ifndef max
+#  define max(x,y)  ((x)<(y)?(y):(x))
+#endif
+
+#endif /* _OS_H */

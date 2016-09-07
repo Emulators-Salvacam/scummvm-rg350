@@ -19,13 +19,18 @@
 #define _V_RANDOM_H_
 #include "ivorbiscodec.h"
 #include "os.h"
+#include "tremor_shared.h"
+
+#ifdef _LOW_ACCURACY_
+#  define X(n) (((((n)>>22)+1)>>1) - ((((n)>>22)+1)>>9))
+#  define LOOKUP_T const unsigned char
+#else
+#  define X(n) (n)
+#  define LOOKUP_T const ogg_int32_t
+#endif
 
 #include "asm_arm.h"
 #include <stdlib.h> /* for abs() */
-  
-#if defined(GEKKO) && !defined(__LIBRETRO__)
-#include <gctypes.h>
-#endif
   
 #ifndef _V_WIDE_MATH
 #define _V_WIDE_MATH
@@ -37,23 +42,20 @@
 #include <sys/types.h>
 #endif
 
-#if BYTE_ORDER==BIG_ENDIAN
-union magic {
-  struct {
+union magic
+{
+  struct
+  {
+#ifdef MSB_FIRST
     ogg_int32_t hi;
     ogg_int32_t lo;
-  } halves;
-  ogg_int64_t whole;
-};
-#elif BYTE_ORDER==LITTLE_ENDIAN
-union magic {
-  struct {
+#else
     ogg_int32_t lo;
     ogg_int32_t hi;
-  } halves;
-  ogg_int64_t whole;
-};
 #endif
+  } halves;
+  ogg_int64_t whole;
+};
 
 STIN ogg_int32_t MULT32(ogg_int32_t x, ogg_int32_t y) {
   union magic magic;
@@ -187,13 +189,11 @@ STIN ogg_int32_t VFLOAT_MULT(ogg_int32_t a,ogg_int32_t ap,
     return 0;
 }
 
-int _ilog(unsigned int);
-
 STIN ogg_int32_t VFLOAT_MULTI(ogg_int32_t a,ogg_int32_t ap,
 				      ogg_int32_t i,
 				      ogg_int32_t *p){
 
-  int ip=_ilog(abs(i))-31;
+  int ip= ilog(abs(i))-31;
   return VFLOAT_MULT(a,ap,i<<-ip,ip,p);
 }
 

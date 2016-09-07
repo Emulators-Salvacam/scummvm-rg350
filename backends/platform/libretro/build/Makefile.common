@@ -45,7 +45,7 @@ ENABLE_SHERLOCK = $(ENABLED)
 ENABLE_MADS = $(ENABLED)
 ENABLE_SCI32 = $(ENABLED)
 
-INCFLAGS    := -I$(LIBRETRO_DIR) -I$(CORE_DIR) -I$(CORE_DIR)/engines -I$(LIBRETRO_COMM_DIR)/include -I$(LIBRETRO_COMM_DIR)/include/compat
+INCFLAGS    := -I$(LIBRETRO_DIR) -I$(CORE_DIR) -I$(DEPS_DIR) -I$(CORE_DIR)/engines -I$(LIBRETRO_COMM_DIR)/include -I$(LIBRETRO_COMM_DIR)/include/compat
 
 INCLUDES    += $(INCFLAGS)
 MODULE_DIRS += $(LIBRETRO_DIR)
@@ -60,21 +60,21 @@ endif
 
 ifeq ($(USE_TREMOR), 1)
 DEFINES += -DUSE_TREMOR -DUSE_VORBIS
-OBJS +=  $(LIBRETRO_DIR)/tremor/bitwise.o \
-			$(LIBRETRO_DIR)/tremor/block.o \
-			$(LIBRETRO_DIR)/tremor/codebook.o \
-			$(LIBRETRO_DIR)/tremor/floor0.o \
-			$(LIBRETRO_DIR)/tremor/floor1.o \
-			$(LIBRETRO_DIR)/tremor/framing.o \
-			$(LIBRETRO_DIR)/tremor/info.o \
-			$(LIBRETRO_DIR)/tremor/mapping0.o \
-			$(LIBRETRO_DIR)/tremor/mdct.o \
-			$(LIBRETRO_DIR)/tremor/registry.o \
-			$(LIBRETRO_DIR)/tremor/res012.o \
-			$(LIBRETRO_DIR)/tremor/sharedbook.o \
-			$(LIBRETRO_DIR)/tremor/synthesis.o \
-			$(LIBRETRO_DIR)/tremor/vorbisfile.o \
-			$(LIBRETRO_DIR)/tremor/window.o
+OBJS +=  $(DEPS_DIR)/tremor/bitwise.o \
+			$(DEPS_DIR)/tremor/block.o \
+			$(DEPS_DIR)/tremor/codebook.o \
+			$(DEPS_DIR)/tremor/floor0.o \
+			$(DEPS_DIR)/tremor/floor1.o \
+			$(DEPS_DIR)/tremor/framing.o \
+			$(DEPS_DIR)/tremor/info.o \
+			$(DEPS_DIR)/tremor/mapping0.o \
+			$(DEPS_DIR)/tremor/mdct.o \
+			$(DEPS_DIR)/tremor/registry.o \
+			$(DEPS_DIR)/tremor/res012.o \
+			$(DEPS_DIR)/tremor/sharedbook.o \
+			$(DEPS_DIR)/tremor/synthesis.o \
+			$(DEPS_DIR)/tremor/vorbisfile.o \
+			$(DEPS_DIR)/tremor/window.o
 endif
 
 ifeq ($(USE_ZLIB), 1)

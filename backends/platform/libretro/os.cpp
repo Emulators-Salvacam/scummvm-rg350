@@ -27,6 +27,7 @@
 #include <list>
 
 #include <retro_miscellaneous.h>
+#include <retro_inline.h>
 
 #include "graphics/surface.libretro.h"
 #include "backends/base-backend.h"
@@ -84,7 +85,7 @@ struct RetroPalette
     }
 };
 
-static inline void blit_uint8_uint16_fast(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
+static INLINE void blit_uint8_uint16_fast(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
 {
     for(int i = 0; i < aIn.h; i ++)
     {
@@ -120,7 +121,7 @@ static inline void blit_uint8_uint16_fast(Graphics::Surface& aOut, const Graphic
     }
 }
 
-static inline void blit_uint32_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
+static INLINE void blit_uint32_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
 {
     for(int i = 0; i < aIn.h; i ++)
     {
@@ -147,7 +148,7 @@ static inline void blit_uint32_uint16(Graphics::Surface& aOut, const Graphics::S
     }
 }
 
-static inline void blit_uint16_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
+static INLINE void blit_uint16_uint16(Graphics::Surface& aOut, const Graphics::Surface& aIn, const RetroPalette& aColors)
 {
     for(int i = 0; i < aIn.h; i ++)
     {
@@ -231,7 +232,7 @@ static void blit_uint16_uint16(Graphics::Surface& aOut, const Graphics::Surface&
     }
 }
 
-static inline void copyRectToSurface(uint8_t *pixels, int out_pitch, const uint8_t *src, int pitch, int x, int y, int w, int h, int out_bpp)
+static INLINE void copyRectToSurface(uint8_t *pixels, int out_pitch, const uint8_t *src, int pitch, int x, int y, int w, int h, int out_bpp)
 {
     uint8_t *dst = pixels + y * out_pitch + x * out_bpp;
 
