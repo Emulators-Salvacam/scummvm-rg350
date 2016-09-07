@@ -26,9 +26,9 @@
 namespace Fullpipe {
 
 struct Bat;
-struct BehaviorEntryInfo;
+struct BehaviorMove;
 struct Hanger;
-class MGM;
+class AniHandler;
 class MctlLadder;
 struct Ring;
 class StaticANIObject;
@@ -219,6 +219,8 @@ struct Ball {
 	Ball() : p0(0), p1(0), ani(0) {}
 };
 
+typedef Common::Array<StaticANIObject *> BallArray;
+
 struct BallChain {
 	Ball *pHead;
 	Ball *field_8;
@@ -346,12 +348,12 @@ public:
 	int scene06_sceneClickX;
 	int scene06_sceneClickY;
 	int scene06_mumsyPos;
-	BehaviorEntryInfo *scene06_mumsyJumpBk;
-	BehaviorEntryInfo *scene06_mumsyJumpFw;
+	BehaviorMove *scene06_mumsyJumpBk;
+	BehaviorMove *scene06_mumsyJumpFw;
 	int scene06_mumsyJumpBkPercent;
 	int scene06_mumsyJumpFwPercent;
 
-	BehaviorEntryInfo *scene07_lukeAnim;
+	BehaviorMove *scene07_lukeAnim;
 	int scene07_lukePercent;
 	StaticANIObject *scene07_plusMinus;
 
@@ -378,9 +380,9 @@ public:
 	int scene09_interactingHanger;
 	int scene09_intHangerPhase;
 	int scene09_intHangerMaxPhase;
-	BallChain scene09_balls;
+	Common::Array<StaticANIObject *> scene09_flyingBalls;
 	Common::Array<Hanger *> scene09_hangers;
-	BallChain scene09_flyingBalls;
+	Common::Array<StaticANIObject *> scene09_sceneBalls;
 	int scene09_numMovingHangers;
 	int scene09_clickY;
 	Common::Point scene09_hangerOffsets[4];
@@ -396,7 +398,7 @@ public:
 	StaticANIObject *scene11_boots;
 	StaticANIObject *scene11_dudeOnSwing;
 	PictureObject *scene11_hint;
-	MGM scene11_mgm;
+	AniHandler scene11_aniHandler;
 	bool scene11_arcadeIsOn;
 	bool scene11_scrollIsEnabled;
 	bool scene11_scrollIsMaximized;
@@ -579,7 +581,7 @@ public:
 	int scene27_aimStartX;
 	int scene27_aimStartY;
 	int scene27_launchPhase;
-	BallChain scene27_balls;
+	Common::Array<StaticANIObject *> scene27_balls;
 	Common::Array<Bat *> scene27_bats;
 	Common::Array<Bat *> scene27_var07;
 
@@ -612,7 +614,7 @@ public:
 	Common::Array<WalkingBearder *> scene29_bearders;
 	int scene29_manX;
 	int scene29_manY;
-	MGM scene29_mgm;
+	AniHandler scene29_aniHandler;
 
 	StaticANIObject *scene30_leg;
 	int scene30_liftFlag;

@@ -3,6 +3,7 @@ DEBUG=0
 USE_ZLIB   = 1
 USE_TREMOR = 1
 USE_FLAC   = 0
+HAVE_MT32EMU=0
 
 ifeq ($(platform),)
 platform = unix
@@ -163,8 +164,13 @@ MKDIR         = mkdir -p
 RM            = rm -f
 RM_REC        = rm -rf
 
+ifeq ($(HAVE_MT32EMU),1)
+USE_MT32EMU = 1
+DEFINES += -DUSE_MT32EMU
+endif
+
 # Define build flags
-DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565 -DUSE_MT32EMU -Wno-multichar
+DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565 -Wno-multichar
 DEPDIR        = .deps
 HAVE_GCC3     = true
 USE_RGB_COLOR = true
@@ -173,6 +179,5 @@ POSIX = 1
 DEFINES += -DFS_TYPE_POSIX
 
 BACKEND := libretro
-USE_MT32EMU = 1
 
 include Makefile.common

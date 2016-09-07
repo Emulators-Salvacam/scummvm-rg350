@@ -33,11 +33,19 @@ public:
 
 	virtual bool displayLogFile();
 
+	virtual bool hasTextInClipboard();
+	virtual Common::String getTextFromClipboard();
+
 	virtual Common::String getSystemLanguage() const;
 
 	virtual void init();
 	virtual void initBackend();
 	virtual void addSysArchivesToSearchSet(Common::SearchSet &s, int priority = 0);
+
+protected:
+	// Override createAudioCDManager() to get our Mac-specific
+	// version.
+	virtual AudioCDManager *createAudioCDManager();
 };
 
 #endif

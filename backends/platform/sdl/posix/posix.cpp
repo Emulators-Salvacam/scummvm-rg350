@@ -36,6 +36,11 @@
 #include "backends/fs/posix/posix-fs.h"
 #include "backends/taskbar/unity/unity-taskbar.h"
 
+#ifdef USE_LINUXCD
+#include "backends/audiocd/linux/linux-audiocd.h"
+#endif
+
+#include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -134,6 +139,24 @@ Common::String OSystem_POSIX::getDefaultConfigFileName() {
 	}
 
 	return configFile;
+}
+
+void OSystem_POSIX::addSysArchivesToSearchSet(Common::SearchSet &s, int priority) {
+#ifdef DATA_PATH
+	const char *snap = getenv("SNAP");
+	if (snap) {
+		Common::String dataPath = Common::String(snap) + DATA_PATH;
+		Common::FSNode dataNode(dataPath);
+		if (dataNode.exists() && dataNode.isDirectory()) {
+			// This is the same priority which is used for the data path (below),
+			// but we insert this one first, so it will be searched first.
+			s.add(dataPath, new Common::FSDirectory(dataNode, 4), priority);
+		}
+	}
+#endif
+
+	// For now, we always add the data path, just in case SNAP doesn't make sense.
+	OSystem_SDL::addSysArchivesToSearchSet(s, priority);
 }
 
 Common::WriteStream *OSystem_POSIX::createLogFile() {
@@ -238,5 +261,13 @@ bool OSystem_POSIX::displayLogFile() {
 	return WIFEXITED(status) && WEXITSTATUS(status) == 0;
 }
 
+
+AudioCDManager *OSystem_POSIX::createAudioCDManager() {
+#ifdef USE_LINUXCD
+	return createLinuxAudioCDManager();
+#else
+	return OSystem_SDL::createAudioCDManager();
+#endif
+}
 
 #endif

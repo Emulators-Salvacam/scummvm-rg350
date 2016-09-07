@@ -30,6 +30,7 @@
 #include "fullpipe/statics.h"
 
 #include "common/memstream.h"
+#include "audio/mixer.h"
 #include "audio/audiostream.h"
 #include "audio/decoders/vorbis.h"
 #include "audio/decoders/wave.h"
@@ -43,7 +44,7 @@ SoundList::SoundList() {
 }
 
 bool SoundList::load(MfcArchive &file, char *fname) {
-	debug(5, "SoundList::load()");
+	debugC(5, kDebugLoading, "SoundList::load()");
 
 	_soundItemsCount = file.readUint32LE();
 	_soundItems = (Sound **)calloc(_soundItemsCount, sizeof(Sound *));
@@ -96,16 +97,17 @@ Sound::Sound() {
 	memset(_directSoundBuffers, 0, sizeof(_directSoundBuffers));
 	_description = 0;
 	_volume = 100;
+	_handle = new Audio::SoundHandle();
 }
 
 Sound::~Sound() {
 	freeSound();
-
 	free(_description);
+	delete _handle;
 }
 
 bool Sound::load(MfcArchive &file, NGIArchive *archive) {
-	debug(5, "Sound::load()");
+	debugC(5, kDebugLoading, "Sound::load()");
 
 	MemoryObject::load(file);
 
@@ -130,7 +132,7 @@ bool Sound::load(MfcArchive &file, NGIArchive *archive) {
 }
 
 void Sound::updateVolume() {
-	debug(3, "STUB Sound::updateVolume()");
+	debug(9, "STUB Sound::updateVolume()");
 }
 
 void Sound::setPanAndVolumeByStaticAni() {
@@ -160,7 +162,7 @@ void Sound::setPanAndVolumeByStaticAni() {
 				dx = ani->_oy - g_fp->_sceneRect.bottom;
 			}
 
-		    par = 0;
+			par = 0;
 
 			if (dx > 800) {
 				setPanAndVolume(-3500, 0);
@@ -206,14 +208,14 @@ void Sound::setPanAndVolumeByStaticAni() {
 }
 
 void Sound::setPanAndVolume(int vol, int pan) {
-	g_fp->_mixer->setChannelVolume(_handle, vol / 39); // 0..10000
-	g_fp->_mixer->setChannelBalance(_handle, pan / 78); // -10000..10000
+	g_fp->_mixer->setChannelVolume(*_handle, vol / 39); // 0..10000
+	g_fp->_mixer->setChannelBalance(*_handle, pan / 78); // -10000..10000
 }
 
 void Sound::play(int flag) {
-	Audio::SoundHandle handle = getHandle();
+	Audio::SoundHandle *handle = getHandle();
 
-	if (g_fp->_mixer->isSoundHandleActive(handle))
+	if (g_fp->_mixer->isSoundHandleActive(*handle))
 		return;
 
 	byte *soundData = loadData();
@@ -221,7 +223,7 @@ void Sound::play(int flag) {
 	Audio::RewindableAudioStream *wav = Audio::makeWAVStream(dataStream, DisposeAfterUse::YES);
 	Audio::AudioStream *audioStream = new Audio::LoopingAudioStream(wav, (flag == 1) ? 0 : 1);
 
-	g_fp->_mixer->playStream(Audio::Mixer::kSFXSoundType, &handle, audioStream);
+	g_fp->_mixer->playStream(Audio::Mixer::kSFXSoundType, handle, audioStream);
 }
 
 void Sound::freeSound() {
@@ -231,11 +233,11 @@ void Sound::freeSound() {
 }
 
 int Sound::getVolume() {
-	return g_fp->_mixer->getChannelVolume(_handle) * 39;  // 0..10000
+	return g_fp->_mixer->getChannelVolume(*_handle) * 39;  // 0..10000
 }
 
 void Sound::stop() {
-	g_fp->_mixer->stopHandle(_handle);
+	g_fp->_mixer->stopHandle(*_handle);
 }
 
 void FullpipeEngine::setSceneMusicParameters(GameVar *gvar) {
@@ -353,7 +355,7 @@ void FullpipeEngine::startSoundStream1(char *trackName) {
 	stopAllSoundStreams();
 
 #ifdef USE_VORBIS
-	if (_mixer->isSoundHandleActive(_sceneTrackHandle))
+	if (_mixer->isSoundHandleActive(*_sceneTrackHandle))
 		return;
 
 	Common::File *track = new Common::File();
@@ -363,7 +365,7 @@ void FullpipeEngine::startSoundStream1(char *trackName) {
 		return;
 	}
 	Audio::RewindableAudioStream *ogg = Audio::makeVorbisStream(track, DisposeAfterUse::YES);
-	_mixer->playStream(Audio::Mixer::kMusicSoundType, &_sceneTrackHandle, ogg);
+	_mixer->playStream(Audio::Mixer::kMusicSoundType, _sceneTrackHandle, ogg);
 #endif
 }
 
@@ -487,7 +489,7 @@ void global_messageHandler_handleSound(ExCommand *cmd) {
 			snd->setPanAndVolume(g_fp->_sfxVolume, 0);
 
 		if (snd->getVolume() > -3500)
-			snd->play(cmd->_keyCode);
+			snd->play(cmd->_param);
 	} else if (cmd->_field_14 & 2) {
 		snd->stop();
 	}

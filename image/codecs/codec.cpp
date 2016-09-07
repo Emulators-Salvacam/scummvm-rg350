@@ -8,12 +8,12 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
-
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
-
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -34,6 +34,7 @@
 #include "image/codecs/mpeg.h"
 #include "image/codecs/msvideo1.h"
 #include "image/codecs/msrle.h"
+#include "image/codecs/msrle4.h"
 #include "image/codecs/qtrle.h"
 #include "image/codecs/rpza.h"
 #include "image/codecs/smc.h"
@@ -198,6 +199,8 @@ Codec *createBitmapCodec(uint32 tag, int width, int height, int bitsPerPixel) {
 		return new BitmapRawDecoder(width, height, bitsPerPixel);
 	case SWAP_CONSTANT_32(1):
 		return new MSRLEDecoder(width, height, bitsPerPixel);
+	case SWAP_CONSTANT_32(2):
+		return new MSRLE4Decoder(width, height, bitsPerPixel);
 	case MKTAG('C','R','A','M'):
 	case MKTAG('m','s','v','c'):
 	case MKTAG('W','H','A','M'):

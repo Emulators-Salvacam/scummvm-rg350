@@ -269,8 +269,8 @@ void splashScreen() {
 
 	// Load logo
 	Graphics::Surface *logo = bitmap.getSurface()->convertTo(g_system->getOverlayFormat(), bitmap.getPalette());
-	int lx = (g_system->getOverlayWidth() - logo->w) / 2;
-	int ly = (g_system->getOverlayHeight() - logo->h) / 2;
+	int lx = MAX((g_system->getOverlayWidth() - logo->w) / 2, 0);
+	int ly = MAX((g_system->getOverlayHeight() - logo->h) / 2, 0);
 
 	// Print version information
 	const Graphics::Font *font = FontMan.getFontByUsage(Graphics::FontManager::kConsoleFont);
@@ -283,7 +283,10 @@ void splashScreen() {
 	screen.free();
 
 	// Draw logo
-	g_system->copyRectToOverlay(logo->getPixels(), logo->pitch, lx, ly, logo->w, logo->h);
+	int lw = MIN<uint16>(logo->w, g_system->getOverlayWidth() - lx);
+	int lh = MIN<uint16>(logo->h, g_system->getOverlayHeight() - ly);
+
+	g_system->copyRectToOverlay(logo->getPixels(), logo->pitch, lx, ly, lw, lh);
 	logo->free();
 	delete logo;
 
@@ -292,7 +295,7 @@ void splashScreen() {
 	Common::Event event;
 	while (time0 + 600 > g_system->getMillis()) {
 		g_system->updateScreen();
-		g_system->getEventManager()->pollEvent(event);
+		(void)g_system->getEventManager()->pollEvent(event);
 		g_system->delayMillis(10);
 	}
 	g_system->hideOverlay();

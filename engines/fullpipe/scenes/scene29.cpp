@@ -487,30 +487,30 @@ bool sceneHandler29_checkGreenBallHit(StaticANIObject *ani, int maxx) {
 }
 
 void sceneHandler29_manHit() {
-	MGMInfo mgminfo;
+	MakeQueueStruct mkQueue;
 
 	g_vars->scene29_manIsHit = true;
 
 	g_fp->_aniMan->changeStatics2(ST_MAN29_RUNR);
 	g_fp->_aniMan->setOXY(g_vars->scene29_manX, g_vars->scene29_manY);
 
-	mgminfo.ani = g_fp->_aniMan;
-	mgminfo.staticsId2 = ST_MAN29_SITR;
-	mgminfo.y1 = 463;
-	mgminfo.x1 = g_vars->scene29_manX <= 638 ? 351 : 0;
-	mgminfo.field_1C = 10;
-	mgminfo.field_10 = 1;
-	mgminfo.flags = (g_vars->scene29_manX <= 638 ? 2 : 0) | 0x44;
-	mgminfo.movementId = MV_MAN29_HIT;
+	mkQueue.ani = g_fp->_aniMan;
+	mkQueue.staticsId2 = ST_MAN29_SITR;
+	mkQueue.y1 = 463;
+	mkQueue.x1 = g_vars->scene29_manX <= 638 ? 351 : 0;
+	mkQueue.field_1C = 10;
+	mkQueue.field_10 = 1;
+	mkQueue.flags = (g_vars->scene29_manX <= 638 ? 2 : 0) | 0x44;
+	mkQueue.movementId = MV_MAN29_HIT;
 
-	MessageQueue *mq = g_vars->scene29_mgm.genMovement(&mgminfo);
+	MessageQueue *mq = g_vars->scene29_aniHandler.makeRunQueue(&mkQueue);
 	ExCommand *ex;
 
 	if (mq) {
 		if (g_vars->scene29_manX <= 638) {
 			ex = new ExCommand(ANI_MAN, 1, MV_MAN29_STANDUP_NORM, 0, 0, 0, 1, 0, 0, 0);
 			ex->_excFlags = 2;
-			ex->_keyCode = g_fp->_aniMan->_okeyCode;
+			ex->_param = g_fp->_aniMan->_odelay;
 			mq->addExCommandToEnd(ex);
 
 			ex = new ExCommand(0, 17, MSG_SC29_STOPRIDE, 0, 0, 0, 1, 0, 0, 0);
@@ -524,7 +524,7 @@ void sceneHandler29_manHit() {
 		} else {
 			ex = new ExCommand(ANI_MAN, 1, MV_MAN29_STANDUP, 0, 0, 0, 1, 0, 0, 0);
 			ex->_excFlags = 2;
-			ex->_keyCode = g_fp->_aniMan->_okeyCode;
+			ex->_param = g_fp->_aniMan->_odelay;
 			mq->addExCommandToEnd(ex);
 		}
 
@@ -728,7 +728,7 @@ void sceneHandler29_manToL() {
 
 	g_vars->scene29_arcadeIsOn = true;
 
-	g_vars->scene29_mgm.addItem(g_fp->_aniMan->_id);
+	g_vars->scene29_aniHandler.attachObject(g_fp->_aniMan->_id);
 
 	g_fp->_updateScreenCallback = sceneHandler29_updateScreenCallback;
 
@@ -878,7 +878,7 @@ void sceneHandler29_animBearded() {
 				if (x - g_vars->scene29_manX < 100 || !g_vars->scene29_arcadeIsOn) {
 					mq = new MessageQueue(g_fp->_currentScene->getMessageQueueById(QU_SC29_BRDOUT1), 0, 1);
 
-					mq->replaceKeyCode(-1, ani->_okeyCode);
+					mq->setParamInt(-1, ani->_odelay);
 					mq->chain(0);
 
 					g_vars->scene29_bearders[i]->wbflag = 0;
@@ -898,7 +898,7 @@ void sceneHandler29_animBearded() {
 
 						mq = new MessageQueue(g_fp->_currentScene->getMessageQueueById(QU_SC29_BRDOUT2), 0, 1);
 
-						mq->replaceKeyCode(-1, ani->_okeyCode);
+						mq->setParamInt(-1, ani->_odelay);
 						mq->chain(0);
 
 						g_vars->scene29_bearders[i]->wbflag = 0;
@@ -939,7 +939,7 @@ void sceneHandler29_animBearded() {
 			}
 
 			mq->getExCommandByIndex(0)->_x = newx;
-			mq->replaceKeyCode(-1, ani->_okeyCode);
+			mq->setParamInt(-1, ani->_odelay);
 			mq->chain(0);
 
 			g_vars->scene29_bearders[i]->wbflag = 1;

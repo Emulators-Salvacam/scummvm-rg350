@@ -3,6 +3,7 @@ MODULE := backends
 MODULE_OBJS := \
 	base-backend.o \
 	modular-backend.o \
+	audiocd/audiocd-stream.o \
 	audiocd/default/default-audiocd.o \
 	events/default/default-events.o \
 	fs/abstract-fs.o \
@@ -18,6 +19,65 @@ MODULE_OBJS := \
 	saves/default/default-saves.o \
 	timer/default/default-timer.o
 
+ifdef USE_LIBCURL
+MODULE_OBJS += \
+	cloud/cloudmanager.o \
+	cloud/iso8601.o \
+	cloud/storage.o \
+	cloud/storagefile.o \
+	cloud/downloadrequest.o \
+	cloud/folderdownloadrequest.o \
+	cloud/savessyncrequest.o \
+	cloud/box/boxstorage.o \
+	cloud/box/boxlistdirectorybyidrequest.o \
+	cloud/box/boxtokenrefresher.o \
+	cloud/box/boxuploadrequest.o \
+	cloud/dropbox/dropboxstorage.o \
+	cloud/dropbox/dropboxcreatedirectoryrequest.o \
+	cloud/dropbox/dropboxinforequest.o \
+	cloud/dropbox/dropboxlistdirectoryrequest.o \
+	cloud/dropbox/dropboxuploadrequest.o \
+	cloud/googledrive/googledrivelistdirectorybyidrequest.o \
+	cloud/googledrive/googledrivestorage.o \
+	cloud/googledrive/googledrivetokenrefresher.o \
+	cloud/googledrive/googledriveuploadrequest.o \
+	cloud/id/idstorage.o \
+	cloud/id/idcreatedirectoryrequest.o \
+	cloud/id/iddownloadrequest.o \
+	cloud/id/idlistdirectoryrequest.o \
+	cloud/id/idresolveidrequest.o \
+	cloud/id/idstreamfilerequest.o \
+	cloud/onedrive/onedrivestorage.o \
+	cloud/onedrive/onedrivecreatedirectoryrequest.o \
+	cloud/onedrive/onedrivetokenrefresher.o \
+	cloud/onedrive/onedrivelistdirectoryrequest.o \
+	cloud/onedrive/onedriveuploadrequest.o \
+	networking/curl/connectionmanager.o \
+	networking/curl/networkreadstream.o \
+	networking/curl/cloudicon.o \
+	networking/curl/curlrequest.o \
+	networking/curl/curljsonrequest.o \
+	networking/curl/request.o
+endif
+
+ifdef USE_SDL_NET
+MODULE_OBJS += \
+	networking/sdl_net/client.o \
+	networking/sdl_net/getclienthandler.o \
+	networking/sdl_net/handlers/createdirectoryhandler.o \
+	networking/sdl_net/handlers/downloadfilehandler.o \
+	networking/sdl_net/handlers/filesajaxpagehandler.o \
+	networking/sdl_net/handlers/filesbasehandler.o \
+	networking/sdl_net/handlers/filespagehandler.o \
+	networking/sdl_net/handlers/indexpagehandler.o \
+	networking/sdl_net/handlers/listajaxhandler.o \
+	networking/sdl_net/handlers/resourcehandler.o \
+	networking/sdl_net/handlers/uploadfilehandler.o \
+	networking/sdl_net/handlerutils.o \
+	networking/sdl_net/localwebserver.o \
+	networking/sdl_net/reader.o \
+	networking/sdl_net/uploadfileclienthandler.o
+endif
 
 ifdef USE_ELF_LOADER
 MODULE_OBJS += \
@@ -52,10 +112,16 @@ endif
 # OpenGL specific source files.
 ifdef USE_OPENGL
 MODULE_OBJS += \
+	graphics/opengl/context.o \
 	graphics/opengl/debug.o \
-	graphics/opengl/extensions.o \
+	graphics/opengl/framebuffer.o \
 	graphics/opengl/opengl-graphics.o \
-	graphics/opengl/texture.o
+	graphics/opengl/shader.o \
+	graphics/opengl/texture.o \
+	graphics/opengl/pipelines/clut8.o \
+	graphics/opengl/pipelines/fixed.o \
+	graphics/opengl/pipelines/pipeline.o \
+	graphics/opengl/pipelines/shader.o
 endif
 
 # SDL specific source files.
@@ -84,6 +150,42 @@ MODULE_OBJS += \
 endif
 endif
 
+# openUrl
+ifeq ($(BACKEND),android)
+MODULE_OBJS += \
+	networking/browser/openurl-android.o
+else
+ifdef MACOSX
+MODULE_OBJS += \
+	networking/browser/openurl-osx.o
+else
+ifdef WIN32
+MODULE_OBJS += \
+	networking/browser/openurl-windows.o
+else
+	ifdef POSIX
+	MODULE_OBJS += \
+		networking/browser/openurl-posix.o
+	else
+		# create_project doesn't know something about `else`
+		ifndef WIN32
+		MODULE_OBJS += \
+		networking/browser/openurl-default.o
+		endif
+	endif
+endif
+endif
+endif
+
+# Connection::isLimited
+ifeq ($(BACKEND),android)
+MODULE_OBJS += \
+	networking/connection/islimited-android.o
+else
+MODULE_OBJS += \
+	networking/connection/islimited-default.o
+endif
+
 ifdef POSIX
 MODULE_OBJS += \
 	fs/posix/posix-fs.o \
@@ -97,6 +199,7 @@ endif
 
 ifdef MACOSX
 MODULE_OBJS += \
+	audiocd/macosx/macosx-audiocd.o \
 	midi/coreaudio.o \
 	midi/coremidi.o \
 	updates/macosx/macosx-updates.o \
@@ -105,11 +208,13 @@ endif
 
 ifdef WIN32
 MODULE_OBJS += \
+	audiocd/win32/win32-audiocd.o \
 	fs/windows/windows-fs.o \
 	fs/windows/windows-fs-factory.o \
 	midi/windows.o \
 	plugins/win32/win32-provider.o \
 	saves/windows/windows-saves.o \
+	updates/win32/win32-updates.o \
 	taskbar/win32/win32-taskbar.o
 endif
 
@@ -132,6 +237,11 @@ MODULE_OBJS += \
 	fs/posix/posix-fs-factory.o \
 	fs/ps3/ps3-fs-factory.o \
 	events/ps3sdl/ps3sdl-events.o
+endif
+
+ifdef USE_LINUXCD
+MODULE_OBJS += \
+	audiocd/linux/linux-audiocd.o
 endif
 
 ifeq ($(BACKEND),tizen)

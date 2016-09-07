@@ -54,15 +54,10 @@ void scene27_initScene(Scene *sc) {
 	g_vars->scene27_maid = sc->getStaticANIObject1ById(ANI_MAID, -1);
 	g_vars->scene27_batHandler = sc->getStaticANIObject1ById(ANI_BITAHANDLER, -1);
 
-	g_vars->scene27_balls.numBalls = 0;
-	g_vars->scene27_balls.pTail = 0;
-	g_vars->scene27_balls.field_8 = 0;
-	g_vars->scene27_balls.pHead = 0;
-	g_vars->scene27_balls.cPlexLen = 10;
+	for (uint i = 0; i < g_vars->scene27_balls.size(); i++)
+		delete g_vars->scene27_balls[i];
 
-	free(g_vars->scene27_balls.cPlex);
-	g_vars->scene27_balls.cPlex = 0;
-
+	g_vars->scene27_balls.clear();
 	g_vars->scene27_bats.clear();
 	g_vars->scene27_var07.clear();
 
@@ -72,43 +67,7 @@ void scene27_initScene(Scene *sc) {
 	for (int i = 0; i < 4; i++) {
 		StaticANIObject *newbat = new StaticANIObject(g_vars->scene27_bat);
 
-		Ball *runPtr = g_vars->scene27_balls.pTail;
-		Ball *lastP = g_vars->scene27_balls.field_8;
-
-		if (!g_vars->scene27_balls.pTail) {
-			g_vars->scene27_balls.cPlex = (byte *)calloc(g_vars->scene27_balls.cPlexLen, sizeof(Ball));
-
-			byte *p1 = g_vars->scene27_balls.cPlex + (g_vars->scene27_balls.cPlexLen - 1) * sizeof(Ball);
-
-			if (g_vars->scene27_balls.cPlexLen - 1 < 0) {
-				runPtr = g_vars->scene27_balls.pTail;
-			} else {
-				runPtr = g_vars->scene27_balls.pTail;
-
-				for (int j = 0; j < g_vars->scene27_balls.cPlexLen; j++) {
-					((Ball *)p1)->p1 = runPtr;
-					runPtr = (Ball *)p1;
-
-					p1 -= sizeof(Ball);
-				}
-
-				g_vars->scene27_balls.pTail = runPtr;
-			}
-		}
-
-		g_vars->scene27_balls.pTail = runPtr->p0;
-		runPtr->p1 = lastP;
-		runPtr->p0 = 0;
-		runPtr->ani = newbat;
-
-		g_vars->scene27_balls.numBalls++;
-
-		if (g_vars->scene27_balls.field_8)
-			g_vars->scene27_balls.field_8->p0 = runPtr;
-		else
-			g_vars->scene27_balls.pHead = runPtr;
-
-		g_vars->scene27_balls.field_8 = runPtr;
+		g_vars->scene27_balls.push_back(newbat);
 
 		sc->addStaticANIObject(newbat, 1);
 	}
@@ -191,7 +150,7 @@ void sceneHandler27_showNextBat() {
 	if (g_vars->scene27_bat) {
 		MessageQueue *mq = new MessageQueue(g_fp->_currentScene->getMessageQueueById(QU_SC27_SHOWBET), 0, 1);
 
-		mq->replaceKeyCode(-1, g_vars->scene27_bat->_okeyCode);
+		mq->setParamInt(-1, g_vars->scene27_bat->_odelay);
 		mq->chain(0);
 	}
 
@@ -297,10 +256,10 @@ void sceneHandler27_startAiming() {
 
 	int phase = 21 - g_vars->scene27_launchPhase;
 
-    if (phase < 14)
+	if (phase < 14)
 		phase = 14;
 
-    if (phase > 20)
+	if (phase > 20)
 		phase = 20;
 
 	g_fp->playSound(SND_27_044, 0);
@@ -331,10 +290,10 @@ void sceneHandler27_aimDude() {
 void sceneHandler27_wipeDo() {
 	for (uint i = 0; i < g_vars->scene27_bats.size(); i++) {
 		if (g_vars->scene27_bats[i]->currX < 800.0) {
-			g_vars->scene27_bats[i]->field_10 = atan2(800.0 - g_vars->scene27_bats[i]->currX, 520.0 - g_vars->scene27_bats[i]->currY);
+			g_vars->scene27_bats[i]->field_10 = atan2(520.0 - g_vars->scene27_bats[i]->currY, 800.0 - g_vars->scene27_bats[i]->currX);
 			g_vars->scene27_bats[i]->power += 1.0;
 		}
-    }
+	}
 }
 
 bool sceneHandler27_batFallLogic(uint batn) {
@@ -352,15 +311,15 @@ bool sceneHandler27_batFallLogic(uint batn) {
 
 		if (batn != g_vars->scene27_var07.size() - 1)
 			g_vars->scene27_var07.remove_at(batn);
-    } else if (!bat->ani->_movement) {
+	} else if (!bat->ani->_movement) {
 		bat->ani->startAnim(MV_BTA_FALL, 0, -1);
-    }
+	}
 
 	return true;
 }
 
 bool sceneHandler27_batCalcDistance(int bat1, int bat2) {
-	double at = atan2(g_vars->scene27_bats[bat1]->currX - g_vars->scene27_bats[bat2]->currX, g_vars->scene27_bats[bat1]->currY - g_vars->scene27_bats[bat2]->currY);
+	double at = atan2(g_vars->scene27_bats[bat1]->currY - g_vars->scene27_bats[bat2]->currY, g_vars->scene27_bats[bat1]->currX - g_vars->scene27_bats[bat2]->currX);
 	double dy = g_vars->scene27_bats[bat1]->currY - g_vars->scene27_bats[bat2]->currY;
 	double dx = g_vars->scene27_bats[bat1]->currX - g_vars->scene27_bats[bat2]->currX;
 	double ay = cos(at);
@@ -375,7 +334,7 @@ void sceneHandler27_knockBats(int bat1n, int bat2n) {
 
 	if (0.0 != bat1->power) {
 		double rndF = (double)g_fp->_rnd->getRandomNumber(32767) * 0.0000009155552842799158 - 0.015
-			+ atan2(bat2->currX - bat1->currX, bat2->currY - bat1->currY);
+			+ atan2(bat2->currY - bat1->currY, bat2->currX - bat1->currX);
 		double rndCos = cos(rndF);
 		double rndSin = sin(rndF);
 
@@ -386,7 +345,7 @@ void sceneHandler27_knockBats(int bat1n, int bat2n) {
 		bat1->powerSin -= pow1y * 1.1;
 
 		rndF = ((double)g_fp->_rnd->getRandomNumber(32767) * 0.0000009155552842799158 - 0.015
-							   + atan2(bat1->currX - bat2->currX, bat1->currY - bat2->currY));
+								+ atan2(bat1->currY - bat2->currY, bat1->currX - bat2->currX));
 		double pow2x = cos(bat2->field_10 - rndF) * (double)((int)(bat1->currX - bat2->currX) >= 0 ? 1 : -1) * bat2->power;
 		double pow2y = sin(bat2->field_10 - rndF) * (double)((int)(bat1->currY - bat2->currY) >= 0 ? 1 : -1) * bat2->power;
 
@@ -394,7 +353,7 @@ void sceneHandler27_knockBats(int bat1n, int bat2n) {
 		bat2->powerSin -= pow2y * 1.1;
 
 		double dy = bat1->currY - bat2->currY;
-	    double dx = bat1->currX - bat2->currX;
+		double dx = bat1->currX - bat2->currX;
 		double dist = (sqrt(rndSin * rndSin * 0.25 + rndCos * rndCos) * 54.0 - sqrt(dx * dx + dy * dy)) / cos(rndF - bat1->field_10);
 		bat1->currX -= cos(bat1->field_10) * (dist + 1.0);
 		bat1->currY -= sin(bat1->field_10) * (dist + 1.0);
@@ -405,7 +364,7 @@ void sceneHandler27_knockBats(int bat1n, int bat2n) {
 		else
 			bat1->powerSin += pow2y * 0.64;
 
-		bat1->field_10 = atan2(bat1->powerCos, bat1->powerSin);
+		bat1->field_10 = atan2(bat1->powerSin, bat1->powerCos);
 		bat1->power = sqrt(bat1->powerCos * bat1->powerCos + bat1->powerSin * bat1->powerSin);
 		bat2->powerCos += pow1x * 0.64;
 
@@ -414,7 +373,7 @@ void sceneHandler27_knockBats(int bat1n, int bat2n) {
 		else
 			bat2->powerSin += pow1y * 0.64;
 
-		bat2->field_10 = atan2(bat2->powerCos, bat2->powerSin);
+		bat2->field_10 = atan2(bat2->powerSin, bat2->powerCos);
 		bat2->power = sqrt(bat2->powerCos * bat2->powerCos + bat2->powerSin * bat2->powerSin);
 
 		g_fp->playSound(SND_27_026, 0);
@@ -463,17 +422,11 @@ void sceneHandler27_maidSwitchback() {
 }
 
 void sceneHandler27_batLogic() {
-	if (g_vars->scene27_balls.numBalls) {
-		g_vars->scene27_bat = g_vars->scene27_balls.pHead->ani;
+	if (g_vars->scene27_balls.size()) {
+		g_vars->scene27_bat = g_vars->scene27_balls[0];
 
-		g_vars->scene27_balls.pHead = g_vars->scene27_balls.pHead->p0;
-
-		if (g_vars->scene27_balls.pHead)
-			g_vars->scene27_balls.pHead->p0->p1 = 0;
-		else
-			g_vars->scene27_balls.field_8 = 0;
-
-		g_vars->scene27_balls.init(&g_vars->scene27_balls.pHead->p0);
+		g_vars->scene27_balls.remove_at(0);
+		g_vars->scene27_balls.push_back(g_vars->scene27_bat);
 
 		int mv;
 
@@ -545,7 +498,7 @@ void sceneHandler27_calcWinArcade() {
 			}
 		}
 
-		if (!g_vars->scene27_balls.numBalls) {
+		if (!g_vars->scene27_balls.size()) {
 			sceneHandler27_driverPushButton();
 			sceneHandler27_maidSwitchback();
 			return;
@@ -563,44 +516,9 @@ void sceneHandler27_regenBats() {
 	for (uint i = 0; i < g_vars->scene27_var07.size(); i++) {
 		g_vars->scene27_var07[i]->ani->hide();
 
-		Ball *runPtr = g_vars->scene27_balls.pTail;
-		Ball *lastP = g_vars->scene27_balls.field_8;
 		StaticANIObject *newbat = g_vars->scene27_var07[i]->ani;
 
-		if (!g_vars->scene27_balls.pTail) {
-			g_vars->scene27_balls.cPlex = (byte *)calloc(g_vars->scene27_balls.cPlexLen, sizeof(Ball));
-
-			byte *p1 = g_vars->scene27_balls.cPlex + (g_vars->scene27_balls.cPlexLen - 1) * sizeof(Ball);
-
-			if (g_vars->scene27_balls.cPlexLen - 1 < 0) {
-				runPtr = g_vars->scene27_balls.pTail;
-			} else {
-				runPtr = g_vars->scene27_balls.pTail;
-
-				for (int j = 0; j < g_vars->scene27_balls.cPlexLen; j++) {
-					((Ball *)p1)->p1 = runPtr;
-					runPtr = (Ball *)p1;
-
-					p1 -= sizeof(Ball);
-				}
-
-				g_vars->scene27_balls.pTail = runPtr;
-			}
-		}
-
-		g_vars->scene27_balls.pTail = runPtr->p0;
-		runPtr->p1 = lastP;
-		runPtr->p0 = 0;
-		runPtr->ani = newbat;
-
-		g_vars->scene27_balls.numBalls++;
-
-		if (g_vars->scene27_balls.field_8)
-			g_vars->scene27_balls.field_8->p0 = runPtr;
-		else
-			g_vars->scene27_balls.pHead = runPtr;
-
-		g_vars->scene27_balls.field_8 = runPtr;
+		g_vars->scene27_balls.push_back(newbat);
 	}
 
 	g_vars->scene27_var07.clear();

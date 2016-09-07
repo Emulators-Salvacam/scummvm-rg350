@@ -124,7 +124,7 @@ MODULES += \
 	common \
 	po
 
-ifdef USE_MT32EMU
+ifeq ($(USE_MT32EMU),1)
 MODULES += $(CORE_DIR)/audio/softsynth/mt32
 endif
 

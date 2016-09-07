@@ -12,10 +12,17 @@ MODULE_OBJS := \
 	fonts/ttf.o \
 	fonts/winfont.o \
 	maccursor.o \
+	macgui/macmenu.o \
+	macgui/macwindow.o \
+	macgui/macwindowborder.o \
+	macgui/macwindowmanager.o \
+	managed_surface.o \
+	nine_patch.o \
 	pixelformat.o \
 	primitives.o \
 	scaler.o \
 	scaler/thumbnail_intern.o \
+	screen.o \
 	sjis.o \
 	surface.o \
 	transform_struct.o \

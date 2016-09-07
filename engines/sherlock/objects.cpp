@@ -365,8 +365,8 @@ bool BaseObject::checkEndOfSequence() {
 
 			if (seq == 99) {
 				--_frameNumber;
-				screen._backBuffer1.transBlitFrom(*_imageFrame, _position);
-				screen._backBuffer2.transBlitFrom(*_imageFrame, _position);
+				screen._backBuffer1.SHtransBlitFrom(*_imageFrame, _position);
+				screen._backBuffer2.SHtransBlitFrom(*_imageFrame, _position);
 				_type = INVALID;
 			} else if (IS_ROSE_TATTOO && _talkSeq && seq == 0) {
 				setObjTalkSequence(_talkSeq);
@@ -636,7 +636,9 @@ void Sprite::clear() {
 	_altImages = nullptr;
 	_altSeq = 0;
 	_centerWalk = 0;
-	Common::fill(&_stopFrames[0], &_stopFrames[8], (ImageFrame *)nullptr);
+
+	for (int i = 0; i < 8; i++)
+		_stopFrames[i] = nullptr;
 }
 
 void Sprite::setImageFrame() {

@@ -26,6 +26,7 @@
 #include "sherlock/sherlock.h"
 #include "sherlock/music.h"
 #include "sherlock/scalpel/drivers/mididriver.h"
+#include "audio/audiostream.h"
 // for Miles Audio (Sherlock Holmes 2)
 #include "audio/miles.h"
 // for 3DO digital music
@@ -225,6 +226,7 @@ Music::Music(SherlockEngine *vm, Audio::Mixer *mixer) : _vm(vm), _mixer(mixer) {
 	_midiOption = false;
 	_midiMusicData = nullptr;
 	_musicVolume = ConfMan.hasKey("music_volume") ? ConfMan.getInt("music_volume") : 255;
+	_musicOn = false;
 
 	if (IS_3DO) {
 		// 3DO - uses digital samples for music

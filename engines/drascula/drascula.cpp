@@ -23,18 +23,12 @@
 #include "common/events.h"
 #include "common/keyboard.h"
 #include "common/file.h"
-#include "common/savefile.h"
 #include "common/config-manager.h"
 #include "common/textconsole.h"
 
 #include "backends/audiocd/audiocd.h"
 
-#include "base/plugins.h"
-#include "base/version.h"
-
 #include "engines/util.h"
-
-#include "audio/mixer.h"
 
 #include "drascula/drascula.h"
 #include "drascula/console.h"
@@ -183,9 +177,7 @@ DrasculaEngine::DrasculaEngine(OSystem *syst, const DrasculaGameDescription *gam
 	const Common::FSNode gameDataDir(ConfMan.get("path"));
 	SearchMan.addSubDirectoryMatching(gameDataDir, "audio");
 
-	int cd_num = ConfMan.getInt("cdrom");
-	if (cd_num >= 0)
-		_system->getAudioCDManager()->openCD(cd_num);
+	_system->getAudioCDManager()->open();
 
 	_lang = kEnglish;
 
@@ -367,8 +359,8 @@ Common::Error DrasculaEngine::run() {
 		for (i = 0; i < 25; i++)
 			memcpy(crosshairCursor + i * 40, tableSurface + 225 + (56 + i) * 320, 40);
 
-		if (_lang == kSpanish)
-			loadPic(currentChapter == 6 ? 97 : 974, tableSurface);
+		if (_lang == kSpanish && currentChapter != 6)
+			loadPic(974, tableSurface);
 
 		if (currentChapter != 2) {
 			loadPic(99, cursorSurface);
