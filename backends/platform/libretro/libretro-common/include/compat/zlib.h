@@ -1,3 +1,12 @@
+#ifndef _COMPAT_ZLIB_H
+#define _COMPAT_ZLIB_H
+
+#ifdef WANT_ZLIB
+
+#ifdef RARCH_INTERNAL
+#include "zconf.h.in"
+#endif
+
 /* zlib.h -- interface of the 'zlib' general purpose compression library
   version 1.2.8, April 28th, 2013
 
@@ -92,7 +101,7 @@ typedef struct z_stream_s {
     uLong    total_out; /* total number of bytes output so far */
 
     z_const char *msg;  /* last error message, NULL if no error */
-    struct internal_state FAR *state; /* not visible by applications */
+    void *state; /* not visible by applications */
 
     alloc_func zalloc;  /* used to allocate the internal state */
     free_func  zfree;   /* used to free the internal state */
@@ -1667,11 +1676,6 @@ ZEXTERN int ZEXPORT inflateBackInit_ OF((z_streamp strm, int windowBits,
  * behavior could change in the future, perhaps even capriciously.  They can
  * only be used by the gzgetc() macro.  You have been warned.
  */
-struct gzFile_s {
-    unsigned have;
-    unsigned char *next;
-    z_off64_t pos;
-};
 ZEXTERN int ZEXPORT gzgetc_ OF((gzFile file));  /* backward compatibility */
 #ifdef Z_PREFIX_SET
 #  undef z_gzgetc
@@ -1766,3 +1770,9 @@ ZEXTERN int            ZEXPORTVA gzvprintf Z_ARG((gzFile file,
 #endif
 
 #endif /* ZLIB_H */
+
+#else
+#include <zlib.h>
+#endif
+
+#endif

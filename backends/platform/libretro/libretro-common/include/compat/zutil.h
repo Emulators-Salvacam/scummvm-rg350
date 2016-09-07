@@ -1,3 +1,8 @@
+#ifndef _COMPAT_ZUTIL_H
+#define _COMPAT_ZUTIL_H
+
+#ifdef WANT_ZLIB
+
 /* zutil.h -- internal interface and configuration of the compression library
  * Copyright (C) 1995-2013 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
@@ -19,7 +24,7 @@
 #  define ZLIB_INTERNAL
 #endif
 
-#include "zlib.h"
+#include <compat/zlib.h>
 
 #if defined(STDC) && !defined(Z_SOLO)
 #  if !(defined(_WIN32_WCE) && defined(_MSC_VER))
@@ -44,8 +49,9 @@ typedef unsigned short ush;
 typedef ush FAR ushf;
 typedef unsigned long  ulg;
 
-extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
-/* (size given to avoid silly warnings with Visual C++) */
+extern char z_errmsg[10][21]; /* indexed by 2-zlib_error */
+/* (array size given to avoid silly warnings with Visual C++) */
+/* (array entry size given to avoid silly string cast warnings) */
 
 #define ERR_MSG(err) z_errmsg[Z_NEED_DICT-(err)]
 
@@ -251,3 +257,9 @@ extern z_const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
                     (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
 
 #endif /* ZUTIL_H */
+
+#else
+#include <zutil.h>
+#endif
+
+#endif

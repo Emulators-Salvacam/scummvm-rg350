@@ -1,4 +1,5 @@
 LIBRETRO_DIR      = $(CORE_DIR)/backends/platform/libretro
+DEPS_DIR          = $(LIBRETRO_DIR)/deps
 LIBRETRO_COMM_DIR = $(LIBRETRO_DIR)/libretro-common
 
 # Define enabled modules
@@ -44,7 +45,7 @@ ENABLE_SHERLOCK = $(ENABLED)
 ENABLE_MADS = $(ENABLED)
 ENABLE_SCI32 = $(ENABLED)
 
-INCFLAGS    := -I$(LIBRETRO_DIR) -I$(CORE_DIR) -I$(CORE_DIR)/engines -I$(LIBRETRO_COMM_DIR)/include
+INCFLAGS    := -I$(LIBRETRO_DIR) -I$(CORE_DIR) -I$(CORE_DIR)/engines -I$(LIBRETRO_COMM_DIR)/include -I$(LIBRETRO_COMM_DIR)/include/compat
 
 INCLUDES    += $(INCFLAGS)
 MODULE_DIRS += $(LIBRETRO_DIR)
@@ -77,22 +78,22 @@ OBJS +=  $(LIBRETRO_DIR)/tremor/bitwise.o \
 endif
 
 ifeq ($(USE_ZLIB), 1)
-DEFINES += -DUSE_ZLIB 
-OBJS +=   $(LIBRETRO_DIR)/zlib/deflate.o \
-			 $(LIBRETRO_DIR)/zlib/gzlib.o \
-			 $(LIBRETRO_DIR)/zlib/uncompr.o \
-			 $(LIBRETRO_DIR)/zlib/zutil.o \
-			 $(LIBRETRO_DIR)/zlib/inffast.o \
-			 $(LIBRETRO_DIR)/zlib/gzread.o \
-			 $(LIBRETRO_DIR)/zlib/crc32.o \
-			 $(LIBRETRO_DIR)/zlib/gzwrite.o \
-			 $(LIBRETRO_DIR)/zlib/inflate.o \
-			 $(LIBRETRO_DIR)/zlib/infback.o \
-			 $(LIBRETRO_DIR)/zlib/inftrees.o \
-			 $(LIBRETRO_DIR)/zlib/trees.o \
-			 $(LIBRETRO_DIR)/zlib/gzclose.o \
-			 $(LIBRETRO_DIR)/zlib/compress.o \
-			 $(LIBRETRO_DIR)/zlib/adler32.o
+DEFINES += -DUSE_ZLIB  -DWANT_ZLIB
+OBJS +=   $(DEPS_DIR)/libz/deflate.o \
+			 $(DEPS_DIR)/libz/gzlib.o \
+			 $(DEPS_DIR)/libz/uncompr.o \
+			 $(DEPS_DIR)/libz/zutil.o \
+			 $(DEPS_DIR)/libz/inffast.o \
+			 $(DEPS_DIR)/libz/gzread.o \
+			 $(DEPS_DIR)/libz/crc32.o \
+			 $(DEPS_DIR)/libz/gzwrite.o \
+			 $(DEPS_DIR)/libz/inflate.o \
+			 $(DEPS_DIR)/libz/infback.o \
+			 $(DEPS_DIR)/libz/inftrees.o \
+			 $(DEPS_DIR)/libz/trees.o \
+			 $(DEPS_DIR)/libz/gzclose.o \
+			 $(DEPS_DIR)/libz/compress.o \
+			 $(DEPS_DIR)/libz/adler32.o
 endif
 
 ifneq ($(STATIC_LINKING), 1)
