@@ -65,7 +65,7 @@ endif
 
 # QNX
 else ifeq ($(platform), qnx)
-   TARGET  := $(TARGET_NAME)_libretro_qnx.so
+   TARGET  := $(TARGET_NAME)_libretro_$(platform).so
    DEFINES += -fPIC -DSYSTEM_NOT_SUPPORTING_D_TYPE
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    CC = qcc -Vgcc_ntoarmv7le
@@ -76,7 +76,7 @@ else ifeq ($(platform), qnx)
 
 # PS3
 else ifeq ($(platform), ps3)
-   TARGET  := $(TARGET_NAME)_libretro_ps3.a
+   TARGET  := $(TARGET_NAME)_libretro_$(platform).a
    CC = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-gcc.exe
    CXX = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-g++.exe
    AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe rcs
@@ -94,7 +94,7 @@ else ifeq ($(platform), wii)
 
 # Vita
 else ifeq ($(platform), vita)
-	TARGET := $(TARGET_NAME)_libretro_vita.a
+	TARGET := $(TARGET_NAME)_libretro_$(platform).a
 	CC = arm-vita-eabi-gcc$(EXE_EXT)
 	CXX = arm-vita-eabi-g++$(EXE_EXT)
 	AR = arm-vita-eabi-ar$(EXE_EXT) rcs
