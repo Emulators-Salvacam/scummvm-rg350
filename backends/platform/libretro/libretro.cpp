@@ -218,10 +218,10 @@ bool retro_load_game(const struct retro_game_info *game)
       if (strstr(path, ".scummvm") != NULL)
       {
          FILE * gamefile;
-         char filedata[200];
+         char filedata[400];
          if((gamefile = fopen ( game->path, "r")))
          {
-            fgets (filedata , 200 , gamefile);
+            fgets (filedata , 400 , gamefile);
             fclose(gamefile);
             parse_command_params(filedata);
          }
@@ -235,7 +235,7 @@ bool retro_load_game(const struct retro_game_info *game)
          char* gameid = basename(gamedir);
 
          // Construct the game launching arguments.
-         char buffer[200];
+         char buffer[400];
          sprintf(buffer, "-p \"%s\" %s", gamedir, gameid);
          parse_command_params(buffer);
       }
