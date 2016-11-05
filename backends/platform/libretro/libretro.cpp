@@ -43,7 +43,7 @@ bool EMULATORexited;
 cothread_t mainThread;
 cothread_t emuThread;
 
-static char cmd_params[20][100];
+static char cmd_params[20][200];
 static char cmd_params_num;
 
 void retro_leave_thread(void)
