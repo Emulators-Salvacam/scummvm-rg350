@@ -175,8 +175,12 @@ DEPDIR        = .deps
 HAVE_GCC3     = true
 USE_RGB_COLOR = true
 
+# Compile platform specific parts (e.g. filesystem)
+ifeq ($(platform), win)
+WIN32 = 1
+else
 POSIX = 1
-DEFINES += -DFS_TYPE_POSIX
+endif
 
 BACKEND := libretro
 
