@@ -87,6 +87,17 @@ OBJS := $(LIBRETRO_DIR)/libretro.o \
 
 ifeq ($(USE_FLAC), 1)
 DEFINES += -DUSE_FLAC
+INCLUDES += -I$(DEPS_DIR)/libFLAC/include
+OBJS += $(DEPS_DIR)/libFLAC/bitreader.o \
+			$(DEPS_DIR)/libFLAC/cpu.o \
+			$(DEPS_DIR)/libFLAC/crc.o \
+			$(DEPS_DIR)/libFLAC/fixed.o \
+			$(DEPS_DIR)/libFLAC/format.o \
+			$(DEPS_DIR)/libFLAC/lpc.o \
+			$(DEPS_DIR)/libFLAC/md5.o \
+			$(DEPS_DIR)/libFLAC/memory.o \
+			$(DEPS_DIR)/libFLAC/metadata_object.o \
+			$(DEPS_DIR)/libFLAC/stream_decoder.o
 endif
 
 ifeq ($(USE_TREMOR), 1)
@@ -125,6 +136,19 @@ OBJS +=   $(DEPS_DIR)/libz/deflate.o \
 			 $(DEPS_DIR)/libz/gzclose.o \
 			 $(DEPS_DIR)/libz/compress.o \
 			 $(DEPS_DIR)/libz/adler32.o
+endif
+
+ifeq ($(USE_MAD), 1)
+DEFINES += -DUSE_MAD -DFPM_DEFAULT
+OBJS +=  $(DEPS_DIR)/libmad/bit.o \
+			$(DEPS_DIR)/libmad/decoder.o \
+			$(DEPS_DIR)/libmad/frame.o \
+			$(DEPS_DIR)/libmad/huffman.o \
+			$(DEPS_DIR)/libmad/layer12.o \
+			$(DEPS_DIR)/libmad/layer3.o \
+			$(DEPS_DIR)/libmad/stream.o \
+			$(DEPS_DIR)/libmad/synth.o \
+			$(DEPS_DIR)/libmad/timer.o
 endif
 
 ifneq ($(STATIC_LINKING), 1)
