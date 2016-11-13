@@ -49,6 +49,7 @@ void retroProcessMouse(retro_input_state_t aCallback);
 void retroPostQuit();
 
 void retroSetSystemDir(const char* aPath);
+void retroSetSaveDir(const char* aPath);
 
 void retroKeyEvent(bool down, unsigned keycode, uint32_t character, uint16_t key_modifiers);
 
