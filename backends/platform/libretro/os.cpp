@@ -34,8 +34,13 @@
 #include "common/events.h"
 #include "audio/mixer_intern.h"
 
+#if defined(_WIN32)
+#include "backends/fs/windows/windows-fs-factory.h"
+#define FS_SYSTEM_FACTORY WindowsFilesystemFactory
+#else
 #include "backends/fs/posix/posix-fs-factory.h"
 #define FS_SYSTEM_FACTORY POSIXFilesystemFactory
+#endif
 
 #include "backends/timer/default/default-timer.h"
 #include "graphics/colormasks.h"
