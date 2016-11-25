@@ -205,6 +205,7 @@ void parse_command_params(char* cmdline)
 bool retro_load_game(const struct retro_game_info *game)
 {
    const char* sysdir;
+   const char* savedir;
 
    cmd_params_num = 1;
    strcpy(cmd_params[0],"scummvm\0");
@@ -262,6 +263,15 @@ bool retro_load_game(const struct retro_game_info *game)
       if (log_cb)
          log_cb(RETRO_LOG_WARN, "No System directory specified, using current directory.\n");
       retroSetSystemDir(".");
+   }
+
+   if(environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &savedir))
+      retroSetSaveDir(savedir);
+   else
+   {
+      if (log_cb)
+         log_cb(RETRO_LOG_WARN, "No Save directory specified, using current directory.\n");
+      retroSetSaveDir(".");
    }
 
    if(!emuThread && !mainThread)

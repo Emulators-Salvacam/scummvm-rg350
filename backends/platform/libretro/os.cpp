@@ -245,6 +245,7 @@ static INLINE void copyRectToSurface(uint8_t *pixels, int out_pitch, const uint8
 }
 
 static Common::String s_systemDir;
+static Common::String s_saveDir;
 
 #ifdef FRONTEND_SUPPORTS_RGB565
 #define SURF_BPP 2
@@ -322,6 +323,9 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
       if(s_systemDir.empty())
          s_systemDir = ".";
+
+      if(s_saveDir.empty())
+         s_saveDir = ".";
    }
 
       virtual ~OSystem_RETRO()
@@ -336,7 +340,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
       virtual void initBackend()
       {
-         _savefileManager = new DefaultSaveFileManager();
+         _savefileManager = new DefaultSaveFileManager(s_saveDir);
 #ifdef FRONTEND_SUPPORTS_RGB565
          _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
 #else
@@ -1020,6 +1024,11 @@ void retroPostQuit()
 void retroSetSystemDir(const char* aPath)
 {
    s_systemDir = Common::String(aPath ? aPath : ".");
+}
+
+void retroSetSaveDir(const char* aPath)
+{
+   s_saveDir = Common::String(aPath ? aPath : ".");
 }
 
 void retroKeyEvent(bool down, unsigned keycode, uint32_t character, uint16_t key_modifiers)
