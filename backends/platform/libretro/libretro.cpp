@@ -95,7 +95,10 @@ unsigned retro_api_version(void)
 void retro_get_system_info(struct retro_system_info *info)
 {
    info->library_name = "scummvm";
-   info->library_version = "1.8.1";
+#ifndef GIT_VERSION
+#define GIT_VERSION ""
+#endif
+   info->library_version = "1.8.1" GIT_VERSION;
    info->valid_extensions = "exe|scum|scummvm";
    info->need_fullpath = true;
    info->block_extract = false;
