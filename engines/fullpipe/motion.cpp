@@ -1675,8 +1675,9 @@ int MctlGraph::getDirByStatics(int idx, int staticsId) {
 
 int MctlGraph::getDirByMovement(int idx, int movId) {
 	for (int i = 0; i < 4; i++)
-		if (_items2[idx]->_subItems[i]._walk[0]._movementId == movId || _items2[idx]->_subItems[i]._turn[0]._movementId == movId ||
-			_items2[idx]->_subItems[i]._turnS[0]._movementId == movId)
+		if (_items2[idx]->_subItems[i]._walk[0]._movementId == movId
+		 || _items2[idx]->_subItems[i]._walk[1]._movementId == movId
+		 || _items2[idx]->_subItems[i]._walk[2]._movementId == movId)
 			return i;
 
 	return -1;
@@ -2224,9 +2225,7 @@ MessageQueue *MctlGraph::makeQueue(StaticANIObject *obj, int xpos, int ypos, int
 	}
 
 	if (obj->_ox == xpos && obj->_oy == ypos) {
-		g_fp->_globalMessageQueueList->compact();
-
-		MessageQueue *mq = new MessageQueue();
+		MessageQueue *mq = new MessageQueue(g_fp->_globalMessageQueueList->compact());
 
 		if (staticsId && obj->_statics->_staticsId != staticsId) {
 			int idxwalk = getDirByStatics(idx, staticsId);
@@ -2238,7 +2237,7 @@ MessageQueue *MctlGraph::makeQueue(StaticANIObject *obj, int xpos, int ypos, int
 				return 0;
 			}
 
-			ExCommand *ex = new ExCommand(picAniInfo.objectId, 1, _items2[idx]->_subItems[idxsub]._walk[idxwalk]._movementId, 0, 0, 0, 1, 0, 0, 0);
+			ExCommand *ex = new ExCommand(picAniInfo.objectId, 1, _items2[idx]->_subItems[idxsub]._turnS[idxwalk]._movementId, 0, 0, 0, 1, 0, 0, 0);
 
 			ex->_field_24 = 1;
 			ex->_param = picAniInfo.field_8;

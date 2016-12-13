@@ -333,6 +333,10 @@ void Scene::deleteStaticANIObject(StaticANIObject *obj) {
 }
 
 void Scene::addStaticANIObject(StaticANIObject *obj, bool addList2) {
+	// WORKAROUND: This is used for making sure that the objects
+	// with same priority do not get swapped during drawing
+	obj->_cnum = _staticANIObjectList2.size() + 1;
+
 	if (obj->_odelay)
 		obj->renumPictures(&_staticANIObjectList1);
 
@@ -469,6 +473,10 @@ bool Scene::compareObjPriority(const void *p1, const void *p2) {
 	if (((const GameObject *)p1)->_priority > ((const GameObject *)p2)->_priority)
 		return true;
 
+	if (((const GameObject *)p1)->_priority == ((const GameObject *)p2)->_priority)
+		if (((const GameObject *)p1)->_cnum > ((const GameObject *)p2)->_cnum)
+			return true;
+
 	return false;
 }
 
@@ -507,12 +515,14 @@ void Scene::draw() {
 
 	objectList_sortByPriority(_staticANIObjectList2);
 
-	for (uint i = 0; i < _staticANIObjectList2.size(); i++)
+	for (uint i = 0; i < _staticANIObjectList2.size(); i++) {
 		_staticANIObjectList2[i]->draw2();
+	}
 
 	int priority = -1;
 	for (uint i = 0; i < _staticANIObjectList2.size(); i++) {
 		drawContent(_staticANIObjectList2[i]->_priority, priority, false);
+
 		_staticANIObjectList2[i]->draw();
 
 		priority = _staticANIObjectList2[i]->_priority;

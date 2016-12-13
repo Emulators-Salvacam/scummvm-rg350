@@ -34,7 +34,9 @@
 
 #include <retro_miscellaneous.h>
 
-#define flac_max(a,b) MAX(a,b)
-#define flac_min(a,b) MIN(a,b)
+#define flac_min(a,b) ((a) < (b) ? (a) : (b))
+#define flac_max(a,b) ((a) > (b) ? (a) : (b))
+
+#define HAVE_LROUND
 
 #endif

@@ -663,6 +663,68 @@ static const uint16 gk1PatchDay6PoliceSleep[] = {
 	PATCH_END
 };
 
+// At the start of day 5, there is like always some dialogue with Grace.
+//
+// The dialogue script code about the drum book + veve newspaper clip is a bit broken.
+//
+// In case the player already has the veve, but is supposed to get the drum book, then the drum book
+// dialogue is repeated twice and the veve newspaper dialogue is also repeated (although it was played on day 4
+// in such case already).
+//
+// Drum book dialogue is called twice.
+// Once via GetTheVeve::changeState(0) and a second time via GetTheVeve::changeState(11).
+//
+// GetTheVeve::changeState(0) would also play the first line of the veve pattern newspaper and that's skipped,
+// when the player is supposed to get the drum book.
+// GetTheVeve::changeState(1) up to state 10 will do the dialogue about the veve newspaper.
+// At the start of state 1 though, the player will get the drum book in case he ask for research.
+// Right after that the scripts check, if the player has the drum book and then go the veve newspaper route.
+//
+// We fix this by skipping the drum book check in case the player just got the drum book.
+// The scripts will then skip to state 12, skipping over the second drum book dialogue call.
+//
+// More notes: The veve newspaper item is inventory 9. The drum book is inventory 14.
+//             The flag for veve research is 36, the flag for drum research is 73.
+//
+// This bug of course also occurs, when using the original interpreter.
+//
+// Special thanks, credits and kudos to sluicebox on IRC, who did a ton of research on this and even found this game bug originally.
+//
+// Applies to at least: English PC-CD, German PC-CD
+// Responsible method: getTheVeve::changeState(1) - script 212
+static const uint16 gk1SignatureDay5DrumBookDialogue[] = {
+	0x31, 0x0b,                         // bnt [skip giving player drum book code]
+	0x38, SIG_UINT16(0x0200),           // pushi 0200h
+	0x78,                               // push1
+	SIG_MAGICDWORD,
+	0x39, 0x0e,                         // pushi 0Eh
+	0x81, 0x00,                         // lag global[0]
+	0x4a, 0x06, 0x00,                   // send 06 - GKEgo::get(0Eh)
+	// end of giving player drum book code
+	0x38, SIG_UINT16(0x0202),           // pushi 0202h
+	0x78,                               // push1
+	0x39, 0x0e,                         // pushi 0Eh
+	0x81, 0x00,                         // lag global[0]
+	0x4a, 0x06, 0x00,                   // send 06 - GKEgo::has(0Eh)
+	0x18,                               // not
+	0x30, SIG_UINT16(0x0025),           // bnt [veve newspaper code]
+	SIG_END
+};
+
+static const uint16 gk1PatchDay5DrumBookDialogue[] = {
+	0x31, 0x0d,                         // bnt [skip giving player drum book code] adjusted
+	PATCH_ADDTOOFFSET(+11),             // skip give player drum book original code
+	0x33, 0x0D,                         // jmp [over the check inventory for drum book code]
+	// check inventory for drum book
+	0x38, SIG_UINT16(0x0202),           // pushi 0202h
+	0x78,                               // push1
+	0x39, 0x0e,                         // pushi 0Eh
+	0x81, 0x00,                         // lag global[0]
+	0x4a, 0x06, 0x00,                   // send 06 - GKEgo::has(0Eh)
+	0x2f, 0x23,                         // bt [veve newspaper code] (adjusted, saves 2 bytes)
+	PATCH_END
+};
+
 // startOfDay5::changeState (20h) - when gabriel goes to the phone the script will hang
 // Applies to at least: English PC-CD, German PC-CD, English Mac
 // Responsible method: startOfDay5::changeState
@@ -729,7 +791,7 @@ static const uint16 gk1PatchInterrogationBug[] = {
 	0x76,                            // push0
 	0x4a, 0x04, 0x00,                // send 0004
 	0xa5, 0x00,                      // sat 00
-	0x38, SIG_SELECTOR16(dispose),   // pushi dispose
+	0x38, PATCH_SELECTOR16(dispose), // pushi dispose
 	0x76,                            // push0
 	0x63, 0x50,                      // pToa 50
 	0x4a, 0x04, 0x00,                // send 0004
@@ -848,13 +910,14 @@ static const uint16 gk1PatchDay10GabrielDressUp[] = {
 	PATCH_END
 };
 
-//          script, description,                                      signature                        patch
+//          script, description,                                      signature                         patch
 static const SciScriptPatcherEntry gk1Signatures[] = {
-	{  true,    51, "interrogation bug",                           1, gk1SignatureInterrogationBug,    gk1PatchInterrogationBug },
-	{  true,   212, "day 5 phone freeze",                          1, gk1SignatureDay5PhoneFreeze,     gk1PatchDay5PhoneFreeze },
-	{  true,   230, "day 6 police beignet timer issue",            1, gk1SignatureDay6PoliceBeignet,   gk1PatchDay6PoliceBeignet },
-	{  true,   230, "day 6 police sleep timer issue",              1, gk1SignatureDay6PoliceSleep,     gk1PatchDay6PoliceSleep },
-	{  true,   808, "day 10 gabriel dress up infinite turning",    1, gk1SignatureDay10GabrielDressUp, gk1PatchDay10GabrielDressUp },
+	{  true,    51, "interrogation bug",                           1, gk1SignatureInterrogationBug,     gk1PatchInterrogationBug },
+	{  true,   212, "day 5 drum book dialogue error",              1, gk1SignatureDay5DrumBookDialogue, gk1PatchDay5DrumBookDialogue },
+	{  true,   212, "day 5 phone freeze",                          1, gk1SignatureDay5PhoneFreeze,      gk1PatchDay5PhoneFreeze },
+	{  true,   230, "day 6 police beignet timer issue",            1, gk1SignatureDay6PoliceBeignet,    gk1PatchDay6PoliceBeignet },
+	{  true,   230, "day 6 police sleep timer issue",              1, gk1SignatureDay6PoliceSleep,      gk1PatchDay6PoliceSleep },
+	{  true,   808, "day 10 gabriel dress up infinite turning",    1, gk1SignatureDay10GabrielDressUp,  gk1PatchDay10GabrielDressUp },
 	SCI_SIGNATUREENTRY_TERMINATOR
 };
 
@@ -1690,7 +1753,7 @@ static const uint16 kq7SignatureSubtitleFix3[] = {
 static const uint16 kq7PatchSubtitleFix3[] = {
 	PATCH_ADDTOOFFSET(+2),              // skip over "pToa initialized code"
 	0x2f, 0x0c,                         // bt [skip init code] - saved 1 byte
-	0x38, 
+	0x38,
 	PATCH_GETORIGINALBYTE(+6),
 	PATCH_GETORIGINALBYTE(+7),          // pushi (init)
 	0x76,                               // push0
@@ -3118,10 +3181,41 @@ static const uint16 qfg1vgaPatchWhiteStagDagger[] = {
 	PATCH_END
 };
 
+// The dagger range has a script bug that can freeze the game or cause Brutus to kill you even after you've killed him.
+// This is a bug in the original game.
+//
+// When Bruno leaves, a 300 tick countdown starts. If you kill Brutus or leave room 73 within those 300 ticks then
+// the game is left in a broken state. For the rest of the game, if you ever return to the dagger range from the
+// east or west during the first half of the day then the game will freeze or Brutus will come back to life
+// and kill you, even if you already killed him.
+//
+// Special thanks, credits and kudos to sluicebox, who did a ton of research on this and even found this game bug originally.
+//
+// Applies to at least: English floppy, Mac floppy
+// Responsible method: brutusWaits::changeState
+// Fixes bug #9558
+static const uint16 qfg1vgaSignatureBrutusScriptFreeze[] = {
+	0x78,                               // push1
+	0x38, SIG_UINT16(0x144),            // pushi 144h (324d)
+	0x45, 0x05, 0x02,                   // call export 5 of script 0
+	SIG_MAGICDWORD,
+	0x34, SIG_UINT16(0x12c),            // ldi 12Ch (300d)
+	0x65, 0x20,                         // aTop ticks
+	SIG_END
+};
+
+static const uint16 qfg1vgaPatchBrutusScriptFreeze[] = {
+	0x34, PATCH_UINT16(0),              // ldi 0 (waste 7 bytes)
+	0x35, 0x00,                         // ldi 0
+	0x35, 0x00,                         // ldi 0
+	PATCH_END
+};
+
 //          script, description,                                      signature                            patch
 static const SciScriptPatcherEntry qfg1vgaSignatures[] = {
 	{  true,    41, "moving to castle gate",                       1, qfg1vgaSignatureMoveToCastleGate,    qfg1vgaPatchMoveToCastleGate },
 	{  true,    55, "healer's hut, no delay for buy/steal",        1, qfg1vgaSignatureHealerHutNoDelay,    qfg1vgaPatchHealerHutNoDelay },
+	{  true,    73, "brutus script freeze glitch",                 1, qfg1vgaSignatureBrutusScriptFreeze,  qfg1vgaPatchBrutusScriptFreeze },
 	{  true,    77, "white stag dagger throw animation glitch",    1, qfg1vgaSignatureWhiteStagDagger,     qfg1vgaPatchWhiteStagDagger },
 	{  true,    96, "funny room script bug fixed",                 1, qfg1vgaSignatureFunnyRoomFix,        qfg1vgaPatchFunnyRoomFix },
 	{  true,   210, "cheetaur description fixed",                  1, qfg1vgaSignatureCheetaurDescription, qfg1vgaPatchCheetaurDescription },
@@ -3651,7 +3745,7 @@ static const uint16 qfg3PatchRoom750Bounds1[] = {
 static const uint16 qfg3SignatureRoom750Bounds2[] = {
 	// (ego x: 294 y: 39)
 	0x78,                               // push1 ("x")
-	0x78,                               // push1 
+	0x78,                               // push1
 	0x38, SIG_UINT16(294),              // pushi 294
 	0x76,                               // push0 ("y")
 	0x78,                               // push1

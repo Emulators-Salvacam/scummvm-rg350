@@ -63,8 +63,9 @@ FullpipeEngine::FullpipeEngine(OSystem *syst, const ADGameDescription *gameDesc)
 		warning("Sound initialization failed.");
 	}
 
-	_mixer->setVolumeForSoundType(Audio::Mixer::kSFXSoundType, ConfMan.getInt("sfx_volume"));
-	_mixer->setVolumeForSoundType(Audio::Mixer::kMusicSoundType, ConfMan.getInt("music_volume"));
+	syncSoundSettings();
+	_sfxVolume = ConfMan.getInt("sfx_volume") * 39 - 10000;
+	_musicVolume = ConfMan.getInt("music_volume");
 
 	_rnd = new Common::RandomSource("fullpipe");
 	_console = 0;
@@ -83,9 +84,6 @@ FullpipeEngine::FullpipeEngine(OSystem *syst, const ADGameDescription *gameDesc)
 
 	_soundEnabled = true;
 	_flgSoundList = true;
-
-	_sfxVolume = 0;
-	_musicVolume = 0;
 
 	_inputController = 0;
 	_inputDisabled = false;
@@ -286,10 +284,18 @@ Common::Error FullpipeEngine::run() {
 
 	_gameContinue = true;
 
+	int time1 = g_fp->_system->getMillis();
+
 	while (_gameContinue) {
 		updateEvents();
 
-		updateScreen();
+		int time2 = g_fp->_system->getMillis();
+
+		// 30fps
+		if (time2 - time1 >= 33 || !_normalSpeed) {
+			time1 = time2;
+			updateScreen();
+		}
 
 		if (_needRestart) {
 			if (_modalObject) {
@@ -305,8 +311,7 @@ Common::Error FullpipeEngine::run() {
 			_needRestart = false;
 		}
 
-		if (_normalSpeed)
-			_system->delayMillis(10);
+		_system->delayMillis(5);
 		_system->updateScreen();
 	}
 
@@ -463,6 +468,7 @@ void FullpipeEngine::cleanup() {
 	stopAllSoundStreams();
 
 	delete _origFormat;
+	_backgroundSurface.free();
 }
 
 void FullpipeEngine::updateScreen() {

@@ -2,7 +2,8 @@
 DEBUG=0
 USE_ZLIB   = 1
 USE_TREMOR = 1
-USE_FLAC   = 0
+USE_FLAC   = 1
+USE_MAD    = 1
 HAVE_MT32EMU=0
 
 ifeq ($(platform),)
