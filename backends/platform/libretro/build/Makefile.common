@@ -140,6 +140,7 @@ endif
 
 ifeq ($(USE_MAD), 1)
 DEFINES += -DUSE_MAD -DFPM_DEFAULT
+INCLUDES += -I$(DEPS_DIR)/libmad
 OBJS +=  $(DEPS_DIR)/libmad/bit.o \
 			$(DEPS_DIR)/libmad/decoder.o \
 			$(DEPS_DIR)/libmad/frame.o \
