@@ -1,7 +1,8 @@
 ##LIBRETRO
 DEBUG=0
 USE_ZLIB   = 1
-USE_TREMOR = 1
+USE_TREMOR = 0
+USE_VORBIS = 1
 USE_FLAC   = 1
 USE_MAD    = 1
 HAVE_MT32EMU=0
@@ -112,11 +113,15 @@ else ifeq ($(platform), android-armv7)
    DEFINES += -fPIC -Wno-multichar -D_ARM_ASSEM_
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
+   USE_VORBIS = 0
+   USE_TREMOR = 1
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    SHARED := -shared -Wl,--no-undefined
    DEFINES += -fPIC -Wno-multichar -D_ARM_ASSEM_
    CC = gcc
+   USE_VORBIS = 0
+   USE_TREMOR = 1
 ifneq (,$(findstring cortexa8,$(platform)))
    DEFINES += -marm -mcpu=cortex-a8
 else ifneq (,$(findstring cortexa9,$(platform)))
