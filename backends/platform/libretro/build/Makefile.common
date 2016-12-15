@@ -203,6 +203,22 @@ OBJS += $(DEPS_DIR)/libpng/png.o \
 			$(DEPS_DIR)/libpng/pngwio.o
 endif
 
+ifeq ($(USE_THEORADEC), 1)
+DEFINES += -DUSE_THEORADEC
+INCLUDES += -I$(DEPS_DIR)/theora/include
+OBJS += $(DEPS_DIR)/theora/lib/bitpack.o \
+			$(DEPS_DIR)/theora/lib/decinfo.o \
+			$(DEPS_DIR)/theora/lib/decode.o \
+			$(DEPS_DIR)/theora/lib/dequant.o \
+			$(DEPS_DIR)/theora/lib/fragment.o \
+			$(DEPS_DIR)/theora/lib/huffdec.o \
+			$(DEPS_DIR)/theora/lib/idct.o \
+			$(DEPS_DIR)/theora/lib/info.o \
+			$(DEPS_DIR)/theora/lib/internal.o \
+			$(DEPS_DIR)/theora/lib/quant.o \
+			$(DEPS_DIR)/theora/lib/state.o
+endif
+
 ifneq ($(STATIC_LINKING), 1)
 OBJS +=  $(LIBRETRO_COMM_DIR)/file/retro_dirent.o \
 			$(LIBRETRO_COMM_DIR)/file/retro_stat.o \
