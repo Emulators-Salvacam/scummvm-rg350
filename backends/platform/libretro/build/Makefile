@@ -5,6 +5,7 @@ USE_TREMOR = 0
 USE_VORBIS = 1
 USE_FLAC   = 1
 USE_MAD    = 1
+USE_PNG    = 1
 HAVE_MT32EMU=0
 
 ifeq ($(platform),)
