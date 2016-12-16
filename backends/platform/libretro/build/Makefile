@@ -8,6 +8,7 @@ USE_MAD    = 1
 USE_FAAD   = 1
 USE_PNG    = 1
 USE_THEORADEC=1
+USE_FREETYPE2=1
 HAVE_MT32EMU=0
 
 ifeq ($(platform),)
