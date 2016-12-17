@@ -40,7 +40,7 @@ ifneq ($(GIT_VERSION)," unknown")
 endif
 
 ifeq ($(shell uname -m), x86_64)
-   DEFINES += -DSIZEOF_SIZE_T=8
+   DEFINES += -DSIZEOF_SIZE_T=8 -DSCUMM_64BITS
 else
    DEFINES += -DSIZEOF_SIZE_T=4
 endif
