@@ -242,6 +242,57 @@ OBJS += $(DEPS_DIR)/libpng/png.o \
 			$(DEPS_DIR)/libpng/pngwio.o
 endif
 
+ifeq ($(USE_JPEG), 1)
+DEFINES += -DUSE_JPEG -DJDCT_DEFAULT=JDCT_IFAST
+INCLUDES += -I$(DEPS_DIR)/libjpeg
+OBJS += $(DEPS_DIR)/libjpeg/jaricom.o \
+			$(DEPS_DIR)/libjpeg/jcapimin.o \
+			$(DEPS_DIR)/libjpeg/jcapistd.o \
+			$(DEPS_DIR)/libjpeg/jcarith.o \
+			$(DEPS_DIR)/libjpeg/jccoefct.o \
+			$(DEPS_DIR)/libjpeg/jccolor.o \
+			$(DEPS_DIR)/libjpeg/jcdctmgr.o \
+			$(DEPS_DIR)/libjpeg/jcinit.o \
+			$(DEPS_DIR)/libjpeg/jchuff.o \
+			$(DEPS_DIR)/libjpeg/jcmarker.o \
+			$(DEPS_DIR)/libjpeg/jcmainct.o \
+			$(DEPS_DIR)/libjpeg/jcmaster.o \
+			$(DEPS_DIR)/libjpeg/jcomapi.o \
+			$(DEPS_DIR)/libjpeg/jcphuff.o \
+			$(DEPS_DIR)/libjpeg/jcprepct.o \
+			$(DEPS_DIR)/libjpeg/jcsample.o \
+			$(DEPS_DIR)/libjpeg/jdapimin.o \
+			$(DEPS_DIR)/libjpeg/jdapistd.o \
+			$(DEPS_DIR)/libjpeg/jdarith.o \
+			$(DEPS_DIR)/libjpeg/jdcoefct.o \
+			$(DEPS_DIR)/libjpeg/jdcolor.o \
+			$(DEPS_DIR)/libjpeg/jddctmgr.o \
+			$(DEPS_DIR)/libjpeg/jdhuff.o \
+			$(DEPS_DIR)/libjpeg/jdinput.o \
+			$(DEPS_DIR)/libjpeg/jdmarker.o \
+			$(DEPS_DIR)/libjpeg/jdmainct.o \
+			$(DEPS_DIR)/libjpeg/jdmaster.o \
+			$(DEPS_DIR)/libjpeg/jdmerge.o \
+			$(DEPS_DIR)/libjpeg/jdphuff.o \
+			$(DEPS_DIR)/libjpeg/jdpostct.o \
+			$(DEPS_DIR)/libjpeg/jdsample.o \
+			$(DEPS_DIR)/libjpeg/jdtrans.o \
+			$(DEPS_DIR)/libjpeg/jerror.o \
+			$(DEPS_DIR)/libjpeg/jidctflt.o \
+			$(DEPS_DIR)/libjpeg/jidctfst.o \
+			$(DEPS_DIR)/libjpeg/jidctint.o \
+			$(DEPS_DIR)/libjpeg/jidctred.o \
+			$(DEPS_DIR)/libjpeg/jfdctflt.o \
+			$(DEPS_DIR)/libjpeg/jfdctfst.o \
+			$(DEPS_DIR)/libjpeg/jfdctint.o \
+			$(DEPS_DIR)/libjpeg/jmemmgr.o \
+			$(DEPS_DIR)/libjpeg/jmemnobs.o \
+			$(DEPS_DIR)/libjpeg/jquant1.o \
+			$(DEPS_DIR)/libjpeg/jquant2.o \
+			$(DEPS_DIR)/libjpeg/jutils.o \
+			$(DEPS_DIR)/libjpeg/jsimd_none.o
+endif
+
 ifeq ($(USE_THEORADEC), 1)
 DEFINES += -DUSE_THEORADEC
 INCLUDES += -I$(DEPS_DIR)/theora/include

@@ -7,6 +7,7 @@ USE_FLAC   = 1
 USE_MAD    = 1
 USE_FAAD   = 1
 USE_PNG    = 1
+USE_JPEG   = 1
 USE_THEORADEC=1
 USE_FREETYPE2=1
 HAVE_MT32EMU=0
@@ -36,6 +37,12 @@ TARGET_NAME := scummvm
 GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
 	CXXFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
+endif
+
+ifeq ($(shell uname -m), x86_64)
+   DEFINES += -DSIZEOF_SIZE_T=8
+else
+   DEFINES += -DSIZEOF_SIZE_T=4
 endif
 
 LD        = $(CXX)
