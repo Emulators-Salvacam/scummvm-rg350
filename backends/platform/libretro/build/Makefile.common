@@ -101,6 +101,10 @@ OBJS += $(DEPS_DIR)/libFLAC/bitreader.o \
 			$(DEPS_DIR)/libFLAC/memory.o \
 			$(DEPS_DIR)/libFLAC/metadata_object.o \
 			$(DEPS_DIR)/libFLAC/stream_decoder.o
+
+ifeq ($(platform), win)
+OBJS += $(DEPS_DIR)/libFLAC/share/win_utf8_io/win_utf8_io.o
+endif
 endif
 
 ifeq ($(USE_VORBIS), 1)
