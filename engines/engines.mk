@@ -20,6 +20,11 @@ DEFINES += -DENABLE_ACCESS=$(ENABLE_ACCESS)
 MODULES += engines/access
 endif
 
+ifdef ENABLE_ADL
+DEFINES += -DENABLE_ADL=$(ENABLE_ADL)
+MODULES += engines/adl
+endif
+
 ifdef ENABLE_AGI
 DEFINES += -DENABLE_AGI=$(ENABLE_AGI)
 MODULES += engines/agi
@@ -92,6 +97,11 @@ endif
 ifdef ENABLE_GOB
 DEFINES += -DENABLE_GOB=$(ENABLE_GOB)
 MODULES += engines/gob
+endif
+
+ifdef ENABLE_GNAP
+DEFINES += -DENABLE_GNAP=$(ENABLE_GNAP)
+MODULES += engines/gnap
 endif
 
 ifdef ENABLE_GROOVIE
