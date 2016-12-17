@@ -74,7 +74,7 @@ ENABLE_VOYEUR = $(ENABLED)
 #ENABLE_WAGE = $(ENABLED)        # Marked WIP in the ScummVM wiki
 ENABLE_WINTERMUTE = $(ENABLED)
 #ENABLE_XEEN = $(ENABLED)        # Marked WIP in the ScummVM wiki
-#ENABLE_ZVISION = $(ENABLED)     # Depends on FreeType2
+ENABLE_ZVISION = $(ENABLED)
 
 INCFLAGS    := -I$(LIBRETRO_DIR) -I$(CORE_DIR) -I$(DEPS_DIR) -I$(CORE_DIR)/engines -I$(LIBRETRO_COMM_DIR)/include -I$(LIBRETRO_COMM_DIR)/include/compat
 
