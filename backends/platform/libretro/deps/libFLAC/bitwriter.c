@@ -44,6 +44,9 @@
 #include "share/compat.h"
 #include "share/endswap.h"
 
+#include <retro_inline.h>
+#include <retro_miscellaneous.h>
+
 /* Things should be fastest when this matches the machine word size */
 /* WATCHOUT: if you change this you must also change the following #defines down to SWAP_BE_WORD_TO_HOST below to match */
 /* WATCHOUT: there are a few places where the code will not work unless uint32_t is >= 32 bits wide */
@@ -107,7 +110,7 @@ FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, unsigned bits_to_add)
 	FLAC__ASSERT(new_capacity > bw->capacity);
 	FLAC__ASSERT(new_capacity >= bw->words + ((bw->bits + bits_to_add + FLAC__BITS_PER_WORD - 1) / FLAC__BITS_PER_WORD));
 
-	new_buffer = safe_realloc_mul_2op_(bw->buffer, sizeof(uint32_t), /*times*/new_capacity);
+	new_buffer = (uint32_t*)safe_realloc_mul_2op_(bw->buffer, sizeof(uint32_t), /*times*/new_capacity);
 	if(new_buffer == 0)
 		return false;
 	bw->buffer = new_buffer;
@@ -124,7 +127,7 @@ FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, unsigned bits_to_add)
 
 FLAC__BitWriter *FLAC__bitwriter_new(void)
 {
-	FLAC__BitWriter *bw = calloc(1, sizeof(FLAC__BitWriter));
+	FLAC__BitWriter *bw = (FLAC__BitWriter*)calloc(1, sizeof(FLAC__BitWriter));
 	/* note that calloc() sets all members to 0 for us */
 	return bw;
 }
@@ -149,7 +152,7 @@ FLAC__bool FLAC__bitwriter_init(FLAC__BitWriter *bw)
 
 	bw->words = bw->bits = 0;
 	bw->capacity = FLAC__BITWRITER_DEFAULT_CAPACITY;
-	bw->buffer = malloc(sizeof(uint32_t) * bw->capacity);
+	bw->buffer = (uint32_t*)malloc(sizeof(uint32_t) * bw->capacity);
 	if(bw->buffer == 0)
 		return false;
 
@@ -264,7 +267,7 @@ void FLAC__bitwriter_release_buffer(FLAC__BitWriter *bw)
 	(void)bw;
 }
 
-inline FLAC__bool FLAC__bitwriter_write_zeroes(FLAC__BitWriter *bw, unsigned bits)
+FLAC__bool FLAC__bitwriter_write_zeroes(FLAC__BitWriter *bw, unsigned bits)
 {
 	unsigned n;
 
@@ -278,7 +281,7 @@ inline FLAC__bool FLAC__bitwriter_write_zeroes(FLAC__BitWriter *bw, unsigned bit
 		return false;
 	/* first part gets to word alignment */
 	if(bw->bits) {
-		n = flac_min(FLAC__BITS_PER_WORD - bw->bits, bits);
+		n = MIN(FLAC__BITS_PER_WORD - bw->bits, bits);
 		bw->accum <<= n;
 		bits -= n;
 		bw->bits += n;
@@ -302,7 +305,7 @@ inline FLAC__bool FLAC__bitwriter_write_zeroes(FLAC__BitWriter *bw, unsigned bit
 	return true;
 }
 
-inline FLAC__bool FLAC__bitwriter_write_raw_uint32(FLAC__BitWriter *bw, FLAC__uint32 val, unsigned bits)
+FLAC__bool FLAC__bitwriter_write_raw_uint32(FLAC__BitWriter *bw, FLAC__uint32 val, unsigned bits)
 {
 	register unsigned left;
 
@@ -341,7 +344,7 @@ inline FLAC__bool FLAC__bitwriter_write_raw_uint32(FLAC__BitWriter *bw, FLAC__ui
 	return true;
 }
 
-inline FLAC__bool FLAC__bitwriter_write_raw_int32(FLAC__BitWriter *bw, FLAC__int32 val, unsigned bits)
+FLAC__bool FLAC__bitwriter_write_raw_int32(FLAC__BitWriter *bw, FLAC__int32 val, unsigned bits)
 {
 	/* zero-out unused bits */
 	if(bits < 32)
@@ -350,7 +353,7 @@ inline FLAC__bool FLAC__bitwriter_write_raw_int32(FLAC__BitWriter *bw, FLAC__int
 	return FLAC__bitwriter_write_raw_uint32(bw, (FLAC__uint32)val, bits);
 }
 
-inline FLAC__bool FLAC__bitwriter_write_raw_uint64(FLAC__BitWriter *bw, FLAC__uint64 val, unsigned bits)
+FLAC__bool FLAC__bitwriter_write_raw_uint64(FLAC__BitWriter *bw, FLAC__uint64 val, unsigned bits)
 {
 	/* this could be a little faster but it's not used for much */
 	if(bits > 32) {
@@ -362,7 +365,7 @@ inline FLAC__bool FLAC__bitwriter_write_raw_uint64(FLAC__BitWriter *bw, FLAC__ui
 		return FLAC__bitwriter_write_raw_uint32(bw, (FLAC__uint32)val, bits);
 }
 
-inline FLAC__bool FLAC__bitwriter_write_raw_uint32_little_endian(FLAC__BitWriter *bw, FLAC__uint32 val)
+FLAC__bool FLAC__bitwriter_write_raw_uint32_little_endian(FLAC__BitWriter *bw, FLAC__uint32 val)
 {
 	/* this doesn't need to be that fast as currently it is only used for vorbis comments */
 
@@ -378,7 +381,7 @@ inline FLAC__bool FLAC__bitwriter_write_raw_uint32_little_endian(FLAC__BitWriter
 	return true;
 }
 
-inline FLAC__bool FLAC__bitwriter_write_byte_block(FLAC__BitWriter *bw, const FLAC__byte vals[], unsigned nvals)
+FLAC__bool FLAC__bitwriter_write_byte_block(FLAC__BitWriter *bw, const FLAC__byte vals[], unsigned nvals)
 {
 	unsigned i;
 

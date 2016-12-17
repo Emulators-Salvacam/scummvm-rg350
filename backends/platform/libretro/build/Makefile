@@ -5,8 +5,11 @@ USE_TREMOR = 0
 USE_VORBIS = 1
 USE_FLAC   = 1
 USE_MAD    = 1
+USE_FAAD   = 1
 USE_PNG    = 1
+USE_JPEG   = 1
 USE_THEORADEC=1
+USE_FREETYPE2=1
 HAVE_MT32EMU=0
 
 ifeq ($(platform),)
@@ -34,6 +37,12 @@ TARGET_NAME := scummvm
 GIT_VERSION := " $(shell git rev-parse --short HEAD || echo unknown)"
 ifneq ($(GIT_VERSION)," unknown")
 	CXXFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
+endif
+
+ifeq ($(shell uname -m), x86_64)
+   DEFINES += -DSIZEOF_SIZE_T=8 -DSCUMM_64BITS
+else
+   DEFINES += -DSIZEOF_SIZE_T=4
 endif
 
 LD        = $(CXX)
@@ -149,6 +158,7 @@ else ifeq ($(platform), emscripten)
 else
 	CC = gcc
    TARGET  := $(TARGET_NAME)_libretro.dll
+   DEFINES += -DHAVE_FSEEKO -DHAVE_INTTYPES_H
    LDFLAGS += -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=../link.T
 endif
 

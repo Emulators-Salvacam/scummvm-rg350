@@ -32,11 +32,4 @@
 #ifndef FLAC__PRIVATE__MACROS_H
 #define FLAC__PRIVATE__MACROS_H
 
-#include <retro_miscellaneous.h>
-
-#define flac_min(a,b) ((a) < (b) ? (a) : (b))
-#define flac_max(a,b) ((a) > (b) ? (a) : (b))
-
-#define HAVE_LROUND
-
 #endif
