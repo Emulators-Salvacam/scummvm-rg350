@@ -39,10 +39,11 @@ ifneq ($(GIT_VERSION)," unknown")
 	CXXFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 endif
 
+TARGET_64BIT = 0
 ifeq ($(shell uname -m), x86_64)
-   DEFINES += -DSIZEOF_SIZE_T=8 -DSCUMM_64BITS
+   BUILD_64BIT = 1
 else
-   DEFINES += -DSIZEOF_SIZE_T=4
+   BUILD_64BIT = 0
 endif
 
 LD        = $(CXX)
@@ -53,14 +54,17 @@ ifeq ($(platform), unix)
    TARGET  := $(TARGET_NAME)_libretro.so
    DEFINES += -fPIC
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
+   TARGET_64BIT := $(BUILD_64BIT)
 # OS X
 else ifeq ($(platform), osx)
    TARGET  := $(TARGET_NAME)_libretro.dylib
    DEFINES += -fPIC
    LDFLAGS += -dynamiclib -fPIC
-	arch = intel
-ifeq ($(shell uname -p),powerpc)
-	arch = ppc
+ifneq ($(shell uname -p),powerpc)
+   arch = intel
+   TARGET_64BIT := $(BUILD_64BIT)
+else
+   arch = ppc
 endif
 
 # iOS
@@ -126,6 +130,7 @@ else ifeq ($(platform), android-armv7)
    TOOLSET = arm-linux-androideabi-
    USE_VORBIS = 0
    USE_TREMOR = 1
+   undefine USE_THEORADEC
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    SHARED := -shared -Wl,--no-undefined
@@ -133,6 +138,7 @@ else ifneq (,$(findstring armv,$(platform)))
    CC = gcc
    USE_VORBIS = 0
    USE_TREMOR = 1
+   undefine USE_THEORADEC
 ifneq (,$(findstring cortexa8,$(platform)))
    DEFINES += -marm -mcpu=cortex-a8
 else ifneq (,$(findstring cortexa9,$(platform)))
@@ -166,6 +172,12 @@ ifeq ($(DEBUG), 1)
    DEFINES += -O0 -g
 else
    DEFINES += -O3
+endif
+
+ifeq ($(TARGET_64BIT), 1)
+   DEFINES += -DSIZEOF_SIZE_T=8 -DSCUMM_64BITS
+else
+   DEFINES += -DSIZEOF_SIZE_T=4
 endif
 
 ###SCUMM VM
