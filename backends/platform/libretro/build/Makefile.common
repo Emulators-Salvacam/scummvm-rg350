@@ -314,6 +314,8 @@ OBJS += $(DEPS_DIR)/theora/lib/bitpack.o \
 			$(DEPS_DIR)/theora/lib/internal.o \
 			$(DEPS_DIR)/theora/lib/quant.o \
 			$(DEPS_DIR)/theora/lib/state.o
+else
+USE_THEORADEC =
 endif
 
 ifeq ($(USE_FREETYPE2), 1)
