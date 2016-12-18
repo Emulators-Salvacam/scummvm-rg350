@@ -129,16 +129,16 @@ else ifeq ($(platform), android-armv7)
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    TOOLSET = arm-linux-androideabi-
    USE_VORBIS = 0
+   USE_THEORADEC = 0
    USE_TREMOR = 1
-   undefine USE_THEORADEC
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    SHARED := -shared -Wl,--no-undefined
    DEFINES += -fPIC -Wno-multichar -D_ARM_ASSEM_
    CC = gcc
    USE_VORBIS = 0
+   USE_THEORADEC = 0
    USE_TREMOR = 1
-   undefine USE_THEORADEC
 ifneq (,$(findstring cortexa8,$(platform)))
    DEFINES += -marm -mcpu=cortex-a8
 else ifneq (,$(findstring cortexa9,$(platform)))
