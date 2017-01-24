@@ -123,42 +123,10 @@ void retro_init (void)
    else
       log_cb = NULL;
 
-   /* Get color mode: 32 first as VGA has 6 bits per pixel */
-
-#if 0
-   RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_XRGB8888;
-   if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
-   {
-      RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_RGB565;
-      if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
-         RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_0RGB1555;
-   }
-#endif
-
-#ifdef FRONTEND_SUPPORTS_RGB565
-   enum retro_pixel_format rgb565 = RETRO_PIXEL_FORMAT_RGB565;
-   if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565) && log_cb)
-      log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 -will use that instead of XRGB1555.\n");
-#endif
-
-   retro_keyboard_callback cb = {retroKeyEvent};
-   environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
 }
 
 void retro_deinit(void)
 {
-   if(!emuThread)
-      return;
-
-   FRONTENDwantsExit = true;
-   while(!EMULATORexited)
-   {
-      retroPostQuit();
-      co_switch(emuThread);
-   }
-
-   co_delete(emuThread);
-   emuThread = 0;
 }
 
 void parse_command_params(char* cmdline)
@@ -259,6 +227,26 @@ bool retro_load_game(const struct retro_game_info *game)
 
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
+   /* Get color mode: 32 first as VGA has 6 bits per pixel */
+#if 0
+   RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_XRGB8888;
+   if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
+   {
+      RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_RGB565;
+      if(!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &RDOSGFXcolorMode))
+         RDOSGFXcolorMode = RETRO_PIXEL_FORMAT_0RGB1555;
+   }
+#endif
+
+#ifdef FRONTEND_SUPPORTS_RGB565
+   enum retro_pixel_format rgb565 = RETRO_PIXEL_FORMAT_RGB565;
+   if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &rgb565) && log_cb)
+      log_cb(RETRO_LOG_INFO, "Frontend supports RGB565 -will use that instead of XRGB1555.\n");
+#endif
+
+   retro_keyboard_callback cb = {retroKeyEvent};
+   environ_cb(RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK, &cb);
+
    if(environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &sysdir))
       retroSetSystemDir(sysdir);
    else
@@ -319,6 +307,22 @@ void retro_run (void)
    }
 }
 
+void retro_unload_game (void)
+{
+   if(!emuThread)
+      return;
+
+   FRONTENDwantsExit = true;
+   while(!EMULATORexited)
+   {
+      retroPostQuit();
+      co_switch(emuThread);
+   }
+
+   co_delete(emuThread);
+   emuThread = 0;
+}
+
 // Stubs
 void retro_set_controller_port_device(unsigned in_port, unsigned device) { }
 void *retro_get_memory_data(unsigned type) { return 0; }
@@ -329,7 +333,7 @@ bool retro_serialize(void *data, size_t size) { return false; }
 bool retro_unserialize(const void * data, size_t size) { return false; }
 void retro_cheat_reset(void) { }
 void retro_cheat_set(unsigned unused, bool unused1, const char* unused2) { }
-void retro_unload_game (void) { }
+
 unsigned retro_get_region (void) { return RETRO_REGION_NTSC; }
 
 #if defined(GEKKO) || defined(__CELLOS_LV2__)
