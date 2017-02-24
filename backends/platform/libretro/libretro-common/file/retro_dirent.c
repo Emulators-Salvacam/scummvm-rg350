@@ -97,6 +97,7 @@ struct RDIR *retro_opendir(const char *name)
    rdir->entry     = NULL;
 #endif
 
+   if(!rdir->directory) return NULL;
    return rdir;
 }
 
