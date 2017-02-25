@@ -995,6 +995,11 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          ev.kbd.keycode = (Common::KeyCode)keycode;
          ev.kbd.flags = _keyflags;
          ev.kbd.ascii = character;
+
+         /* If shift was down then send upper case letter to engine */
+         if(ev.kbd.ascii >= 97 && ev.kbd.ascii <= 122 && (_keyflags & Common::KBD_SHIFT))
+            ev.kbd.ascii = ev.kbd.ascii & ~0x20;
+
          _events.push_back(ev);
       }
 
