@@ -119,7 +119,7 @@ bool POSIXFilesystemNode::getChildren(AbstractFSList &myList, ListMode mode, boo
       entry._path       += entry._displayName;
 
       entry._isValid     = true;
-      entry._isDirectory = retro_dirent_is_dir(dirp, d_name);
+      entry._isDirectory = retro_dirent_is_dir(dirp, entry._path.c_str());
 
       // Skip files that are invalid for some reason (e.g. because we couldn't
       // properly stat them).
