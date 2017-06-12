@@ -164,7 +164,7 @@ else ifeq ($(platform), emscripten)
 else
 	CC = gcc
    TARGET  := $(TARGET_NAME)_libretro.dll
-   DEFINES += -DHAVE_FSEEKO -DHAVE_INTTYPES_H
+   DEFINES += -DHAVE_FSEEKO -DHAVE_INTTYPES_H -fno-permissive
    LDFLAGS += -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=../link.T
 endif
 
