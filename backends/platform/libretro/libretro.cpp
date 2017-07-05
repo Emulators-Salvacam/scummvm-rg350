@@ -185,31 +185,40 @@ bool retro_load_game(const struct retro_game_info *game)
    {
       /* Retrieve the game path. */
       char* path = strdup(game->path);
+      char* gamedir = dirname(path);
 
       /* See if we are acting on a .scummvm file. */
       if (strstr(path, ".scummvm") != NULL)
       {
+         // Retrieve the file data.
          FILE * gamefile;
-         char filedata[400];
-         if((gamefile = fopen ( game->path, "r")))
+         if (gamefile = fopen(game->path, "r"))
          {
-            fgets (filedata , 400 , gamefile);
+            char filedata[400];
+            fgets(filedata , 400, gamefile);
             fclose(gamefile);
-            parse_command_params(filedata);
+
+            // Create a command line parameters using -p and the game name.
+            char buffer[400];
+            sprintf(buffer, "-p \"%s\" %s", gamedir, filedata);
+            parse_command_params(buffer);
          }
       }
       else
       {
-         /* Acting on a ScummVM rom file. */
-
-         /* Assume the parent folder is the game id. */
-         char* gamedir = dirname(path);
-         char* gameid = basename(gamedir);
-
-         // Construct the game launching arguments.
-         char buffer[400];
-         sprintf(buffer, "-p \"%s\" %s", gamedir, gameid);
-         parse_command_params(buffer);
+         // Retrieve the file data.
+         FILE * gamefile;
+         if (gamefile = fopen(game->path, "r"))
+         {
+            /* Acting on a ScummVM rom file. */
+            char filedata[400];
+            if (fgets(filedata, 400, gamefile) != NULL) {
+               fclose(gamefile);
+               char buffer[400];
+               sprintf(buffer, "-p \"%s\" %s", gamedir, filedata);
+               parse_command_params(buffer);
+            }
+         }
       }
    }
 
