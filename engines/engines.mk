@@ -49,6 +49,11 @@ DEFINES += -DENABLE_BBVS=$(ENABLE_BBVS)
 MODULES += engines/bbvs
 endif
 
+ifdef ENABLE_BLADERUNNER
+DEFINES += -DENABLE_BLADERUNNER=$(ENABLE_BLADERUNNER)
+MODULES += engines/bladerunner
+endif
+
 ifdef ENABLE_CGE
 DEFINES += -DENABLE_CGE=$(ENABLE_CGE)
 MODULES += engines/cge
@@ -57,6 +62,11 @@ endif
 ifdef ENABLE_CGE2
 DEFINES += -DENABLE_CGE2=$(ENABLE_CGE2)
 MODULES += engines/cge2
+endif
+
+ifdef ENABLE_CHEWY
+DEFINES += -DENABLE_CHEWY=$(ENABLE_CHEWY)
+MODULES += engines/chewy
 endif
 
 ifdef ENABLE_CINE
@@ -72,6 +82,21 @@ endif
 ifdef ENABLE_CRUISE
 DEFINES += -DENABLE_CRUISE=$(ENABLE_CRUISE)
 MODULES += engines/cruise
+endif
+
+ifdef ENABLE_CRYO
+DEFINES += -DENABLE_CRYO=$(ENABLE_CRYO)
+MODULES += engines/cryo
+endif
+
+ifdef ENABLE_DIRECTOR
+DEFINES += -DENABLE_DIRECTOR=$(ENABLE_DIRECTOR)
+MODULES += engines/director
+endif
+
+ifdef ENABLE_DM
+DEFINES += -DENABLE_DM=$(ENABLE_DM)
+MODULES += engines/dm
 endif
 
 ifdef ENABLE_DRACI
@@ -94,14 +119,14 @@ DEFINES += -DENABLE_FULLPIPE=$(ENABLE_FULLPIPE)
 MODULES += engines/fullpipe
 endif
 
-ifdef ENABLE_GOB
-DEFINES += -DENABLE_GOB=$(ENABLE_GOB)
-MODULES += engines/gob
-endif
-
 ifdef ENABLE_GNAP
 DEFINES += -DENABLE_GNAP=$(ENABLE_GNAP)
 MODULES += engines/gnap
+endif
+
+ifdef ENABLE_GOB
+DEFINES += -DENABLE_GOB=$(ENABLE_GOB)
+MODULES += engines/gob
 endif
 
 ifdef ENABLE_GROOVIE
@@ -151,6 +176,11 @@ DEFINES += -DENABLE_LURE=$(ENABLE_LURE)
 MODULES += engines/lure
 endif
 
+ifdef ENABLE_MACVENTURE
+DEFINES += -DENABLE_MACVENTURE=$(ENABLE_MACVENTURE)
+MODULES += engines/macventure
+endif
+
 ifdef ENABLE_MADE
 DEFINES += -DENABLE_MADE=$(ENABLE_MADE)
 MODULES += engines/made
@@ -198,6 +228,11 @@ DEFINES += -DENABLE_PEGASUS=$(ENABLE_PEGASUS)
 MODULES += engines/pegasus
 endif
 
+ifdef ENABLE_PLUMBERS
+DEFINES += -DENABLE_PLUMBERS=$(ENABLE_PLUMBERS)
+MODULES += engines/plumbers
+endif
+
 ifdef ENABLE_PRINCE
 DEFINES += -DENABLE_PRINCE=$(ENABLE_PRINCE)
 MODULES += engines/prince
@@ -240,6 +275,11 @@ DEFINES += -DENABLE_SKY=$(ENABLE_SKY)
 MODULES += engines/sky
 endif
 
+ifdef ENABLE_SLUDGE
+DEFINES += -DENABLE_SLUDGE=$(ENABLE_SLUDGE)
+MODULES += engines/sludge
+endif
+
 ifdef ENABLE_SWORD1
 DEFINES += -DENABLE_SWORD1=$(ENABLE_SWORD1)
 MODULES += engines/sword1
@@ -268,6 +308,11 @@ endif
 ifdef ENABLE_TINSEL
 DEFINES += -DENABLE_TINSEL=$(ENABLE_TINSEL)
 MODULES += engines/tinsel
+endif
+
+ifdef ENABLE_TITANIC
+DEFINES += -DENABLE_TITANIC=$(ENABLE_TITANIC)
+MODULES += engines/titanic
 endif
 
 ifdef ENABLE_TOLTECS
@@ -305,9 +350,19 @@ DEFINES += -DENABLE_VOYEUR=$(ENABLE_VOYEUR)
 MODULES += engines/voyeur
 endif
 
+ifdef ENABLE_WAGE
+DEFINES += -DENABLE_WAGE=$(ENABLE_WAGE)
+MODULES += engines/wage
+endif
+
 ifdef ENABLE_WINTERMUTE
 DEFINES += -DENABLE_WINTERMUTE=$(ENABLE_WINTERMUTE)
 MODULES += engines/wintermute
+endif
+
+ifdef ENABLE_XEEN
+DEFINES += -DENABLE_XEEN=$(ENABLE_XEEN)
+MODULES += engines/xeen
 endif
 
 ifdef ENABLE_ZVISION
