@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{04902069-5695-4802-9898-8A6C29C397F9}</ProjectGuid>
+		<ProjectGuid>{9FC03C65-B928-46CC-B360-670D62F424DB}</ProjectGuid>
 		<RootNamespace>zvision</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

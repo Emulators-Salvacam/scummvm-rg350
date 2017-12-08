@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{E8AB981D-4A7E-45CE-B8F7-B6701F32BB5D}</ProjectGuid>
+		<ProjectGuid>{13008A94-34F3-4D24-A3A0-77DDC0FEA4E0}</ProjectGuid>
 		<RootNamespace>sherlock</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath11)</VCTargetsPath>

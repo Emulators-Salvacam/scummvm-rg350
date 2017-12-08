@@ -79,7 +79,7 @@ struct RetroPalette
       memcpy(_colors + start * 3, colors, num * 3);
    }
 
-   void get(byte* colors, uint start, uint num)
+   void get(byte* colors, uint start, uint num) const
    {
       memcpy(colors, _colors + start * 3, num * 3);
    }
@@ -445,7 +445,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          _gamePalette.set(colors, start, num);
       }
 
-      virtual void grabPalette(byte *colors, uint start, uint num)
+      virtual void grabPalette(byte *colors, uint start, uint num) const
       {
          _gamePalette.get(colors, start, num);
       }

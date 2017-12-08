@@ -42,6 +42,7 @@
 					<Add option="-DUSE_SCALERS" />
 					<Add option="-DUSE_HQ_SCALERS" />
 					<Add option="-DUSE_RGB_COLOR" />
+					<Add option="-DUSE_HIGHRES" />
 					<Add option="-DUSE_MT32EMU" />
 					<Add option="-DUSE_NASM" />
 					<Add option="-DUSE_OPENGL" />
@@ -67,6 +68,7 @@
 					<Add option="-DENABLE_DRACI" />
 					<Add option="-DENABLE_DRASCULA" />
 					<Add option="-DENABLE_DREAMWEB" />
+					<Add option="-DENABLE_FULLPIPE" />
 					<Add option="-DENABLE_GNAP" />
 					<Add option="-DENABLE_GOB" />
 					<Add option="-DENABLE_GROOVIE" />
@@ -80,15 +82,18 @@
 					<Add option="-DENABLE_MADE" />
 					<Add option="-DENABLE_MADS" />
 					<Add option="-DENABLE_MOHAWK" />
+					<Add option="-DENABLE_RIVEN" />
 					<Add option="-DENABLE_MYST" />
 					<Add option="-DENABLE_MORTEVIELLE" />
 					<Add option="-DENABLE_NEVERHOOD" />
 					<Add option="-DENABLE_PARALLACTION" />
 					<Add option="-DENABLE_PEGASUS" />
+					<Add option="-DENABLE_PLUMBERS" />
 					<Add option="-DENABLE_QUEEN" />
 					<Add option="-DENABLE_SAGA" />
 					<Add option="-DENABLE_IHNM" />
 					<Add option="-DENABLE_SCI" />
+					<Add option="-DENABLE_SCI32" />
 					<Add option="-DENABLE_SHERLOCK" />
 					<Add option="-DENABLE_SKY" />
 					<Add option="-DENABLE_SWORD1" />
@@ -96,6 +101,7 @@
 					<Add option="-DENABLE_SWORD25" />
 					<Add option="-DENABLE_TEENAGENT" />
 					<Add option="-DENABLE_TINSEL" />
+					<Add option="-DENABLE_TITANIC" />
 					<Add option="-DENABLE_TOLTECS" />
 					<Add option="-DENABLE_TONY" />
 					<Add option="-DENABLE_TOON" />
@@ -122,6 +128,8 @@
 		<Unit filename="..\..\engines\adl\adl_v3.h" />
 		<Unit filename="..\..\engines\adl\adl_v4.cpp" />
 		<Unit filename="..\..\engines\adl\adl_v4.h" />
+		<Unit filename="..\..\engines\adl\adl_v5.cpp" />
+		<Unit filename="..\..\engines\adl\adl_v5.h" />
 		<Unit filename="..\..\engines\adl\console.cpp" />
 		<Unit filename="..\..\engines\adl\console.h" />
 		<Unit filename="..\..\engines\adl\detection.cpp" />
@@ -132,16 +140,14 @@
 		<Unit filename="..\..\engines\adl\display.h" />
 		<Unit filename="..\..\engines\adl\graphics.cpp" />
 		<Unit filename="..\..\engines\adl\graphics.h" />
-		<Unit filename="..\..\engines\adl\graphics_v1.cpp" />
-		<Unit filename="..\..\engines\adl\graphics_v2.cpp" />
-		<Unit filename="..\..\engines\adl\hires0.cpp" />
 		<Unit filename="..\..\engines\adl\hires1.cpp" />
 		<Unit filename="..\..\engines\adl\hires2.cpp" />
 		<Unit filename="..\..\engines\adl\hires4.cpp" />
+		<Unit filename="..\..\engines\adl\hires5.cpp" />
 		<Unit filename="..\..\engines\adl\hires6.cpp" />
 		<Unit filename="..\..\engines\adl\module.mk" />
-		<Unit filename="..\..\engines\adl\speaker.cpp" />
-		<Unit filename="..\..\engines\adl\speaker.h" />
+		<Unit filename="..\..\engines\adl\sound.cpp" />
+		<Unit filename="..\..\engines\adl\sound.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

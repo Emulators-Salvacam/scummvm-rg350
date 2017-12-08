@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{C004AAF3-ECAA-48B1-B4D7-BD34D08A6109}</ProjectGuid>
+		<ProjectGuid>{DD7C3522-BA7B-43C0-8D3B-90A0E4CCF2F9}</ProjectGuid>
 		<RootNamespace>adl</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath11)</VCTargetsPath>
@@ -114,31 +114,31 @@
 		<ClCompile Include="..\..\engines\adl\adl_v2.cpp" />
 		<ClCompile Include="..\..\engines\adl\adl_v3.cpp" />
 		<ClCompile Include="..\..\engines\adl\adl_v4.cpp" />
+		<ClCompile Include="..\..\engines\adl\adl_v5.cpp" />
 		<ClCompile Include="..\..\engines\adl\console.cpp" />
 		<ClCompile Include="..\..\engines\adl\detection.cpp" />
 		<ClCompile Include="..\..\engines\adl\disk.cpp" />
 		<ClCompile Include="..\..\engines\adl\display.cpp" />
 		<ClCompile Include="..\..\engines\adl\graphics.cpp" />
-		<ClCompile Include="..\..\engines\adl\graphics_v1.cpp" />
-		<ClCompile Include="..\..\engines\adl\graphics_v2.cpp" />
-		<ClCompile Include="..\..\engines\adl\hires0.cpp" />
 		<ClCompile Include="..\..\engines\adl\hires1.cpp" />
 		<ClCompile Include="..\..\engines\adl\hires2.cpp" />
 		<ClCompile Include="..\..\engines\adl\hires4.cpp" />
+		<ClCompile Include="..\..\engines\adl\hires5.cpp" />
 		<ClCompile Include="..\..\engines\adl\hires6.cpp" />
-		<ClCompile Include="..\..\engines\adl\speaker.cpp" />
+		<ClCompile Include="..\..\engines\adl\sound.cpp" />
 	</ItemGroup>
 	<ItemGroup>
 		<ClInclude Include="..\..\engines\adl\adl.h" />
 		<ClInclude Include="..\..\engines\adl\adl_v2.h" />
 		<ClInclude Include="..\..\engines\adl\adl_v3.h" />
 		<ClInclude Include="..\..\engines\adl\adl_v4.h" />
+		<ClInclude Include="..\..\engines\adl\adl_v5.h" />
 		<ClInclude Include="..\..\engines\adl\console.h" />
 		<ClInclude Include="..\..\engines\adl\detection.h" />
 		<ClInclude Include="..\..\engines\adl\disk.h" />
 		<ClInclude Include="..\..\engines\adl\display.h" />
 		<ClInclude Include="..\..\engines\adl\graphics.h" />
-		<ClInclude Include="..\..\engines\adl\speaker.h" />
+		<ClInclude Include="..\..\engines\adl\sound.h" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Include="..\..\engines\adl\module.mk" />

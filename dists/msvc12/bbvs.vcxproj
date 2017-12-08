@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{187AF57A-5508-4C21-8D25-70D2E7479142}</ProjectGuid>
+		<ProjectGuid>{6F6CD663-4113-4756-A96E-F3C2B92C590D}</ProjectGuid>
 		<RootNamespace>bbvs</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

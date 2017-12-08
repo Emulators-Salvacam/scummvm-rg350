@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="wintermute"
-	ProjectGUID="{F5389CB7-1E38-424C-A439-008CF5DC2647}"
+	ProjectGUID="{D900CD3A-0FDB-4552-8139-DB9FE2B114B4}"
 	RootNamespace="wintermute"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

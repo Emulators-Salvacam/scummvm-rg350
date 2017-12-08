@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{0850889E-240E-41C8-A711-363EEC51CFA6}</ProjectGuid>
+		<ProjectGuid>{E20CBF59-1A1D-4D83-A5D0-4D324FB43818}</ProjectGuid>
 		<RootNamespace>lab</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath11)</VCTargetsPath>

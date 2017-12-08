@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="voyeur"
-	ProjectGUID="{3B515A7F-0AA6-4F38-81DE-67E423A975EC}"
+	ProjectGUID="{2DD62302-6FB9-4B04-B723-C3839C96C056}"
 	RootNamespace="voyeur"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

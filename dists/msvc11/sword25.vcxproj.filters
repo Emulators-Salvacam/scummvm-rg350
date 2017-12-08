@@ -2,37 +2,37 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="fmv">
-			<UniqueIdentifier>57E768E6-0CE1-4FE5-B608-A2DEF08181C0</UniqueIdentifier>
+			<UniqueIdentifier>1C9103FD-F471-4541-84E3-B1A08740786D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gfx">
-			<UniqueIdentifier>D33BAC14-46F8-4C71-9F73-7166B0A4C30C</UniqueIdentifier>
+			<UniqueIdentifier>5A0BEBB6-9300-40E6-A881-49D020A60533</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gfx\image">
-			<UniqueIdentifier>06B3FB02-542D-4F30-9E36-7B076D9C05E0</UniqueIdentifier>
+			<UniqueIdentifier>1DDBFB4B-E4FC-4E7C-8519-C76740408C4A</UniqueIdentifier>
 		</Filter>
 		<Filter Include="input">
-			<UniqueIdentifier>1A0A44B3-EF03-47E5-9C60-F90EC9BC3F04</UniqueIdentifier>
+			<UniqueIdentifier>37EACA5B-229A-44CF-BEA9-D4CAE7871121</UniqueIdentifier>
 		</Filter>
 		<Filter Include="kernel">
-			<UniqueIdentifier>4A20DC50-B5D3-457C-8B49-883A9DB02E2B</UniqueIdentifier>
+			<UniqueIdentifier>7EA92281-1C8F-4BA0-9949-BC0F4E969768</UniqueIdentifier>
 		</Filter>
 		<Filter Include="math">
-			<UniqueIdentifier>81D97EA8-F354-4E65-8A49-F58E89DEBB1E</UniqueIdentifier>
+			<UniqueIdentifier>DDB00440-B623-43C3-A383-923E78DA180A</UniqueIdentifier>
 		</Filter>
 		<Filter Include="package">
-			<UniqueIdentifier>10DFA020-CA4D-4F0F-8280-28AF807C9DEA</UniqueIdentifier>
+			<UniqueIdentifier>DEEC6127-6819-4F12-8285-117D635EACD5</UniqueIdentifier>
 		</Filter>
 		<Filter Include="script">
-			<UniqueIdentifier>A074D92D-A221-4BCF-AE70-C3AE67BBE823</UniqueIdentifier>
+			<UniqueIdentifier>8A2795D4-4F59-4FB0-B1EA-B2547A6A5863</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sfx">
-			<UniqueIdentifier>7E562ACC-0705-42DB-9234-6E6C0A1B6815</UniqueIdentifier>
+			<UniqueIdentifier>3B4377AB-41A5-41D9-BFB9-9E6886BA723B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="util">
-			<UniqueIdentifier>DBFE94FC-7AA1-48F1-865B-E0E31B4A6557</UniqueIdentifier>
+			<UniqueIdentifier>D59F9402-A072-4721-A028-99528C3AC364</UniqueIdentifier>
 		</Filter>
 		<Filter Include="util\lua">
-			<UniqueIdentifier>34C669E7-6222-4C2F-8CC5-DDDFE48C7167</UniqueIdentifier>
+			<UniqueIdentifier>9175F2B6-BF51-4D5E-B17C-908C3D86841E</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

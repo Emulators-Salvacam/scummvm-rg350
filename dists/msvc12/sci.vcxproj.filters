@@ -2,22 +2,25 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="engine">
-			<UniqueIdentifier>63404EE5-DA4B-4845-B5C3-F2C1C65BEF00</UniqueIdentifier>
+			<UniqueIdentifier>9AFAECF7-A7D1-4EAF-B251-07090BBA069B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics">
-			<UniqueIdentifier>DF04060D-7C37-4C4E-B9A7-66B6B85056E7</UniqueIdentifier>
+			<UniqueIdentifier>E3AB4A26-55E1-4EC5-99C1-C89A1280CAD5</UniqueIdentifier>
 		</Filter>
 		<Filter Include="parser">
-			<UniqueIdentifier>207F8FA2-4B81-442D-9A7B-839F38F658E1</UniqueIdentifier>
+			<UniqueIdentifier>36AC6D4A-83DE-4CA0-AC28-5A8096E42ED0</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound">
-			<UniqueIdentifier>347E1CE5-3C96-45B4-A7E3-58BA54DEE592</UniqueIdentifier>
+			<UniqueIdentifier>41F28F48-7670-49C0-BDBF-3AE2D3217B3F</UniqueIdentifier>
+		</Filter>
+		<Filter Include="sound\decoders">
+			<UniqueIdentifier>749EE040-5EA5-4F9E-8CC7-BC24F81D9D79</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound\drivers">
-			<UniqueIdentifier>ABAE7DBE-F631-4AD3-A61B-2FE0B0FB650F</UniqueIdentifier>
+			<UniqueIdentifier>6D725E23-4FCF-4666-8EF1-C0CCF05AB0EF</UniqueIdentifier>
 		</Filter>
 		<Filter Include="video">
-			<UniqueIdentifier>D857CA0E-502C-4920-8F85-4F6A1C44ED72</UniqueIdentifier>
+			<UniqueIdentifier>C424A84A-7C73-467B-8EC2-D3E9832A0696</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>
@@ -30,6 +33,9 @@
 		<ClCompile Include="..\..\engines\sci\engine\gc.cpp">
 			<Filter>engine</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\engine\guest_additions.cpp">
+			<Filter>engine</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\engine\kernel.cpp">
 			<Filter>engine</Filter>
 		</ClCompile>
@@ -40,6 +46,9 @@
 			<Filter>engine</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\engine\kgraphics.cpp">
+			<Filter>engine</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\engine\kgraphics32.cpp">
 			<Filter>engine</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\engine\klists.cpp">
@@ -123,10 +132,16 @@
 		<ClCompile Include="..\..\engines\sci\graphics\cache.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\celobj32.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\compare.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\controls16.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\controls32.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\coordadjuster.cpp">
@@ -135,10 +150,16 @@
 		<ClCompile Include="..\..\engines\sci\graphics\cursor.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\cursor32.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\font.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\fontsjis.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\frameout.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\maciconbar.cpp">
@@ -150,10 +171,19 @@
 		<ClCompile Include="..\..\engines\sci\graphics\paint16.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\paint32.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\palette.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\palette32.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\picture.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\plane32.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\portrait.cpp">
@@ -165,13 +195,28 @@
 		<ClCompile Include="..\..\engines\sci\graphics\remap.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\remap32.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\screen.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\screen_item32.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\text16.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\text32.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\transitions.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\transitions32.cpp">
+			<Filter>graphics</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\graphics\video32.cpp">
 			<Filter>graphics</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\graphics\view.cpp">
@@ -185,6 +230,9 @@
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\parser\vocabulary.cpp">
 			<Filter>parser</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\sound\decoders\sol.cpp">
+			<Filter>sound\decoders</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\sound\drivers\adlib.cpp">
 			<Filter>sound\drivers</Filter>
@@ -210,6 +258,9 @@
 		<ClCompile Include="..\..\engines\sci\sound\audio.cpp">
 			<Filter>sound</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\sound\audio32.cpp">
+			<Filter>sound</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\sound\midiparser_sci.cpp">
 			<Filter>sound</Filter>
 		</ClCompile>
@@ -221,6 +272,9 @@
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\sound\sync.cpp">
 			<Filter>sound</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\engines\sci\video\robot_decoder.cpp">
+			<Filter>video</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\engines\sci\video\seq_decoder.cpp">
 			<Filter>video</Filter>
@@ -244,6 +298,9 @@
 		<ClInclude Include="..\..\engines\sci\engine\gc.h">
 			<Filter>engine</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\engine\guest_additions.h">
+			<Filter>engine</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\engine\kernel.h">
 			<Filter>engine</Filter>
 		</ClInclude>
@@ -263,6 +320,9 @@
 			<Filter>engine</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\engine\script_patches.h">
+			<Filter>engine</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\engine\scriptdebug.h">
 			<Filter>engine</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\engine\seg_manager.h">
@@ -292,10 +352,16 @@
 		<ClInclude Include="..\..\engines\sci\graphics\cache.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\celobj32.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\compare.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\controls16.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\controls32.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\coordadjuster.h">
@@ -304,10 +370,16 @@
 		<ClInclude Include="..\..\engines\sci\graphics\cursor.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\cursor32.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\font.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\fontsjis.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\frameout.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\helpers.h">
@@ -325,10 +397,19 @@
 		<ClInclude Include="..\..\engines\sci\graphics\paint16.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\paint32.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\palette.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\palette32.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\picture.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\plane32.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\portrait.h">
@@ -340,13 +421,28 @@
 		<ClInclude Include="..\..\engines\sci\graphics\remap.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\remap32.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\screen.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\screen_item32.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\text16.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\text32.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\transitions.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\transitions32.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\graphics\video32.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\graphics\view.h">
@@ -354,6 +450,9 @@
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\parser\vocabulary.h">
 			<Filter>parser</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\sound\decoders\sol.h">
+			<Filter>sound\decoders</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\sound\drivers\gm_names.h">
 			<Filter>sound\drivers</Filter>
@@ -367,6 +466,9 @@
 		<ClInclude Include="..\..\engines\sci\sound\audio.h">
 			<Filter>sound</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\sound\audio32.h">
+			<Filter>sound</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\sound\midiparser_sci.h">
 			<Filter>sound</Filter>
 		</ClInclude>
@@ -378,6 +480,9 @@
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\sound\sync.h">
 			<Filter>sound</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\engines\sci\video\robot_decoder.h">
+			<Filter>video</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\sci\video\seq_decoder.h">
 			<Filter>video</Filter>

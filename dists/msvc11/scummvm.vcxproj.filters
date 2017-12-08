@@ -2,220 +2,223 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="audio">
-			<UniqueIdentifier>068723C4-1655-4AEF-A47B-9AE9140D009E</UniqueIdentifier>
+			<UniqueIdentifier>1EDC3E0C-C406-4891-89F4-D0138EBE1528</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\decoders">
-			<UniqueIdentifier>61DA15C8-8A91-428B-968C-AA5AA287A4C3</UniqueIdentifier>
+			<UniqueIdentifier>B2189CB2-8462-49A4-8EB9-BF73190C0239</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\mods">
-			<UniqueIdentifier>AF9FCF2E-363B-4251-9287-FBD6A38D41A2</UniqueIdentifier>
+			<UniqueIdentifier>53F90BAF-DE86-4155-9EB7-1AB23274747F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth">
-			<UniqueIdentifier>A87A6332-DA0E-4294-BCB6-491ED9FCFC0B</UniqueIdentifier>
+			<UniqueIdentifier>DF70D5CA-95FB-4B39-92C7-221607CA9EB2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth\fmtowns_pc98">
-			<UniqueIdentifier>8672D108-B381-4C0E-88C2-B40098A1F06C</UniqueIdentifier>
+			<UniqueIdentifier>7EFE8B8A-8D64-4882-B745-725B0D13872B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth\mt32">
-			<UniqueIdentifier>324C00BA-5E28-4ECF-896F-2C97F76EE469</UniqueIdentifier>
+			<UniqueIdentifier>71728CC5-A359-4504-AF1E-6BE459BA3414</UniqueIdentifier>
+		</Filter>
+		<Filter Include="audio\softsynth\mt32\c_interface">
+			<UniqueIdentifier>767C6B52-D425-427D-92FA-BD979058A5EB</UniqueIdentifier>
+		</Filter>
+		<Filter Include="audio\softsynth\mt32\sha1">
+			<UniqueIdentifier>B0594587-B158-4C42-8772-47E65CEB18F2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth\opl">
-			<UniqueIdentifier>28223301-3A0F-4D8E-A62E-836C9C75E015</UniqueIdentifier>
+			<UniqueIdentifier>BF5C6539-E4FD-4613-BC07-1DA192700100</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends">
-			<UniqueIdentifier>8F5D69C0-3501-4036-BEC5-B5C5425420C9</UniqueIdentifier>
+			<UniqueIdentifier>A9CF5243-0916-447C-89F3-49356EA4E277</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\audiocd">
-			<UniqueIdentifier>BF9D468A-01B4-4C65-9926-F96F633723CC</UniqueIdentifier>
+			<UniqueIdentifier>3C4F5FA3-CF28-4C91-991D-F60EED2C484D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\audiocd\default">
-			<UniqueIdentifier>319E2424-B236-4FC8-B6F5-B0044CD2434A</UniqueIdentifier>
+			<UniqueIdentifier>7EEA2871-F445-48F6-A6E6-0557949D1181</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\audiocd\win32">
-			<UniqueIdentifier>B4FA33C9-4A09-432C-96E3-577E30BB2C1B</UniqueIdentifier>
+			<UniqueIdentifier>DEC11EF6-A1F9-4A36-9CE2-455E78B87879</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud">
-			<UniqueIdentifier>320A5A52-0041-482E-AFF0-36D2C25D54E0</UniqueIdentifier>
+			<UniqueIdentifier>E84A7CB1-B420-43F4-90F1-E28133F24FFD</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\box">
-			<UniqueIdentifier>2B94BC26-0701-448E-A1ED-65CBCBFCCF43</UniqueIdentifier>
+			<UniqueIdentifier>6CC0A33D-9E4F-46C3-9D95-F6C3E316703C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\dropbox">
-			<UniqueIdentifier>3E43B012-F6EF-4E38-A1D4-26B05C026855</UniqueIdentifier>
+			<UniqueIdentifier>6D44A9F3-EE65-49C5-9831-98572409792F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\googledrive">
-			<UniqueIdentifier>0F5F5EDA-B1DB-4733-BA09-F899293BECA2</UniqueIdentifier>
+			<UniqueIdentifier>758095F0-9D75-4EA5-BB7C-CCCE76D55F17</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\id">
-			<UniqueIdentifier>30FA7CD8-F296-49DB-9203-A9B32A5F08A5</UniqueIdentifier>
+			<UniqueIdentifier>48BDEEB4-F797-44CC-8B1D-507796687938</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\onedrive">
-			<UniqueIdentifier>EA3B10CB-5BC8-4133-976A-50B646F07DCE</UniqueIdentifier>
+			<UniqueIdentifier>EC80DCDD-8E7E-44A7-B43A-EC67762333C2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\events">
-			<UniqueIdentifier>0A91AEED-2475-4702-9F4A-F3E5376344EB</UniqueIdentifier>
+			<UniqueIdentifier>D9042AD2-C69A-474B-B3AB-F3127498C796</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\events\default">
-			<UniqueIdentifier>1975FC83-43CF-4BFB-9C5F-EA883541611B</UniqueIdentifier>
+			<UniqueIdentifier>29626F19-2D2D-4829-AF68-157DCE2C41F1</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\events\sdl">
-			<UniqueIdentifier>EEE02E00-9B0A-452E-A091-006A1FF15469</UniqueIdentifier>
+			<UniqueIdentifier>21104676-7ECD-4A88-8B5F-E7D9261D8E52</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\fs">
-			<UniqueIdentifier>B5E5095C-B58D-404E-9D6E-BB28CEC64540</UniqueIdentifier>
+			<UniqueIdentifier>CE75FB41-8B95-474F-9B38-148169286752</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\fs\windows">
-			<UniqueIdentifier>DC066563-B8A8-4F3B-91D4-002CE81C7572</UniqueIdentifier>
+			<UniqueIdentifier>CBEA7BFA-B6F0-4F5B-8A92-61289DF034D7</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics">
-			<UniqueIdentifier>A58E456B-F80E-432C-A0B1-2C191CA06790</UniqueIdentifier>
+			<UniqueIdentifier>84D219A8-9635-47EA-AD0D-0AE0FEA00DF2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\opengl">
-			<UniqueIdentifier>558058C6-8AA5-423A-A81D-E3BCB588A52A</UniqueIdentifier>
+			<UniqueIdentifier>393250F3-11A5-466E-8CEE-66299BEAD6F7</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\opengl\pipelines">
-			<UniqueIdentifier>C524E4CD-6617-42F5-9D8B-F0DA81CE6C64</UniqueIdentifier>
+			<UniqueIdentifier>13A0EF52-AEC3-4703-A702-43EA3AD4F8F8</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\openglsdl">
-			<UniqueIdentifier>4FC7A3CD-9927-477B-954B-20604B94A9D2</UniqueIdentifier>
+			<UniqueIdentifier>6A7BD6D1-0029-46BB-A803-4A0686F22EC3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\sdl">
-			<UniqueIdentifier>F0E8BC46-014E-4806-B2C6-B2D81D866D72</UniqueIdentifier>
+			<UniqueIdentifier>C38C2A18-1A61-4193-A83F-3C35C49351DB</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\surfacesdl">
-			<UniqueIdentifier>928EA688-DE67-44D8-8398-D7D818005300</UniqueIdentifier>
+			<UniqueIdentifier>EEB5BF44-8203-439C-B0C3-6B88F91DCDAF</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\log">
-			<UniqueIdentifier>624DC3C3-A51B-469B-AAF7-9F4746AA785E</UniqueIdentifier>
+			<UniqueIdentifier>068DEB73-A4EA-4726-8241-07DF4B7F917A</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\midi">
-			<UniqueIdentifier>624DD9AF-012A-4FA6-A496-EC1949DE64DC</UniqueIdentifier>
+			<UniqueIdentifier>F4756BB1-0B87-400D-AF2C-B5DD297A1D5D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\mixer">
-			<UniqueIdentifier>E9BCBB1D-8694-48EC-BEB5-86C2536E6FBF</UniqueIdentifier>
-		</Filter>
-		<Filter Include="backends\mixer\doublebuffersdl">
-			<UniqueIdentifier>B4AE1CC4-C531-43FC-B63B-062BFA750B25</UniqueIdentifier>
+			<UniqueIdentifier>071786F0-8FCD-48F6-B836-F29A4448E67E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\mixer\sdl">
-			<UniqueIdentifier>3DD9F6C8-143D-4FC9-B266-80C4BBF2A15A</UniqueIdentifier>
+			<UniqueIdentifier>D20EE625-97CF-45BC-ACA4-8664C9F5BCD4</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\mutex">
-			<UniqueIdentifier>B1D5E3E5-1E91-4D75-93B4-9B95EBB3DAC1</UniqueIdentifier>
+			<UniqueIdentifier>77038332-07FB-410C-9873-5249C1D8E5F0</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\mutex\sdl">
-			<UniqueIdentifier>310BF4B1-62C2-4B4B-9841-022B7D20D68B</UniqueIdentifier>
+			<UniqueIdentifier>35DD9DE7-87A6-4E36-AAE2-DE655FCB3A72</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\networking">
-			<UniqueIdentifier>9766A760-8297-4E5E-A4A0-2034055FFEE3</UniqueIdentifier>
+			<UniqueIdentifier>5C84791F-7089-4D27-A19A-C9CB085E86CA</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\networking\connection">
-			<UniqueIdentifier>0CCBBFC0-DD7C-4AB1-817E-4A96636FDA2C</UniqueIdentifier>
+			<UniqueIdentifier>D71A7B9A-131F-4295-8DC5-EFDFCA4F240E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\networking\curl">
-			<UniqueIdentifier>E0F4AE0A-C54F-416E-B137-0D7955929714</UniqueIdentifier>
+			<UniqueIdentifier>A740B581-6592-46DB-9644-D88E1DCEAA75</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\networking\sdl_net">
-			<UniqueIdentifier>B893F84A-4B1E-4629-8D3D-B8C332E25898</UniqueIdentifier>
+			<UniqueIdentifier>600B23D0-2963-40A0-85D0-00B1FE9B5AE5</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\networking\sdl_net\handlers">
-			<UniqueIdentifier>0E9AD6E3-BDB4-4FE1-A028-26BEF92B6405</UniqueIdentifier>
+			<UniqueIdentifier>C8ED9034-2ADA-4425-A505-8075E78F8EEF</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\platform">
-			<UniqueIdentifier>3B85E5A6-488C-4CFD-A702-B165FD57CCEA</UniqueIdentifier>
+			<UniqueIdentifier>76C55A1C-3FB4-4A51-957E-A1E36DD90F93</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\platform\sdl">
-			<UniqueIdentifier>2AD75DD6-543D-4F2C-8DA3-8B5B313D1948</UniqueIdentifier>
+			<UniqueIdentifier>91B403C4-598B-4214-B283-3DC5BC2F78AC</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\platform\sdl\win32">
-			<UniqueIdentifier>0DE5876C-D82E-4ADF-8AE9-9954E6E5FBF1</UniqueIdentifier>
+			<UniqueIdentifier>22A1B665-98F9-406D-BC16-951DB7EF39FB</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\plugins">
-			<UniqueIdentifier>1E83233A-8142-49F0-828A-3CA9A1AE43A4</UniqueIdentifier>
+			<UniqueIdentifier>724ECC58-8B23-4135-9B9B-83A43DE3151D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\plugins\sdl">
-			<UniqueIdentifier>21D7291B-A348-4DA5-9B94-F0B5607084DA</UniqueIdentifier>
+			<UniqueIdentifier>67AF96FB-3909-4D04-8B96-17DD72DBB622</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\plugins\win32">
-			<UniqueIdentifier>360B4DE5-E9DE-43BC-B937-6AE17D500D72</UniqueIdentifier>
+			<UniqueIdentifier>ACDDA571-44F3-4D8B-AAF5-A1D93C9DC4B9</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\saves">
-			<UniqueIdentifier>92A306A4-95CE-403D-A8AC-9F46978F5F34</UniqueIdentifier>
+			<UniqueIdentifier>CFF59DA7-AEBF-4F2F-A77F-6C4E38555122</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\saves\default">
-			<UniqueIdentifier>1C40244B-76C0-4541-BAAB-92B547CE6840</UniqueIdentifier>
+			<UniqueIdentifier>67946E33-576A-4F6B-B891-E3C195D76149</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\saves\windows">
-			<UniqueIdentifier>7FD9A608-2195-4A13-B614-3942F360F49C</UniqueIdentifier>
+			<UniqueIdentifier>BDD62BCD-A892-4245-83E2-F86E5CFD2FD9</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\taskbar">
-			<UniqueIdentifier>EA5570A9-FB49-4684-AEB9-ADDA9A5E6061</UniqueIdentifier>
+			<UniqueIdentifier>40E9C7F0-5B27-4CAE-8A81-AE77D3DC0BF8</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\taskbar\win32">
-			<UniqueIdentifier>5810F4C1-A982-45EE-A9BD-831A04BF7C94</UniqueIdentifier>
+			<UniqueIdentifier>2ED6EE76-84F8-4218-82F2-A22CEDECDF31</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\timer">
-			<UniqueIdentifier>10D4F1A1-A087-48C9-AE83-DBEB4E7B7581</UniqueIdentifier>
+			<UniqueIdentifier>9BF8F618-D064-4B46-82C9-64A45889081D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\timer\default">
-			<UniqueIdentifier>CCD4D65E-AF3E-4436-A657-B6D4DAA2BE93</UniqueIdentifier>
+			<UniqueIdentifier>4621CA0D-A096-4878-ABB7-34F998C7577C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\timer\sdl">
-			<UniqueIdentifier>EE815F15-7182-471F-AC6B-F2EFD3C5691E</UniqueIdentifier>
+			<UniqueIdentifier>600C7214-F546-4C11-81BD-82852B9AD4DA</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\updates">
-			<UniqueIdentifier>216BC53E-F80A-4A76-8B5A-6C84FD8C940A</UniqueIdentifier>
+			<UniqueIdentifier>46398EAD-0E63-4CEE-A435-6030BF87D983</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\updates\win32">
-			<UniqueIdentifier>AB447DEE-05AE-44E4-920B-3271598148BA</UniqueIdentifier>
+			<UniqueIdentifier>23DC9486-C4AC-49A3-9BD7-62EC53BF5D46</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base">
-			<UniqueIdentifier>1C5F2529-09A8-4EA5-B230-70C75BA337EA</UniqueIdentifier>
+			<UniqueIdentifier>F0FBA184-FA21-401E-B495-5C9CCAD2CFB2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="common">
-			<UniqueIdentifier>99740FAD-E4EA-4390-96B8-02BA260D2CA6</UniqueIdentifier>
+			<UniqueIdentifier>C945058C-5A7B-4AB9-9AF3-9423EF969E34</UniqueIdentifier>
 		</Filter>
 		<Filter Include="dists">
-			<UniqueIdentifier>4EDC2E8E-CA00-4C62-BFE5-C0C62A9203D1</UniqueIdentifier>
+			<UniqueIdentifier>F276A601-FB6B-461C-83A0-32319B37014C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="engines">
-			<UniqueIdentifier>1CC150AF-B42A-4492-937B-5E388135089B</UniqueIdentifier>
+			<UniqueIdentifier>60B17E74-3378-4E6C-9CA1-42B33BBDA372</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics">
-			<UniqueIdentifier>6EFEC1B8-080D-48EA-BE8A-71CDD9F1AE9F</UniqueIdentifier>
+			<UniqueIdentifier>01ADD398-07A9-4425-BB8A-2C1638449BE2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics\fonts">
-			<UniqueIdentifier>E738BAEB-8C53-439B-896C-FA4C5999FA32</UniqueIdentifier>
+			<UniqueIdentifier>F43B93CE-AB15-4754-BB4A-C4A3CB8A63D7</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics\macgui">
-			<UniqueIdentifier>F0FDCE2B-3473-4425-B784-E4186982786F</UniqueIdentifier>
+			<UniqueIdentifier>7F9BF195-1697-4472-845F-5770280F8FFB</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics\scaler">
-			<UniqueIdentifier>FDDE3C75-6F4E-44B8-B1C1-0FA0774AFA73</UniqueIdentifier>
+			<UniqueIdentifier>C43BBD88-A1B3-43B1-8C80-FA91F61736F0</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gui">
-			<UniqueIdentifier>5F2B3AE3-D849-4457-9E52-15A905AF81B8</UniqueIdentifier>
+			<UniqueIdentifier>C958484A-7715-4602-AED9-567DA76AEA38</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gui\animation">
-			<UniqueIdentifier>E5EE52EB-F705-4582-ADB6-254DCE185B06</UniqueIdentifier>
+			<UniqueIdentifier>B6B189DB-F40C-42DC-941C-42F571C059C0</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gui\widgets">
-			<UniqueIdentifier>A8044414-A416-4B0E-865D-6D893085D51F</UniqueIdentifier>
+			<UniqueIdentifier>AF9B2099-156B-4FC2-BC58-80ED2ADCCCC5</UniqueIdentifier>
 		</Filter>
 		<Filter Include="icons">
-			<UniqueIdentifier>ED0781AE-EBA8-4B54-896C-E4D3255F5E0E</UniqueIdentifier>
+			<UniqueIdentifier>307FE92F-65D1-4762-BB13-405026CC59F3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="image">
-			<UniqueIdentifier>9A26B3C9-F08C-4E72-8FE2-9DBBE03C6C0D</UniqueIdentifier>
+			<UniqueIdentifier>03EB650A-44AF-4F80-9B9D-45569E20AADD</UniqueIdentifier>
 		</Filter>
 		<Filter Include="image\codecs">
-			<UniqueIdentifier>86D42C2A-AFB9-4E1C-8278-D770DEFE72C1</UniqueIdentifier>
+			<UniqueIdentifier>E53ED256-C19D-4883-BE03-507D33B0F968</UniqueIdentifier>
 		</Filter>
 		<Filter Include="image\codecs\indeo">
-			<UniqueIdentifier>C46A1BC2-B1EE-42DC-B04F-80957E80CE34</UniqueIdentifier>
+			<UniqueIdentifier>A21A9AB9-3379-4656-82AD-9C0DFC47CE9E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="video">
-			<UniqueIdentifier>57687B3D-5910-4730-B62F-9E9DBEFA3D97</UniqueIdentifier>
+			<UniqueIdentifier>60111946-B033-474D-BD29-68D15BAEC5E8</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>
@@ -270,7 +273,13 @@
 		<ClCompile Include="..\..\audio\mods\maxtrax.cpp">
 			<Filter>audio\mods</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\audio\mods\mod_xm_s3m.cpp">
+			<Filter>audio\mods</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\audio\mods\module.cpp">
+			<Filter>audio\mods</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\audio\mods\module_mod_xm_s3m.cpp">
 			<Filter>audio\mods</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\audio\mods\paula.cpp">
@@ -306,16 +315,31 @@
 		<ClCompile Include="..\..\audio\softsynth\fmtowns_pc98\towns_pc98_plugins.cpp">
 			<Filter>audio\softsynth\fmtowns_pc98</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\audio\softsynth\mt32\c_interface\c_interface.cpp">
+			<Filter>audio\softsynth\mt32\c_interface</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\audio\softsynth\mt32\sha1\sha1.cpp">
+			<Filter>audio\softsynth\mt32\sha1</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\audio\softsynth\mt32\Analog.cpp">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\audio\softsynth\mt32\BReverbModel.cpp">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\audio\softsynth\mt32\File.cpp">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\audio\softsynth\mt32\FileStream.cpp">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\audio\softsynth\mt32\LA32Ramp.cpp">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\audio\softsynth\mt32\LA32WaveGenerator.cpp">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\audio\softsynth\mt32\MidiStreamParser.cpp">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\audio\softsynth\mt32\Part.cpp">
@@ -618,9 +642,6 @@
 		<ClCompile Include="..\..\backends\midi\windows.cpp">
 			<Filter>backends\midi</Filter>
 		</ClCompile>
-		<ClCompile Include="..\..\backends\mixer\doublebuffersdl\doublebuffersdl-mixer.cpp">
-			<Filter>backends\mixer\doublebuffersdl</Filter>
-		</ClCompile>
 		<ClCompile Include="..\..\backends\mixer\sdl\sdl-mixer.cpp">
 			<Filter>backends\mixer\sdl</Filter>
 		</ClCompile>
@@ -828,6 +849,9 @@
 		<ClCompile Include="..\..\common\mutex.cpp">
 			<Filter>common</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\common\osd_message_queue.cpp">
+			<Filter>common</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\common\platform.cpp">
 			<Filter>common</Filter>
 		</ClCompile>
@@ -918,6 +942,9 @@
 		<ClCompile Include="..\..\graphics\fonts\consolefont.cpp">
 			<Filter>graphics\fonts</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\graphics\fonts\macfont.cpp">
+			<Filter>graphics\fonts</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\graphics\fonts\newfont.cpp">
 			<Filter>graphics\fonts</Filter>
 		</ClCompile>
@@ -930,7 +957,16 @@
 		<ClCompile Include="..\..\graphics\fonts\winfont.cpp">
 			<Filter>graphics\fonts</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\graphics\macgui\macfontmanager.cpp">
+			<Filter>graphics\macgui</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\graphics\macgui\macmenu.cpp">
+			<Filter>graphics\macgui</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\graphics\macgui\mactext.cpp">
+			<Filter>graphics\macgui</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\graphics\macgui\mactextwindow.cpp">
 			<Filter>graphics\macgui</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\graphics\macgui\macwindow.cpp">
@@ -1155,9 +1191,6 @@
 		<ClCompile Include="..\..\image\bmp.cpp">
 			<Filter>image</Filter>
 		</ClCompile>
-		<ClCompile Include="..\..\image\codecs\indeo\get_bits.cpp">
-			<Filter>image\codecs\indeo</Filter>
-		</ClCompile>
 		<ClCompile Include="..\..\image\codecs\indeo\indeo.cpp">
 			<Filter>image\codecs\indeo</Filter>
 		</ClCompile>
@@ -1334,7 +1367,13 @@
 		<ClInclude Include="..\..\audio\mods\maxtrax.h">
 			<Filter>audio\mods</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\audio\mods\mod_xm_s3m.h">
+			<Filter>audio\mods</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\audio\mods\module.h">
+			<Filter>audio\mods</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\mods\module_mod_xm_s3m.h">
 			<Filter>audio\mods</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\audio\mods\paula.h">
@@ -1367,10 +1406,31 @@
 		<ClInclude Include="..\..\audio\softsynth\fmtowns_pc98\towns_pc98_fmsynth.h">
 			<Filter>audio\softsynth\fmtowns_pc98</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\c_interface\c_interface.h">
+			<Filter>audio\softsynth\mt32\c_interface</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\c_interface\c_types.h">
+			<Filter>audio\softsynth\mt32\c_interface</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\c_interface\cpp_interface.h">
+			<Filter>audio\softsynth\mt32\c_interface</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\sha1\sha1.h">
+			<Filter>audio\softsynth\mt32\sha1</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\audio\softsynth\mt32\Analog.h">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\audio\softsynth\mt32\BReverbModel.h">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\Enumerations.h">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\File.h">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\FileStream.h">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\audio\softsynth\mt32\LA32FloatWaveGenerator.h">
@@ -1388,6 +1448,9 @@
 		<ClInclude Include="..\..\audio\softsynth\mt32\MidiEventQueue.h">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\MidiStreamParser.h">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\audio\softsynth\mt32\Part.h">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClInclude>
@@ -1401,6 +1464,9 @@
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\audio\softsynth\mt32\ROMInfo.h">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\SampleRateConverter.h">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\audio\softsynth\mt32\Structures.h">
@@ -1422,6 +1488,12 @@
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\audio\softsynth\mt32\Types.h">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\config.h">
+			<Filter>audio\softsynth\mt32</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\audio\softsynth\mt32\globals.h">
 			<Filter>audio\softsynth\mt32</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\audio\softsynth\mt32\internals.h">
@@ -1520,18 +1592,6 @@
 		<ClInclude Include="..\..\backends\cloud\box\boxuploadrequest.h">
 			<Filter>backends\cloud\box</Filter>
 		</ClInclude>
-		<ClInclude Include="..\..\backends\cloud\cloudicon.h">
-			<Filter>backends\cloud</Filter>
-		</ClInclude>
-		<ClInclude Include="..\..\backends\cloud\cloudicon_data.h">
-			<Filter>backends\cloud</Filter>
-		</ClInclude>
-		<ClInclude Include="..\..\backends\cloud\cloudicon_disabled_data.h">
-			<Filter>backends\cloud</Filter>
-		</ClInclude>
-		<ClInclude Include="..\..\backends\cloud\cloudmanager.h">
-			<Filter>backends\cloud</Filter>
-		</ClInclude>
 		<ClInclude Include="..\..\backends\cloud\dropbox\dropboxcreatedirectoryrequest.h">
 			<Filter>backends\cloud\dropbox</Filter>
 		</ClInclude>
@@ -1592,6 +1652,18 @@
 		<ClInclude Include="..\..\backends\cloud\onedrive\onedriveuploadrequest.h">
 			<Filter>backends\cloud\onedrive</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\backends\cloud\cloudicon.h">
+			<Filter>backends\cloud</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\backends\cloud\cloudicon_data.h">
+			<Filter>backends\cloud</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\backends\cloud\cloudicon_disabled_data.h">
+			<Filter>backends\cloud</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\backends\cloud\cloudmanager.h">
+			<Filter>backends\cloud</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\backends\cloud\downloadrequest.h">
 			<Filter>backends\cloud</Filter>
 		</ClInclude>
@@ -1634,9 +1706,6 @@
 		<ClInclude Include="..\..\backends\fs\stdiostream.h">
 			<Filter>backends\fs</Filter>
 		</ClInclude>
-		<ClInclude Include="..\..\backends\graphics\opengl\opengl-func.h">
-			<Filter>backends\graphics\opengl</Filter>
-		</ClInclude>
 		<ClInclude Include="..\..\backends\graphics\opengl\opengl-graphics.h">
 			<Filter>backends\graphics\opengl</Filter>
 		</ClInclude>
@@ -1664,6 +1733,9 @@
 		<ClInclude Include="..\..\backends\graphics\opengl\opengl-defs.h">
 			<Filter>backends\graphics\opengl</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\backends\graphics\opengl\opengl-func.h">
+			<Filter>backends\graphics\opengl</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\backends\graphics\opengl\shader.h">
 			<Filter>backends\graphics\opengl</Filter>
 		</ClInclude>
@@ -1685,11 +1757,11 @@
 		<ClInclude Include="..\..\backends\graphics\graphics.h">
 			<Filter>backends\graphics</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\backends\graphics\windowed.h">
+			<Filter>backends\graphics</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\backends\log\log.h">
 			<Filter>backends\log</Filter>
-		</ClInclude>
-		<ClInclude Include="..\..\backends\mixer\doublebuffersdl\doublebuffersdl-mixer.h">
-			<Filter>backends\mixer\doublebuffersdl</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\backends\mixer\sdl\sdl-mixer.h">
 			<Filter>backends\mixer\sdl</Filter>
@@ -1717,9 +1789,6 @@
 		</ClInclude>
 		<ClInclude Include="..\..\backends\networking\curl\request.h">
 			<Filter>backends\networking\curl</Filter>
-		</ClInclude>
-		<ClInclude Include="..\..\backends\networking\sdl_net\getclienthandler.h">
-			<Filter>backends\networking\sdl_net</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\backends\networking\sdl_net\handlers\basehandler.h">
 			<Filter>backends\networking\sdl_net\handlers</Filter>
@@ -1752,6 +1821,9 @@
 			<Filter>backends\networking\sdl_net\handlers</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\backends\networking\sdl_net\client.h">
+			<Filter>backends\networking\sdl_net</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\backends\networking\sdl_net\getclienthandler.h">
 			<Filter>backends\networking\sdl_net</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\backends\networking\sdl_net\handlerutils.h">
@@ -1904,6 +1976,9 @@
 		<ClInclude Include="..\..\common\gui_options.h">
 			<Filter>common</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\common\hash-ptr.h">
+			<Filter>common</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\common\hash-str.h">
 			<Filter>common</Filter>
 		</ClInclude>
@@ -1964,6 +2039,9 @@
 		<ClInclude Include="..\..\common\noncopyable.h">
 			<Filter>common</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\common\osd_message_queue.h">
+			<Filter>common</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\common\pack-end.h">
 			<Filter>common</Filter>
 		</ClInclude>
@@ -1997,6 +2075,9 @@
 		<ClInclude Include="..\..\common\rendermode.h">
 			<Filter>common</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\common\safe-bool.h">
+			<Filter>common</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\common\savefile.h">
 			<Filter>common</Filter>
 		</ClInclude>
@@ -2010,6 +2091,9 @@
 			<Filter>common</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\common\singleton.h">
+			<Filter>common</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\common\span.h">
 			<Filter>common</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\common\stack.h">
@@ -2043,6 +2127,9 @@
 			<Filter>common</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\common\translation.h">
+			<Filter>common</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\common\type-traits.h">
 			<Filter>common</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\common\types.h">
@@ -2108,13 +2195,25 @@
 		<ClInclude Include="..\..\graphics\fonts\bdf.h">
 			<Filter>graphics\fonts</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\graphics\fonts\macfont.h">
+			<Filter>graphics\fonts</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\graphics\fonts\ttf.h">
 			<Filter>graphics\fonts</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\graphics\fonts\winfont.h">
 			<Filter>graphics\fonts</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\graphics\macgui\macfontmanager.h">
+			<Filter>graphics\macgui</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\graphics\macgui\macmenu.h">
+			<Filter>graphics\macgui</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\graphics\macgui\mactext.h">
+			<Filter>graphics\macgui</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\graphics\macgui\mactextwindow.h">
 			<Filter>graphics\macgui</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\graphics\macgui\macwindow.h">
@@ -2172,6 +2271,9 @@
 			<Filter>graphics</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\graphics\managed_surface.h">
+			<Filter>graphics</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\graphics\mode.h">
 			<Filter>graphics</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\graphics\nine_patch.h">

@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="neverhood"
-	ProjectGUID="{3D7C7FD3-191B-4785-A57B-52F203CDF283}"
+	ProjectGUID="{AA4778B6-A4C8-431A-9F8A-699A89220DC6}"
 	RootNamespace="neverhood"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

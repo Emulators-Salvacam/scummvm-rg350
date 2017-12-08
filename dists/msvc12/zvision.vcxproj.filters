@@ -2,37 +2,37 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="core">
-			<UniqueIdentifier>31BEAE91-15D6-4A16-9144-6F1114865936</UniqueIdentifier>
+			<UniqueIdentifier>CF438B06-D339-4C18-B9D9-3CCBEBE0D0CC</UniqueIdentifier>
 		</Filter>
 		<Filter Include="file">
-			<UniqueIdentifier>4550CA2E-56AF-46D6-AC42-4709889289F5</UniqueIdentifier>
+			<UniqueIdentifier>F538C435-EECF-4C04-B720-801675BCD04B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics">
-			<UniqueIdentifier>C9BA60A6-1E0D-4AB6-9A8E-8B05288A21CD</UniqueIdentifier>
+			<UniqueIdentifier>AB9A4A6E-5693-453A-9B9E-1D05331F9654</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics\cursors">
-			<UniqueIdentifier>1B08557C-A3DB-4F61-8A71-B28A20CD1A13</UniqueIdentifier>
+			<UniqueIdentifier>631BF8E9-2C7F-4FB0-8DD3-99F88E566522</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics\effects">
-			<UniqueIdentifier>0DEAC8B1-07B6-4F46-84D0-5B35F4A21BA0</UniqueIdentifier>
+			<UniqueIdentifier>7FBECE7E-8205-47FC-942F-6FEF92925B0B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="scripting">
-			<UniqueIdentifier>9E98C807-1FF0-4130-89A1-B94EF6ACDC39</UniqueIdentifier>
+			<UniqueIdentifier>E5768588-37C5-40EE-AC31-F2BCC453807F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="scripting\controls">
-			<UniqueIdentifier>771FAA4C-5DD7-4BA6-8514-C63F973EAD6B</UniqueIdentifier>
+			<UniqueIdentifier>44401EEA-8513-4D41-89E4-18E178810EC4</UniqueIdentifier>
 		</Filter>
 		<Filter Include="scripting\effects">
-			<UniqueIdentifier>8D30EAAF-A539-4154-8005-1DF97C492627</UniqueIdentifier>
+			<UniqueIdentifier>27D87E01-F917-472B-A4CE-BA2DEDD0F2DF</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound">
-			<UniqueIdentifier>5F8F5D8D-279D-4B85-A40F-7E3BBA39AAED</UniqueIdentifier>
+			<UniqueIdentifier>D77973A8-D6AA-4C0C-9B78-D2E04E36285E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="text">
-			<UniqueIdentifier>E1B3AC66-473D-4E76-97B8-A3043A023BE5</UniqueIdentifier>
+			<UniqueIdentifier>CD4F83EE-5F38-4D7E-B1A7-DBC568BD0553</UniqueIdentifier>
 		</Filter>
 		<Filter Include="video">
-			<UniqueIdentifier>DA071B1A-F5CE-4B84-911F-4089EBE5EC2A</UniqueIdentifier>
+			<UniqueIdentifier>7A102B3C-FEF4-48AD-96F6-7C8B07CB4120</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

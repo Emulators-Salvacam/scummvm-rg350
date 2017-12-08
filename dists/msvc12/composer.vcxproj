@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{21C7440C-ACC4-4CD1-A44C-9EE25DB0CD0C}</ProjectGuid>
+		<ProjectGuid>{25D916B1-8C92-47BF-B462-927E3EAAC129}</ProjectGuid>
 		<RootNamespace>composer</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>
@@ -115,6 +115,7 @@
 		<ClCompile Include="..\..\engines\composer\detection.cpp" />
 		<ClCompile Include="..\..\engines\composer\graphics.cpp" />
 		<ClCompile Include="..\..\engines\composer\resource.cpp" />
+		<ClCompile Include="..\..\engines\composer\saveload.cpp" />
 		<ClCompile Include="..\..\engines\composer\scripting.cpp" />
 	</ItemGroup>
 	<ItemGroup>

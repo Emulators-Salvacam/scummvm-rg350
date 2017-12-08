@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{C2A4B0D5-0A89-4E06-B6A4-CE2537E5693D}</ProjectGuid>
+		<ProjectGuid>{4604494D-2FBE-4F23-8E98-B67955DFE047}</ProjectGuid>
 		<RootNamespace>cge</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath10)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath10)</VCTargetsPath>

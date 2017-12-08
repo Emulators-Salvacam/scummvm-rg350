@@ -2,16 +2,16 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="blue_force">
-			<UniqueIdentifier>2DFCA9C8-A38B-4AAD-A0FA-8BE1BA2BF2A3</UniqueIdentifier>
+			<UniqueIdentifier>910CDEC1-E4A4-4639-96A7-662C77009141</UniqueIdentifier>
 		</Filter>
 		<Filter Include="ringworld">
-			<UniqueIdentifier>CB576C84-D607-49E8-9A8B-A88CC60EAAE3</UniqueIdentifier>
+			<UniqueIdentifier>5E0E9858-0E9A-499D-B3D5-EDD1ABE60FB6</UniqueIdentifier>
 		</Filter>
 		<Filter Include="ringworld2">
-			<UniqueIdentifier>5D537BBD-31EB-44B7-978C-1BE54F23D8A7</UniqueIdentifier>
+			<UniqueIdentifier>A0C82300-A00D-474F-B1CD-0B8EDA92F948</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sherlock">
-			<UniqueIdentifier>079AC071-E6E5-436D-9740-6C2CBD1F4D7A</UniqueIdentifier>
+			<UniqueIdentifier>69D60C1A-BAAE-4C4C-B252-05598E19C1B5</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

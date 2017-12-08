@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{5A6702A4-7F20-4BA1-B68C-559839F57ECE}</ProjectGuid>
+		<ProjectGuid>{5A6BCF3A-1982-4A1E-B4E2-A5CFAE967D48}</ProjectGuid>
 		<RootNamespace>mohawk</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath11)</VCTargetsPath>
@@ -124,6 +124,15 @@
 		<ClCompile Include="..\..\engines\mohawk\myst_stacks\selenitic.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\myst_stacks\slides.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\myst_stacks\stoneship.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stacks\aspit.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stacks\bspit.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stacks\domespit.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stacks\gspit.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stacks\jspit.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stacks\ospit.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stacks\pspit.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stacks\rspit.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stacks\tspit.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\bitmap.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\console.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\cursors.cpp" />
@@ -142,9 +151,20 @@
 		<ClCompile Include="..\..\engines\mohawk\myst_areas.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\myst_graphics.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\myst_scripts.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\myst_sound.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\myst_state.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\resource.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\resource_cache.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_card.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_graphics.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_inventory.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_saveload.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_scripts.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_sound.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_stack.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_vars.cpp" />
+		<ClCompile Include="..\..\engines\mohawk\riven_video.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\sound.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\video.cpp" />
 		<ClCompile Include="..\..\engines\mohawk\view.cpp" />
@@ -162,6 +182,15 @@
 		<ClInclude Include="..\..\engines\mohawk\myst_stacks\selenitic.h" />
 		<ClInclude Include="..\..\engines\mohawk\myst_stacks\slides.h" />
 		<ClInclude Include="..\..\engines\mohawk\myst_stacks\stoneship.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stacks\aspit.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stacks\bspit.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stacks\domespit.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stacks\gspit.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stacks\jspit.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stacks\ospit.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stacks\pspit.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stacks\rspit.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stacks\tspit.h" />
 		<ClInclude Include="..\..\engines\mohawk\bitmap.h" />
 		<ClInclude Include="..\..\engines\mohawk\console.h" />
 		<ClInclude Include="..\..\engines\mohawk\cursors.h" />
@@ -178,9 +207,19 @@
 		<ClInclude Include="..\..\engines\mohawk\myst_areas.h" />
 		<ClInclude Include="..\..\engines\mohawk\myst_graphics.h" />
 		<ClInclude Include="..\..\engines\mohawk\myst_scripts.h" />
+		<ClInclude Include="..\..\engines\mohawk\myst_sound.h" />
 		<ClInclude Include="..\..\engines\mohawk\myst_state.h" />
 		<ClInclude Include="..\..\engines\mohawk\resource.h" />
 		<ClInclude Include="..\..\engines\mohawk\resource_cache.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_card.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_graphics.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_inventory.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_saveload.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_scripts.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_sound.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_stack.h" />
+		<ClInclude Include="..\..\engines\mohawk\riven_video.h" />
 		<ClInclude Include="..\..\engines\mohawk\sound.h" />
 		<ClInclude Include="..\..\engines\mohawk\video.h" />
 		<ClInclude Include="..\..\engines\mohawk\view.h" />
