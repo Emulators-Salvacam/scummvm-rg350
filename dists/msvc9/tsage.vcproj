@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="tsage"
-	ProjectGUID="{B3D6D31F-1993-45CD-8001-A331133A100D}"
+	ProjectGUID="{30CC1EA2-9D8D-4C03-BE63-DCD0A5088A7E}"
 	RootNamespace="tsage"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

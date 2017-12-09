@@ -2,28 +2,28 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="he">
-			<UniqueIdentifier>ADFA9BA7-0025-456C-8A48-2FCF1634B3E7</UniqueIdentifier>
+			<UniqueIdentifier>E2E59F88-6535-4710-8D6C-81104CD8B33B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="he\logic">
-			<UniqueIdentifier>2ECB3B81-99F9-4847-AB13-D178A5B479AC</UniqueIdentifier>
+			<UniqueIdentifier>7F7C5AB6-E202-4DCC-B345-34E55C6939A0</UniqueIdentifier>
 		</Filter>
 		<Filter Include="he\moonbase">
-			<UniqueIdentifier>E71DFD50-6B37-453A-ADA9-906D494ECDCB</UniqueIdentifier>
+			<UniqueIdentifier>D1B7C0C6-A151-4B62-8273-7A1DAA82778D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="imuse">
-			<UniqueIdentifier>1DC213C8-9120-463B-AD0F-720EAA6A1E62</UniqueIdentifier>
+			<UniqueIdentifier>981D8058-B8AA-476D-85A8-A7364643E364</UniqueIdentifier>
 		</Filter>
 		<Filter Include="imuse_digi">
-			<UniqueIdentifier>17B6106A-5EC3-45A4-808C-124CF15A147C</UniqueIdentifier>
+			<UniqueIdentifier>0AEF2A9B-ACBC-40D8-A782-F0F666E5215F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="insane">
-			<UniqueIdentifier>4BF2F98E-0195-4E70-B7FC-73E88BCC43EC</UniqueIdentifier>
+			<UniqueIdentifier>7B1E90CB-CB78-4A20-B9B3-6D36E20DA787</UniqueIdentifier>
 		</Filter>
 		<Filter Include="players">
-			<UniqueIdentifier>4CE4A6A9-3869-4151-BD9C-96E3FB2AAEA4</UniqueIdentifier>
+			<UniqueIdentifier>1C4EC968-28B1-44C9-A37D-67071A12237C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="smush">
-			<UniqueIdentifier>ACED696C-E29C-4C2A-94E7-6D431358736A</UniqueIdentifier>
+			<UniqueIdentifier>54F2F62A-214B-404E-967B-0B6569454041</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

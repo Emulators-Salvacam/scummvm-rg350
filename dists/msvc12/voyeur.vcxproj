@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{2A17DDFB-AF58-48B5-BC94-EF2BBDF12A74}</ProjectGuid>
+		<ProjectGuid>{842B3194-EAED-48FD-95A0-2252C5BFCF7C}</ProjectGuid>
 		<RootNamespace>voyeur</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

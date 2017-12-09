@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="agos"
-	ProjectGUID="{26EED8D5-82A3-438C-8808-790A864F2BCD}"
+	ProjectGUID="{C49CDC14-E3AE-4FD1-BF00-FB3BF4B227CD}"
 	RootNamespace="agos"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="sword25"
-	ProjectGUID="{5815CDC0-FB7F-4BD2-8F95-E75E5ED02D7B}"
+	ProjectGUID="{0C19EC67-A9CA-4877-A254-66BB3C385F96}"
 	RootNamespace="sword25"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

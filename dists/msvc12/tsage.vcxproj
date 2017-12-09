@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{6D5C5148-1327-4A55-B3AB-BCBDAFE48E9F}</ProjectGuid>
+		<ProjectGuid>{2109883B-6679-4BD4-859E-01B6E5AF8B6E}</ProjectGuid>
 		<RootNamespace>tsage</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

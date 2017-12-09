@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="gnap"
-	ProjectGUID="{82D75956-07CF-4F5B-90A5-BD96B29146CB}"
+	ProjectGUID="{7EF7DA6E-F11D-42F5-A793-3A8EE514941D}"
 	RootNamespace="gnap"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

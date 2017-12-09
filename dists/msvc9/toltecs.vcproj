@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="toltecs"
-	ProjectGUID="{E450B7FB-FDB3-41F7-BAB5-1A862EDC1691}"
+	ProjectGUID="{5BBD51A2-93A1-4F44-854F-678449339E07}"
 	RootNamespace="toltecs"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

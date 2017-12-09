@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="dreamweb"
-	ProjectGUID="{CBF75658-9A6C-45AD-966C-C1A105A6A8CA}"
+	ProjectGUID="{A7CA0A0A-08A2-4636-B7EA-916BFDFE2782}"
 	RootNamespace="dreamweb"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

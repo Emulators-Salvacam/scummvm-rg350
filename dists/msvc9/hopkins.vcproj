@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="hopkins"
-	ProjectGUID="{D025C326-CE17-4E8A-A0CE-080DF6EECE24}"
+	ProjectGUID="{8AD1FC0E-385B-402B-81DB-E46B8F9380AA}"
 	RootNamespace="hopkins"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

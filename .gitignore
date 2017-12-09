@@ -21,6 +21,8 @@ lib*.a
 /MT32_PCM.ROM
 /ScummVM.app
 /scummvm.docktileplugin
+/\!ScummVM
+/*,e1f
 /scummvm-ps3.pkg
 /*.ipk
 /.project
@@ -171,6 +173,7 @@ ipch/
 *.bat
 *.tss
 *.VC.db
+.vs/
 
 #Ignore default Visual Studio build folders
 [Dd]ebug/
@@ -206,7 +209,13 @@ dists/msvc*/**
 
 #Ignore Xcode output/project files
 out/
-scummvm.xcodeproj
+/*.xcodeproj
+
+#Ignore PSP2 files
+psp2pkg/
+*.velf
+*.vpk
 
 #Ignore gmon.out created by gprof
 gmon.out
+/scummvm_libs_2015

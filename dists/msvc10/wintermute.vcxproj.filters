@@ -2,55 +2,55 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="ad">
-			<UniqueIdentifier>A6F1D635-BCE9-45A7-8356-0A24470277E9</UniqueIdentifier>
+			<UniqueIdentifier>C40302A1-E85E-4DBB-8CE3-88310E4A3161</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base">
-			<UniqueIdentifier>978664C9-3B83-4A5E-93BC-AFB8E5FCF9D4</UniqueIdentifier>
+			<UniqueIdentifier>2136DF24-DA64-4521-9614-3ADAEA3BF08F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base\file">
-			<UniqueIdentifier>E748DF17-5548-4273-A6AD-FC7ABDFCD6E6</UniqueIdentifier>
+			<UniqueIdentifier>1F53841F-2F54-4029-AEFA-AB8358E304DD</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base\font">
-			<UniqueIdentifier>D121333D-218F-44B3-922F-799C8FB60F74</UniqueIdentifier>
+			<UniqueIdentifier>B8843FA7-AAB4-4C65-BE16-F77A63F0BFCF</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base\gfx">
-			<UniqueIdentifier>D1715E87-5851-46CC-9B3E-046C1813CF23</UniqueIdentifier>
+			<UniqueIdentifier>5C86CBF3-54DD-4C21-B4EC-887787EF56E3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base\gfx\osystem">
-			<UniqueIdentifier>4FEFB941-D35F-418D-8D8F-71368E9AB1C3</UniqueIdentifier>
+			<UniqueIdentifier>08A47C07-3978-4EB2-889A-544A699AF3CA</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base\particles">
-			<UniqueIdentifier>4B825E63-E3BF-4C5F-8A9A-E56ACF51E4F0</UniqueIdentifier>
+			<UniqueIdentifier>8E2DA587-4BEC-4D8C-B31B-A799589267E7</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base\scriptables">
-			<UniqueIdentifier>C29C206E-7903-40FB-A5E7-17D7B15B9162</UniqueIdentifier>
+			<UniqueIdentifier>75E92863-AE65-4862-8C09-42C73DCE4CE3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base\scriptables\debuggable">
-			<UniqueIdentifier>43025C46-3478-47F6-94AE-DF65E2477309</UniqueIdentifier>
+			<UniqueIdentifier>30817EF4-DE56-4BA2-BE00-4ACFD6E580C9</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base\sound">
-			<UniqueIdentifier>F091614E-4E68-4C52-96CE-4D1CFD876FDE</UniqueIdentifier>
+			<UniqueIdentifier>35BBC667-5D46-4E5C-87F5-6671853FE2AC</UniqueIdentifier>
 		</Filter>
 		<Filter Include="debugger">
-			<UniqueIdentifier>013AB1F5-691C-4DD7-80AA-89FEDA3B93F0</UniqueIdentifier>
+			<UniqueIdentifier>86EB20C8-0E68-484A-9AC4-A18E3EE6E21C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="debugger\listing_providers">
-			<UniqueIdentifier>2C0BE010-3DD9-4EDA-80AA-001C7337782D</UniqueIdentifier>
+			<UniqueIdentifier>53BBF71E-8333-4D55-8A96-F6BA98F48D30</UniqueIdentifier>
 		</Filter>
 		<Filter Include="math">
-			<UniqueIdentifier>BABBA23C-FC56-46CB-AB6D-6D157C59D8F4</UniqueIdentifier>
+			<UniqueIdentifier>24F9AC75-D183-45CC-9488-696065801F03</UniqueIdentifier>
 		</Filter>
 		<Filter Include="system">
-			<UniqueIdentifier>3842B65D-919A-4BF6-92F6-D49165591B31</UniqueIdentifier>
+			<UniqueIdentifier>F6E9330F-E360-4356-A1AC-963ADEC1E7D5</UniqueIdentifier>
 		</Filter>
 		<Filter Include="ui">
-			<UniqueIdentifier>A0A5856E-1D30-4935-B11C-CC0093FD9992</UniqueIdentifier>
+			<UniqueIdentifier>0FBAAA8C-0A50-4234-8565-E0602DE488EE</UniqueIdentifier>
 		</Filter>
 		<Filter Include="utils">
-			<UniqueIdentifier>DD47D736-E6F4-4E23-A0E2-0EE4DF911AF7</UniqueIdentifier>
+			<UniqueIdentifier>1CE45E4E-3DC9-4777-9D86-7724C7610AB2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="video">
-			<UniqueIdentifier>7DC489A0-2C5C-4E04-9A0B-E18DA3CB9FC1</UniqueIdentifier>
+			<UniqueIdentifier>F28C0AFA-9284-4EBE-B9C4-DB0ACBFCA17B</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

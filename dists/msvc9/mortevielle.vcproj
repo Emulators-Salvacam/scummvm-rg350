@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="mortevielle"
-	ProjectGUID="{25558AE6-51C5-44F9-9615-DA377F70B485}"
+	ProjectGUID="{9D8E3BC6-C2D1-4E54-85FB-B7E843C8C673}"
 	RootNamespace="mortevielle"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

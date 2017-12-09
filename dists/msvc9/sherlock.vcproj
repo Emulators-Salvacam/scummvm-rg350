@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="sherlock"
-	ProjectGUID="{E8AB981D-4A7E-45CE-B8F7-B6701F32BB5D}"
+	ProjectGUID="{13008A94-34F3-4D24-A3A0-77DDC0FEA4E0}"
 	RootNamespace="sherlock"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

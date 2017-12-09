@@ -2,13 +2,13 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="drivers">
-			<UniqueIdentifier>6A5A34BF-8527-4DBF-A49A-003F970F400A</UniqueIdentifier>
+			<UniqueIdentifier>F96BABDD-8813-4992-BC69-8EC15807B00A</UniqueIdentifier>
 		</Filter>
 		<Filter Include="drivers\accolade">
-			<UniqueIdentifier>727A3984-FDF3-4775-A9D2-15405F825316</UniqueIdentifier>
+			<UniqueIdentifier>779A897C-1F30-4BF0-AE8E-F8A5EEE06E9D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="drivers\simon1">
-			<UniqueIdentifier>37EDA1B2-EC49-4D7E-9F71-348D4A7BF617</UniqueIdentifier>
+			<UniqueIdentifier>E25BFA36-776C-4198-BE98-81F21D9F4C10</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

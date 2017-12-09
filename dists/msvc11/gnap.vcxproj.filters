@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="scenes">
-			<UniqueIdentifier>DFA1E7AF-A823-4DCA-AA38-C7A714105A6A</UniqueIdentifier>
+			<UniqueIdentifier>A24972A7-FC11-40A2-A7D3-9AE4463137D9</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

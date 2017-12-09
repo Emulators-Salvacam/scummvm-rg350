@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="touche"
-	ProjectGUID="{241C56F3-AED2-4A01-B012-037DFB99232C}"
+	ProjectGUID="{705E170E-D96F-4566-94DE-F2CBB73E9468}"
 	RootNamespace="touche"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="lab"
-	ProjectGUID="{0850889E-240E-41C8-A711-363EEC51CFA6}"
+	ProjectGUID="{E20CBF59-1A1D-4D83-A5D0-4D324FB43818}"
 	RootNamespace="lab"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"

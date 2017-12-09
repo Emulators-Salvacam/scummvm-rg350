@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{BCC5E826-7077-4199-9460-D2B4FE49D814}</ProjectGuid>
+		<ProjectGuid>{E2FAC778-0ED3-412B-B100-240C873EEEDB}</ProjectGuid>
 		<RootNamespace>drascula</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath10)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath10)</VCTargetsPath>

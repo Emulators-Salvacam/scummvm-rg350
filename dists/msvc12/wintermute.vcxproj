@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{E5740651-E524-411F-AC74-257336832837}</ProjectGuid>
+		<ProjectGuid>{5161B0A6-7982-4462-911F-C786A8DCA6BC}</ProjectGuid>
 		<RootNamespace>wintermute</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>
