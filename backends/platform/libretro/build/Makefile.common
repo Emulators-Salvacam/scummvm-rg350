@@ -466,7 +466,7 @@ MODULES += \
 	po
 
 ifeq ($(USE_MT32EMU),1)
-MODULES += $(CORE_DIR)/audio/softsynth/mt32
+MODULES += audio/softsynth/mt32
 endif
 
 ######################################################################
