@@ -90,8 +90,8 @@ INCLUDES    += $(INCFLAGS)
 MODULE_DIRS += $(LIBRETRO_DIR)
 
 OBJS := $(LIBRETRO_DIR)/libretro.o \
-        $(LIBRETRO_DIR)/os.o \
-		  $(LIBRETRO_COMM_DIR)/libco/libco.o
+			$(LIBRETRO_DIR)/os.o \
+			$(LIBRETRO_COMM_DIR)/libco/libco.o
 
 ifeq ($(USE_FLAC), 1)
 DEFINES += -DUSE_FLAC
@@ -145,7 +145,7 @@ endif
 
 ifeq ($(USE_TREMOR), 1)
 DEFINES += -DUSE_TREMOR -DUSE_VORBIS
-OBJS +=  $(DEPS_DIR)/tremor/bitwise.o \
+OBJS += $(DEPS_DIR)/tremor/bitwise.o \
 			$(DEPS_DIR)/tremor/block.o \
 			$(DEPS_DIR)/tremor/codebook.o \
 			$(DEPS_DIR)/tremor/floor0.o \
@@ -164,27 +164,27 @@ endif
 
 ifeq ($(USE_ZLIB), 1)
 DEFINES += -DUSE_ZLIB  -DWANT_ZLIB
-OBJS +=   $(DEPS_DIR)/libz/deflate.o \
-			 $(DEPS_DIR)/libz/gzlib.o \
-			 $(DEPS_DIR)/libz/uncompr.o \
-			 $(DEPS_DIR)/libz/zutil.o \
-			 $(DEPS_DIR)/libz/inffast.o \
-			 $(DEPS_DIR)/libz/gzread.o \
-			 $(DEPS_DIR)/libz/crc32.o \
-			 $(DEPS_DIR)/libz/gzwrite.o \
-			 $(DEPS_DIR)/libz/inflate.o \
-			 $(DEPS_DIR)/libz/infback.o \
-			 $(DEPS_DIR)/libz/inftrees.o \
-			 $(DEPS_DIR)/libz/trees.o \
-			 $(DEPS_DIR)/libz/gzclose.o \
-			 $(DEPS_DIR)/libz/compress.o \
-			 $(DEPS_DIR)/libz/adler32.o
+OBJS += $(DEPS_DIR)/libz/deflate.o \
+			$(DEPS_DIR)/libz/gzlib.o \
+			$(DEPS_DIR)/libz/uncompr.o \
+			$(DEPS_DIR)/libz/zutil.o \
+			$(DEPS_DIR)/libz/inffast.o \
+			$(DEPS_DIR)/libz/gzread.o \
+			$(DEPS_DIR)/libz/crc32.o \
+			$(DEPS_DIR)/libz/gzwrite.o \
+			$(DEPS_DIR)/libz/inflate.o \
+			$(DEPS_DIR)/libz/infback.o \
+			$(DEPS_DIR)/libz/inftrees.o \
+			$(DEPS_DIR)/libz/trees.o \
+			$(DEPS_DIR)/libz/gzclose.o \
+			$(DEPS_DIR)/libz/compress.o \
+			$(DEPS_DIR)/libz/adler32.o
 endif
 
 ifeq ($(USE_MAD), 1)
 DEFINES += -DUSE_MAD -DFPM_DEFAULT
 INCLUDES += -I$(DEPS_DIR)/libmad
-OBJS +=  $(DEPS_DIR)/libmad/bit.o \
+OBJS += $(DEPS_DIR)/libmad/bit.o \
 			$(DEPS_DIR)/libmad/decoder.o \
 			$(DEPS_DIR)/libmad/frame.o \
 			$(DEPS_DIR)/libmad/huffman.o \
@@ -437,9 +437,9 @@ OBJS += $(DEPS_DIR)/freetype/src/autofit/afangles.o \
 endif
 
 ifneq ($(STATIC_LINKING), 1)
-OBJS +=  $(LIBRETRO_COMM_DIR)/file/retro_dirent.o \
+OBJS += $(LIBRETRO_COMM_DIR)/file/retro_dirent.o \
 			$(LIBRETRO_COMM_DIR)/file/retro_stat.o \
-		  	$(LIBRETRO_COMM_DIR)/file/file_path.o \
+			$(LIBRETRO_COMM_DIR)/file/file_path.o \
 			$(LIBRETRO_COMM_DIR)/compat/compat_strl.o
 endif
 
