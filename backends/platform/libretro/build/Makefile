@@ -10,7 +10,7 @@ USE_PNG    = 1
 USE_JPEG   = 1
 USE_THEORADEC=1
 USE_FREETYPE2=1
-HAVE_MT32EMU=0
+HAVE_MT32EMU=1
 
 ifeq ($(platform),)
 platform = unix
@@ -131,6 +131,7 @@ else ifeq ($(platform), android-armv7)
    USE_VORBIS = 0
    USE_THEORADEC = 0
    USE_TREMOR = 1
+   HAVE_MT32EMU = 0
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    SHARED := -shared -Wl,--no-undefined
@@ -139,6 +140,7 @@ else ifneq (,$(findstring armv,$(platform)))
    USE_VORBIS = 0
    USE_THEORADEC = 0
    USE_TREMOR = 1
+   HAVE_MT32EMU = 0
 ifneq (,$(findstring cortexa8,$(platform)))
    DEFINES += -marm -mcpu=cortex-a8
 else ifneq (,$(findstring cortexa9,$(platform)))
