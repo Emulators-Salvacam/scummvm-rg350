@@ -4,11 +4,9 @@
 #include "common/scummsys.h"
 #include "graphics/surface.libretro.h"
 #include "audio/mixer_intern.h"
-
 #include "os.h"
 #include <libco.h>
 #include "libretro.h"
-
 #include <unistd.h>
 /**
  * Include libgen.h for basename() and dirname().
@@ -16,6 +14,13 @@
  */
 #include <libgen.h>
 #include <string.h>
+
+/**
+ * Include base/internal_version.h to allow access to SCUMMVM_VERSION.
+ * @see retro_get_system_info()
+ */
+#define INCLUDED_FROM_BASE_VERSION_CPP
+#include "base/internal_version.h"
 
 retro_log_printf_t log_cb = NULL;
 static retro_video_refresh_t video_cb = NULL;
@@ -98,7 +103,7 @@ void retro_get_system_info(struct retro_system_info *info)
 #ifndef GIT_VERSION
 #define GIT_VERSION ""
 #endif
-   info->library_version = "2.0.0" GIT_VERSION;
+   info->library_version = SCUMMVM_VERSION GIT_VERSION;
    info->valid_extensions = "scummvm";
    info->need_fullpath = true;
    info->block_extract = false;
