@@ -106,6 +106,11 @@ String MacResManager::computeResForkMD5AsString(uint32 length) const {
 bool MacResManager::open(const String &fileName) {
 	close();
 
+#ifdef WIIU
+//FIXME crash here on wiiU 
+	return false;
+#endif
+
 #ifdef MACOSX
 	// Check the actual fork on a Mac computer
 	String fullPath = ConfMan.get("path") + "/" + fileName + "/..namedfork/rsrc";

@@ -113,7 +113,18 @@ else ifeq ($(platform), wii)
    AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT) rcs
    DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float -D__ppc__ -I$(DEVKITPRO)/libogc/include
 	STATIC_LINKING=1
-
+# Nintendo Wii U
+else ifeq ($(platform), wiiu)
+   TARGET := $(TARGET_NAME)_libretro_wiiu.a
+   CC = $(DEVKITPPC)/bin/powerpc-eabi-gcc$(EXE_EXT)
+   CXX = $(DEVKITPPC)/bin/powerpc-eabi-g++$(EXE_EXT)
+   AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT) rcs
+   AR_ALONE = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT)
+   DEFINES += -DGEKKO -mwup -mcpu=750 -meabi -mhard-float -D__POWERPC__ -D__ppc__ -DWORDS_BIGENDIAN=1 -DMSB_FIRST
+   DEFINES += -U__INT32_TYPE__ -U __UINT32_TYPE__ -D__INT32_TYPE__=int -fpermissive
+   DEFINES += -DHAVE_STRTOUL -DWIIU -I../libretro-common/include
+   LITE := 1
+   CP := cp
 # Vita
 else ifeq ($(platform), vita)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
@@ -173,6 +184,8 @@ endif
 
 ifeq ($(DEBUG), 1)
    DEFINES += -O0 -g
+else ifeq ($(platform), wiiu)
+   DEFINES += -Os
 else
    DEFINES += -O3
 endif

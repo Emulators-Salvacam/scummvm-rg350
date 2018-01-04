@@ -38,7 +38,7 @@
 #define R_OK 4
 #endif
 
-#if defined(GEKKO) || defined(__CELLOS_LV2__)
+#if (defined(GEKKO) && !defined(WIIU)) || defined(__CELLOS_LV2__)
 extern int access(const char *path, int amode);
 #endif
 

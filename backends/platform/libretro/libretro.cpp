@@ -178,6 +178,30 @@ void parse_command_params(char* cmdline)
    }
 }
 
+#ifdef WIIU
+#include <stdio.h>
+#include <string.h>
+char * dirname (char *path)
+{
+
+	char *p;
+	if( path == NULL || *path == '\0' )
+		return ".";
+	p = path + strlen(path) - 1;
+	while( *p == '/' ) {
+		if( p == path )
+			return path;
+		*p-- = '\0';
+	}
+	while( p >= path && *p != '/' )
+		p--;
+	return
+		p < path ? "." :
+		p == path ? "/" :
+		(*p = '\0', path);
+}
+#endif
+
 bool retro_load_game(const struct retro_game_info *game)
 {
    const char* sysdir;
@@ -350,7 +374,7 @@ void retro_cheat_set(unsigned unused, bool unused1, const char* unused2) { }
 
 unsigned retro_get_region (void) { return RETRO_REGION_NTSC; }
 
-#if defined(GEKKO) || defined(__CELLOS_LV2__)
+#if (defined(GEKKO) && !defined(WIIU)) || defined(__CELLOS_LV2__)
 int access(const char *path, int amode)
 {
    FILE *f;
