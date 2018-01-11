@@ -55,7 +55,7 @@
 #endif
 #elif defined(__CELLOS_LV2__)
 #include <sys/sys_time.h>
-#elif defined(GEKKO)
+#elif (defined(GEKKO) && !defined(WIIU))
 #include <ogc/lwp_watchdog.h>
 #else
 #include <time.h>
@@ -307,6 +307,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       bool _mouseButtons[2];
       bool _joypadmouseButtons[2];
       bool _joypadstartButton;
+      bool _ptrmouseButton;
 
       uint32 _startTime;
       uint32 _threadExitTime;
@@ -628,8 +629,10 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
       virtual uint32 getMillis(bool skipRecord = false)
       {
-#if defined(GEKKO)
+#if (defined(GEKKO) && !defined(WIIU))
          return (ticks_to_microsecs(gettime()) / 1000.0) - _startTime;
+#elif defined(WIIU)
+         return ((cpu_features_get_time_usec())/1000) - _startTime;
 #elif defined(__CELLOS_LV2__)
          return (sys_time_get_system_time() / 1000.0) - _startTime;
 #else
@@ -897,6 +900,48 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
             ev.type = Common::EVENT_MAINMENU;
             _events.push_back(ev);
          }
+#ifdef WIIU
+	int p_x = aCallback(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+	int p_y = aCallback(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+	int p_press  = aCallback(0, RETRO_DEVICE_POINTER, 0,RETRO_DEVICE_ID_POINTER_PRESSED);
+	int px=(int)((p_x+0x7fff)*_screen.w /0xffff);
+	int py=(int)((p_y+0x7fff)*_screen.h/0xffff);
+	//printf("(%d,%d) p:%d\n",px,py,pp);
+
+	static int ptrhold=0;
+
+	if(p_press)ptrhold++;
+	else ptrhold=0;
+
+	if(ptrhold>0){
+	   _mouseX = px;
+	   _mouseY = py;
+
+            Common::Event ev;
+            ev.type = Common::EVENT_MOUSEMOVE;
+            ev.mouse.x = _mouseX;
+            ev.mouse.y = _mouseY;
+            _events.push_back(ev);
+	}
+
+	if(ptrhold>10 && _ptrmouseButton==0){
+	    _ptrmouseButton=1;
+            Common::Event ev;
+            ev.type = eventID[0][_ptrmouseButton ? 0 : 1];
+            ev.mouse.x = _mouseX;
+            ev.mouse.y = _mouseY;
+            _events.push_back(ev);
+	}
+	else if (ptrhold==0 && _ptrmouseButton==1){
+	    _ptrmouseButton=0;
+            Common::Event ev;
+            ev.type = eventID[0][_ptrmouseButton ? 0 : 1];
+            ev.mouse.x = _mouseX;
+            ev.mouse.y = _mouseY;
+            _events.push_back(ev);
+	}
+
+#endif
 
          if (do_joystick)
          {
