@@ -300,6 +300,8 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       bool _mouseVisible;
       int _mouseX;
       int _mouseY;
+      float _mouseXAcc;
+      float _mouseYAcc;
       int _mouseHotspotX;
       int _mouseHotspotY;
       int _mouseKeyColor;
@@ -317,7 +319,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
 
       OSystem_RETRO() :
-         _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseHotspotX(0), _mouseHotspotY(0),
+         _mousePaletteEnabled(false), _mouseVisible(false), _mouseX(0), _mouseY(0), _mouseXAcc(0.0), _mouseYAcc(0.0), _mouseHotspotX(0), _mouseHotspotY(0),
          _mouseKeyColor(0), _mouseDontScale(false), _mixer(0), _startTime(0), _threadExitTime(10)
    {
       _fsFactory = new FS_SYSTEM_FACTORY();
@@ -749,15 +751,14 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          return _screen;
       }
 
-#define ANALOG_VALUE_X_ADD 1
-#define ANALOG_VALUE_Y_ADD 1
-#define ANALOG_THRESHOLD1 10000
-#define ANALOG_THRESHOLD2 23000
-#define ANALOG_THRESHOLD3 31000
+#define ANALOG_RANGE 0x8000
+#define BASE_CURSOR_SPEED 4
 
-      void processMouse(retro_input_state_t aCallback)
+      void processMouse(retro_input_state_t aCallback, float gampad_cursor_speed, bool analog_response_is_cubic, int analog_deadzone)
       {
          int16_t joy_x, joy_y, x, y;
+         float analog_amplitude;
+         int mouse_acc_int;
          bool do_joystick, down;
 
          static const uint32_t retroButtons[2] = {RETRO_DEVICE_ID_MOUSE_LEFT, RETRO_DEVICE_ID_MOUSE_RIGHT};
@@ -773,97 +774,89 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          y = aCallback(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
          joy_x = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
          joy_y = aCallback(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y);
-
-         if (joy_x > ANALOG_THRESHOLD3)
-         {
-            _mouseX += 4*ANALOG_VALUE_X_ADD;
-            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
-            do_joystick = true;
-         }
-         else if (joy_x < -ANALOG_THRESHOLD3)
-         {
-            _mouseX -= 4*ANALOG_VALUE_X_ADD;
-            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
-            do_joystick = true;
-         }
-         else if (joy_x > ANALOG_THRESHOLD2)
-         {
-            _mouseX += 2*ANALOG_VALUE_X_ADD;
-            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
-            do_joystick = true;
-         }
-         else if (joy_x < -ANALOG_THRESHOLD2)
-         {
-            _mouseX -= 2*ANALOG_VALUE_X_ADD;
-            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
-            do_joystick = true;
-         }
-         else if (joy_x > ANALOG_THRESHOLD1)
-         {
-            _mouseX += ANALOG_VALUE_X_ADD;
-            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
-            do_joystick = true;
-         }
-         else if (joy_x < -ANALOG_THRESHOLD1)
-         {
-            _mouseX -= ANALOG_VALUE_X_ADD;
-            _mouseX = (_mouseX < 0) ? 0 : _mouseX;
-            _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
-            do_joystick = true;
-         }
-
-         if (joy_y > ANALOG_THRESHOLD3)
-         {
-            _mouseY += 4*ANALOG_VALUE_Y_ADD;
-            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
-            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
-            do_joystick = true;
-         }
-         else if (joy_y < -ANALOG_THRESHOLD3)
-         {
-            _mouseY -= 4*ANALOG_VALUE_Y_ADD;
-            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
-            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
-            do_joystick = true;
-         }
-         else if (joy_y > ANALOG_THRESHOLD2)
-         {
-            _mouseY += 2*ANALOG_VALUE_Y_ADD;
-            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
-            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
-            do_joystick = true;
-         }
-         else if (joy_y < -ANALOG_THRESHOLD2)
-         {
-            _mouseY -= 2*ANALOG_VALUE_Y_ADD;
-            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
-            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
-            do_joystick = true;
-         }
-         else if (joy_y > ANALOG_THRESHOLD1)
-         {
-            _mouseY += ANALOG_VALUE_Y_ADD; 
-            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
-            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
-            do_joystick = true;
-         }
-         else if (joy_y < -ANALOG_THRESHOLD1)
-         {
-            _mouseY -= ANALOG_VALUE_Y_ADD; 
-            _mouseY = (_mouseY < 0) ? 0 : _mouseY;
-            _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
-            do_joystick = true;
-         }
+			
+			// Analog X Axis
+			if (joy_x > analog_deadzone || joy_x < -analog_deadzone)
+			{
+				if (joy_x > analog_deadzone)
+				{
+					// Reset accumulator when changing direction
+					_mouseXAcc = (_mouseXAcc < 0.0) ? 0.0 : _mouseXAcc;
+					joy_x = joy_x - analog_deadzone;
+				}
+				if (joy_x < -analog_deadzone)
+				{
+					// Reset accumulator when changing direction
+					_mouseXAcc = (_mouseXAcc > 0.0) ? 0.0 : _mouseXAcc;
+					joy_x = joy_x + analog_deadzone;
+				}
+				// Update accumulator
+				analog_amplitude = (float)joy_x / (float)(ANALOG_RANGE - analog_deadzone);
+				if (analog_response_is_cubic)
+				{
+					if (analog_amplitude < 0.0)
+						analog_amplitude = -(analog_amplitude * analog_amplitude);
+					else
+						analog_amplitude = analog_amplitude * analog_amplitude;
+				}
+				_mouseXAcc += analog_amplitude * (float)BASE_CURSOR_SPEED * gampad_cursor_speed;
+				// Get integer part of accumulator
+				mouse_acc_int = (int)_mouseXAcc;
+				if (mouse_acc_int != 0)
+				{
+					// Set mouse position
+					_mouseX += mouse_acc_int;
+					_mouseX = (_mouseX < 0) ? 0 : _mouseX;
+					_mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
+					do_joystick = true;
+					// Update accumulator
+					_mouseXAcc -= (float)mouse_acc_int;
+				}
+			}
+			
+			// Analog Y Axis
+			if (joy_y > analog_deadzone || joy_y < -analog_deadzone)
+			{
+				if (joy_y > analog_deadzone)
+				{
+					// Reset accumulator when changing direction
+					_mouseYAcc = (_mouseYAcc < 0.0) ? 0.0 : _mouseYAcc;
+					joy_y = joy_y - analog_deadzone;
+				}
+				if (joy_y < -analog_deadzone)
+				{
+					// Reset accumulator when changing direction
+					_mouseYAcc = (_mouseYAcc > 0.0) ? 0.0 : _mouseYAcc;
+					joy_y = joy_y + analog_deadzone;
+				}
+				// Update accumulator
+				analog_amplitude = (float)joy_y / (float)(ANALOG_RANGE - analog_deadzone);
+				if (analog_response_is_cubic)
+				{
+					if (analog_amplitude < 0.0)
+						analog_amplitude = -(analog_amplitude * analog_amplitude);
+					else
+						analog_amplitude = analog_amplitude * analog_amplitude;
+				}
+				_mouseYAcc += analog_amplitude * (float)BASE_CURSOR_SPEED * gampad_cursor_speed;
+				// Get integer part of accumulator
+				mouse_acc_int = (int)_mouseYAcc;
+				if (mouse_acc_int != 0)
+				{
+					// Set mouse position
+					_mouseY += mouse_acc_int;
+					_mouseY = (_mouseY < 0) ? 0 : _mouseY;
+					_mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
+					do_joystick = true;
+					// Update accumulator
+					_mouseYAcc -= (float)mouse_acc_int;
+				}
+			}
 
          {
             if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
             {
-               _mouseX -= 2*ANALOG_VALUE_X_ADD;
+               _mouseX -= (int)((float)BASE_CURSOR_SPEED * gampad_cursor_speed * 0.5f);
                _mouseX = (_mouseX < 0) ? 0 : _mouseX;
                _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
                do_joystick = true;
@@ -871,7 +864,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
             if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
             {
-               _mouseX += 2*ANALOG_VALUE_X_ADD;
+               _mouseX += (int)((float)BASE_CURSOR_SPEED * gampad_cursor_speed * 0.5f);
                _mouseX = (_mouseX < 0) ? 0 : _mouseX;
                _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
                do_joystick = true;
@@ -879,7 +872,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
             if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
             {
-               _mouseY -= 2*ANALOG_VALUE_Y_ADD; 
+               _mouseY -= (int)((float)BASE_CURSOR_SPEED * gampad_cursor_speed * 0.5f);
                _mouseY = (_mouseY < 0) ? 0 : _mouseY;
                _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
                do_joystick = true;
@@ -887,7 +880,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
             if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
             {
-               _mouseY += 2*ANALOG_VALUE_Y_ADD; 
+               _mouseY += (int)((float)BASE_CURSOR_SPEED * gampad_cursor_speed * 0.5f);
                _mouseY = (_mouseY < 0) ? 0 : _mouseY;
                _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
                do_joystick = true;
@@ -1066,9 +1059,9 @@ const Graphics::Surface& getScreen()
    return ((OSystem_RETRO*)g_system)->getScreen();
 }
 
-void retroProcessMouse(retro_input_state_t aCallback)
+void retroProcessMouse(retro_input_state_t aCallback, float gampad_cursor_speed, bool analog_response_is_cubic, int analog_deadzone)
 {
-   ((OSystem_RETRO*)g_system)->processMouse(aCallback);
+   ((OSystem_RETRO*)g_system)->processMouse(aCallback, gampad_cursor_speed, analog_response_is_cubic, analog_deadzone);
 }
 
 void retroPostQuit()
