@@ -782,11 +782,11 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 				{ RETRO_DEVICE_ID_JOYPAD_X,      (unsigned)Common::KEYCODE_ESCAPE,    (unsigned)Common::ASCII_ESCAPE    }, // Esc
 				{ RETRO_DEVICE_ID_JOYPAD_Y,      (unsigned)Common::KEYCODE_PERIOD,    46                                }, // .
 				{ RETRO_DEVICE_ID_JOYPAD_L,      (unsigned)Common::KEYCODE_RETURN,    (unsigned)Common::ASCII_RETURN    }, // Enter
-				{ RETRO_DEVICE_ID_JOYPAD_R,      (unsigned)Common::KEYCODE_SPACE,     (unsigned)Common::ASCII_SPACE     }, // Space
+				{ RETRO_DEVICE_ID_JOYPAD_R,      (unsigned)Common::KEYCODE_KP5,       53                                }, // Numpad 5
 				{ RETRO_DEVICE_ID_JOYPAD_L2,     (unsigned)Common::KEYCODE_BACKSPACE, (unsigned)Common::ASCII_BACKSPACE }, // Backspace
-				{ RETRO_DEVICE_ID_JOYPAD_L3,     (unsigned)Common::KEYCODE_KP0,       48                                }, // Numpad 0
-				{ RETRO_DEVICE_ID_JOYPAD_R3,     (unsigned)Common::KEYCODE_KP5,       53                                }, // Numpad 5
-				{ RETRO_DEVICE_ID_JOYPAD_SELECT, (unsigned)Common::KEYCODE_F10,       (unsigned)Common::ASCII_F10       }, // F10
+				{ RETRO_DEVICE_ID_JOYPAD_L3,     (unsigned)Common::KEYCODE_F10,       (unsigned)Common::ASCII_F10       }, // F10
+				{ RETRO_DEVICE_ID_JOYPAD_R3,     (unsigned)Common::KEYCODE_KP0,       48                                }, // Numpad 0
+				{ RETRO_DEVICE_ID_JOYPAD_SELECT, (unsigned)Common::KEYCODE_F1,        (unsigned)Common::ASCII_F1        }, // F1
 			};
 			
 			// Right stick circular wrap around: 1 -> 2 -> 3 -> 6 -> 9 -> 8 -> 7 -> 4
