@@ -308,7 +308,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       bool _mouseDontScale;
       bool _mouseButtons[2];
       bool _joypadmouseButtons[2];
-      bool _joypadstartButton;
+      bool _joypadkeyboardButtons[8];
       bool _ptrmouseButton;
 
       uint32 _startTime;
@@ -325,7 +325,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       _fsFactory = new FS_SYSTEM_FACTORY();
       memset(_mouseButtons, 0, sizeof(_mouseButtons));
       memset(_joypadmouseButtons, 0, sizeof(_joypadmouseButtons));
-      _joypadstartButton = false;
+      memset(_joypadkeyboardButtons, 0, sizeof(_joypadkeyboardButtons));
 
       _startTime = getMillis();
 
@@ -767,6 +767,17 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
             {Common::EVENT_LBUTTONDOWN, Common::EVENT_LBUTTONUP},
             {Common::EVENT_RBUTTONDOWN, Common::EVENT_RBUTTONUP}
          };
+			
+			static const unsigned gampad_key_map[8][3] = {
+				{ RETRO_DEVICE_ID_JOYPAD_X,       27,  27}, // Esc
+				{ RETRO_DEVICE_ID_JOYPAD_Y,       46,  46}, // .
+				{ RETRO_DEVICE_ID_JOYPAD_L,       13,  13}, // Enter
+				{ RETRO_DEVICE_ID_JOYPAD_R,       32,  32}, // Space
+				{ RETRO_DEVICE_ID_JOYPAD_L2,     261,  53}, // Numpad 5
+				{ RETRO_DEVICE_ID_JOYPAD_L3,     291, 324}, // F10
+				{ RETRO_DEVICE_ID_JOYPAD_R3,     256,  48}, // Numpad 0
+				{ RETRO_DEVICE_ID_JOYPAD_SELECT,   8,   8}, // Backspace
+			};
 
          down = false;
          do_joystick = false;
@@ -887,12 +898,13 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
             }
          }
 
-         if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT))
+         if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
          {
             Common::Event ev;
             ev.type = Common::EVENT_MAINMENU;
             _events.push_back(ev);
          }
+
 #ifdef WIIU
 	int p_x = aCallback(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
 	int p_y = aCallback(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
@@ -971,13 +983,16 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
             _events.push_back(ev);
          }
 
-         down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START);
-         if (down != _joypadstartButton)
-         {
-            _joypadstartButton = down;
-            bool state = down ? true : false;
-            processKeyEvent(state, 27, 27, 0);
-         }
+			for(int i = 0; i < 8; i ++)
+			{
+				down = aCallback(0, RETRO_DEVICE_JOYPAD, 0, gampad_key_map[i][0]);
+				if (down != _joypadkeyboardButtons[i])
+				{
+					_joypadkeyboardButtons[i] = down;
+					bool state = down ? true : false;
+					processKeyEvent(state, gampad_key_map[i][1], (uint32_t)gampad_key_map[i][2], 0);
+				}
+			}
 
          if(x || y)
          {
