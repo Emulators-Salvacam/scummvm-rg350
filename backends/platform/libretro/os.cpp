@@ -771,14 +771,14 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          };
 			
 			static const unsigned gampad_key_map[8][3] = {
-				{ RETRO_DEVICE_ID_JOYPAD_X,       27,  27}, // Esc
-				{ RETRO_DEVICE_ID_JOYPAD_Y,       46,  46}, // .
-				{ RETRO_DEVICE_ID_JOYPAD_L,       13,  13}, // Enter
-				{ RETRO_DEVICE_ID_JOYPAD_R,       32,  32}, // Space
-				{ RETRO_DEVICE_ID_JOYPAD_L2,     261,  53}, // Numpad 5
-				{ RETRO_DEVICE_ID_JOYPAD_L3,     291, 324}, // F10
-				{ RETRO_DEVICE_ID_JOYPAD_R3,     256,  48}, // Numpad 0
-				{ RETRO_DEVICE_ID_JOYPAD_SELECT,   8,   8}, // Backspace
+				{ RETRO_DEVICE_ID_JOYPAD_X,      (unsigned)Common::KEYCODE_ESCAPE,    (unsigned)Common::ASCII_ESCAPE    }, // Esc
+				{ RETRO_DEVICE_ID_JOYPAD_Y,      (unsigned)Common::KEYCODE_PERIOD,    46                                }, // .
+				{ RETRO_DEVICE_ID_JOYPAD_L,      (unsigned)Common::KEYCODE_RETURN,    (unsigned)Common::ASCII_RETURN    }, // Enter
+				{ RETRO_DEVICE_ID_JOYPAD_R,      (unsigned)Common::KEYCODE_SPACE,     (unsigned)Common::ASCII_SPACE     }, // Space
+				{ RETRO_DEVICE_ID_JOYPAD_L2,     (unsigned)Common::KEYCODE_BACKSPACE, (unsigned)Common::ASCII_BACKSPACE }, // Backspace
+				{ RETRO_DEVICE_ID_JOYPAD_L3,     (unsigned)Common::KEYCODE_KP0,       48                                }, // Numpad 0
+				{ RETRO_DEVICE_ID_JOYPAD_R3,     (unsigned)Common::KEYCODE_KP5,       53                                }, // Numpad 5
+				{ RETRO_DEVICE_ID_JOYPAD_SELECT, (unsigned)Common::KEYCODE_F10,       (unsigned)Common::ASCII_F10       }, // F10
 			};
 			
 			// Reduce gamepad cursor speed, if required
