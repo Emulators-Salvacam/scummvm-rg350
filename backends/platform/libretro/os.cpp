@@ -760,6 +760,8 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          float analog_amplitude;
          int mouse_acc_int;
          bool do_joystick, down;
+         float adjusted_cursor_speed = (float)BASE_CURSOR_SPEED * gampad_cursor_speed;
+         int dpad_cursor_offset;
 
          static const uint32_t retroButtons[2] = {RETRO_DEVICE_ID_MOUSE_LEFT, RETRO_DEVICE_ID_MOUSE_RIGHT};
          static const Common::EventType eventID[2][2] =
@@ -778,6 +780,12 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 				{ RETRO_DEVICE_ID_JOYPAD_R3,     256,  48}, // Numpad 0
 				{ RETRO_DEVICE_ID_JOYPAD_SELECT,   8,   8}, // Backspace
 			};
+			
+			// Reduce gamepad cursor speed, if required
+			if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
+			{
+				adjusted_cursor_speed = adjusted_cursor_speed * (1.0f / 3.0f);
+			}
 
          down = false;
          do_joystick = false;
@@ -810,7 +818,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 					else
 						analog_amplitude = analog_amplitude * analog_amplitude;
 				}
-				_mouseXAcc += analog_amplitude * (float)BASE_CURSOR_SPEED * gampad_cursor_speed;
+				_mouseXAcc += analog_amplitude * adjusted_cursor_speed;
 				// Get integer part of accumulator
 				mouse_acc_int = (int)_mouseXAcc;
 				if (mouse_acc_int != 0)
@@ -849,7 +857,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 					else
 						analog_amplitude = analog_amplitude * analog_amplitude;
 				}
-				_mouseYAcc += analog_amplitude * (float)BASE_CURSOR_SPEED * gampad_cursor_speed;
+				_mouseYAcc += analog_amplitude * adjusted_cursor_speed;
 				// Get integer part of accumulator
 				mouse_acc_int = (int)_mouseYAcc;
 				if (mouse_acc_int != 0)
@@ -867,7 +875,9 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          {
             if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
             {
-               _mouseX -= (int)((float)BASE_CURSOR_SPEED * gampad_cursor_speed * 0.5f);
+					dpad_cursor_offset = (int)(adjusted_cursor_speed * 0.5f);
+					dpad_cursor_offset = (dpad_cursor_offset < 1) ? 1 : dpad_cursor_offset;
+               _mouseX -= dpad_cursor_offset;
                _mouseX = (_mouseX < 0) ? 0 : _mouseX;
                _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
                do_joystick = true;
@@ -875,7 +885,9 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
             if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT))
             {
-               _mouseX += (int)((float)BASE_CURSOR_SPEED * gampad_cursor_speed * 0.5f);
+					dpad_cursor_offset = (int)(adjusted_cursor_speed * 0.5f);
+					dpad_cursor_offset = (dpad_cursor_offset < 1) ? 1 : dpad_cursor_offset;
+               _mouseX += dpad_cursor_offset;
                _mouseX = (_mouseX < 0) ? 0 : _mouseX;
                _mouseX = (_mouseX >= _screen.w) ? _screen.w : _mouseX;
                do_joystick = true;
@@ -883,7 +895,9 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
             if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP))
             {
-               _mouseY -= (int)((float)BASE_CURSOR_SPEED * gampad_cursor_speed * 0.5f);
+					dpad_cursor_offset = (int)(adjusted_cursor_speed * 0.5f);
+					dpad_cursor_offset = (dpad_cursor_offset < 1) ? 1 : dpad_cursor_offset;
+               _mouseY -= dpad_cursor_offset;
                _mouseY = (_mouseY < 0) ? 0 : _mouseY;
                _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
                do_joystick = true;
@@ -891,7 +905,9 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
             if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN))
             {
-               _mouseY += (int)((float)BASE_CURSOR_SPEED * gampad_cursor_speed * 0.5f);
+					dpad_cursor_offset = (int)(adjusted_cursor_speed * 0.5f);
+					dpad_cursor_offset = (dpad_cursor_offset < 1) ? 1 : dpad_cursor_offset;
+               _mouseY += dpad_cursor_offset;
                _mouseY = (_mouseY < 0) ? 0 : _mouseY;
                _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
                do_joystick = true;
