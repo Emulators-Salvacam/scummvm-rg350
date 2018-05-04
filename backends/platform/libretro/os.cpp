@@ -1073,6 +1073,8 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
 					// Convert angle into numpad key index
 					numpad_index = (unsigned)((rs_angle / (2.0 * PI)) * 8.0);
+					// Unnecessary safety check...
+					numpad_index = (numpad_index > 7) ? 7 : numpad_index;
 					//printf("numpad_index: %u\n", numpad_index);
 					
 					if (numpad_index != _joypadnumpadLast)
