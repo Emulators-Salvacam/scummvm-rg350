@@ -35,7 +35,11 @@
 #include "backends/platform/ios7/ios7_common.h"
 #endif
 
+#ifdef __LIBRETRO__
+#include <fluidlite.h>
+#else
 #include <fluidsynth.h>
+#endif
 
 class MidiDriver_FluidSynth : public MidiDriver_Emulated {
 private:

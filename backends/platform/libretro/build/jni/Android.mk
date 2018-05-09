@@ -20,9 +20,15 @@ USE_PNG       := 1
 USE_JPEG      := 1
 USE_THEORADEC := 0
 USE_FREETYPE2 := 1
-HAVE_MT32EMU  := 0
+HAVE_MT32EMU  := 1
+USE_FLUIDSYNTH:= 1
 POSIX         := 1
 BACKEND       := libretro
+
+ifeq ($(HAVE_MT32EMU),1)
+USE_MT32EMU = 1
+DEFINES += -DUSE_MT32EMU
+endif
 
 include $(LOCAL_PATH)/../Makefile.common
 include $(addprefix $(CORE_DIR)/, $(addsuffix /module.mk,$(MODULES)))
