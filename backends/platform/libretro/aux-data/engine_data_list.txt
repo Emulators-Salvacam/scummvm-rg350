@@ -1,0 +1,16 @@
+access.dat
+cryo.dat
+drascula.dat
+hugo.dat
+kyra.dat
+lure.dat
+macventure.dat
+mort.dat
+neverhood.dat
+queen.tbl
+sky.cpt
+teenagent.dat
+titanic.dat
+tony.dat
+toon.dat
+wintermute.zip
