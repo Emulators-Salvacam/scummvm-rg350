@@ -35,7 +35,11 @@
 #include "backends/platform/ios7/ios7_common.h"
 #endif
 
+#ifdef __LIBRETRO__
+#include <fluidlite.h>
+#else
 #include <fluidsynth.h>
+#endif
 
 class MidiDriver_FluidSynth : public MidiDriver_Emulated {
 private:
@@ -157,7 +161,7 @@ int MidiDriver_FluidSynth::open() {
 
 		double reverbRoomSize = (double)ConfMan.getInt("fluidsynth_reverb_roomsize") / 100.0;
 		double reverbDamping = (double)ConfMan.getInt("fluidsynth_reverb_damping") / 100.0;
-		int reverbWidth = ConfMan.getInt("fluidsynth_reverb_width");
+		double reverbWidth = (double)ConfMan.getInt("fluidsynth_reverb_width") / 100.0;
 		double reverbLevel = (double)ConfMan.getInt("fluidsynth_reverb_level") / 100.0;
 
 		fluid_synth_set_reverb(_synth, reverbRoomSize, reverbDamping, reverbWidth, reverbLevel);

@@ -11,6 +11,7 @@ USE_JPEG   = 1
 USE_THEORADEC=1
 USE_FREETYPE2=1
 HAVE_MT32EMU=1
+USE_FLUIDSYNTH=1
 
 ifeq ($(platform),)
 platform = unix
