@@ -35,11 +35,28 @@ void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_c
 void retro_set_input_poll(retro_input_poll_t cb) { poll_cb = cb; }
 void retro_set_input_state(retro_input_state_t cb) { input_cb = cb; }
 
+// System analog stick range is -0x8000 to 0x8000
+#define ANALOG_RANGE 0x8000
+// Default deadzone: 15%
+static int analog_deadzone = (int)(0.15f * ANALOG_RANGE);
+
+static float gampad_cursor_speed = 1.0f;
+static bool analog_response_is_cubic = false;
+
 void retro_set_environment(retro_environment_t cb)
 {
+	struct retro_variable variables[] = {
+		{ "scummvm_gamepad_cursor_speed", "Gamepad Cursor Speed; 1.0|1.5|2.0|2.5|3.0|0.25|0.5|0.75" },
+		{ "scummvm_analog_response", "Analog Cursor Response; linear|cubic" },
+		{ "scummvm_analog_deadzone", "Analog Deadzone (percent); 15|20|25|30|0|5|10" },
+		{ NULL, NULL },
+	};
+	
    environ_cb = cb;
    bool tmp = true;
+   
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &tmp);
+   environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
 }
 
 bool FRONTENDwantsExit;
@@ -202,6 +219,36 @@ char * dirname (char *path)
 }
 #endif
 
+static void update_variables(void)
+{
+	struct retro_variable var;
+
+	var.key = "scummvm_gamepad_cursor_speed";
+	var.value = NULL;
+	gampad_cursor_speed = 1.0f;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		gampad_cursor_speed = (float)atof(var.value);
+	}
+
+	var.key = "scummvm_analog_response";
+	var.value = NULL;
+	analog_response_is_cubic = false;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		if (strcmp(var.value, "cubic") == 0)
+			analog_response_is_cubic = true;
+	}
+
+	var.key = "scummvm_analog_deadzone";
+	var.value = NULL;
+	analog_deadzone = (int)(0.15f * ANALOG_RANGE);
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		analog_deadzone = (int)(atoi(var.value) * 0.01f * ANALOG_RANGE);
+	}
+}
+
 bool retro_load_game(const struct retro_game_info *game)
 {
    const char* sysdir;
@@ -209,6 +256,8 @@ bool retro_load_game(const struct retro_game_info *game)
 
    cmd_params_num = 1;
    strcpy(cmd_params[0],"scummvm\0");
+   
+   update_variables();
 
    if (game)
    {
@@ -251,17 +300,25 @@ bool retro_load_game(const struct retro_game_info *game)
       }
    }
 
-   struct retro_input_descriptor desc[] = {
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Mouse Left" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Mouse Up" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "Mouse Down" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Mouse Right" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Mouse Button 1" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Mouse Button 2" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Esc" },
-      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,"ScummVM GUI" },
-      { 0 },
-   };
+	struct retro_input_descriptor desc[] = {
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Mouse Cursor Left" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Mouse Cursor Up" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Mouse Cursor Down" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Mouse Cursor Right" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "Right Mouse Button" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "Left Mouse Button" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,      "Esc" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,      "." },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Enter" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Numpad 5" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,     "Backspace" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,     "Cursor Fine Control" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3,     "F10" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3,     "Numpad 0" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "ScummVM GUI" },
+		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "F1" },
+		{ 0 },
+	};
 
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
@@ -321,12 +378,16 @@ void retro_run (void)
 {
    if(!emuThread)
       return;
+   
+   bool updated = false;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
+      update_variables();
 
    /* Mouse */
    if(g_system)
    {
       poll_cb();
-      retroProcessMouse(input_cb);
+      retroProcessMouse(input_cb, gampad_cursor_speed, analog_response_is_cubic, analog_deadzone);
    }
 
    /* Run emu */
