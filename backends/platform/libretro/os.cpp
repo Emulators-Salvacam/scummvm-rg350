@@ -655,6 +655,10 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 			{
 				retro_sleep(1);
 				retroCheckThread();
+				// ...and we also have to handle the timer manager here,
+				// since some engines (e.g. dreamweb) sit in a delayMillis()
+				// loop waiting for a timer callback...
+				((DefaultTimerManager*)_timerManager)->handler();
 			}
       }
 
