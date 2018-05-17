@@ -603,18 +603,15 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          _mousePaletteEnabled = true;
       }
 
-      bool retroCheckThread(uint32 offset = 0)
+      void retroCheckThread(void)
       {
-         if(_threadExitTime <= (getMillis() + offset))
+         if(_threadExitTime <= getMillis())
          {
             extern void retro_leave_thread();
             retro_leave_thread();
 
             _threadExitTime = getMillis() + 10;
-            return true;
          }
-
-         return false;
       }
 
       virtual bool pollEvent(Common::Event &event)
@@ -652,8 +649,13 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
       virtual void delayMillis(uint msecs)
       {
-         if(!retroCheckThread(msecs))
-            retro_sleep(msecs);
+			// Implement 'non-blocking' sleep...
+			uint32 current_time = getMillis();
+			while(getMillis() < current_time + msecs)
+			{
+				retro_sleep(1);
+				retroCheckThread();
+			}
       }
 
 
