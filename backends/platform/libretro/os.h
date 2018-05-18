@@ -42,7 +42,7 @@
 extern int access(const char *path, int amode);
 #endif
 
-OSystem* retroBuildOS();
+OSystem* retroBuildOS(bool aEnableSpeedHack);
 const Graphics::Surface& getScreen();
 
 void retroProcessMouse(retro_input_state_t aCallback, float gampad_cursor_speed, bool analog_response_is_cubic, int analog_deadzone);

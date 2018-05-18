@@ -43,12 +43,15 @@ static int analog_deadzone = (int)(0.15f * ANALOG_RANGE);
 static float gampad_cursor_speed = 1.0f;
 static bool analog_response_is_cubic = false;
 
+static bool speed_hack_is_enabled = false;
+
 void retro_set_environment(retro_environment_t cb)
 {
 	struct retro_variable variables[] = {
 		{ "scummvm_gamepad_cursor_speed", "Gamepad Cursor Speed; 1.0|1.5|2.0|2.5|3.0|0.25|0.5|0.75" },
 		{ "scummvm_analog_response", "Analog Cursor Response; linear|cubic" },
 		{ "scummvm_analog_deadzone", "Analog Deadzone (percent); 15|20|25|30|0|5|10" },
+		{ "scummvm_speed_hack", "Speed Hack (Restart); disabled|enabled" },
 		{ NULL, NULL },
 	};
 	
@@ -75,7 +78,7 @@ void retro_leave_thread(void)
 
 static void retro_start_emulator(void)
 {
-   g_system = retroBuildOS();
+   g_system = retroBuildOS(speed_hack_is_enabled);
 
    static const char* argv[20];
    for(int i=0; i<cmd_params_num; i++)
@@ -246,6 +249,15 @@ static void update_variables(void)
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{
 		analog_deadzone = (int)(atoi(var.value) * 0.01f * ANALOG_RANGE);
+	}
+	
+	var.key = "scummvm_speed_hack";
+	var.value = NULL;
+	speed_hack_is_enabled = false;
+	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+	{
+		if (strcmp(var.value, "enabled") == 0)
+			speed_hack_is_enabled = true;
 	}
 }
 
