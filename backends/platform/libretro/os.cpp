@@ -315,17 +315,20 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 
       uint32 _startTime;
       uint32 _threadExitTime;
+      
+      bool _speed_hack_enabled;
 
 
       Audio::MixerImpl* _mixer;
 
 
-      OSystem_RETRO() :
+      OSystem_RETRO(bool aEnableSpeedHack) :
          _mousePaletteEnabled(false), _mouseVisible(false),
          _mouseX(0), _mouseY(0), _mouseXAcc(0.0), _mouseYAcc(0.0), _mouseHotspotX(0), _mouseHotspotY(0),
          _mouseKeyColor(0), _mouseDontScale(false),
          _joypadnumpadLast(8), _joypadnumpadActive(false),
-         _mixer(0), _startTime(0), _threadExitTime(10)
+         _mixer(0), _startTime(0), _threadExitTime(10),
+         _speed_hack_enabled(aEnableSpeedHack)
    {
       _fsFactory = new FS_SYSTEM_FACTORY();
       memset(_mouseButtons, 0, sizeof(_mouseButtons));
@@ -602,10 +605,10 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          _mousePalette.set(colors, start, num);
          _mousePaletteEnabled = true;
       }
-
-      void retroCheckThread(void)
+      
+		void retroCheckThread(uint32 offset = 0)
       {
-         if(_threadExitTime <= getMillis())
+         if(_threadExitTime <= (getMillis() + offset))
          {
             extern void retro_leave_thread();
             retro_leave_thread();
@@ -650,18 +653,50 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       virtual void delayMillis(uint msecs)
       {
 			// Implement 'non-blocking' sleep...
-			uint32 current_time = getMillis();
-			while(getMillis() < current_time + msecs)
+			uint32 start_time = getMillis();
+			if (_speed_hack_enabled)
 			{
-				retro_sleep(1);
-				retroCheckThread();
-				// ...and we also have to handle the timer manager here,
-				// since some engines (e.g. dreamweb) sit in a delayMillis()
-				// loop waiting for a timer callback...
-				((DefaultTimerManager*)_timerManager)->handler();
+				// Use janky inaccurate method...
+				uint32 elapsed_time = 0;
+				uint32 time_remaining = msecs;
+				while(time_remaining > 0)
+				{
+					// If delay would take us past the next
+					// thread exit time, exit the thread immediately
+					// (i.e. start burning delay time in the main RetroArch
+					// thread as soon as possible...)
+					retroCheckThread(time_remaining);
+					// Check how much delay time remains...
+					elapsed_time = getMillis() - start_time;
+					if (time_remaining > elapsed_time)
+					{
+						time_remaining = time_remaining - elapsed_time;
+						retro_sleep(1);
+					}
+					else
+					{
+						time_remaining = 0;
+					}
+					// Have to handle the timer manager here, since some engines
+					// (e.g. dreamweb) sit in a delayMillis() loop waiting for a
+					// timer callback...
+					((DefaultTimerManager*)_timerManager)->handler();
+				}
+			}
+			else
+			{
+				// Use accurate method...
+				while(getMillis() < start_time + msecs)
+				{
+					retro_sleep(1);
+					retroCheckThread();
+					// Have to handle the timer manager here, since some engines
+					// (e.g. dreamweb) sit in a delayMillis() loop waiting for a
+					// timer callback...
+					((DefaultTimerManager*)_timerManager)->handler();
+				}
 			}
       }
-
 
       virtual MutexRef createMutex(void)
       {
@@ -1180,9 +1215,9 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       }
 };
 
-OSystem* retroBuildOS()
+OSystem* retroBuildOS(bool aEnableSpeedHack)
 {
-   return new OSystem_RETRO();
+   return new OSystem_RETRO(aEnableSpeedHack);
 }
 
 const Graphics::Surface& getScreen()
