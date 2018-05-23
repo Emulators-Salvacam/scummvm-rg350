@@ -120,6 +120,13 @@ void Input::delay(uint amount) {
 			case Common::EVENT_QUIT:
 				if (_cutawayRunning)
 					_cutawayQuit = true;
+#ifdef __LIBRETRO__
+				// Without this, Talk::defaultAnimation() gets stuck in
+				// an infinite loop if we try to quit the game while a
+				// dialogue is in progress...
+				if (_dialogueRunning)
+					_talkQuit = true;
+#endif
 				return;
 
 			default:

@@ -130,6 +130,10 @@ protected:
 	uint32 _lastSaveTime;
 	uint32 _lastUpdateTime;
 
+#ifdef __LIBRETRO__
+	bool _gameStarted;
+#endif
+
 	BamScene *_bam;
 	BankManager *_bankMan;
 	Command *_command;
@@ -142,6 +146,7 @@ protected:
 	Resource *_resource;
 	Sound *_sound;
 	Walk *_walk;
+
 };
 
 } // End of namespace Queen
