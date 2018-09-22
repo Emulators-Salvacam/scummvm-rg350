@@ -261,6 +261,27 @@ static void update_variables(void)
 	}
 }
 
+static int retro_device = RETRO_DEVICE_JOYPAD;
+void retro_set_controller_port_device(unsigned port, unsigned device)
+{
+   if (port != 0) {
+      if (log_cb)
+         log_cb(RETRO_LOG_WARN, "Invalid controller port %d.\n", port);
+      return;
+   }
+
+   switch (device) {
+   case RETRO_DEVICE_JOYPAD:
+   case RETRO_DEVICE_MOUSE:
+      retro_device = device;
+      break;
+   default:
+      if (log_cb)
+         log_cb(RETRO_LOG_WARN, "Invalid controller device class %d.\n", device);
+      break;
+   }
+}
+
 bool retro_load_game(const struct retro_game_info *game)
 {
    const char* sysdir;
@@ -329,6 +350,8 @@ bool retro_load_game(const struct retro_game_info *game)
 		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3,     "Numpad 0" },
 		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "ScummVM GUI" },
 		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "F1" },
+		{ 0, RETRO_DEVICE_MOUSE,  0, RETRO_DEVICE_ID_MOUSE_LEFT,    "Left click" },
+		{ 0, RETRO_DEVICE_MOUSE,  0, RETRO_DEVICE_ID_MOUSE_RIGHT,   "Right click" },
 		{ 0 },
 	};
 
@@ -399,7 +422,7 @@ void retro_run (void)
    if(g_system)
    {
       poll_cb();
-      retroProcessMouse(input_cb, gampad_cursor_speed, analog_response_is_cubic, analog_deadzone);
+      retroProcessMouse(input_cb, retro_device, gampad_cursor_speed, analog_response_is_cubic, analog_deadzone);
    }
 
    /* Run emu */
@@ -435,7 +458,6 @@ void retro_unload_game (void)
 }
 
 // Stubs
-void retro_set_controller_port_device(unsigned in_port, unsigned device) { }
 void *retro_get_memory_data(unsigned type) { return 0; }
 size_t retro_get_memory_size(unsigned type) { return 0; }
 void retro_reset (void) { }
