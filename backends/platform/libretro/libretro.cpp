@@ -54,10 +54,10 @@ void retro_set_environment(retro_environment_t cb)
 		{ "scummvm_speed_hack", "Speed Hack (Restart); disabled|enabled" },
 		{ NULL, NULL },
 	};
-	
+
    environ_cb = cb;
    bool tmp = true;
-   
+
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &tmp);
    environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
 }
@@ -76,7 +76,7 @@ void retro_leave_thread(void)
    co_switch(mainThread);
 }
 
-static void retro_start_emulator(void)
+static void retro_wrap_emulator(void)
 {
    g_system = retroBuildOS(speed_hack_is_enabled);
 
@@ -87,28 +87,15 @@ static void retro_start_emulator(void)
    scummvm_main(cmd_params_num, argv);
    EMULATORexited = true;
 
-   if (log_cb)
-      log_cb(RETRO_LOG_INFO, "Emulator loop has ended.\n");
-
    // NOTE: Deleting g_system here will crash...
-}
 
-static void retro_wrap_emulator()
-{
-   retro_start_emulator();
-
-   if(!FRONTENDwantsExit)
-      environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
-
-   /* Were done here */
-   co_switch(mainThread);
-
-   /* Dead emulator, but libco says not to return */
+   /* Were done here, shutdown on the main thread */
    while(true)
    {
+      co_switch(mainThread);
+      /* Dead emulator, but libco says not to return */
       if (log_cb)
          log_cb(RETRO_LOG_ERROR, "Running a dead emulator.\n");
-      co_switch(mainThread);
    }
 }
 
@@ -411,9 +398,11 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *i
 
 void retro_run (void)
 {
-   if(!emuThread)
+   if(!emuThread) {
+      environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
       return;
-   
+   }
+
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       update_variables();
@@ -438,6 +427,11 @@ void retro_run (void)
       static uint32 buf[735];
       int count = ((Audio::MixerImpl*)g_system->getMixer())->mixCallback((byte*)buf, 735*4);
       audio_batch_cb((int16_t*)buf, count);
+   }
+
+   if(EMULATORexited) {
+      co_delete(emuThread);
+      emuThread = 0;
    }
 }
 
