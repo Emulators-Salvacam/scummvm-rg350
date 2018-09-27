@@ -801,7 +801,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 #define BASE_CURSOR_SPEED 4
 #define PI 3.141592653589793238
 
-      void processMouse(retro_input_state_t aCallback, float gampad_cursor_speed, bool analog_response_is_cubic, int analog_deadzone)
+      void processMouse(retro_input_state_t aCallback, int device, float gampad_cursor_speed, bool analog_response_is_cubic, int analog_deadzone)
       {
          int16_t joy_x, joy_y, joy_rx, joy_ry, x, y;
          float analog_amplitude_x, analog_amplitude_y;
@@ -843,7 +843,8 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 			};
 			
 			// Reduce gamepad cursor speed, if required
-			if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
+			if (device == RETRO_DEVICE_JOYPAD &&
+			    aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2))
 			{
 				adjusted_cursor_speed = adjusted_cursor_speed * (1.0f / 3.0f);
 			}
@@ -935,7 +936,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 				}
 			}
 
-         {
+         if (device == RETRO_DEVICE_JOYPAD) {
             if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT))
             {
 					dpad_cursor_offset = (int)(adjusted_cursor_speed * 0.5f);
@@ -975,13 +976,13 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
                _mouseY = (_mouseY >= _screen.h) ? _screen.h : _mouseY;
                do_joystick = true;
             }
-         }
 
-         if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
-         {
-            Common::Event ev;
-            ev.type = Common::EVENT_MAINMENU;
-            _events.push_back(ev);
+            if (aCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START))
+            {
+               Common::Event ev;
+               ev.type = Common::EVENT_MAINMENU;
+               _events.push_back(ev);
+            }
          }
 
 #ifdef WIIU
@@ -1225,9 +1226,9 @@ const Graphics::Surface& getScreen()
    return ((OSystem_RETRO*)g_system)->getScreen();
 }
 
-void retroProcessMouse(retro_input_state_t aCallback, float gampad_cursor_speed, bool analog_response_is_cubic, int analog_deadzone)
+void retroProcessMouse(retro_input_state_t aCallback, int device, float gampad_cursor_speed, bool analog_response_is_cubic, int analog_deadzone)
 {
-   ((OSystem_RETRO*)g_system)->processMouse(aCallback, gampad_cursor_speed, analog_response_is_cubic, analog_deadzone);
+   ((OSystem_RETRO*)g_system)->processMouse(aCallback, device, gampad_cursor_speed, analog_response_is_cubic, analog_deadzone);
 }
 
 void retroPostQuit()
