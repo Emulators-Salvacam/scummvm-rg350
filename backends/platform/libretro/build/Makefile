@@ -114,6 +114,21 @@ else ifeq ($(platform), wii)
    AR = $(DEVKITPPC)/bin/powerpc-eabi-ar$(EXE_EXT) rcs
    DEFINES += -DGEKKO -DHW_RVL -mrvl -mcpu=750 -meabi -mhard-float -D__ppc__ -I$(DEVKITPRO)/libogc/include
 	STATIC_LINKING=1
+
+# Nintendo Switch (libnx)
+else ifeq ($(platform), libnx)
+    include $(DEVKITPRO)/libnx/switch_rules
+    EXT=a
+    TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
+    DEFINES := -DSWITCH=1 -U__linux__ -U__linux
+    DEFINES	:=	 $(DEFINES) -g -O3 \
+                 -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
+    DEFINES += $(INCDIRS)
+    DEFINES +=	-D__SWITCH__ -DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
+	 DEFINES += -I../libretro-common/include
+    CXXFLAGS := $(ASFLAGS) $(DEFINES) -fno-rtti -std=gnu++11
+    STATIC_LINKING = 1
+
 # Nintendo Wii U
 else ifeq ($(platform), wiiu)
    TARGET := $(TARGET_NAME)_libretro_wiiu.a
@@ -256,6 +271,10 @@ ifeq ($(platform), wiiu)
 	$(MKDIR) libtemp
 	$(CP) $+ libtemp/
 	$(AR_ALONE) -M < lite.mri
+else ifeq ($(platform), libnx)
+	$(MKDIR) libtemp
+	$(CP) $+ libtemp/
+	$(AR_ALONE) -M < lite.mri
 else ifeq ($(STATIC_LINKING), 1)
 	$(AR) $@ $(wildcard *.o) $(wildcard */*.o) $(wildcard */*/*.o) $(wildcard */*/*/*.o) $(wildcard */*/*/*/*.o)  $(wildcard */*/*/*/*/*.o)
 else
@@ -275,6 +294,9 @@ clean:
 	$(RM_REC) $(DEPDIRS)
 	$(RM) $(OBJS) $(OBJS_DEPS) libdeps.a $(TARGET)
 ifeq ($(platform), wiiu)
+	$(RM_REC) libtemp
+endif	
+ifeq ($(platform), libnx)
 	$(RM_REC) libtemp
 endif	
 
