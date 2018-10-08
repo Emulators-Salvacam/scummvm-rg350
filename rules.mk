@@ -74,7 +74,11 @@ OBJS += $(MODULE_LIB-$(MODULE))
 # Convenience library target
 $(MODULE_LIB-$(MODULE)): $(MODULE_OBJS-$(MODULE))
 	$(QUIET)-$(RM) $@
+ifeq ($(platform), libnx)
+	$(QUIET_AR)$(AR) -rc $@ $+
+else
 	$(QUIET_AR)$(AR) $@ $+
+endif
 	$(QUIET_RANLIB)$(RANLIB) $@
 
 # Pseudo target for comfort, allows for "make common", "make gui" etc.

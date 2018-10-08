@@ -185,12 +185,11 @@ void parse_command_params(char* cmdline)
    }
 }
 
-#ifdef WIIU
+#if defined(WIIU) || defined(__SWITCH__)
 #include <stdio.h>
 #include <string.h>
 char * dirname (char *path)
 {
-
 	char *p;
 	if( path == NULL || *path == '\0' )
 		return ".";

@@ -5,6 +5,7 @@
 *.o
 lib*.a
 .deps
+*.d
 
 /config.log
 /scummvm
