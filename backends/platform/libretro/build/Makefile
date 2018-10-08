@@ -117,16 +117,17 @@ else ifeq ($(platform), wii)
 
 # Nintendo Switch (libnx)
 else ifeq ($(platform), libnx)
+    export DEPSDIR := $(CURDIR)
     include $(DEVKITPRO)/libnx/switch_rules
     EXT=a
     TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
     DEFINES := -DSWITCH=1 -U__linux__ -U__linux
-    DEFINES	:=	 $(DEFINES) -g -O3 \
+    DEFINES	:=	 -g -O3 \
                  -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
     DEFINES += $(INCDIRS)
-    DEFINES +=	-D__SWITCH__ -DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
-	 DEFINES += -I../libretro-common/include
-    CXXFLAGS := $(ASFLAGS) $(DEFINES) -fno-rtti -std=gnu++11
+    DEFINES += -D__SWITCH__ -DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
+    DEFINES += -I../libretro-common/include -fpermissive
+    CXXFLAGS := $(ASFLAGS) -std=gnu++11
     STATIC_LINKING = 1
 
 # Nintendo Wii U
@@ -259,6 +260,8 @@ include Makefile.common
 
 # Concat DEFINES and INCLUDES to form the CPPFLAGS
 CPPFLAGS := $(DEFINES) $(INCLUDES) $(INCFLAGS)
+CXXFLAGS += $(DEFINES) $(INCLUDES)
+CFLAGS += $(DEFINES) $(INCLUDES)
 
 # Include the build instructions for all modules
 -include $(addprefix $(CORE_DIR)/, $(addsuffix /module.mk,$(MODULES)))
@@ -270,11 +273,11 @@ $(TARGET): $(OBJS) libdeps.a
 ifeq ($(platform), wiiu)
 	$(MKDIR) libtemp
 	$(CP) $+ libtemp/
-	$(AR_ALONE) -M < lite.mri
+	$(AR_ALONE) -M < lite_wiiu.mri
 else ifeq ($(platform), libnx)
 	$(MKDIR) libtemp
-	$(CP) $+ libtemp/
-	$(AR_ALONE) -M < lite.mri
+	cp $+ libtemp/
+	$(AR) -M < lite_libnx.mri
 else ifeq ($(STATIC_LINKING), 1)
 	$(AR) $@ $(wildcard *.o) $(wildcard */*.o) $(wildcard */*/*.o) $(wildcard */*/*/*.o) $(wildcard */*/*/*/*.o)  $(wildcard */*/*/*/*/*.o)
 else
@@ -282,7 +285,11 @@ else
 endif
 
 libdeps.a: $(OBJS_DEPS)
-	$(AR) $@ $^
+ifeq ($(platform), libnx)
+		$(AR) -rc $@ $^
+else
+		$(AR) $@ $^
+endif
 
 # Dumb compile rule, for C++ compilers that don't allow dependency tracking or
 # where it is broken (such as GCC 2.95).

@@ -165,7 +165,8 @@ MODULE_DIRS += $(LIBRETRO_DIR)
 
 OBJS := $(LIBRETRO_DIR)/libretro.o \
 			$(LIBRETRO_DIR)/os.o \
-			$(LIBRETRO_COMM_DIR)/libco/libco.o
+			$(LIBRETRO_COMM_DIR)/libco/libco.o \
+			$(LIBRETRO_COMM_DIR)/file/retro_stat.o
 OBJS_DEPS :=
 
 ifeq ($(USE_FLUIDSYNTH), 1)

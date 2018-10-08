@@ -5,7 +5,13 @@
 */
 
 #define LIBCO_C
+
+#ifdef __SWITCH__
+#include <libco.h>
+#else
 #include "libco.h"
+#endif
+
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>

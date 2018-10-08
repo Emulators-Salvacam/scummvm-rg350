@@ -985,7 +985,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
             }
          }
 
-#ifdef WIIU
+#if defined(WIIU) || defined(__SWITCH__)
 	int p_x = aCallback(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
 	int p_y = aCallback(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
 	int p_press  = aCallback(0, RETRO_DEVICE_POINTER, 0,RETRO_DEVICE_ID_POINTER_PRESSED);
