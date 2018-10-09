@@ -284,18 +284,21 @@ ifeq ($(platform), libnx)
 	touch libnx-ln
 endif
 
-$(TARGET): libnx-ln $(OBJS) libdeps.a 
 ifeq ($(platform), wiiu)
+$(TARGET): $(OBJS) libdeps.a 
 	$(MKDIR) libtemp
 	$(CP) $+ libtemp/
 	$(AR_ALONE) -M < lite_wiiu.mri
 else ifeq ($(platform), libnx)
+$(TARGET): libnx-ln $(OBJS) libdeps.a 
 	$(MKDIR) libtemp
 	cp $+ libtemp/
 	$(AR) -M < libnx.mri
 else ifeq ($(STATIC_LINKING), 1)
+$(TARGET): $(OBJS) libdeps.a 
 	$(AR) $@ $(wildcard *.o) $(wildcard */*.o) $(wildcard */*/*.o) $(wildcard */*/*/*.o) $(wildcard */*/*/*/*.o)  $(wildcard */*/*/*/*/*.o)
 else
+$(TARGET): $(OBJS) libdeps.a 
 	$(CXX) $(LDFLAGS) $+ $(LIBS) -o $@
 endif
 
