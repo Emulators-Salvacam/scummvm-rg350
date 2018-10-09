@@ -126,8 +126,8 @@ else ifeq ($(platform), libnx)
                  -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
     DEFINES += $(INCDIRS)
     DEFINES += -D__SWITCH__ -DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
-    DEFINES += -I../libretro-common/include -fpermissive
-    CXXFLAGS := $(ASFLAGS) -std=gnu++11
+    DEFINES += -I../libretro-common/include
+    CXXFLAGS := $(ASFLAGS) -std=gnu++11 -fpermissive
     STATIC_LINKING = 1
 
 # Nintendo Wii U
@@ -269,7 +269,22 @@ CFLAGS += $(DEFINES) $(INCLUDES)
 # Depdir information
 DEPDIRS = $(addsuffix $(DEPDIR),$(MODULE_DIRS))
 
-$(TARGET): $(OBJS) libdeps.a
+# Hack for libnx DEPSDIR issues
+libnx-ln:
+ifeq ($(platform), libnx)
+	ln -s ../../../../audio/ audio
+	ln -s ../../../../backends/ backends
+	ln -s ../../../../base/ base
+	ln -s ../../../../common/ common
+	ln -s ../../../../engines/ engines
+	ln -s ../../../../graphics/ graphics
+	ln -s ../../../../gui/ gui
+	ln -s ../../../../image/ image
+	ln -s ../../../../video/ video
+	touch libnx-ln
+endif
+
+$(TARGET): libnx-ln $(OBJS) libdeps.a 
 ifeq ($(platform), wiiu)
 	$(MKDIR) libtemp
 	$(CP) $+ libtemp/
@@ -277,7 +292,7 @@ ifeq ($(platform), wiiu)
 else ifeq ($(platform), libnx)
 	$(MKDIR) libtemp
 	cp $+ libtemp/
-	$(AR) -M < lite_libnx.mri
+	$(AR) -M < libnx.mri
 else ifeq ($(STATIC_LINKING), 1)
 	$(AR) $@ $(wildcard *.o) $(wildcard */*.o) $(wildcard */*/*.o) $(wildcard */*/*/*.o) $(wildcard */*/*/*/*.o)  $(wildcard */*/*/*/*/*.o)
 else
@@ -305,6 +320,16 @@ ifeq ($(platform), wiiu)
 endif	
 ifeq ($(platform), libnx)
 	$(RM_REC) libtemp
+	$(RM) audio
+	$(RM) backends
+	$(RM) base
+	$(RM) common
+	$(RM) engines
+	$(RM) graphics
+	$(RM) gui
+	$(RM) image
+	$(RM) video
+	$(RM) libnx-ln
 endif	
 
 # Include the dependency tracking files.
