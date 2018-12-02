@@ -20,29 +20,21 @@
  *
  */
 
-#if defined(POSIX) || defined(PLAYSTATION3)
+#ifndef LIBRETRO_FILESYSTEM_FACTORY_H
+#define LIBRETRO_FILESYSTEM_FACTORY_H
 
-// Re-enable some forbidden symbols to avoid clashes with stat.h and unistd.h.
-// Also with clock() in sys/time.h in some Mac OS X SDKs.
-#define FORBIDDEN_SYMBOL_EXCEPTION_time_h
-#define FORBIDDEN_SYMBOL_EXCEPTION_unistd_h
-#define FORBIDDEN_SYMBOL_EXCEPTION_mkdir
-#define FORBIDDEN_SYMBOL_EXCEPTION_exit		//Needed for IRIX's unistd.h
+#include "backends/fs/fs-factory.h"
 
-#include "backends/fs/posix/posix-fs-factory.h"
-#include "backends/fs/posix/posix-fs.h"
+/**
+ * Creates LibRetroFilesystemNode objects.
+ *
+ * Parts of this class are documented in the base interface class, FilesystemFactory.
+ */
+class LibRetroFilesystemFactory : public FilesystemFactory {
+protected:
+	virtual AbstractFSNode *makeRootFileNode() const;
+	virtual AbstractFSNode *makeCurrentDirectoryFileNode() const;
+	virtual AbstractFSNode *makeFileNodePath(const Common::String &path) const;
+};
 
-AbstractFSNode *POSIXFilesystemFactory::makeRootFileNode() const {
-	return new POSIXFilesystemNode("/");
-}
-
-AbstractFSNode *POSIXFilesystemFactory::makeCurrentDirectoryFileNode() const {
-	char buf[MAXPATHLEN];
-	return getcwd(buf, MAXPATHLEN) ? new POSIXFilesystemNode(buf) : NULL;
-}
-
-AbstractFSNode *POSIXFilesystemFactory::makeFileNodePath(const Common::String &path) const {
-	assert(!path.empty());
-	return new POSIXFilesystemNode(path);
-}
-#endif
+#endif /*LIBRETRO_FILESYSTEM_FACTORY_H*/
