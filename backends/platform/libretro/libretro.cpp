@@ -7,12 +7,18 @@
 #include "os.h"
 #include <libco.h>
 #include "libretro.h"
+#ifdef _WIN32
+#include <direct.h>
+#else
 #include <unistd.h>
+#endif
+#ifndef _MSC_VER
 /**
  * Include libgen.h for basename() and dirname().
  * @see http://linux.die.net/man/3/basename
  */
 #include <libgen.h>
+#endif
 #include <string.h>
 
 /**
@@ -185,7 +191,7 @@ void parse_command_params(char* cmdline)
    }
 }
 
-#if defined(WIIU) || defined(__SWITCH__)
+#if defined(WIIU) || defined(__SWITCH__) || defined(_MSC_VER)
 #include <stdio.h>
 #include <string.h>
 char * dirname (char *path)
