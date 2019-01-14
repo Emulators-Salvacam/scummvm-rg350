@@ -171,8 +171,8 @@ else ifeq ($(platform), android-armv7)
    HAVE_MT32EMU = 0
 else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
-   SHARED := -shared -Wl,--no-undefined
    DEFINES += -fPIC -Wno-multichar -D_ARM_ASSEM_
+   LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
    CC = gcc
    USE_VORBIS = 0
    USE_THEORADEC = 0
