@@ -351,8 +351,6 @@ USE_RGB_COLOR = true
 # Compile platform specific parts (e.g. filesystem)
 ifeq ($(platform), win)
 WIN32 = 1
-else
-POSIX = 1
 endif
 
 BACKEND := libretro
