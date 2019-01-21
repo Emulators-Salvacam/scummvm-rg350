@@ -400,8 +400,6 @@ ifeq ($(STATIC_LINKING),1)
 else
 	LD = link.exe
 endif
-else
-	LD = $(CC)
 endif
 
 ifeq ($(platform), wiiu)
