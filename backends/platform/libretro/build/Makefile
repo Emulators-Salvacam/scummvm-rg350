@@ -173,7 +173,6 @@ else ifneq (,$(findstring armv,$(platform)))
    TARGET := $(TARGET_NAME)_libretro.so
    DEFINES += -fPIC -Wno-multichar -D_ARM_ASSEM_
    LDFLAGS += -shared -Wl,--version-script=../link.T -fPIC
-   CC = gcc
    USE_VORBIS = 0
    USE_THEORADEC = 0
    USE_TREMOR = 1
