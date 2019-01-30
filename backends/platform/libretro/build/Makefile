@@ -87,11 +87,14 @@ ifeq ($(IOSSDK),)
    IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
 endif
 
+   CC       = clang -arch armv7 -isysroot $(IOSSDK) -marm
    CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
 
 ifeq ($(platform),ios9)
+	CC      += -miphoneos-version-min=8.0
 	CXX     += -miphoneos-version-min=8.0
 else
+	CC      += -miphoneos-version-min=5.0
 	CXX     += -miphoneos-version-min=5.0
 endif
 
