@@ -1258,7 +1258,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       {
          Common::Event ev;
          ev.type = Common::EVENT_QUIT;
-         _events.push_back(ev);
+         ((OSystem_RETRO*)g_system)->getEventManager()->pushEvent(ev);
       }
 };
 
