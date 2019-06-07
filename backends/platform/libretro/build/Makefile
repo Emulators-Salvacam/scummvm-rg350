@@ -299,7 +299,7 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 	LDFLAGS += -DLL
 
 else
-	CC = gcc
+	CC ?= gcc
 	TARGET_64BIT := $(BUILD_64BIT)
    TARGET  := $(TARGET_NAME)_libretro.dll
    DEFINES += -DHAVE_FSEEKO -DHAVE_INTTYPES_H
