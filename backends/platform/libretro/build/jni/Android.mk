@@ -37,7 +37,7 @@ SOURCES_C    := $(LIBRETRO_COMM_DIR)/libco/libco.c
 SOURCES_CXX  := $(LIBRETRO_DIR)/libretro.cpp $(LIBRETRO_DIR)/os.cpp
 
 COREFLAGS := $(DEFINES) $(INCLUDES) -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DDISABLE_TEXT_CONSOLE -DFRONTEND_SUPPORTS_RGB565
-COREFLAGS += -Wno-multichar -Wno-undefined-var-template
+COREFLAGS += -Wno-multichar -Wno-undefined-var-template -Wno-pragma-pack
 
 ifeq ($(TARGET_ARCH),arm)
   COREFLAGS += -D_ARM_ASSEM_

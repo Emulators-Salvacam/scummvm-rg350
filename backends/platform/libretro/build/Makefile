@@ -13,6 +13,7 @@ USE_FREETYPE2=1
 HAVE_MT32EMU=1
 USE_FLUIDSYNTH=1
 
+HIDE := @
 SPACE :=
 SPACE := $(SPACE) $(SPACE)
 BACKSLASH :=
@@ -301,7 +302,8 @@ else
 	CC = gcc
 	TARGET_64BIT := $(BUILD_64BIT)
    TARGET  := $(TARGET_NAME)_libretro.dll
-   DEFINES += -DHAVE_FSEEKO -DHAVE_INTTYPES_H -fno-permissive
+   DEFINES += -DHAVE_FSEEKO -DHAVE_INTTYPES_H
+   CXXFLAGS += -fno-permissive
    LDFLAGS += -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=../link.T
 endif
 
@@ -349,6 +351,9 @@ DEFINES       += -D__LIBRETRO__ -DNONSTANDARD_PORT -DUSE_RGB_COLOR -DUSE_OSD -DD
 DEPDIR        = .deps
 HAVE_GCC3     = true
 USE_RGB_COLOR = true
+
+DEFINES += -Wno-multichar -Wno-unknown-pragmas -Wno-write-strings
+CXXFLAGS += -Wno-reorder
 
 # Compile platform specific parts (e.g. filesystem)
 ifeq ($(platform), win)
@@ -416,43 +421,59 @@ $(TARGET): libnx-ln $(OBJS) libdeps.a
 	$(AR) -M < libnx.mri
 else ifeq ($(STATIC_LINKING), 1)
 $(TARGET): $(OBJS) libdeps.a 
-	$(AR) $@ $(wildcard *.o) $(wildcard */*.o) $(wildcard */*/*.o) $(wildcard */*/*/*.o) $(wildcard */*/*/*/*.o)  $(wildcard */*/*/*/*/*.o)
+	@echo Linking $@...
+	$(HIDE)$(AR) $@ $(wildcard *.o) $(wildcard */*.o) $(wildcard */*/*.o) $(wildcard */*/*/*.o) $(wildcard */*/*/*/*.o)  $(wildcard */*/*/*/*/*.o)
 else
 $(TARGET): $(OBJS) libdeps.a 
-	$(LD) $(LDFLAGS) $+ $(LIBS) $(LINKOUT)$@
+	@echo Linking $@...
+	$(HIDE)$(LD) $(LDFLAGS) $+ $(LIBS) $(LINKOUT)$@
 endif
 
 libdeps.a: $(OBJS_DEPS)
 ifeq ($(platform), libnx)
-		$(AR) -rc $@ $^
+		@echo Linking $@...
+		$(HIDE)$(AR) -rc $@ $^
 else
-		$(AR) $@ $^
+		@echo Linking $@...
+		$(HIDE)$(AR) $@ $^
 endif
+
+%.o: %.c
+	@echo Compiling $(<F)...
+	@$(MKDIR) $(*D)
+	$(HIDE)$(CC) -c $(CPPFLAGS) $(CFLAGS) -o $@ $<
+
+%.o: %.cpp
+	@echo Compiling $(<F)...
+	@$(MKDIR) $(*D)
+	$(HIDE)$(CXX) -c $(CPPFLAGS) $(CXXFLAGS) -o $@ $<
 
 # Dumb compile rule, for C++ compilers that don't allow dependency tracking or
 # where it is broken (such as GCC 2.95).
 .cpp.o:
-	$(MKDIR) $(*D)
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(<) $(OBJOUT)$*.o
+	@$(MKDIR) $(*D)
+	@echo Compiling $<...
+	$(HIDE)$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(<) $(OBJOUT)$*.o
 
 clean:
-	$(RM_REC) $(DEPDIRS)
-	$(RM) $(OBJS) $(OBJS_DEPS) libdeps.a $(TARGET)
+	@echo Cleaning project...
+	$(HIDE)$(RM_REC) $(DEPDIRS)
+	$(HIDE)$(RM) $(OBJS) $(OBJS_DEPS) libdeps.a $(TARGET)
 ifeq ($(platform), wiiu)
-	$(RM_REC) libtemp
+	$(HIDE)$(RM_REC) libtemp
 endif	
 ifeq ($(platform), libnx)
-	$(RM_REC) libtemp
-	$(RM) audio
-	$(RM) backends
-	$(RM) base
-	$(RM) common
-	$(RM) engines
-	$(RM) graphics
-	$(RM) gui
-	$(RM) image
-	$(RM) video
-	$(RM) libnx-ln
+	$(HIDE)$(RM_REC) libtemp
+	$(HIDE)$(RM) audio
+	$(HIDE)$(RM) backends
+	$(HIDE)$(RM) base
+	$(HIDE)$(RM) common
+	$(HIDE)$(RM) engines
+	$(HIDE)$(RM) graphics
+	$(HIDE)$(RM) gui
+	$(HIDE)$(RM) image
+	$(HIDE)$(RM) video
+	$(HIDE)$(RM) libnx-ln
 endif	
 
 # Include the dependency tracking files.
