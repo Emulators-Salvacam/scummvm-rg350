@@ -28,6 +28,8 @@
 #define INCLUDED_FROM_BASE_VERSION_CPP
 #include "base/internal_version.h"
 
+#include "libretro_core_options.h"
+
 retro_log_printf_t log_cb = NULL;
 static retro_video_refresh_t video_cb = NULL;
 static retro_audio_sample_batch_t audio_batch_cb = NULL;
@@ -55,20 +57,11 @@ static bool speed_hack_is_enabled = false;
 
 void retro_set_environment(retro_environment_t cb)
 {
-	struct retro_variable variables[] = {
-		{ "scummvm_gamepad_cursor_speed", "Gamepad Cursor Speed; 1.0|1.5|2.0|2.5|3.0|0.25|0.5|0.75" },
-		{ "scummvm_analog_response", "Analog Cursor Response; linear|cubic" },
-		{ "scummvm_analog_deadzone", "Analog Deadzone (percent); 15|20|25|30|0|5|10" },
-      { "scummvm_mouse_speed", "Mouse Speed; 1.0|1.25|1.5|1.75|2.0|2.5|3.0|0.05|0.1|0.15|0.2|0.25|0.3|0.35|0.4|0.45|0.5|0.6|0.7|0.8|0.9" },
-		{ "scummvm_speed_hack", "Speed Hack (Restart); disabled|enabled" },
-		{ NULL, NULL },
-	};
-
    environ_cb = cb;
    bool tmp = true;
 
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &tmp);
-   environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
+   libretro_set_core_options(environ_cb);
 }
 
 bool FRONTENDwantsExit;
