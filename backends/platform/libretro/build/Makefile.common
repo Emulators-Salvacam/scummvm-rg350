@@ -167,6 +167,11 @@ OBJS := $(LIBRETRO_DIR)/libretro.o \
 			$(LIBRETRO_DIR)/os.o \
 			$(LIBRETRO_COMM_DIR)/libco/libco.o \
 			$(LIBRETRO_COMM_DIR)/file/retro_stat.o
+
+ifeq ($(platform), genode)
+OBJS += $(LIBRETRO_COMM_DIR)/libco/genode.o
+endif
+
 OBJS_DEPS :=
 
 ifeq ($(USE_FLUIDSYNTH), 1)

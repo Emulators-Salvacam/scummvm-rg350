@@ -110,6 +110,24 @@ else ifeq ($(platform), qnx)
    AR = qcc -Vgcc_ntoarmv7le -A
    RANLIB="${QNX_HOST}/usr/bin/ntoarmv7-ranlib"
 
+# Genode
+else ifeq ($(platform), genode)
+   TARGET  := libretro.so
+   TARGET_64BIT := $(BUILD_64BIT)
+   DEFINES += -fPIC -DSYSTEM_NOT_SUPPORTING_D_TYPE -DFRONTEND_SUPPORTS_RGB565
+   C_PKGS   = libc
+   CXX_PKGS = stdcxx genode-base
+   CFLAGS   += -D__GENODE__ $(shell pkg-config --cflags $(C_PKGS))
+   CXXFLAGS += -D__GENODE__ $(shell pkg-config --cflags $(CXX_PKGS))
+
+   LIBS += $(shell pkg-config --libs $(C_PKGS) $(CXX_PKGS) genode-lib)
+
+   CC  = $(shell pkg-config genode-base --variable=cc)
+   CXX = $(shell pkg-config genode-base --variable=cxx)
+   LD  = $(shell pkg-config genode-base --variable=ld)
+   AR  = $(shell pkg-config genode-base --variable=ar) rcs
+   RANLIB = genode-x86-ranlib
+
 # PS3
 else ifeq ($(platform), ps3)
    TARGET  := $(TARGET_NAME)_libretro_$(platform).a
@@ -311,6 +329,8 @@ ifeq ($(DEBUG), 1)
    DEFINES += -O0 -g
 else ifeq ($(platform), wiiu)
    DEFINES += -Os
+else ifeq ($(platform),genode)
+   DEFINES += -O2
 else ifneq (,$(findstring msvc,$(platform)))
    DEFINES += -O2
 else
