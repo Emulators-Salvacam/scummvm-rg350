@@ -79,6 +79,16 @@ else
 endif
 
 # iOS
+else ifeq ($(platform),ios-arm64)
+	CC       = clang -arch arm64 -isysroot $(IOSSDK) -marm
+	CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
+	CFLAGS += -Wno-error=implicit-function-declaration
+	CC      += -miphoneos-version-min=8.0
+	CXX     += -miphoneos-version-min=8.0
+	TARGET  := $(TARGET_NAME)_libretro_ios.dylib
+	DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
+	LDFLAGS += -dynamiclib -fPIC
+
 else ifneq (,$(findstring ios,$(platform)))
    TARGET  := $(TARGET_NAME)_libretro_ios.dylib
    DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
