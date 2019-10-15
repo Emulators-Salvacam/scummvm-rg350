@@ -131,10 +131,6 @@ protected:
 	uint32 _lastUpdateTime;
 	bool _gameStarted;
 
-#ifdef __LIBRETRO__
-	bool _gameStarted;
-#endif
-
 	BamScene *_bam;
 	BankManager *_bankMan;
 	Command *_command;
