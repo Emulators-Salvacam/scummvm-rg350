@@ -143,7 +143,6 @@ protected:
 	Resource *_resource;
 	Sound *_sound;
 	Walk *_walk;
-
 };
 
 } // End of namespace Queen
