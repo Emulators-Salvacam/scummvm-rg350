@@ -137,8 +137,8 @@ done
 _sdl=no
 _ogg=auto
 _vorbis=auto
-_sdlnet=no
-_libcurl=no
+_sdlnet=auto
+_libcurl=auto
 _tremor=auto
 _tremolo=no
 _flac=auto

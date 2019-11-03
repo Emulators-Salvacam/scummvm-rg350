@@ -270,9 +270,6 @@ void splashScreen() {
 	uint time0 = g_system->getMillis();
 	Common::Event event;
 	while (time0 + 600 > g_system->getMillis()) {
-#ifndef __LIBRETRO__
-		(void)g_system->getEventManager()->pollEvent(event);
-#endif
 		g_system->delayMillis(10);
 	}
 	g_system->hideOverlay();
