@@ -163,8 +163,7 @@ else ifeq ($(platform), libnx)
     EXT=a
     TARGET := $(TARGET_NAME)_libretro_$(platform).$(EXT)
     DEFINES := -DSWITCH=1 -U__linux__ -U__linux
-    DEFINES	:=	 -g -O3 \
-                 -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec -Wl,--allow-multiple-definition -specs=$(LIBNX)/switch.specs
+    DEFINES	+= -g -O3 -fPIE -I$(LIBNX)/include/ -ffunction-sections -fdata-sections -ftls-model=local-exec
     DEFINES += $(INCDIRS)
     DEFINES += -D__SWITCH__ -DHAVE_LIBNX -march=armv8-a -mtune=cortex-a57 -mtp=soft
     DEFINES += -I../libretro-common/include
