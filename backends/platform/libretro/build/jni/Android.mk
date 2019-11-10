@@ -22,6 +22,7 @@ USE_THEORADEC := 0
 USE_FREETYPE2 := 1
 HAVE_MT32EMU  := 1
 USE_FLUIDSYNTH:= 1
+USE_LUA       := 1
 POSIX         := 1
 BACKEND       := libretro
 
