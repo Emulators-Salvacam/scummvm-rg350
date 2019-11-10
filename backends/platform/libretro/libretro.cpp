@@ -294,39 +294,28 @@ bool retro_load_game(const struct retro_game_info *game)
       char* path = strdup(game->path);
       char* gamedir = dirname(path);
 
-      /* See if we are acting on a .scummvm file. */
-      if (strstr(path, ".scummvm") != NULL)
+      // Open the file.
+      FILE * gamefile = fopen(game->path, "r");
+      if (gamefile == NULL)
       {
-         // Retrieve the file data.
-         FILE * gamefile;
-         if (gamefile = fopen(game->path, "r"))
-         {
-            char filedata[400];
-            fgets(filedata , 400, gamefile);
-            fclose(gamefile);
+         log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to load given game file.\n");
+         return false;
+      }
 
-            // Create a command line parameters using -p and the game name.
-            char buffer[400];
-            sprintf(buffer, "-p \"%s\" %s", gamedir, filedata);
-            parse_command_params(buffer);
-         }
-      }
-      else
+      // Load the file data.
+      char filedata[400];
+      if (fgets(filedata, 400, gamefile) == NULL)
       {
-         // Retrieve the file data.
-         FILE * gamefile;
-         if (gamefile = fopen(game->path, "r"))
-         {
-            /* Acting on a ScummVM rom file. */
-            char filedata[400];
-            if (fgets(filedata, 400, gamefile) != NULL) {
-               fclose(gamefile);
-               char buffer[400];
-               sprintf(buffer, "-p \"%s\" %s", gamedir, filedata);
-               parse_command_params(buffer);
-            }
-         }
+         fclose(gamefile);
+         log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to load contents of game file.\n");
+         return false;
       }
+
+      // Create a command line parameters using -p and the game name.
+      char buffer[400];
+      sprintf(buffer, "-p \"%s\" %s", gamedir, filedata);
+      fclose(gamefile);
+      parse_command_params(buffer);
    }
 
 	struct retro_input_descriptor desc[] = {

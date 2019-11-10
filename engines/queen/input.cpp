@@ -111,22 +111,22 @@ void Input::delay(uint amount) {
 
 			case Common::EVENT_LBUTTONDOWN:
 				_mouseButton |= MOUSE_LBUTTON;
+				if (_dialogueRunning)
+					_talkQuit = true;
 				break;
 
 			case Common::EVENT_RBUTTONDOWN:
 				_mouseButton |= MOUSE_RBUTTON;
+				if (_dialogueRunning)
+					_talkQuit = true;
 				break;
 			case Common::EVENT_RTL:
 			case Common::EVENT_QUIT:
 				if (_cutawayRunning)
 					_cutawayQuit = true;
-#ifdef __LIBRETRO__
-				// Without this, Talk::defaultAnimation() gets stuck in
-				// an infinite loop if we try to quit the game while a
-				// dialogue is in progress...
+				// Allow using close button while dialogue is running
 				if (_dialogueRunning)
 					_talkQuit = true;
-#endif
 				return;
 
 			default:

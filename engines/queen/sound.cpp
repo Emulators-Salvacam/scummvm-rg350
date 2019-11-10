@@ -289,13 +289,9 @@ void PCSound::playSound(const char *base, bool isSpeech) {
 	}
 	strcat(name, ".SB");
 	if (isSpeech) {
-#ifdef __LIBRETRO__
 		// Add _vm->shouldQuit() check here, otherwise game gets stuck
 		// in an infinite loop if we try to quit while a sound is playing...
 		while (_mixer->isSoundHandleActive(_speechHandle) && !_vm->shouldQuit()) {
-#else
-		while (_mixer->isSoundHandleActive(_speechHandle)) {
-#endif
 			_vm->input()->delay(10);
 		}
 	} else {
