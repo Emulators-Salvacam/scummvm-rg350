@@ -7,6 +7,28 @@
 #include <libretro.h>
 #include <retro_inline.h>
 
+#ifndef HAVE_NO_LANGEXTRA
+#include "libretro_core_options_intl.h"
+#endif
+
+/*
+ ********************************
+ * VERSION: 1.3
+ ********************************
+ *
+ * - 1.3: Move translations to libretro_core_options_intl.h
+ *        - libretro_core_options_intl.h includes BOM and utf-8
+ *          fix for MSVC 2010-2013
+ *        - Added HAVE_NO_LANGEXTRA flag to disable translations
+ *          on platforms/compilers without BOM support
+ * - 1.2: Use core options v1 interface when
+ *        RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION is >= 1
+ *        (previously required RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION == 1)
+ * - 1.1: Support generation of core options v0 retro_core_option_value
+ *        arrays containing options with a single value
+ * - 1.0: First commit
+*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -30,16 +52,16 @@ struct retro_core_option_definition option_defs_us[] = {
    {
       "scummvm_gamepad_cursor_speed",
       "Gamepad Cursor Speed",
-      "Sets the mouse cursor speed multiplier when moving the cursor with the RetroPad left analog stick or D-Pad. The default value of '1.0' is optimised for games that have a native resolution of '320x200' or '320x240'. When running 'high definition' games with a native resolution of '640x400' or '640x480', it is recommended to set the Gamepad Cursor Speed to '2.0'.",
+      "Sets the mouse cursor speed multiplier when moving the cursor with the RetroPad left analog stick or D-Pad. The default value of '1.0' is optimised for games that have a native resolution of '320x200' or '320x240'. When running 'high definition' games with a resolution of '640x400' or '640x480', a Gamepad Cursor Speed of '2.0' is recommended.",
       {
-         { "0.25",   NULL },
-         { "0.5",   NULL },
-         { "0.75",   NULL },
-         { "1.0",   NULL },
-         { "1.5",   NULL },
-         { "2.0",   NULL },
-         { "2.5",   NULL },
-         { "3.0",   NULL },
+         { "0.25", NULL },
+         { "0.5",  NULL },
+         { "0.75", NULL },
+         { "1.0",  NULL },
+         { "1.5",  NULL },
+         { "2.0",  NULL },
+         { "2.5",  NULL },
+         { "3.0",  NULL },
          { NULL, NULL },
       },
       "1.0"
@@ -47,26 +69,26 @@ struct retro_core_option_definition option_defs_us[] = {
    {
       "scummvm_analog_response",
       "Analog Cursor Response",
-      "Determines how the speed of the cursor varies when tilting the RetroPad left analog stick. 'linear': Cursor speed increases linearly with analog stick movement. This is standard behaviour with which most users will be familiar. 'cubic': Cursor speed increases quadratically with analog stick movement. This allows for greater precision when making small movements with the analog stick, without sacrificing maximum speed at full analog stick range. This mode may require practice for effective use.",
+      "Determines how the speed of the cursor varies when tilting the RetroPad left analog stick. 'Linear': Speed is directly proportional to analog stick displacement. This is standard behaviour with which most users will be familiar. 'Quadratic': Speed increases quadratically with analog stick displacement. This allows for greater precision when making small movements without sacrificing maximum speed at full analog range. This mode may require practice for effective use.",
       {
-         { "linear",   NULL },
-         { "cubic",   NULL },
+         { "linear",    "Linear" },
+         { "quadratic", "Quadratic" },
          { NULL, NULL },
       },
       "linear"
    },
    {
       "scummvm_analog_deadzone",
-      "Analog Deadzone (percent)",
+      "Analog Deadzone (Percent)",
       "Sets the deadzone of the RetroPad analog sticks. Used to eliminate cursor drift/unwanted input.",
       {
-         { "0",   NULL },
-         { "5",   NULL },
-         { "10",   NULL },
-         { "15",   NULL },
-         { "20",   NULL },
-         { "25",   NULL },
-         { "30",   NULL },
+         { "0",  NULL },
+         { "5",  NULL },
+         { "10", NULL },
+         { "15", NULL },
+         { "20", NULL },
+         { "25", NULL },
+         { "30", NULL },
          { NULL, NULL },
       },
       "15"
@@ -76,27 +98,27 @@ struct retro_core_option_definition option_defs_us[] = {
       "Mouse Speed",
       "Sets the mouse cursor speed multiplier when moving the cursor with the RetroMouse.",
       {
-         { "0.05",   NULL },
-         { "0.1",   NULL },
-         { "0.15",   NULL },
-         { "0.2",   NULL },
-         { "0.25",   NULL },
-         { "0.3",   NULL },
-         { "0.35",   NULL },
-         { "0.4",   NULL },
-         { "0.45",   NULL },
-         { "0.5",   NULL },
-         { "0.6",   NULL },
-         { "0.7",   NULL },
-         { "0.8",   NULL },
-         { "0.9",   NULL },
-         { "1.0",   NULL },
-         { "1.25",   NULL },
-         { "1.5",   NULL },
-         { "1.75",   NULL },
-         { "2.0",   NULL },
-         { "2.5",   NULL },
-         { "3.0",   NULL },
+         { "0.05", NULL },
+         { "0.1",  NULL },
+         { "0.15", NULL },
+         { "0.2",  NULL },
+         { "0.25", NULL },
+         { "0.3",  NULL },
+         { "0.35", NULL },
+         { "0.4",  NULL },
+         { "0.45", NULL },
+         { "0.5",  NULL },
+         { "0.6",  NULL },
+         { "0.7",  NULL },
+         { "0.8",  NULL },
+         { "0.9",  NULL },
+         { "1.0",  NULL },
+         { "1.25", NULL },
+         { "1.5",  NULL },
+         { "1.75", NULL },
+         { "2.0",  NULL },
+         { "2.5",  NULL },
+         { "3.0",  NULL },
          { NULL, NULL },
       },
       "1.0"
@@ -104,10 +126,10 @@ struct retro_core_option_definition option_defs_us[] = {
    {
       "scummvm_speed_hack",
       "Speed Hack (Restart)",
-      "Enables an optional speed hack that significantly reduces the CPU requirements of the core by allowing subtle timing inaccuracies. This hack is considered 'safe' - games should run correctly when it is enabled, and most inaccuracies are imperceptible other than in a few edge cases. It remains a hack, though, and it is strongly recommended that users of desktop class machines keep it disabled.",
+      "Enables a speed hack that significantly reduces CPU requirements by allowing subtle timing inaccuracies. This hack is considered 'safe' - it should cause no errors, and most timing deviations are imperceptible. It remains a hack, though, and users of desktop-class machines are advised to keep it disabled. On low power hardware (weak Android devices, single board computers), this hack is essential for full speed operation of the core.",
       {
-         { "disabled",   NULL },
-         { "enabled",   NULL },
+         { "disabled", NULL },
+         { "enabled",  NULL },
          { NULL, NULL },
       },
 #ifdef ANDROID
@@ -119,48 +141,13 @@ struct retro_core_option_definition option_defs_us[] = {
    { NULL, NULL, NULL, {{0}}, NULL },
 };
 
-/* RETRO_LANGUAGE_JAPANESE */
-
-/* RETRO_LANGUAGE_FRENCH */
-
-/* RETRO_LANGUAGE_SPANISH */
-
-/* RETRO_LANGUAGE_GERMAN */
-
-/* RETRO_LANGUAGE_ITALIAN */
-
-/* RETRO_LANGUAGE_DUTCH */
-
-/* RETRO_LANGUAGE_PORTUGUESE_BRAZIL */
-
-/* RETRO_LANGUAGE_PORTUGUESE_PORTUGAL */
-
-/* RETRO_LANGUAGE_RUSSIAN */
-
-/* RETRO_LANGUAGE_KOREAN */
-
-/* RETRO_LANGUAGE_CHINESE_TRADITIONAL */
-
-/* RETRO_LANGUAGE_CHINESE_SIMPLIFIED */
-
-/* RETRO_LANGUAGE_ESPERANTO */
-
-/* RETRO_LANGUAGE_POLISH */
-
-/* RETRO_LANGUAGE_VIETNAMESE */
-
-/* RETRO_LANGUAGE_ARABIC */
-
-/* RETRO_LANGUAGE_GREEK */
-
-/* RETRO_LANGUAGE_TURKISH */
-
 /*
  ********************************
  * Language Mapping
  ********************************
 */
 
+#ifndef HAVE_NO_LANGEXTRA
 struct retro_core_option_definition *option_defs_intl[RETRO_LANGUAGE_LAST] = {
    option_defs_us, /* RETRO_LANGUAGE_ENGLISH */
    NULL,           /* RETRO_LANGUAGE_JAPANESE */
@@ -182,6 +169,7 @@ struct retro_core_option_definition *option_defs_intl[RETRO_LANGUAGE_LAST] = {
    NULL,           /* RETRO_LANGUAGE_GREEK */
    NULL,           /* RETRO_LANGUAGE_TURKISH */
 };
+#endif
 
 /*
  ********************************
@@ -204,8 +192,9 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb)
    if (!environ_cb)
       return;
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version) && (version == 1))
+   if (environ_cb(RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION, &version) && (version >= 1))
    {
+#ifndef HAVE_NO_LANGEXTRA
       struct retro_core_options_intl core_options_intl;
       unsigned language = 0;
 
@@ -217,6 +206,9 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb)
          core_options_intl.local = option_defs_intl[language];
 
       environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL, &core_options_intl);
+#else
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS, &option_defs_us);
+#endif
    }
    else
    {
@@ -275,7 +267,7 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb)
             }
 
             /* Build values string */
-            if (num_values > 1)
+            if (num_values > 0)
             {
                size_t j;
 
@@ -307,7 +299,7 @@ static INLINE void libretro_set_core_options(retro_environment_t environ_cb)
          variables[i].key   = key;
          variables[i].value = values_buf[i];
       }
-      
+
       /* Set variables */
       environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
 

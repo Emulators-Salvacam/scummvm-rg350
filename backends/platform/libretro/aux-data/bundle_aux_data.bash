@@ -11,7 +11,8 @@ BUNDLE_EXTRA_DIR="${BUNDLE_DIR}/extra"
 BUNDLE_THEME_DIR="${BUNDLE_DIR}/theme"
 BUNDLE_ZIP_FILE="${BUNDLE_DIR}.zip"
 
-THEME_FILE="$(readlink -f "${SCRIPT_DIR}/../../../../gui/themes/scummmodern.zip")"
+MODERN_THEME_FILE="$(readlink -f "${SCRIPT_DIR}/../../../../gui/themes/scummmodern.zip")"
+REMASTERED_THEME_FILE="$(readlink -f "${SCRIPT_DIR}/../../../../gui/themes/scummremastered.zip")"
 SOUNDFONT_FILE="${SCRIPT_DIR}/soundfont/Roland_SC-55.sf2"
 
 ENGINE_DATA_DIR="$(readlink -f "${SCRIPT_DIR}/../../../../dists/engine-data")"
@@ -44,8 +45,9 @@ rm -rf "$BUNDLE_ZIP_FILE"
 mkdir -p "$BUNDLE_EXTRA_DIR"
 mkdir -p "$BUNDLE_THEME_DIR"
 
-# Copy theme file
-cp -v "$THEME_FILE" "$BUNDLE_THEME_DIR"
+# Copy theme files
+cp -v "$MODERN_THEME_FILE" "$BUNDLE_THEME_DIR"
+cp -v "$REMASTERED_THEME_FILE" "$BUNDLE_THEME_DIR"
 
 # Copy soundfont file
 cp -v "$SOUNDFONT_FILE" "$BUNDLE_EXTRA_DIR"
