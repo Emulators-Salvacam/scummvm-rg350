@@ -49,7 +49,7 @@ void retro_set_input_state(retro_input_state_t cb) { input_cb = cb; }
 static int analog_deadzone = (int)(0.15f * ANALOG_RANGE);
 
 static float gampad_cursor_speed = 1.0f;
-static bool analog_response_is_cubic = false;
+static bool analog_response_is_quadratic = false;
 
 static float mouse_speed = 1.0f;
 
@@ -224,11 +224,11 @@ static void update_variables(void)
 
 	var.key = "scummvm_analog_response";
 	var.value = NULL;
-	analog_response_is_cubic = false;
+	analog_response_is_quadratic = false;
 	if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
 	{
-		if (strcmp(var.value, "cubic") == 0)
-			analog_response_is_cubic = true;
+		if (strcmp(var.value, "quadratic") == 0)
+			analog_response_is_quadratic = true;
 	}
 
 	var.key = "scummvm_analog_deadzone";
@@ -409,7 +409,7 @@ void retro_run (void)
    if(g_system)
    {
       poll_cb();
-      retroProcessMouse(input_cb, retro_device, gampad_cursor_speed, analog_response_is_cubic, analog_deadzone, mouse_speed);
+      retroProcessMouse(input_cb, retro_device, gampad_cursor_speed, analog_response_is_quadratic, analog_deadzone, mouse_speed);
    }
 
    /* Run emu */

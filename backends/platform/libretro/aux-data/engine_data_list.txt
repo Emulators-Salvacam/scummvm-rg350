@@ -1,6 +1,8 @@
 access.dat
 cryo.dat
+cryomni3d.dat
 drascula.dat
+fonts.dat
 hugo.dat
 kyra.dat
 lure.dat
@@ -9,8 +11,10 @@ mort.dat
 neverhood.dat
 queen.tbl
 sky.cpt
+supernova.dat
 teenagent.dat
 titanic.dat
 tony.dat
 toon.dat
 wintermute.zip
+xeen.ccs

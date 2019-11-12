@@ -801,7 +801,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 #define BASE_CURSOR_SPEED 4
 #define PI 3.141592653589793238
 
-      void processMouse(retro_input_state_t aCallback, int device, float gampad_cursor_speed, bool analog_response_is_cubic, int analog_deadzone, float mouse_speed)
+      void processMouse(retro_input_state_t aCallback, int device, float gampad_cursor_speed, bool analog_response_is_quadratic, int analog_deadzone, float mouse_speed)
       {
          int16_t joy_x, joy_y, joy_rx, joy_ry, x, y;
          float analog_amplitude_x, analog_amplitude_y;
@@ -873,7 +873,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 				}
 				// Update accumulator
 				analog_amplitude_x = (float)joy_x / (float)(ANALOG_RANGE - analog_deadzone);
-				if (analog_response_is_cubic)
+				if (analog_response_is_quadratic)
 				{
 					if (analog_amplitude_x < 0.0)
 						analog_amplitude_x = -(analog_amplitude_x * analog_amplitude_x);
@@ -913,7 +913,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 				}
 				// Update accumulator
 				analog_amplitude_y = (float)joy_y / (float)(ANALOG_RANGE - analog_deadzone);
-				if (analog_response_is_cubic)
+				if (analog_response_is_quadratic)
 				{
 					if (analog_amplitude_y < 0.0)
 						analog_amplitude_y = -(analog_amplitude_y * analog_amplitude_y);
@@ -1272,9 +1272,9 @@ const Graphics::Surface& getScreen()
    return ((OSystem_RETRO*)g_system)->getScreen();
 }
 
-void retroProcessMouse(retro_input_state_t aCallback, int device, float gampad_cursor_speed, bool analog_response_is_cubic, int analog_deadzone, float mouse_speed)
+void retroProcessMouse(retro_input_state_t aCallback, int device, float gampad_cursor_speed, bool analog_response_is_quadratic, int analog_deadzone, float mouse_speed)
 {
-   ((OSystem_RETRO*)g_system)->processMouse(aCallback, device, gampad_cursor_speed, analog_response_is_cubic, analog_deadzone, mouse_speed);
+   ((OSystem_RETRO*)g_system)->processMouse(aCallback, device, gampad_cursor_speed, analog_response_is_quadratic, analog_deadzone, mouse_speed);
 }
 
 void retroPostQuit()
