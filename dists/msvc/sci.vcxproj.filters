@@ -2,25 +2,25 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="engine">
-			<UniqueIdentifier>56E8615F-6B78-4B3B-A813-9B62D87FF42D</UniqueIdentifier>
+			<UniqueIdentifier>26D39FAB-81F3-4498-945B-CB08DD578157</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics">
-			<UniqueIdentifier>A7C1C7D8-D3B7-4632-985A-261B2D903AAB</UniqueIdentifier>
+			<UniqueIdentifier>7BB6ACEB-6096-4BE8-8483-122019437BB6</UniqueIdentifier>
 		</Filter>
 		<Filter Include="parser">
-			<UniqueIdentifier>138B6ADD-C5CC-4A62-B153-CFF019D77244</UniqueIdentifier>
+			<UniqueIdentifier>2520AA1D-52F6-4CF5-A4A3-F46246705C14</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound">
-			<UniqueIdentifier>75EDBCEC-57C3-4245-ABD9-F694B7EF8380</UniqueIdentifier>
+			<UniqueIdentifier>379AED87-180F-4AF8-8D6A-D7ABAF9C6ACC</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound\decoders">
-			<UniqueIdentifier>F1888F75-A649-402B-9D91-E2B29B4B8E26</UniqueIdentifier>
+			<UniqueIdentifier>05A80025-3C28-48C1-9A33-5C91B80E4A03</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound\drivers">
-			<UniqueIdentifier>70F6F7FD-CE4A-4B15-8C9C-0A75AB2D89E5</UniqueIdentifier>
+			<UniqueIdentifier>741055BF-38F3-4569-9837-0AFC43BA59AC</UniqueIdentifier>
 		</Filter>
 		<Filter Include="video">
-			<UniqueIdentifier>396835F6-16F7-45EA-8795-27045ECE09C2</UniqueIdentifier>
+			<UniqueIdentifier>26E55D08-CDED-40E9-93C8-19D261CEB9CE</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

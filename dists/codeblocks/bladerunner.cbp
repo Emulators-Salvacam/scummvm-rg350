@@ -54,6 +54,7 @@
 					<Add option="-DUSE_TRANSLATION" />
 					<Add option="-DUSE_SYSDIALOGS" />
 					<Add option="-DUSE_DETECTLANG" />
+					<Add option="-DUSE_TTS" />
 					<Add option="-DENABLE_SCUMM" />
 					<Add option="-DENABLE_SCUMM_7_8" />
 					<Add option="-DENABLE_HE" />
@@ -363,8 +364,6 @@
 		<Unit filename="..\..\engines\bladerunner\ui\kia_section_settings.h" />
 		<Unit filename="..\..\engines\bladerunner\ui\kia_section_suspects.cpp" />
 		<Unit filename="..\..\engines\bladerunner\ui\kia_section_suspects.h" />
-		<Unit filename="..\..\engines\bladerunner\ui\kia_shapes.cpp" />
-		<Unit filename="..\..\engines\bladerunner\ui\kia_shapes.h" />
 		<Unit filename="..\..\engines\bladerunner\ui\scores.cpp" />
 		<Unit filename="..\..\engines\bladerunner\ui\scores.h" />
 		<Unit filename="..\..\engines\bladerunner\ui\spinner.cpp" />

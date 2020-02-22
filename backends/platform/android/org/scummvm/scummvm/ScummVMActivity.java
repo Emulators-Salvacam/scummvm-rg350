@@ -76,9 +76,15 @@ public class ScummVMActivity extends Activity {
 		}
 
 		@Override
-		protected void displayMessageOnOSD(String msg) {
-			Log.i(LOG_TAG, "OSD: " + msg);
-			Toast.makeText(ScummVMActivity.this, msg, Toast.LENGTH_LONG).show();
+		protected void displayMessageOnOSD(final String msg) {
+			if (msg != null) {
+				Log.i(LOG_TAG, "MessageOnOSD: " + msg + " " + getCurrentCharset());
+				runOnUiThread(new Runnable() {
+					public void run() {
+						Toast.makeText(ScummVMActivity.this, msg, Toast.LENGTH_SHORT).show();
+					}
+				});
+			}
 		}
 
 		@Override
@@ -193,6 +199,12 @@ public class ScummVMActivity extends Activity {
 		setContentView(R.layout.main);
 		takeKeyEvents(true);
 
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+			&& checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+		) {
+			requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXT_STORAGE);
+		}
+
 		// This is a common enough error that we should warn about it
 		// explicitly.
 		if (!Environment.getExternalStorageDirectory().canRead()) {
@@ -225,7 +237,7 @@ public class ScummVMActivity extends Activity {
 		saveDir.mkdirs();
 		if (!saveDir.isDirectory()) {
 			// If it doesn't work, resort to the internal app path.
-			savePath = getDir("saves", MODE_WORLD_READABLE).getPath();
+			savePath = getDir("saves", Context.MODE_PRIVATE).getPath();
 		}
 
 		_clipboard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
@@ -333,7 +345,7 @@ public class ScummVMActivity extends Activity {
 				Log.i(ScummVM.LOG_TAG, "Read External Storage permission was granted at Runtime");
 			} else {
 				// permission denied! We won't be able to make use of functionality depending on this permission.
-				Toast.makeText(this, "Until permission is granted, some folders might not be listed!", Toast.LENGTH_SHORT)
+				Toast.makeText(this, "Until permission is granted, some storage locations may be inaccessible!", Toast.LENGTH_SHORT)
 				              .show();
 			}
 			break;

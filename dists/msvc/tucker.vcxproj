@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{A17F4E39-0FC0-4E37-980D-057298D0229D}</ProjectGuid>
+		<ProjectGuid>{5A7D3DC5-349B-4652-B47E-EC89F2E2C824}</ProjectGuid>
 		<RootNamespace>tucker</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

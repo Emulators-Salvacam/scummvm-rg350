@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{27FC6A78-142C-4E3C-8DF7-A1FDEAF50E81}</ProjectGuid>
+		<ProjectGuid>{1DF62C11-9B41-4558-B26E-E516E2E242CD}</ProjectGuid>
 		<RootNamespace>scumm</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

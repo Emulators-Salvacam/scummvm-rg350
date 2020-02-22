@@ -54,6 +54,7 @@
 					<Add option="-DUSE_TRANSLATION" />
 					<Add option="-DUSE_SYSDIALOGS" />
 					<Add option="-DUSE_DETECTLANG" />
+					<Add option="-DUSE_TTS" />
 					<Add option="-DENABLE_SCUMM" />
 					<Add option="-DENABLE_SCUMM_7_8" />
 					<Add option="-DENABLE_HE" />

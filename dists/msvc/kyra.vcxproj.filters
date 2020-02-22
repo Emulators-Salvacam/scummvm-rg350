@@ -2,31 +2,31 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="engine">
-			<UniqueIdentifier>4E3C9A1A-38AD-4C5D-AD82-EBB01142B785</UniqueIdentifier>
+			<UniqueIdentifier>B9A31071-4B7B-41BE-B2AC-35BBCC404C45</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics">
-			<UniqueIdentifier>C1D64EB7-99AD-4AD0-A561-239853F5915E</UniqueIdentifier>
+			<UniqueIdentifier>EDC9C05C-6596-482B-8CAC-34762F3D735D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gui">
-			<UniqueIdentifier>C80F642F-82ED-4EC1-B51C-E243D4736A37</UniqueIdentifier>
+			<UniqueIdentifier>1FF03F1F-D1D5-4468-A327-A9074F39DFD3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="resource">
-			<UniqueIdentifier>9BE80104-5940-424A-AF12-0B2B3E7A77FD</UniqueIdentifier>
+			<UniqueIdentifier>2D567821-1F82-4C07-8493-C62B388B9F80</UniqueIdentifier>
 		</Filter>
 		<Filter Include="script">
-			<UniqueIdentifier>6A5EBAED-3BB5-4071-9188-9ED30944D933</UniqueIdentifier>
+			<UniqueIdentifier>D8C072C8-84BF-4538-A71A-9799AC10F856</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sequence">
-			<UniqueIdentifier>FB6F44AD-1E17-4BD4-BE63-CB15C92FE5D2</UniqueIdentifier>
+			<UniqueIdentifier>1DFDA465-4820-4E26-B5AF-265E316C8A1C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound">
-			<UniqueIdentifier>E2880427-46C2-4FBE-A955-229FBD34EB1B</UniqueIdentifier>
+			<UniqueIdentifier>EC3B83D9-4442-4215-9C8C-5338AAEB2D12</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound\drivers">
-			<UniqueIdentifier>716A6FAE-E647-4929-A87B-01389D675DFB</UniqueIdentifier>
+			<UniqueIdentifier>6119E600-D15C-4A6E-9818-EEB02A073858</UniqueIdentifier>
 		</Filter>
 		<Filter Include="text">
-			<UniqueIdentifier>0D1F0035-B411-4131-A408-A778C346CA9A</UniqueIdentifier>
+			<UniqueIdentifier>4C589586-9CAF-44EF-AAC7-F275FB512E2A</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

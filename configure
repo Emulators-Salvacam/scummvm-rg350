@@ -968,9 +968,13 @@ Fine tuning of the installation directories:
 Special configuration feature:
   --host=HOST             cross-compile to target HOST (arm-linux, ...)
                           special targets: 3ds for Nintendo 3DS
-                                           android-arm for Android ARM
-                                           android-mips for Android MIPS
+                                           android or android-arm for Android ARMv5TE (armeabi)
+                                           android-v7a or android-arm-v7a for Android ARMv7-A (armeabi-v7a)
+                                           android-arm64-v8a for Android ARMv8-A (arm64-v8a)
                                            android-x86 for Android x86
+                                           android-x86_64 for Android x86_64
+                                           android-mips for Android MIPS
+                                           android-mips64 for Android MIPS64
                                            androidsdl for Android with SDL backend
                                            caanoo for Caanoo
                                            dingux for Dingux
@@ -1048,8 +1052,8 @@ Optional Features:
   --enable-text-console    use text console instead of graphical console
   --enable-verbose-build   enable regular echoing of commands during build
                            process
-  --enable-tts			   build support for text to speech
-  --disable-tts			   don't build support for text to speech
+  --enable-tts             build support for text to speech
+  --disable-tts            don't build support for text to speech
   --disable-bink           don't build with Bink video support
   --opengl-mode=MODE       OpenGL (ES) mode to use for OpenGL output [auto]
                            available modes: auto for autodetection
@@ -1528,6 +1532,12 @@ case $_host in
 	_host_os=3ds
 	_host_cpu=arm
 	_host_alias=arm-none-eabi
+
+	test "x$prefix" = xNONE && prefix=romfs:
+
+	datarootdir='${prefix}'
+	datadir='${datarootdir}'
+	docdir='${prefix}/doc'
 	;;
 android | android-arm | android-v7a | android-arm-v7a | ouya)
 	_host_os=android
@@ -1845,11 +1855,16 @@ esac
 case $_host_os in
 android)
 	if test -z "$ANDROID_SDK"; then
-		echo "Please set ANDROID_SDK in your environment. export ANDROID_SDK=<path to Android SDK>"
+		# $ANDROID_SDK must be the path to the root of the Android SDK folder;
+		# The SDK should have installed the target SDK platform version as specified
+		# in the Android port's manifest files and project.properties
+		echo "Please set ANDROID_SDK in your environment. Export ANDROID_SDK=<path to Android SDK>"
 		exit 1
 	fi
 	if test -z "$ANDROID_NDK"; then
-		echo "Please set ANDROID_NDK in your environment. export ANDROID_NDK=<path to Android NDK>"
+		# $ANDROID_NDK must be the path to the root of the NDK folder;
+		# A ndk-build script should reside (in r14b this calls the actual ndk-build in the build subfolder)
+		echo "Please set ANDROID_NDK in your environment. Export ANDROID_NDK=<path to Android NDK>"
 		exit 1
 	fi
 	;;
@@ -2576,6 +2591,7 @@ case $_host_os in
 				append_var CXXFLAGS "-march=armv7-a"
 				append_var CXXFLAGS "-mfloat-abi=softfp"
 				append_var CXXFLAGS "-mfpu=vfp"
+				append_var LDFLAGS "-march=armv7-a"
 				append_var LDFLAGS "-Wl,--fix-cortex-a8"
 				ABI="armeabi-v7a"
 				;;
@@ -2593,11 +2609,13 @@ case $_host_os in
 				;;
 			android-x86)
 				append_var CXXFLAGS "-march=i686"
-				append_var CXXFLAGS "-mtune=i686"
+				append_var CXXFLAGS "-mtune=intel"
 				ABI="x86"
 				# Platform version 9 is needed as earlier versions of platform do not support this arch.
 				;;
 			android-x86_64)
+				append_var CXXFLAGS "-march=x86-64"
+				append_var CXXFLAGS "-mtune=intel"
 				ABI="x86_64"
 				;;
 			ouya)
@@ -3053,6 +3071,8 @@ if test -n "$_host"; then
 			_port_mk="backends/platform/3ds/3ds.mk"
 			;;
 		android | android-arm | android-v7a | android-arm-v7a | android-arm64-v8a | android-mips | android-mips64 | android-x86 | android-x86_64 | ouya)
+			# also __ANDROID__ is defined by Clang in the NDK
+			DEFINES="$DEFINES -D__ANDROID_PLAIN_PORT__ -DANDROID_PLAIN_PORT"
 			# we link a .so as default
 			append_var LDFLAGS "-shared"
 			append_var LDFLAGS "-Wl,-Bsymbolic,--no-undefined"
@@ -3538,9 +3558,16 @@ case $_backend in
 		;;
 	android)
 		append_var DEFINES "-DREDUCE_MEMORY_USAGE"
+		append_var DEFINES "-DNONSTANDARD_PORT"
+		append_var INCLUDES '-I$(srcdir)/backends/platform/android'
 		append_var CXXFLAGS "-Wa,--noexecstack"
 		append_var LDFLAGS "-Wl,-z,noexecstack"
-		append_var INCLUDES "-isystem $ANDROID_NDK/sources/cxx-stl/system/include"
+		# removed the following directive - was causing compilation issues when not also explicitly using --disable-mt32emu
+#		append_var INCLUDES "-isystem $ANDROID_NDK/sources/cxx-stl/system/include"
+		_sdl=no
+		if test "$_host" = ouya; then
+			_sdlnet=no
+		fi
 		;;
 	androidsdl)
 		_sdl=auto
@@ -3729,6 +3756,18 @@ esac
 append_var MODULES "backends/platform/$_backend"
 
 #
+# Check for pkg-config
+#
+echocheck "pkg-config"
+_pkg_config=no
+command -v $_pkgconfig >/dev/null 2>&1 && _pkg_config=yes
+echo "$_pkg_config"
+
+if test "$_pkg_config" = yes && test -n "$_host" && test -z "$PKG_CONFIG_LIBDIR"; then
+	echo "WARNING: When cross-compiling PKG_CONFIG_LIBDIR must be set to the location of the .pc files for the target"
+fi
+
+#
 # Setup SDL specifics for SDL based backends
 #
 if test "$_sdl" = auto ; then
@@ -3753,6 +3792,8 @@ EOF
 		exit 1
 	fi
 fi
+
+_sdlMajorVersionNumber=0
 if test "$_sdl" = yes ; then
 	append_var DEFINES "-DSDL_BACKEND"
 	add_line_to_config_mk "SDL_BACKEND = 1"
@@ -3761,23 +3802,67 @@ if test "$_sdl" = yes ; then
 	case $_sdlversion in
 		2.0.*)
 			add_line_to_config_mk "USE_SDL2 = 1"
-			append_var SDL_NET_LIBS "-lSDL2_net"
+			_sdlMajorVersionNumber=2
 			;;
 		*)
-			append_var SDL_NET_LIBS "-lSDL_net"
+			_sdlMajorVersionNumber=1
 			;;
 	esac
+fi
+
+#
+# Some platforms (eg. Android, iOS) may use an edited version
+# of SDL-net or SDL2-net that does not require SDL or SDL2 respectively
+#
+if test "$_sdlnet" = auto ; then
+	# If SDL2 was detected, then test for SDL2_net exclusively
+	# If SDL was detected, then test for SDL_net exclusively
+	# If neither SDL nor SDL2 detected, then test for both (SDL2_net success takes priority)
+	set_var SDL2_NET_LIBS   "$SDL_NET_LIBS"
+	set_var SDL2_NET_CFLAGS "$SDL_NET_CFLAGS"
+	set_var SDL1_NET_LIBS   "$SDL_NET_LIBS"
+	set_var SDL1_NET_CFLAGS "$SDL_NET_CFLAGS"
+
+	if test "$_sdl" = no || test "$_sdlMajorVersionNumber" = 2; then
+		if test "$_pkg_config" = "yes" && $_pkgconfig --exists SDL2_net; then
+			append_var SDL2_NET_LIBS "`$_pkgconfig --libs SDL2_net`"
+			append_var SDL2_NET_CFLAGS "`$_pkgconfig --cflags SDL2_net`"
+		else
+			append_var SDL2_NET_LIBS "-lSDL2_net"
+		fi
+	fi
+
+	if test "$_sdl" = no || test "$_sdlMajorVersionNumber" = 1; then
+		if test "$_pkg_config" = "yes" && $_pkgconfig --exists SDL_net; then
+			append_var SDL1_NET_LIBS "`$_pkgconfig --libs SDL_net`"
+			append_var SDL1_NET_CFLAGS "`$_pkgconfig --cflags SDL_net`"
+		else
+			append_var SDL1_NET_LIBS "-lSDL_net"
+		fi
+	fi
 
 	# Check for SDL_Net
 	echocheck "SDL_Net"
-	if test "$_sdlnet" = auto ; then
-		_sdlnet=no
+	_sdlnet=no
+	cat > $TMPC << EOF
+#include "SDL_net.h"
+int main(int argc, char *argv[]) { SDLNet_Init(); return 0; }
+EOF
+
+	cc_check $SDL2_NET_LIBS $LIBS $INCLUDES $SDL2_NET_CFLAGS && _sdlnet=yes
+	if test "$_sdlnet" = yes ; then
+		set_var SDL_NET_LIBS   "$SDL2_NET_LIBS"
+		set_var SDL_NET_CFLAGS "$SDL2_NET_CFLAGS"
+	else
 		cat > $TMPC << EOF
 #include "SDL_net.h"
 int main(int argc, char *argv[]) { SDLNet_Init(); return 0; }
 EOF
-		cc_check $SDL_NET_LIBS $LIBS $INCLUDES $SDL_NET_CFLAGS && _sdlnet=yes
+		cc_check $SDL1_NET_LIBS $LIBS $INCLUDES $SDL1_NET_CFLAGS && _sdlnet=yes
+		set_var SDL_NET_LIBS   "$SDL1_NET_LIBS"
+		set_var SDL_NET_CFLAGS "$SDL1_NET_CFLAGS"
 	fi
+
 	if test "$_sdlnet" = yes ; then
 		# Some platforms require SDL to be after SDL_Net, thus we prepend var
 		prepend_var LIBS "$SDL_NET_LIBS"
@@ -3944,6 +4029,13 @@ _mak_plugins=
 if test "$_dynamic_modules" = yes ; then
 	echo_n "Checking whether building plugins is supported... "
 	case $_host_os in
+	3ds)
+		_elf_loader=yes
+		append_var DEFINES "-DUNCACHED_PLUGINS"
+_mak_plugins='
+PLUGIN_LDFLAGS		+= -Wl,-T$(srcdir)/backends/plugins/3ds/plugin.ld -march=armv6k -mfloat-abi=hard
+'
+		;;
 	amigaos)
 		_plugin_prefix="lib"
 		_plugin_suffix=".so"
@@ -4198,18 +4290,6 @@ EOF
 cc_check -lm && append_var LIBS "-lm"
 
 #
-# Check for pkg-config
-#
-echocheck "pkg-config"
-_pkg_config=no
-command -v $_pkgconfig >/dev/null 2>&1 && _pkg_config=yes
-echo "$_pkg_config"
-
-if test "$_pkg_config" = yes && test -n "$_host" && test -z "$PKG_CONFIG_LIBDIR"; then
-	echo "WARNING: When cross-compiling PKG_CONFIG_LIBDIR must be set to the location of the .pc files for the target"
-fi
-
-#
 # Check for Ogg
 #
 echocheck "Ogg"
@@ -4238,9 +4318,6 @@ if test "$_tts" = auto ; then
 int main(void) { return 0; }
 EOF
 			cc_check -lsapi -lole32 && _tts=yes
-			if test "$_host_os" = "mingw32" ; then
-				_tts=no
-			fi
 			;;
 		linux*)
 			cat > $TMPC << EOF
@@ -5502,7 +5579,7 @@ else
 		echo "linux"
 		_tts=yes
 		define_in_config_if_yes $_tts 'USE_SPEECH_DISPATCHER'
-		append_var LIBS '-lspeechd'
+		append_var LIBS '-lspeechd -lpthread'
 		;;
 	mingw*)
 		echo "win32"
@@ -5532,16 +5609,17 @@ echo "$_bink"
 # Check whether to build updates support
 #
 echo_n "Building updates support... "
-define_in_config_if_yes $_updates 'USE_UPDATES'
 if test "$_updates" = yes; then
 	if test "$_sparkle" = yes; then
 		echo "Sparkle"
 	else
+		_updates=no;
 		echo "$_updates"
 	fi
 else
 	echo "$_updates"
 fi
+define_in_config_if_yes $_updates 'USE_UPDATES'
 
 #
 # Figure out installation directories
@@ -5559,6 +5637,9 @@ case $_host_os in
 esac
 
 case $_backend in
+	3ds)
+		append_var DEFINES "-DPLUGIN_DIRECTORY=\\\"$datadir/plugins\\\""
+		;;
 	openpandora)
 		# Add ../plugins as a path so plugins can be found when running from a .PND.
 		append_var DEFINES "-DPLUGIN_DIRECTORY=\\\"../plugins\\\""

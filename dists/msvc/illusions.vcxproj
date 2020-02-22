@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{9D8E6913-CAC9-4550-8AC0-2352DBA38253}</ProjectGuid>
+		<ProjectGuid>{3E9D7747-B5F8-4F3B-A123-C3DEADA3AA85}</ProjectGuid>
 		<RootNamespace>illusions</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

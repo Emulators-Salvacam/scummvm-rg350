@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{26DEFD34-C90E-4F2F-A706-8C5A84444201}</ProjectGuid>
+		<ProjectGuid>{53BF1A1D-0618-4B67-ABC0-70C306237AAB}</ProjectGuid>
 		<RootNamespace>hdb</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

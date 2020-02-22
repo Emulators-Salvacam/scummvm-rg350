@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{0E0D4862-6054-4ED9-92E8-190382E4F19C}</ProjectGuid>
+		<ProjectGuid>{16814B47-885F-41E2-A4B7-C89323F6AA40}</ProjectGuid>
 		<RootNamespace>gnap</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

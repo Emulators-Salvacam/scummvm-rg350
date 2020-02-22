@@ -2,28 +2,28 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="demos">
-			<UniqueIdentifier>BCA6A9E2-AD82-4CBA-8E6B-8FE1032701D9</UniqueIdentifier>
+			<UniqueIdentifier>7570B32B-32A9-4617-8E67-98E81DDF52D8</UniqueIdentifier>
 		</Filter>
 		<Filter Include="detection">
-			<UniqueIdentifier>75053236-27E3-4385-9FC8-6BB3C0E6C12A</UniqueIdentifier>
+			<UniqueIdentifier>B501227D-0C49-4210-B616-A120EFD77981</UniqueIdentifier>
 		</Filter>
 		<Filter Include="minigames">
-			<UniqueIdentifier>3129B053-27A1-4DB5-99C4-7A60E6D99397</UniqueIdentifier>
+			<UniqueIdentifier>16A5FC4B-2AE9-4371-831D-BDD47572201C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="minigames\geisha">
-			<UniqueIdentifier>8022EC96-0C3D-4211-89D8-8B8D8A1D5EEA</UniqueIdentifier>
+			<UniqueIdentifier>6E26630C-A6A9-41D1-A028-43251FA40FE9</UniqueIdentifier>
 		</Filter>
 		<Filter Include="pregob">
-			<UniqueIdentifier>86CD63D6-3862-4464-832D-89CADFD32EDD</UniqueIdentifier>
+			<UniqueIdentifier>70E10216-91BB-4092-BA04-C08B9C50B081</UniqueIdentifier>
 		</Filter>
 		<Filter Include="pregob\onceupon">
-			<UniqueIdentifier>45BF298E-F3A2-4257-B8A4-74346F7A3015</UniqueIdentifier>
+			<UniqueIdentifier>0EF52424-1363-48D5-BCA7-F614D1CBB7B4</UniqueIdentifier>
 		</Filter>
 		<Filter Include="save">
-			<UniqueIdentifier>D9C248D6-89D0-426C-B449-15E3E5CA33CD</UniqueIdentifier>
+			<UniqueIdentifier>3ED7BB2F-C1F5-4CE8-AD24-261B5A1268E1</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound">
-			<UniqueIdentifier>093BD520-C7A4-48DE-B9A7-A692A7B21DBD</UniqueIdentifier>
+			<UniqueIdentifier>C8D06FEB-4819-4093-ABED-AE7787AB0C55</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

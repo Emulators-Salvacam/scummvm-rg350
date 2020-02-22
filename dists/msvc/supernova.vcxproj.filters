@@ -2,10 +2,10 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="supernova1">
-			<UniqueIdentifier>FC65CA98-A5BB-4967-9014-E0C68B9BD5F2</UniqueIdentifier>
+			<UniqueIdentifier>A5E80F22-427F-4DA7-9A6B-E671C4346EE3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="supernova2">
-			<UniqueIdentifier>B58FF856-4C9F-4833-B509-EC20FD6FFC2A</UniqueIdentifier>
+			<UniqueIdentifier>5F1B1E92-3479-43AE-872F-D6A9EFFA5B51</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

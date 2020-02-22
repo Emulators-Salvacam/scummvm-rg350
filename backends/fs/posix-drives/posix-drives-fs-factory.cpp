@@ -20,23 +20,31 @@
  *
  */
 
-#include "common/scummsys.h"
+#if defined(POSIX)
 
-#if defined(ANDROIDSDL)
+#define FORBIDDEN_SYMBOL_ALLOW_ALL
 
-#include "backends/graphics/androidsdl/androidsdl-graphics.h"
-#include "backends/events/androidsdl/androidsdl-events.h"
-#include "common/mutex.h"
-#include "common/textconsole.h"
-#include "graphics/font.h"
-#include "graphics/fontman.h"
-#include "graphics/scaler.h"
-#include "graphics/scaler/aspect.h"
-#include "graphics/scaler/downscaler.h"
-#include "graphics/surface.h"
+#include "backends/fs/posix-drives/posix-drives-fs-factory.h"
+#include "backends/fs/posix-drives/posix-drives-fs.h"
 
-AndroidSdlGraphicsManager::AndroidSdlGraphicsManager(SdlEventSource *sdlEventSource, SdlWindow *window)
- : SurfaceSdlGraphicsManager(sdlEventSource, window) {
+#include <unistd.h>
+
+void DrivesPOSIXFilesystemFactory::addDrive(const Common::String &name) {
+	_drives.push_back(Common::normalizePath(name, '/'));
+}
+
+AbstractFSNode *DrivesPOSIXFilesystemFactory::makeRootFileNode() const {
+	return new DrivePOSIXFilesystemNode(_drives);
+}
+
+AbstractFSNode *DrivesPOSIXFilesystemFactory::makeCurrentDirectoryFileNode() const {
+	char buf[MAXPATHLEN];
+	return getcwd(buf, MAXPATHLEN) ? new DrivePOSIXFilesystemNode(buf, _drives) : nullptr;
+}
+
+AbstractFSNode *DrivesPOSIXFilesystemFactory::makeFileNodePath(const Common::String &path) const {
+	assert(!path.empty());
+	return new DrivePOSIXFilesystemNode(path, _drives);
 }
 
 #endif

@@ -2,13 +2,13 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="dialogs">
-			<UniqueIdentifier>38839386-6404-46F1-B308-65AD5477B057</UniqueIdentifier>
+			<UniqueIdentifier>44EB9197-3C5A-40E1-A367-B612556F35A6</UniqueIdentifier>
 		</Filter>
 		<Filter Include="swordsofxeen">
-			<UniqueIdentifier>91FE8F93-B6D2-46B2-8BD1-7640C71012E8</UniqueIdentifier>
+			<UniqueIdentifier>8ED72700-9CED-4F2A-A206-5E1AA7BE9F8E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="worldofxeen">
-			<UniqueIdentifier>F0A6820B-9447-43FD-93EC-246708765FCB</UniqueIdentifier>
+			<UniqueIdentifier>F181438F-56D6-44DB-98BC-F071F02A380A</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

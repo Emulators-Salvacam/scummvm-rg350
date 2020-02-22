@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{DF5385B8-EB15-4D18-9532-9207FE98CE97}</ProjectGuid>
+		<ProjectGuid>{6A551307-0178-4DD0-959B-91B3E8B1FE9F}</ProjectGuid>
 		<RootNamespace>cryomni3d</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{62677AAC-019F-4D1C-98E6-0C06EAE76AD6}</ProjectGuid>
+		<ProjectGuid>{458A0020-2D7F-4E14-B1AD-85CDF13619D5}</ProjectGuid>
 		<RootNamespace>cine</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

@@ -165,7 +165,9 @@ Common::Error CryOmni3DEngine_Versailles::run() {
 	initDocPeopleRecord();
 	_docManager.init(&_sprites, &_fontManager, &_messages, this,
 	                 _localizedFilenames[LocalizedFilenames::kAllDocs],
-	                 _localizedFilenames[LocalizedFilenames::kLinksDocs]);
+	                 getFeatures() & GF_VERSAILLES_LINK_LOCALIZED ?
+	                 _localizedFilenames[LocalizedFilenames::kLinksDocs] :
+	                 "lien_doc.txt");
 
 	_countdownSurface.create(40, 15, Graphics::PixelFormat::createFormatCLUT8());
 
@@ -668,7 +670,7 @@ void CryOmni3DEngine_Versailles::playTransitionEndLevel(int level) {
 	bool cursorWasVisible = showMouse(false);
 
 	if (level == -2) {
-		if (getLanguage() == Common::DE_DEU) {
+		if (getLanguage() == Common::DE_DEU && Common::File::exists("RAVENSBG.HLZ")) {
 			// Display one more copyright
 			if (displayHLZ("RAVENSBG", 5000)) {
 				clearKeys();

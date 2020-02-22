@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{EB26FBA9-1973-4F6F-B669-20D3A20201BA}</ProjectGuid>
+		<ProjectGuid>{ED6490F5-3713-40DF-8D70-EAEF8BC874A6}</ProjectGuid>
 		<RootNamespace>scummvm</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>
@@ -116,7 +116,7 @@
 		</ClCompile>
 		<Link>
 			<OutputFile>$(OutDir)scummvm.exe</OutputFile>
-			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sapi.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
 		</Link>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Analysis|Win32'">
@@ -126,7 +126,7 @@
 		</ClCompile>
 		<Link>
 			<OutputFile>$(OutDir)scummvm.exe</OutputFile>
-			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sapi.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
 		</Link>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='LLVM|Win32'">
@@ -136,7 +136,7 @@
 		</ClCompile>
 		<Link>
 			<OutputFile>$(OutDir)scummvm.exe</OutputFile>
-			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sapi.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
 		</Link>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -145,7 +145,7 @@
 		</ClCompile>
 		<Link>
 			<OutputFile>$(OutDir)scummvm.exe</OutputFile>
-			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sapi.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
 		</Link>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -155,7 +155,7 @@
 		</ClCompile>
 		<Link>
 			<OutputFile>$(OutDir)scummvm.exe</OutputFile>
-			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sapi.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
 		</Link>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Analysis|x64'">
@@ -165,7 +165,7 @@
 		</ClCompile>
 		<Link>
 			<OutputFile>$(OutDir)scummvm.exe</OutputFile>
-			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sapi.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
 		</Link>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='LLVM|x64'">
@@ -175,7 +175,7 @@
 		</ClCompile>
 		<Link>
 			<OutputFile>$(OutDir)scummvm.exe</OutputFile>
-			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sapi.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
 		</Link>
 	</ItemDefinitionGroup>
 	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -184,7 +184,7 @@
 		</ClCompile>
 		<Link>
 			<OutputFile>$(OutDir)scummvm.exe</OutputFile>
-			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+			<AdditionalDependencies>zlib.lib;libmad.lib;libogg_static.lib;libvorbisfile_static.lib;libvorbis_static.lib;libFLAC_static.lib;win_utf8_io_static.lib;libpng16.lib;libtheora_static.lib;freetype.lib;jpeg-static.lib;libfluidsynth.lib;libcurl.lib;SDL_net.lib;ws2_32.lib;wldap32.lib;crypt32.lib;normaliz.lib;iphlpapi.lib;winmm.lib;sapi.lib;sdl2.lib;%(AdditionalDependencies)</AdditionalDependencies>
 		</Link>
 	</ItemDefinitionGroup>
 	<ItemGroup>
@@ -377,6 +377,7 @@
 		<ClCompile Include="..\..\backends\saves\windows\windows-saves.cpp" />
 		<ClCompile Include="..\..\backends\saves\savefile.cpp" />
 		<ClCompile Include="..\..\backends\taskbar\win32\win32-taskbar.cpp" />
+		<ClCompile Include="..\..\backends\text-to-speech\windows\windows-text-to-speech.cpp" />
 		<ClCompile Include="..\..\backends\timer\default\default-timer.cpp" />
 		<ClCompile Include="..\..\backends\timer\sdl\sdl-timer.cpp" />
 		<ClCompile Include="..\..\backends\updates\win32\win32-updates.cpp" />
@@ -463,6 +464,7 @@
 		<ClCompile Include="..\..\common\str.cpp" />
 		<ClCompile Include="..\..\common\stream.cpp" />
 		<ClCompile Include="..\..\common\system.cpp" />
+		<ClCompile Include="..\..\common\text-to-speech.cpp" />
 		<ClCompile Include="..\..\common\textconsole.cpp" />
 		<ClCompile Include="..\..\common\tokenizer.cpp" />
 		<ClCompile Include="..\..\common\translation.cpp" />
@@ -803,6 +805,7 @@
 		<ClInclude Include="..\..\backends\saves\windows\windows-saves.h" />
 		<ClInclude Include="..\..\backends\taskbar\win32\mingw-compat.h" />
 		<ClInclude Include="..\..\backends\taskbar\win32\win32-taskbar.h" />
+		<ClInclude Include="..\..\backends\text-to-speech\windows\windows-text-to-speech.h" />
 		<ClInclude Include="..\..\backends\timer\default\default-timer.h" />
 		<ClInclude Include="..\..\backends\timer\sdl\sdl-timer.h" />
 		<ClInclude Include="..\..\backends\updates\win32\win32-updates.h" />
@@ -914,6 +917,7 @@
 		<ClInclude Include="..\..\common\substream.h" />
 		<ClInclude Include="..\..\common\system.h" />
 		<ClInclude Include="..\..\common\taskbar.h" />
+		<ClInclude Include="..\..\common\text-to-speech.h" />
 		<ClInclude Include="..\..\common\textconsole.h" />
 		<ClInclude Include="..\..\common\timer.h" />
 		<ClInclude Include="..\..\common\tokenizer.h" />
@@ -1132,178 +1136,178 @@
 	</ItemGroup>
 	<ItemGroup>
 	<ProjectReference Include="access.vcxproj">
-		<Project>{1C25421B-480C-41BF-BCC1-45AFFAE4188E}</Project>
+		<Project>{F2F3E95F-4542-4E55-9A38-41FA20F54112}</Project>
 	</ProjectReference>
 	<ProjectReference Include="adl.vcxproj">
-		<Project>{868C7C91-3F39-4261-8BE7-8F9C7EFDC64C}</Project>
+		<Project>{A723690E-C13A-47EC-8016-C3BFFB569881}</Project>
 	</ProjectReference>
 	<ProjectReference Include="agi.vcxproj">
-		<Project>{63EAE221-71E9-48DB-83A8-106D1DDF8404}</Project>
+		<Project>{4CBD01CE-5968-4803-821C-59391BFD446B}</Project>
 	</ProjectReference>
 	<ProjectReference Include="agos.vcxproj">
-		<Project>{CB89583B-8978-4506-BEEC-A952ED6069A6}</Project>
+		<Project>{AE6DA2F8-2C8D-49AC-A11D-EA39CD234373}</Project>
 	</ProjectReference>
 	<ProjectReference Include="bbvs.vcxproj">
-		<Project>{5EF16027-F913-4A7A-975C-DC4EF9B1482A}</Project>
+		<Project>{ACF96D0A-EA85-49D4-8C77-EBCB1D83A3ED}</Project>
 	</ProjectReference>
 	<ProjectReference Include="bladerunner.vcxproj">
-		<Project>{FE458773-38D9-4365-BC5C-F00696C5373A}</Project>
+		<Project>{28279A88-617F-4E86-9F32-F357EC56C78E}</Project>
 	</ProjectReference>
 	<ProjectReference Include="cge.vcxproj">
-		<Project>{A7A4D4B2-F1AD-4C7F-991D-BB30BB20948F}</Project>
+		<Project>{B9C4A3AB-E122-4091-8216-798C4F79AF7C}</Project>
 	</ProjectReference>
 	<ProjectReference Include="cge2.vcxproj">
-		<Project>{7C938652-0750-4A22-A0CB-B70CE7642903}</Project>
+		<Project>{FA9A0BE2-D69F-45CA-9FF6-2C9964C32F85}</Project>
 	</ProjectReference>
 	<ProjectReference Include="cine.vcxproj">
-		<Project>{62677AAC-019F-4D1C-98E6-0C06EAE76AD6}</Project>
+		<Project>{458A0020-2D7F-4E14-B1AD-85CDF13619D5}</Project>
 	</ProjectReference>
 	<ProjectReference Include="composer.vcxproj">
-		<Project>{A21FE460-5ACD-48E7-924B-9E5EA6D0E3AA}</Project>
+		<Project>{D15329AA-0C76-4F36-B2C7-F49E3A600775}</Project>
 	</ProjectReference>
 	<ProjectReference Include="cruise.vcxproj">
-		<Project>{7D756823-18DF-4A5A-87E2-2A1B677FDFBD}</Project>
+		<Project>{733098D8-B6B7-40C3-9BEB-BA54A3688E62}</Project>
 	</ProjectReference>
 	<ProjectReference Include="cryomni3d.vcxproj">
-		<Project>{DF5385B8-EB15-4D18-9532-9207FE98CE97}</Project>
+		<Project>{6A551307-0178-4DD0-959B-91B3E8B1FE9F}</Project>
 	</ProjectReference>
 	<ProjectReference Include="draci.vcxproj">
-		<Project>{EDF4F9EF-552F-4DC4-9ED2-9025A7B7C9BD}</Project>
+		<Project>{389C55B9-B03C-48AB-B8C4-E1E12F2CDEA2}</Project>
 	</ProjectReference>
 	<ProjectReference Include="drascula.vcxproj">
-		<Project>{598B9D64-5A2C-4691-838F-ECFA594B7AA6}</Project>
+		<Project>{DB89D0CC-8A8A-4378-A8D3-C10BB441B1D0}</Project>
 	</ProjectReference>
 	<ProjectReference Include="dreamweb.vcxproj">
-		<Project>{25468E18-6DD1-453B-9DEF-3F31FBE038CF}</Project>
+		<Project>{59D82B45-6AF0-492D-95CD-5FE438951B59}</Project>
 	</ProjectReference>
 	<ProjectReference Include="fullpipe.vcxproj">
-		<Project>{0E453D1C-B877-4373-AE4D-0B3C7DCAD7EC}</Project>
+		<Project>{3423C72B-311F-47DD-B16A-F85D64E1CB39}</Project>
 	</ProjectReference>
 	<ProjectReference Include="gnap.vcxproj">
-		<Project>{0E0D4862-6054-4ED9-92E8-190382E4F19C}</Project>
+		<Project>{16814B47-885F-41E2-A4B7-C89323F6AA40}</Project>
 	</ProjectReference>
 	<ProjectReference Include="gob.vcxproj">
-		<Project>{050D849B-7429-4906-826A-9FBBE2CC78AC}</Project>
+		<Project>{0D807875-D254-4E61-A09C-E88B7765DA16}</Project>
 	</ProjectReference>
 	<ProjectReference Include="groovie.vcxproj">
-		<Project>{F60F113C-661E-4E90-A056-BAFAD4A4FBD7}</Project>
+		<Project>{60497F0F-81AD-49B8-83FB-5389987F7E23}</Project>
 	</ProjectReference>
 	<ProjectReference Include="hdb.vcxproj">
-		<Project>{26DEFD34-C90E-4F2F-A706-8C5A84444201}</Project>
+		<Project>{53BF1A1D-0618-4B67-ABC0-70C306237AAB}</Project>
 	</ProjectReference>
 	<ProjectReference Include="hopkins.vcxproj">
-		<Project>{F5979DAE-AD6A-453E-AA6E-CDB2085900C1}</Project>
+		<Project>{425A46AB-D1DC-405A-BE1A-FA838E76ED83}</Project>
 	</ProjectReference>
 	<ProjectReference Include="hugo.vcxproj">
-		<Project>{870953FD-0B5C-4702-AC8A-A572116A41AC}</Project>
+		<Project>{7D9FEE34-D696-44A9-9226-9D68BF432EF2}</Project>
 	</ProjectReference>
 	<ProjectReference Include="illusions.vcxproj">
-		<Project>{9D8E6913-CAC9-4550-8AC0-2352DBA38253}</Project>
+		<Project>{3E9D7747-B5F8-4F3B-A123-C3DEADA3AA85}</Project>
 	</ProjectReference>
 	<ProjectReference Include="kyra.vcxproj">
-		<Project>{BA8A74AC-80E6-4924-8DF3-8EEA08657A13}</Project>
+		<Project>{71F35CF6-886D-432D-83B3-F4D28EE8C740}</Project>
 	</ProjectReference>
 	<ProjectReference Include="lab.vcxproj">
-		<Project>{C2A39547-6206-4A04-BC35-0D16B541093D}</Project>
+		<Project>{A7891787-05B5-418D-AE98-07D92B280B34}</Project>
 	</ProjectReference>
 	<ProjectReference Include="lure.vcxproj">
-		<Project>{9FB033EA-939C-46C6-8DB4-8EB7B4E30E88}</Project>
+		<Project>{E0050FD3-781B-4A1A-BD37-FA3924337FFA}</Project>
 	</ProjectReference>
 	<ProjectReference Include="made.vcxproj">
-		<Project>{A371EE4A-2705-492D-BA76-EE38742AE326}</Project>
+		<Project>{9F4F8BB9-69DE-4261-AA1C-9A4088F33382}</Project>
 	</ProjectReference>
 	<ProjectReference Include="mads.vcxproj">
-		<Project>{4DA95EEF-291A-44F6-B159-DD40C4387AAF}</Project>
+		<Project>{2B5384D7-E44E-482D-A399-C5D1177467EA}</Project>
 	</ProjectReference>
 	<ProjectReference Include="mohawk.vcxproj">
-		<Project>{6345608A-ECE1-4AA5-9C8C-B51F6CCB2B86}</Project>
+		<Project>{D9ACBFF3-A676-426F-B57D-4D1790DB2E72}</Project>
 	</ProjectReference>
 	<ProjectReference Include="mortevielle.vcxproj">
-		<Project>{B99DE1EB-D53E-4B82-ACEB-F70781902930}</Project>
+		<Project>{5757BB1E-194D-46D4-BB7C-F7168151689B}</Project>
 	</ProjectReference>
 	<ProjectReference Include="neverhood.vcxproj">
-		<Project>{1AA1FE42-747F-447C-9540-FBF826EEB387}</Project>
+		<Project>{0AC25E8C-40EC-494A-BFB6-C7D5296F7D44}</Project>
 	</ProjectReference>
 	<ProjectReference Include="parallaction.vcxproj">
-		<Project>{B62E10B7-696F-426E-A194-BAE48D7BBD59}</Project>
+		<Project>{5B1203D6-DE13-4FFB-B0F8-2830C54E909E}</Project>
 	</ProjectReference>
 	<ProjectReference Include="pegasus.vcxproj">
-		<Project>{83563F12-67D6-45DA-B869-B30CE0E736F2}</Project>
+		<Project>{3037F3D8-69F7-44BF-81BC-44D26B531A00}</Project>
 	</ProjectReference>
 	<ProjectReference Include="plumbers.vcxproj">
-		<Project>{E6B9E769-CD9F-4B7C-B16C-8DD239C781C7}</Project>
+		<Project>{23F4B9B4-88B9-42A7-84E2-4A93A8C58620}</Project>
 	</ProjectReference>
 	<ProjectReference Include="prince.vcxproj">
-		<Project>{5B546E0E-F73A-4907-85F9-3FF01D5C5430}</Project>
+		<Project>{BCBC5194-B924-4E67-84FE-338274020AD4}</Project>
 	</ProjectReference>
 	<ProjectReference Include="queen.vcxproj">
-		<Project>{92BB658D-678D-45B1-9095-8B5141E450D9}</Project>
+		<Project>{A8A80037-DBF0-4DAA-B2CB-7C0420F81B71}</Project>
 	</ProjectReference>
 	<ProjectReference Include="saga.vcxproj">
-		<Project>{7088D4BC-EF9A-45E2-996B-196CAB6D11BC}</Project>
+		<Project>{339DCCF9-34CB-4A4A-ABAC-65C5E18E5FE1}</Project>
 	</ProjectReference>
 	<ProjectReference Include="sci.vcxproj">
-		<Project>{8EF7A0A5-9326-4DE5-A625-70A449B953A8}</Project>
+		<Project>{C56619D5-3AF5-4F38-A990-B704797BCF82}</Project>
 	</ProjectReference>
 	<ProjectReference Include="scumm.vcxproj">
-		<Project>{27FC6A78-142C-4E3C-8DF7-A1FDEAF50E81}</Project>
+		<Project>{1DF62C11-9B41-4558-B26E-E516E2E242CD}</Project>
 	</ProjectReference>
 	<ProjectReference Include="sherlock.vcxproj">
-		<Project>{9A321282-EC2C-4FED-B6B7-5BA7A1450CA8}</Project>
+		<Project>{E25A7B20-D043-4AED-AA10-7C8E6A1D99BC}</Project>
 	</ProjectReference>
 	<ProjectReference Include="sky.vcxproj">
-		<Project>{4C3CF613-25DE-4275-970A-1D67806E0C9F}</Project>
+		<Project>{3D1F5573-A787-439D-89F9-F5CAA062A97E}</Project>
 	</ProjectReference>
 	<ProjectReference Include="supernova.vcxproj">
-		<Project>{A73A5F95-1C4E-4909-B680-26D78A6DF069}</Project>
+		<Project>{E7EA1AF7-48B4-4E65-9323-07DD4F471A18}</Project>
 	</ProjectReference>
 	<ProjectReference Include="sword1.vcxproj">
-		<Project>{79574DFA-8650-4DC6-9650-849B76825C83}</Project>
+		<Project>{2C10B649-3330-44D0-9D60-4266A694A241}</Project>
 	</ProjectReference>
 	<ProjectReference Include="sword2.vcxproj">
-		<Project>{2635548F-EB84-4BC9-8D9F-298303FB1645}</Project>
+		<Project>{675516DA-E347-465A-ACCB-2CF9BDAB9574}</Project>
 	</ProjectReference>
 	<ProjectReference Include="sword25.vcxproj">
-		<Project>{56EC2477-F8C4-42B6-B194-174D900EEF93}</Project>
+		<Project>{306952F1-2EEB-4F6B-84A1-281F225E0048}</Project>
 	</ProjectReference>
 	<ProjectReference Include="teenagent.vcxproj">
-		<Project>{3C5747E5-4494-4D8E-97C9-2C019E368BCE}</Project>
+		<Project>{7ACDD4C1-65DE-4EE9-9077-F9D4AAC6E63D}</Project>
 	</ProjectReference>
 	<ProjectReference Include="tinsel.vcxproj">
-		<Project>{48B5254C-4EA2-4A5E-A451-62D1D1968704}</Project>
+		<Project>{BEC8CF6B-EBE3-4580-AFDC-D44B59779FE6}</Project>
 	</ProjectReference>
 	<ProjectReference Include="titanic.vcxproj">
-		<Project>{62EBF95D-DC20-4562-935B-FCCE156E68B3}</Project>
+		<Project>{98CC9AE2-EA36-4210-B317-F0E56AB9BA73}</Project>
 	</ProjectReference>
 	<ProjectReference Include="toltecs.vcxproj">
-		<Project>{7838C303-16CD-4598-87C5-5A289AAE749D}</Project>
+		<Project>{856829DB-C37F-4533-928C-A85DEA96E306}</Project>
 	</ProjectReference>
 	<ProjectReference Include="tony.vcxproj">
-		<Project>{F9198056-277C-4E37-AB72-72FEA4097B13}</Project>
+		<Project>{661C7E4B-183D-4015-8B72-31441303E564}</Project>
 	</ProjectReference>
 	<ProjectReference Include="toon.vcxproj">
-		<Project>{105344E0-744E-49C1-961E-F38B74680085}</Project>
+		<Project>{77CD8749-2138-4F6E-BDBC-41CC44349F03}</Project>
 	</ProjectReference>
 	<ProjectReference Include="touche.vcxproj">
-		<Project>{DD033676-3256-4CB3-865E-11DAFB2A5527}</Project>
+		<Project>{68CB6189-2123-4084-8CC6-1F79E6D7558A}</Project>
 	</ProjectReference>
 	<ProjectReference Include="tsage.vcxproj">
-		<Project>{8D2021EB-690E-4CF3-9C85-921C81C93EAE}</Project>
+		<Project>{A32161A9-4C92-4F9D-AAF7-A3D8FE2ADC25}</Project>
 	</ProjectReference>
 	<ProjectReference Include="tucker.vcxproj">
-		<Project>{A17F4E39-0FC0-4E37-980D-057298D0229D}</Project>
+		<Project>{5A7D3DC5-349B-4652-B47E-EC89F2E2C824}</Project>
 	</ProjectReference>
 	<ProjectReference Include="voyeur.vcxproj">
-		<Project>{04C2696E-E3E8-42B6-AE1B-C4434B4ECDFB}</Project>
+		<Project>{E27B5F06-BB53-441A-A2A3-9959C98056D1}</Project>
 	</ProjectReference>
 	<ProjectReference Include="wintermute.vcxproj">
-		<Project>{70BB353A-2EB9-4518-8943-39DE0A66FD5A}</Project>
+		<Project>{F30EE0F0-F20C-4876-ACDC-A30FB45C6905}</Project>
 	</ProjectReference>
 	<ProjectReference Include="xeen.vcxproj">
-		<Project>{EC6DA244-84D7-4B58-B32C-AE70BCCEC00D}</Project>
+		<Project>{31AFC3B1-DFA0-478F-94D2-76DF8832BD5D}</Project>
 	</ProjectReference>
 	<ProjectReference Include="zvision.vcxproj">
-		<Project>{F8EB3102-77F4-4181-985E-E4CA3373090F}</Project>
+		<Project>{983ECA88-624C-4E09-B42F-F909A8E990CB}</Project>
 	</ProjectReference>
 	</ItemGroup>
 	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

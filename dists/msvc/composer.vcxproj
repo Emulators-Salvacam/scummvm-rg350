@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{A21FE460-5ACD-48E7-924B-9E5EA6D0E3AA}</ProjectGuid>
+		<ProjectGuid>{D15329AA-0C76-4F36-B2C7-F49E3A600775}</ProjectGuid>
 		<RootNamespace>composer</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

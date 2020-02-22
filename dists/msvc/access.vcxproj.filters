@@ -2,13 +2,13 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="amazon">
-			<UniqueIdentifier>34A04315-1DBF-4EEA-A2D0-A9EFE493DE6C</UniqueIdentifier>
+			<UniqueIdentifier>414E8192-ADA7-4F61-8871-6BF818964F71</UniqueIdentifier>
 		</Filter>
 		<Filter Include="martian">
-			<UniqueIdentifier>8AEA55D7-E808-4ACA-BECA-60C6025FDFB8</UniqueIdentifier>
+			<UniqueIdentifier>A954E935-14FE-4A3C-A6D0-93603F94F121</UniqueIdentifier>
 		</Filter>
 		<Filter Include="video">
-			<UniqueIdentifier>64D9E5A8-41BD-4B71-A00D-61E0CA4FDD05</UniqueIdentifier>
+			<UniqueIdentifier>21A1D50B-5745-4437-A42F-336E84E1A85C</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

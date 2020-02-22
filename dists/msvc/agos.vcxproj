@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{CB89583B-8978-4506-BEEC-A952ED6069A6}</ProjectGuid>
+		<ProjectGuid>{AE6DA2F8-2C8D-49AC-A11D-EA39CD234373}</ProjectGuid>
 		<RootNamespace>agos</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

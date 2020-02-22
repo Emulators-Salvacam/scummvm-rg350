@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{FE458773-38D9-4365-BC5C-F00696C5373A}</ProjectGuid>
+		<ProjectGuid>{28279A88-617F-4E86-9F32-F357EC56C78E}</ProjectGuid>
 		<RootNamespace>bladerunner</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>
@@ -318,7 +318,6 @@
 		<ClCompile Include="..\..\engines\bladerunner\ui\kia_section_save.cpp" />
 		<ClCompile Include="..\..\engines\bladerunner\ui\kia_section_settings.cpp" />
 		<ClCompile Include="..\..\engines\bladerunner\ui\kia_section_suspects.cpp" />
-		<ClCompile Include="..\..\engines\bladerunner\ui\kia_shapes.cpp" />
 		<ClCompile Include="..\..\engines\bladerunner\ui\scores.cpp" />
 		<ClCompile Include="..\..\engines\bladerunner\ui\spinner.cpp" />
 		<ClCompile Include="..\..\engines\bladerunner\ui\ui_check_box.cpp" />
@@ -414,7 +413,6 @@
 		<ClInclude Include="..\..\engines\bladerunner\ui\kia_section_save.h" />
 		<ClInclude Include="..\..\engines\bladerunner\ui\kia_section_settings.h" />
 		<ClInclude Include="..\..\engines\bladerunner\ui\kia_section_suspects.h" />
-		<ClInclude Include="..\..\engines\bladerunner\ui\kia_shapes.h" />
 		<ClInclude Include="..\..\engines\bladerunner\ui\scores.h" />
 		<ClInclude Include="..\..\engines\bladerunner\ui\spinner.h" />
 		<ClInclude Include="..\..\engines\bladerunner\ui\ui_check_box.h" />

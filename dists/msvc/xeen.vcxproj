@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{EC6DA244-84D7-4B58-B32C-AE70BCCEC00D}</ProjectGuid>
+		<ProjectGuid>{31AFC3B1-DFA0-478F-94D2-76DF8832BD5D}</ProjectGuid>
 		<RootNamespace>xeen</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

@@ -2,16 +2,16 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="image">
-			<UniqueIdentifier>090F4658-8C65-4EF0-9108-B39511F70E06</UniqueIdentifier>
+			<UniqueIdentifier>9DCFE28C-BE72-4DA5-9000-80E803769F10</UniqueIdentifier>
 		</Filter>
 		<Filter Include="image\codecs">
-			<UniqueIdentifier>9446F7C4-236F-435D-A46A-0DA31E8EF310</UniqueIdentifier>
+			<UniqueIdentifier>A905EB60-B28E-4B07-A10C-B3C4780AC8C7</UniqueIdentifier>
 		</Filter>
 		<Filter Include="versailles">
-			<UniqueIdentifier>7814614D-9709-40DB-A511-C0D149919CFD</UniqueIdentifier>
+			<UniqueIdentifier>95A5D69E-F1FD-4D7F-BB0C-660D8C227AFC</UniqueIdentifier>
 		</Filter>
 		<Filter Include="video">
-			<UniqueIdentifier>04C0A6C0-BBFA-4FB5-902F-A0D0C473E0CE</UniqueIdentifier>
+			<UniqueIdentifier>29D8576F-0CF6-4A37-A690-60DE5FF603DB</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

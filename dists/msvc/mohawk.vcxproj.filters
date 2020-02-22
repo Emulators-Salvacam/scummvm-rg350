@@ -2,10 +2,10 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="myst_stacks">
-			<UniqueIdentifier>BA245C6A-FB1E-4AC7-BE20-1B3C4C6BEBA9</UniqueIdentifier>
+			<UniqueIdentifier>C6F5F73D-FAD6-4D13-A021-6ACFF694DDD6</UniqueIdentifier>
 		</Filter>
 		<Filter Include="riven_stacks">
-			<UniqueIdentifier>9D8CE386-320A-4BB6-ADF3-FBE8C09F3675</UniqueIdentifier>
+			<UniqueIdentifier>DDF766E7-095B-4116-BEA9-E910A34F289B</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>
