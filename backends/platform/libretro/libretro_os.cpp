@@ -362,7 +362,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
 #else
          _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
 #endif
-         _mixer = new Audio::MixerImpl(this, 44100);
+         _mixer = new Audio::MixerImpl(44100);
          _timerManager = new DefaultTimerManager();
 
          _mixer->setReady(true);
@@ -513,7 +513,7 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          /* EMPTY */
       }
 
-      virtual void setShakePos(int shakeOffset)
+      virtual void setShakePos(int shakeXOffset, int shakeYOffset)
       {
          // TODO
       }
