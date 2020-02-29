@@ -2,16 +2,16 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="bbdou">
-			<UniqueIdentifier>2C29E65A-9449-4469-9365-4A6769B3268B</UniqueIdentifier>
+			<UniqueIdentifier>B31C2C34-A0DC-42C0-AB18-D247A3F23B81</UniqueIdentifier>
 		</Filter>
 		<Filter Include="duckman">
-			<UniqueIdentifier>8FEDD545-154D-4A7E-8DDA-83D512E13A17</UniqueIdentifier>
+			<UniqueIdentifier>1F0DDFDC-7E5A-4D85-918A-B7B9A3253C4D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="resources">
-			<UniqueIdentifier>282DE869-597B-4A4B-9B9B-69A439F6B86C</UniqueIdentifier>
+			<UniqueIdentifier>672C1484-69A7-4C89-B8C1-9BCA60D7ECB6</UniqueIdentifier>
 		</Filter>
 		<Filter Include="threads">
-			<UniqueIdentifier>955E9A6F-E640-467A-BCB1-15BD5ACD86FB</UniqueIdentifier>
+			<UniqueIdentifier>F6D5BF7A-FA9E-42AF-8B4F-429ADB741CBB</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

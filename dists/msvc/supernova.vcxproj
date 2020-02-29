@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{A73A5F95-1C4E-4909-B680-26D78A6DF069}</ProjectGuid>
+		<ProjectGuid>{E7EA1AF7-48B4-4E65-9323-07DD4F471A18}</ProjectGuid>
 		<RootNamespace>supernova</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{63EAE221-71E9-48DB-83A8-106D1DDF8404}</ProjectGuid>
+		<ProjectGuid>{4CBD01CE-5968-4803-821C-59391BFD446B}</ProjectGuid>
 		<RootNamespace>agi</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

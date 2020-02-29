@@ -2,7 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="modules">
-			<UniqueIdentifier>4C3597DE-C10B-4FC7-8295-A8117B922D3B</UniqueIdentifier>
+			<UniqueIdentifier>F9D42B7B-78E2-4F69-9424-1466500B32D6</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

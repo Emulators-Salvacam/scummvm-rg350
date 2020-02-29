@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{6345608A-ECE1-4AA5-9C8C-B51F6CCB2B86}</ProjectGuid>
+		<ProjectGuid>{D9ACBFF3-A676-426F-B57D-4D1790DB2E72}</ProjectGuid>
 		<RootNamespace>mohawk</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

@@ -9,7 +9,7 @@
 			<Target title="default">
 				<Option output="scummvm\scummvm" prefix_auto="1" extension_auto="1" />
 				<Option object_output="scummvm" />
-				<Option external_deps="libz.a;libmad.a;libogg.a;libvorbisfile.a;libvorbis.a;libFLAC.a;win_utf8_io.a;libpng16.a;libtheora.a;freetype.a;jpeg.a;libfluidsynth.a;libcurl.a;SDL_net.a;ws2_32.a;wldap32.a;crypt32.a;normaliz.a;iphlpapi.a;winmm.a;sdl2.a;ole32.a;uuid.a;" />
+				<Option external_deps="libz.a;libmad.a;libogg.a;libvorbisfile.a;libvorbis.a;libFLAC.a;win_utf8_io.a;libpng16.a;libtheora.a;freetype.a;jpeg.a;libfluidsynth.a;libcurl.a;SDL_net.a;ws2_32.a;wldap32.a;crypt32.a;normaliz.a;iphlpapi.a;winmm.a;sapi.a;sdl2.a;ole32.a;uuid.a;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="-d 8 --debugflags=parser" />
@@ -55,6 +55,7 @@
 					<Add option="-DUSE_TRANSLATION" />
 					<Add option="-DUSE_SYSDIALOGS" />
 					<Add option="-DUSE_DETECTLANG" />
+					<Add option="-DUSE_TTS" />
 					<Add option="-DENABLE_SCUMM" />
 					<Add option="-DENABLE_SCUMM_7_8" />
 					<Add option="-DENABLE_HE" />
@@ -155,6 +156,7 @@
 					<Add library="normaliz" />
 					<Add library="iphlpapi" />
 					<Add library="winmm" />
+					<Add library="sapi" />
 					<Add library="sdl2" />
 					<Add library="ole32" />
 					<Add library="uuid" />
@@ -602,6 +604,8 @@
 		<Unit filename="..\..\backends\taskbar\win32\mingw-compat.h" />
 		<Unit filename="..\..\backends\taskbar\win32\win32-taskbar.cpp" />
 		<Unit filename="..\..\backends\taskbar\win32\win32-taskbar.h" />
+		<Unit filename="..\..\backends\text-to-speech\windows\windows-text-to-speech.cpp" />
+		<Unit filename="..\..\backends\text-to-speech\windows\windows-text-to-speech.h" />
 		<Unit filename="..\..\backends\timer\default\default-timer.cpp" />
 		<Unit filename="..\..\backends\timer\default\default-timer.h" />
 		<Unit filename="..\..\backends\timer\sdl\sdl-timer.cpp" />
@@ -794,6 +798,8 @@
 		<Unit filename="..\..\common\system.cpp" />
 		<Unit filename="..\..\common\system.h" />
 		<Unit filename="..\..\common\taskbar.h" />
+		<Unit filename="..\..\common\text-to-speech.cpp" />
+		<Unit filename="..\..\common\text-to-speech.h" />
 		<Unit filename="..\..\common\textconsole.cpp" />
 		<Unit filename="..\..\common\textconsole.h" />
 		<Unit filename="..\..\common\timer.h" />

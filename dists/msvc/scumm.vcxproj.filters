@@ -2,31 +2,31 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="he">
-			<UniqueIdentifier>56AA45D4-3D22-4832-A3B2-51F1AECB418C</UniqueIdentifier>
+			<UniqueIdentifier>7ADE699B-C9B9-4520-A6F6-6B316AF119C5</UniqueIdentifier>
 		</Filter>
 		<Filter Include="he\logic">
-			<UniqueIdentifier>DDA5C402-B48A-4604-A1E5-453067B060A8</UniqueIdentifier>
+			<UniqueIdentifier>14AE695B-A2E9-4F93-A6D0-6CE2C401D90C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="he\moonbase">
-			<UniqueIdentifier>6294A1F5-8648-4C93-AB66-EC5A9E43076A</UniqueIdentifier>
+			<UniqueIdentifier>00473CC9-A826-4AD5-AD96-A457D596F713</UniqueIdentifier>
 		</Filter>
 		<Filter Include="imuse">
-			<UniqueIdentifier>0351B1B4-5B47-4667-8AF2-2ECB68B34102</UniqueIdentifier>
+			<UniqueIdentifier>AF7B16C4-A4C8-482F-BA5D-277FAF01EA8F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="imuse\drivers">
-			<UniqueIdentifier>5021061E-3115-4C63-994A-BE815E3DC2F8</UniqueIdentifier>
+			<UniqueIdentifier>A16519F9-8FF0-4E61-9288-A456715B5AD0</UniqueIdentifier>
 		</Filter>
 		<Filter Include="imuse_digi">
-			<UniqueIdentifier>F0A15CC4-4D1F-4430-9AEC-2E04CF838B63</UniqueIdentifier>
+			<UniqueIdentifier>C8A52B7A-40C9-4874-BE93-8383BD5F7819</UniqueIdentifier>
 		</Filter>
 		<Filter Include="insane">
-			<UniqueIdentifier>2AF093CD-78FA-479D-B7A5-CA9FD7295EB9</UniqueIdentifier>
+			<UniqueIdentifier>81EB4933-089F-4A42-856E-A46F539D1281</UniqueIdentifier>
 		</Filter>
 		<Filter Include="players">
-			<UniqueIdentifier>587071E0-57AB-4A00-8107-4C42D8A2548A</UniqueIdentifier>
+			<UniqueIdentifier>3F5170B7-F7A6-4EBB-8F5D-E0217C73518B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="smush">
-			<UniqueIdentifier>ECCEEA24-5CCC-42AF-AC44-8F353C99211D</UniqueIdentifier>
+			<UniqueIdentifier>918FC1BF-1442-4A02-AB14-FCEA2B658457</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

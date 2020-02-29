@@ -20,22 +20,18 @@
  *
  */
 
-#ifndef GUI_3DS_H
-#define GUI_3DS_H
+#if defined(DYNAMIC_MODULES) && defined(__3DS__)
 
-#include "gui/message.h"
+#ifndef BACKENDS_PLUGINS_3DS_PROVIDER_H
+#define BACKENDS_PLUGINS_3DS_PROVIDER_H
 
-class StatusMessageDialog : public GUI::MessageDialog {
+#include "backends/plugins/elf/elf-provider.h"
+
+class CTRPluginProvider : public ELFPluginProvider {
 public:
-	StatusMessageDialog(const Common::String &message, uint32 duration);
-
-	void handleTickle();
-
-protected:
-	virtual void close();
-
-	uint32 _timer;
-	static StatusMessageDialog* _opened;
+	Plugin *createPlugin(const Common::FSNode &node) const;
 };
 
-#endif // GUI_3DS_H
+#endif // BACKENDS_PLUGINS_3DS_PROVIDER_H
+
+#endif // defined(DYNAMIC_MODULES) && defined(__3DS__)

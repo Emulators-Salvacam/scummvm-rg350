@@ -2,16 +2,16 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="script">
-			<UniqueIdentifier>D76C4D04-BE93-4388-A518-882E820F2BAF</UniqueIdentifier>
+			<UniqueIdentifier>8BC2680B-5171-418B-862D-C5A7A25F9D15</UniqueIdentifier>
 		</Filter>
 		<Filter Include="script\ai">
-			<UniqueIdentifier>4F982F20-613D-443B-9043-2FC60E7CE868</UniqueIdentifier>
+			<UniqueIdentifier>BAE070F3-FBAD-46CF-A1CA-73BC2FE3CB0A</UniqueIdentifier>
 		</Filter>
 		<Filter Include="script\scene">
-			<UniqueIdentifier>0C6E4E90-31ED-4A79-ACBA-85BB9EB5A75C</UniqueIdentifier>
+			<UniqueIdentifier>75E83DAA-A8E4-4B9F-8ADE-03D7F4A8B2AE</UniqueIdentifier>
 		</Filter>
 		<Filter Include="ui">
-			<UniqueIdentifier>12DB149D-F97F-4517-A1DC-051C41D9C983</UniqueIdentifier>
+			<UniqueIdentifier>A0A76A30-0885-4181-9674-387AEF8DB901</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>
@@ -639,9 +639,6 @@
 		<ClCompile Include="..\..\engines\bladerunner\ui\kia_section_suspects.cpp">
 			<Filter>ui</Filter>
 		</ClCompile>
-		<ClCompile Include="..\..\engines\bladerunner\ui\kia_shapes.cpp">
-			<Filter>ui</Filter>
-		</ClCompile>
 		<ClCompile Include="..\..\engines\bladerunner\ui\scores.cpp">
 			<Filter>ui</Filter>
 		</ClCompile>
@@ -799,9 +796,6 @@
 			<Filter>ui</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\bladerunner\ui\kia_section_suspects.h">
-			<Filter>ui</Filter>
-		</ClInclude>
-		<ClInclude Include="..\..\engines\bladerunner\ui\kia_shapes.h">
 			<Filter>ui</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\engines\bladerunner\ui\scores.h">

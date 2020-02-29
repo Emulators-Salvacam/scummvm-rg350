@@ -2,64 +2,64 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="carry">
-			<UniqueIdentifier>B67A0883-D211-4E12-8565-7C75830BAF2A</UniqueIdentifier>
+			<UniqueIdentifier>D8E54EC5-0D13-47B3-88AD-46525E9F1A77</UniqueIdentifier>
 		</Filter>
 		<Filter Include="core">
-			<UniqueIdentifier>E6103A5F-CCBE-47DD-896C-A6AE3BA7219B</UniqueIdentifier>
+			<UniqueIdentifier>62F44A92-30A6-4A4A-9B49-D49C81A2AB35</UniqueIdentifier>
 		</Filter>
 		<Filter Include="game">
-			<UniqueIdentifier>3BBE7765-CBCE-43B7-858F-F363138743A4</UniqueIdentifier>
+			<UniqueIdentifier>B1611436-41B8-4CCA-9737-3223D674642F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="game\gondolier">
-			<UniqueIdentifier>F4F49CEF-AD11-4EE5-B06B-33333E3F3A90</UniqueIdentifier>
+			<UniqueIdentifier>BBDB072F-EAB4-4F71-B9AD-4F5F058788AC</UniqueIdentifier>
 		</Filter>
 		<Filter Include="game\maitred">
-			<UniqueIdentifier>EE84B1E4-1C84-440C-BEFE-92EB5C097842</UniqueIdentifier>
+			<UniqueIdentifier>B1D7E7A2-FB23-4BA0-AF6E-8A4727ED6837</UniqueIdentifier>
 		</Filter>
 		<Filter Include="game\parrot">
-			<UniqueIdentifier>A2AD99DD-A151-439A-9E79-CAAFDBA0C6E9</UniqueIdentifier>
+			<UniqueIdentifier>8C8FAC47-D2F3-4970-AF3E-B4014C6CEF26</UniqueIdentifier>
 		</Filter>
 		<Filter Include="game\pet">
-			<UniqueIdentifier>3C225DA0-F212-4C2E-90E4-576F53E0E522</UniqueIdentifier>
+			<UniqueIdentifier>7C565466-B5F0-490D-A13C-9C56E0971329</UniqueIdentifier>
 		</Filter>
 		<Filter Include="game\pickup">
-			<UniqueIdentifier>F30481DC-D376-4555-8F54-72EEE63B3636</UniqueIdentifier>
+			<UniqueIdentifier>C4B95E7E-4D75-4994-B431-69F5E4A758B3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="game\placeholder">
-			<UniqueIdentifier>F07C0407-F2FA-4E79-8C9A-87780FA6DD3E</UniqueIdentifier>
+			<UniqueIdentifier>E140D8BD-BBAC-4643-9B65-F62DB49148A4</UniqueIdentifier>
 		</Filter>
 		<Filter Include="game\sgt">
-			<UniqueIdentifier>2FBEF51B-CEE9-4F70-B1A8-404BCF280EB5</UniqueIdentifier>
+			<UniqueIdentifier>998A2424-BCEB-4A31-90C7-52B082475B3E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="game\transport">
-			<UniqueIdentifier>86E8073F-6E09-4444-AEE4-908707F2845F</UniqueIdentifier>
+			<UniqueIdentifier>7930163D-881A-415F-8581-1E0DDEE637C8</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gfx">
-			<UniqueIdentifier>58EE25EF-8F06-4483-807D-181B25B1E7B9</UniqueIdentifier>
+			<UniqueIdentifier>C25BC8DF-9C8E-456A-B7B4-42BB213A3F8E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="messages">
-			<UniqueIdentifier>194D8467-DFA2-46DE-978D-86E6C6C888CE</UniqueIdentifier>
+			<UniqueIdentifier>4ED9696C-E82A-4E44-B263-D2E2FC1AA9B5</UniqueIdentifier>
 		</Filter>
 		<Filter Include="moves">
-			<UniqueIdentifier>AE9A3B49-F9F3-410D-B484-F942A1ED3737</UniqueIdentifier>
+			<UniqueIdentifier>3E0B95F5-B49F-473A-AB4E-74A846BD2E5F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="npcs">
-			<UniqueIdentifier>B3FA6231-ED1F-4FFD-B818-F03F302913F1</UniqueIdentifier>
+			<UniqueIdentifier>3F975B40-E1FB-4506-9202-BCA75952D975</UniqueIdentifier>
 		</Filter>
 		<Filter Include="pet_control">
-			<UniqueIdentifier>98F73597-5CCA-4AE8-9759-8BCED9A1B9B9</UniqueIdentifier>
+			<UniqueIdentifier>CF7F42F4-7FF5-4551-B54E-B3048A7E55FB</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sound">
-			<UniqueIdentifier>BEED2B4F-32FE-4B7C-B264-24C2BBA397E2</UniqueIdentifier>
+			<UniqueIdentifier>2A31E0DD-846E-47B6-889D-BC6AD1524D24</UniqueIdentifier>
 		</Filter>
 		<Filter Include="star_control">
-			<UniqueIdentifier>524EF577-C3C4-4220-9226-1EEB3766B7AB</UniqueIdentifier>
+			<UniqueIdentifier>20E3FAEB-9BF5-46A6-A508-88C084EA12C7</UniqueIdentifier>
 		</Filter>
 		<Filter Include="support">
-			<UniqueIdentifier>C6DD6624-A811-4EC3-851B-CC77A27C6759</UniqueIdentifier>
+			<UniqueIdentifier>CE47D843-C855-4AEF-AC98-ACAD2178A2EC</UniqueIdentifier>
 		</Filter>
 		<Filter Include="true_talk">
-			<UniqueIdentifier>4067D64F-BBDB-42A5-BEF7-1EDDE41F930A</UniqueIdentifier>
+			<UniqueIdentifier>B2C58F0F-A6E1-4901-992C-FD41CA36F5B2</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

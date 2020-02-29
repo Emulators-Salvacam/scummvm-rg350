@@ -35,7 +35,7 @@
 		</ProjectConfiguration>
 	</ItemGroup>
 	<PropertyGroup Label="Globals">
-		<ProjectGuid>{25468E18-6DD1-453B-9DEF-3F31FBE038CF}</ProjectGuid>
+		<ProjectGuid>{59D82B45-6AF0-492D-95CD-5FE438951B59}</ProjectGuid>
 		<RootNamespace>dreamweb</RootNamespace>
 		<Keyword>Win32Proj</Keyword>
 		<VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and $(VisualStudioVersion) == ''">$(VCTargetsPath12)</VCTargetsPath>

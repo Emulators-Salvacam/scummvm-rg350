@@ -2,31 +2,31 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="fmv">
-			<UniqueIdentifier>FEE0BCFB-D74F-4749-83C2-09693BC3EE11</UniqueIdentifier>
+			<UniqueIdentifier>4BC10DA0-97B3-4EB5-AB11-517140FD4519</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gfx">
-			<UniqueIdentifier>FC176C75-19F8-4310-BEC5-063DEEB7A81A</UniqueIdentifier>
+			<UniqueIdentifier>27E92839-E26D-4BB7-8EF3-D8FD5BB06EB6</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gfx\image">
-			<UniqueIdentifier>7347D370-2974-404F-8438-81D362670A38</UniqueIdentifier>
+			<UniqueIdentifier>859FA3DB-7163-4687-84BC-0F0C5E07B1A6</UniqueIdentifier>
 		</Filter>
 		<Filter Include="input">
-			<UniqueIdentifier>0EC29003-C3C1-4242-A39B-CD050A636062</UniqueIdentifier>
+			<UniqueIdentifier>79EFB558-35DF-4A22-8B8C-F2BC9852C82A</UniqueIdentifier>
 		</Filter>
 		<Filter Include="kernel">
-			<UniqueIdentifier>86488DAC-0980-49D6-9C10-CFBEAC15251B</UniqueIdentifier>
+			<UniqueIdentifier>3700CBBF-459A-4614-98EC-AACF3600D864</UniqueIdentifier>
 		</Filter>
 		<Filter Include="math">
-			<UniqueIdentifier>799EEBE4-1DB6-4B75-A4CD-C9CF16405BD6</UniqueIdentifier>
+			<UniqueIdentifier>A485BA3D-90D4-4244-84E1-129CD3DBCC18</UniqueIdentifier>
 		</Filter>
 		<Filter Include="package">
-			<UniqueIdentifier>270297BF-7EE8-4707-A5AE-D97219E00053</UniqueIdentifier>
+			<UniqueIdentifier>1F48839A-A0EE-4DFC-BB55-C6F6AA163B04</UniqueIdentifier>
 		</Filter>
 		<Filter Include="script">
-			<UniqueIdentifier>4EE59A46-8BA0-4627-96EB-88D7875514E7</UniqueIdentifier>
+			<UniqueIdentifier>AB35C922-EFE5-4C8C-8D74-6F05447D51BA</UniqueIdentifier>
 		</Filter>
 		<Filter Include="sfx">
-			<UniqueIdentifier>C7991D2E-FEA8-40E7-B1F2-B772000F30A2</UniqueIdentifier>
+			<UniqueIdentifier>BB50EBE0-508B-4FAA-AB10-AD3FA7725839</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>

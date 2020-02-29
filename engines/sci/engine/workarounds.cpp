@@ -332,7 +332,7 @@ static const uint16 sig_uninitread_sq1_1[] = {
 // Workarounds for uninitialized reads for parameters
 //    gameID,           room,script,lvl,          object-name, method-name,       local-call-signature, index-range,  workaround
 const SciWorkaroundEntry uninitializedReadForParamWorkarounds[] = {
-	{ GID_GK1,            -1,    12, -1,          "GKIconbar", "showInvItem",                     NULL,     1,     1,{ WORKAROUND_FAKE,   0 } }, // When showing the icon bar containing an inventory item
+	{ GID_GK1,            -1,    12, -1,          "GKIconbar", "showInvItem",                     NULL,     1,     1,{ WORKAROUND_FAKE,   1 } }, // When showing the icon bar containing an inventory item
 	{ GID_HOYLE5,         -1,    15, -1,               "Hand", "add",                             NULL,     1,     1,{ WORKAROUND_FAKE,   0 } }, // When the game adds cards to your hand in any mini-game
 	{ GID_HOYLE5,        700,   730,  0,                 NULL, "runningSuit",                     NULL,     2,     2,{ WORKAROUND_FAKE,   0 } }, // when an opponent is playing in Bridge
 	{ GID_HOYLE5,       1100,    22, -1,           "HandPile", "show",                            NULL,     1,     1,{ WORKAROUND_FAKE,   0 } }, // when showing money piles in Poker
@@ -369,8 +369,8 @@ const SciWorkaroundEntry uninitializedReadWorkarounds[] = {
 	{ GID_FREDDYPHARKAS, 540,   540,  0,          "WaverCode", "init",                            NULL,     0,     1, { WORKAROUND_FAKE,   0 } }, // Gun pratice mini-game, all temps - 0+1 - bug #5232
 	{ GID_GK1,            -1, 64950, -1,            "Feature", "handleEvent",                     NULL,     0,     0, { WORKAROUND_FAKE,   0 } }, // sometimes when walk-clicking
 	{ GID_GK1,            -1, 64937, -1,         "GKControls", "dispatchEvent",                   NULL,     6,     6, { WORKAROUND_FAKE,   0 } }, // when using keyboard navigation (tab) in the game settings and hitting 'enter' when over a slider
-	{ GID_GK2,            -1,    11,  0,                   "", "export 10",                       NULL,     3,     3, { WORKAROUND_FAKE,   0 } }, // called when the game starts
-	{ GID_GK2,            -1,    11,  0,                   "", "export 10",                       NULL,     4,     4, { WORKAROUND_FAKE,   0 } }, // called during the game
+	{ GID_GK2,            -1,    11,  0,                   "", "export 10",                       NULL,    -1,    -1, { WORKAROUND_FAKE,   0 } }, // When game starts and throughout game. temp1 in Italian version, temp3 in others
+	{ GID_GK2,            -1, 64921, -1,              "Print", "addEdit",                         NULL,     1,     1, { WORKAROUND_FAKE,   0 } }, // When trying to use the game debugger's flag setting command
 	{ GID_HOYLE1,          4,   104,  0,   "GinRummyCardList", "calcRuns",                        NULL,     4,     4, { WORKAROUND_FAKE,   0 } }, // Gin Rummy / right when the game starts
 	{ GID_HOYLE1,          5,   204,  0,            "tableau", "checkRuns",                       NULL,     2,     2, { WORKAROUND_FAKE,   0 } }, // Cribbage / during the game
 	{ GID_HOYLE1,          3,    16,  0,                   "", "export 0",     sig_uninitread_hoyle1_1,     3,     3, { WORKAROUND_FAKE,   0 } }, // Hearts / during the game - bug #5299
@@ -745,6 +745,12 @@ const SciWorkaroundEntry kGetAngle_workarounds[] = {
 };
 
 //    gameID,           room,script,lvl,          object-name, method-name, local-call-signature, index-range,   workaround
+const SciWorkaroundEntry kGetCWD_workarounds[] = {
+	{ GID_LSL6,           -1,     0,  0,               "LSL6", "play",                      NULL,     0,     0, { WORKAROUND_IGNORE,    0 } }, // Mac version passes uninitialized global (zero) on startup, then immediately overwrites it with kGetSaveDir
+	SCI_WORKAROUNDENTRY_TERMINATOR
+};
+
+//    gameID,           room,script,lvl,          object-name, method-name, local-call-signature, index-range,   workaround
 const SciWorkaroundEntry kFileIOOpen_workarounds[] = {
 	{ GID_HOYLE5,         -1, 64990,  0,            "Restore", "doit",                      NULL,     0,     0, { WORKAROUND_STILLCALL, 0 } }, // Missing second argument when checking for bridgesg.cat or poker.cat when showing restore dialog
 	{ GID_TORIN,       61000, 61000,  0,       "roSierraLogo", "init",                      NULL,     0,     0, { WORKAROUND_STILLCALL, 0 } }, // Missing second argument when the game checks for autosave.cat after the Sierra logo
@@ -769,6 +775,12 @@ static const uint16 sig_kFileIOCheckFreeSpace_hoyle5_1[] = {
 //    gameID,           room,script,lvl,          object-name, method-name,              local-call-signature, index-range,   workaround
 const SciWorkaroundEntry kFileIOCheckFreeSpace_workarounds[] = {
 	{ GID_HOYLE5,         -1, 64990,  0,              "Save", "update",   sig_kFileIOCheckFreeSpace_hoyle5_1,     0,     0, { WORKAROUND_STILLCALL, 0 } }, // Extra argument when checking for free space when showing save dialog
+	SCI_WORKAROUNDENTRY_TERMINATOR
+};
+
+//    gameID,           room,script,lvl,          object-name, method-name,              local-call-signature, index-range,   workaround
+const SciWorkaroundEntry kFileIOReadString_workarounds[] = {
+	{ GID_HOYLE5,         -1, 64993,  0,           "version", "readString",                 NULL,     0,     0, { WORKAROUND_IGNORE, 0 } }, // Zero passed as string when game initializes and VERSION file is present, which only Mac includes. Result is unused
 	SCI_WORKAROUNDENTRY_TERMINATOR
 };
 
@@ -1235,6 +1247,11 @@ static const SciMessageWorkaroundEntry messageWorkarounds[] = {
 	//  audio36 for the the other has the wrong tuple, which we fix in the audio36 workarounds.
 	{ GID_GK1,           SCI_MEDIA_ALL,    K_LANG_NONE,     -1,  420,   2,  32,   3,  1, { MSG_WORKAROUND_REMAP,    420,   2,  32,   0,  1,  0,   0,   0, NULL } },
 	{ GID_GK1,           SCI_MEDIA_ALL,    K_LANG_NONE,     -1,  420,   2,  32,   0,  1, { MSG_WORKAROUND_REMAP,    420,   2,  32,   2,  1,  0,   0,   0, NULL } },
+	// Clicking one of Gabriel's letters on Gerde in room 120 after getting his address in some versions
+	{ GID_GK2,           SCI_MEDIA_ALL,    K_LANG_NONE,     -1,  120,  18,  63,   0,  1, { MSG_WORKAROUND_REMAP,    120,  18,  44,   0,  1,  0,   0,   0, NULL } },
+	{ GID_GK2,           SCI_MEDIA_ALL,    K_LANG_NONE,     -1,  120,  18,  64,   0,  1, { MSG_WORKAROUND_REMAP,    120,  18,  44,   0,  1,  0,   0,   0, NULL } },
+	// Clicking any item other than the dagger on theater vent in room 11853
+	{ GID_GK2,           SCI_MEDIA_ALL,    K_LANG_NONE,     -1, 1185,   4,   0,   0,  1, { MSG_WORKAROUND_REMAP,   1185,   4,  62,   0,  1,  0,   0,   0, NULL } },
 	// Asking Yvette about Tut in act 2 party in floppy version - bug #10723
 	//  The last two sequences in this five part message reveal a murder that hasn't occurred yet.
 	//  We skip these as to not spoil the plot, but only in the act 2 rooms, as the message is used
@@ -1310,6 +1327,8 @@ static const SciMessageWorkaroundEntry audio36Workarounds[] = {
 	// game              media             language       room   mod    n    v    c   s    workaround-type          mod    n    v    c   s tlk  idx  len  text
 	// Clicking money on Lorelei when dancing - bug #10819 (see message workarounds above)
 	{ GID_GK1,           SCI_MEDIA_CD,     K_LANG_NONE,     -1,  420,   2,  32,   0,  1, { MSG_WORKAROUND_REMAP,    420,   2,  32,   3,  1,  0,   0,   0, NULL } },
+	// Clicking Von Glower's letter on Gabriel in room 1120
+	{ GID_GK2,           SCI_MEDIA_ALL,    K_LANG_ENGLISH,  -1, 1120,   5,  96,   0,  1, { MSG_WORKAROUND_REMAP,   1120,   5,   2,   0,  1,  0,   0,   0, NULL } },
 	// Clicking Look on floor grate in room 510 - bug #10848
 	{ GID_QFG4,          SCI_MEDIA_CD,     K_LANG_NONE,     -1,  510,  23,   1,   0,  1, { MSG_WORKAROUND_REMAP,    510, 199,   1,   0,  1,  0,   0,   0, NULL } },
 	// Clicking flowers on Rusalka - bug #10849 (see message workarounds above)

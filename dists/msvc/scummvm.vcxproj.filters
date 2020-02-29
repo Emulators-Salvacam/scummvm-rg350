@@ -2,229 +2,235 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<ItemGroup>
 		<Filter Include="audio">
-			<UniqueIdentifier>5937563D-178E-45E5-B0B4-0ECE6446213A</UniqueIdentifier>
+			<UniqueIdentifier>E1F7725B-6E6A-4889-8F19-A85E0B9A1AC1</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\decoders">
-			<UniqueIdentifier>AF95CEFD-18AC-4570-B890-BFBD8AE7775C</UniqueIdentifier>
+			<UniqueIdentifier>CF0B502B-FC0B-413D-BDC6-0FAE42E94CC2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\mods">
-			<UniqueIdentifier>3E7359BA-F9C7-431B-B065-B9B868978B35</UniqueIdentifier>
+			<UniqueIdentifier>56623D45-8C34-4219-9964-19127658413B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth">
-			<UniqueIdentifier>D82AAB5B-7977-4AF4-8CF7-703D513BB987</UniqueIdentifier>
+			<UniqueIdentifier>A8CC71FB-0192-4912-8104-F7053483C671</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth\fmtowns_pc98">
-			<UniqueIdentifier>F3FA2066-1B8D-413C-8332-08F9F2B52C60</UniqueIdentifier>
+			<UniqueIdentifier>9D524E8A-80FA-400B-AEF4-D1976EA83ED6</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth\mt32">
-			<UniqueIdentifier>741DAFA1-D147-4FEC-8FE0-0A9F047AAB87</UniqueIdentifier>
+			<UniqueIdentifier>9D5A1EC6-21D4-4E7E-AD19-20BCBF202F30</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth\mt32\c_interface">
-			<UniqueIdentifier>64FE5B4D-0173-42BB-A1B6-A7DB3ACCD5D8</UniqueIdentifier>
+			<UniqueIdentifier>CB595C2A-8B5F-4F76-8D54-3A117CC70E23</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth\mt32\sha1">
-			<UniqueIdentifier>B87803F9-DB05-426B-A749-ED8FE8A0ED6D</UniqueIdentifier>
+			<UniqueIdentifier>02C56750-1819-40CF-B10D-CD4149DEB998</UniqueIdentifier>
 		</Filter>
 		<Filter Include="audio\softsynth\opl">
-			<UniqueIdentifier>E58362C5-F3C4-486C-83D9-75480E8CA780</UniqueIdentifier>
+			<UniqueIdentifier>89E1BEAB-B1E8-4214-855A-593CB7A81C35</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends">
-			<UniqueIdentifier>00F9BFB7-3DEA-4A86-A214-CE306CA7DB69</UniqueIdentifier>
+			<UniqueIdentifier>CD85AA0D-6B09-4394-83E3-E2761BBDF447</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\audiocd">
-			<UniqueIdentifier>84ED5B2F-9ED0-4AE5-8E93-E49E7D6F650F</UniqueIdentifier>
+			<UniqueIdentifier>E3F02C30-122A-4503-A4A0-7E07EC04794E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\audiocd\default">
-			<UniqueIdentifier>CA033606-4FF2-45F3-B2BF-1397B53C9A46</UniqueIdentifier>
+			<UniqueIdentifier>893A6FDA-4081-464D-BEC7-FB42E50135F1</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\audiocd\win32">
-			<UniqueIdentifier>0799C95A-832E-4C84-8B61-B93AF86BC735</UniqueIdentifier>
+			<UniqueIdentifier>883F4B9B-E0C8-42BF-AE77-697F5E869418</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud">
-			<UniqueIdentifier>FB234B57-B4D4-4987-8883-88909970C991</UniqueIdentifier>
+			<UniqueIdentifier>178EBBC0-B9C3-4817-8E37-0BB54E972C8E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\box">
-			<UniqueIdentifier>A063ABAF-08FB-45F4-94F5-EB9F17EC10F2</UniqueIdentifier>
+			<UniqueIdentifier>EDBF3A1D-2054-4E26-9086-1F3B9C8036C6</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\dropbox">
-			<UniqueIdentifier>08AE717C-92C6-4E90-BF04-A4BA3DFAB689</UniqueIdentifier>
+			<UniqueIdentifier>480F428E-36C4-4AB8-824B-65C622D7678A</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\googledrive">
-			<UniqueIdentifier>C9FB9B06-70B9-4995-9A52-07E46F4FA51E</UniqueIdentifier>
+			<UniqueIdentifier>7A348930-F158-4753-9338-1BED1357C9D7</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\id">
-			<UniqueIdentifier>CB2C6B0A-BBD7-456B-A1B7-D1CC086A3F28</UniqueIdentifier>
+			<UniqueIdentifier>1CF5CF3B-2393-4608-8F1E-97C9835A8605</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\cloud\onedrive">
-			<UniqueIdentifier>3C8C9C70-C241-4D6D-93E1-2A829E41F86A</UniqueIdentifier>
+			<UniqueIdentifier>C1BBFBEB-0368-492C-AD6B-A8679BF3CA61</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\dialogs">
-			<UniqueIdentifier>58EDB014-FB0F-4D25-A5EA-9A02E20A6296</UniqueIdentifier>
+			<UniqueIdentifier>4D710424-92C7-4AF4-95EF-42385D1348DB</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\dialogs\win32">
-			<UniqueIdentifier>78427BEA-321F-40AC-BB98-4B1EA22B1096</UniqueIdentifier>
+			<UniqueIdentifier>238BC5DC-2ACA-427B-8CB3-1B815DEED0E1</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\events">
-			<UniqueIdentifier>3282AEA5-BDB6-4C10-9B75-639728BC54C5</UniqueIdentifier>
+			<UniqueIdentifier>B198E450-DF8C-4393-B157-B04497493308</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\events\default">
-			<UniqueIdentifier>BAE63687-2A0B-4266-AA89-74E77F3334DB</UniqueIdentifier>
+			<UniqueIdentifier>2A15DE39-76C5-41ED-8A7A-EFF81F17D472</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\events\sdl">
-			<UniqueIdentifier>B52B0688-6B8B-4D2A-A245-CF32C9E2CE42</UniqueIdentifier>
+			<UniqueIdentifier>EE63C721-81F0-43B1-A88A-035DF70EE4E2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\fs">
-			<UniqueIdentifier>68C8EB72-2942-425B-8EB1-1D735174BB74</UniqueIdentifier>
+			<UniqueIdentifier>BB272F08-91AB-4585-9428-910709C114A3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\fs\windows">
-			<UniqueIdentifier>625DA445-7610-4B0A-B5B7-C8F6BCCD23C1</UniqueIdentifier>
+			<UniqueIdentifier>82B51556-6C52-4043-96F2-E89314D8E682</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics">
-			<UniqueIdentifier>6E0C2E4A-ED10-4880-825B-92319F47DD23</UniqueIdentifier>
+			<UniqueIdentifier>BD4FFBD8-15F5-44A0-87D4-A72083028642</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\opengl">
-			<UniqueIdentifier>79405FD4-8116-4069-9026-A6BEEE9B7002</UniqueIdentifier>
+			<UniqueIdentifier>A5E32A24-2D55-4E19-AD2B-E9043D03D92C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\opengl\pipelines">
-			<UniqueIdentifier>5298C849-2FA7-466C-B45F-881936623CD9</UniqueIdentifier>
+			<UniqueIdentifier>B5C92859-2C27-4DBD-B1F3-CC55C72649C2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\openglsdl">
-			<UniqueIdentifier>BFDBDB18-3BAD-4086-BA87-ACC0068244A5</UniqueIdentifier>
+			<UniqueIdentifier>16BB8A43-DACB-479F-A8E2-84568B005858</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\sdl">
-			<UniqueIdentifier>7F51312C-D2B9-432A-802B-E7C1990DC4F0</UniqueIdentifier>
+			<UniqueIdentifier>E8E92490-CCCD-400F-8732-56DBFC96983C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\graphics\surfacesdl">
-			<UniqueIdentifier>040C07A4-C542-4FED-80F6-3D05318A9663</UniqueIdentifier>
+			<UniqueIdentifier>D4A36D1E-4FF7-4571-AECD-71FC923E5E80</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\log">
-			<UniqueIdentifier>343ED6C5-8840-4C3F-814D-3139CD7E2057</UniqueIdentifier>
+			<UniqueIdentifier>B3614680-6C2D-499A-9E96-AF0F36FC0E6F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\midi">
-			<UniqueIdentifier>DAFEDBA1-2961-4BD4-80B0-5B48145F19BC</UniqueIdentifier>
+			<UniqueIdentifier>C0144AF5-97C1-40FB-B5F0-7520EADE286F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\mixer">
-			<UniqueIdentifier>5AD7B6C6-F866-4551-B275-400268656887</UniqueIdentifier>
+			<UniqueIdentifier>B1BADCCD-69B5-4E63-85BC-6D10FA3023F7</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\mixer\sdl">
-			<UniqueIdentifier>3C2E7A3E-95DE-4B9F-9DD2-DFA28E3C97C7</UniqueIdentifier>
+			<UniqueIdentifier>0A89610D-B000-45AE-955D-7D8E42366BF3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\mutex">
-			<UniqueIdentifier>3DC21A8B-D18E-4EB3-A94D-2A6AA0808ED2</UniqueIdentifier>
+			<UniqueIdentifier>CEF0F1B4-136D-4C39-9715-A4C6F0EFA188</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\mutex\sdl">
-			<UniqueIdentifier>6FB7ECEC-0C0F-4B61-A0A8-AEEC4F98BB90</UniqueIdentifier>
+			<UniqueIdentifier>83CB72E5-416E-41CE-80D6-BABF69170B4B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\networking">
-			<UniqueIdentifier>86C6B17B-F227-45DB-BA03-587B9BF621AD</UniqueIdentifier>
+			<UniqueIdentifier>E138812A-8E0E-44A6-9C09-FA2CBFAF4E9D</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\networking\curl">
-			<UniqueIdentifier>8AF09D72-4CED-47E4-958C-C8622EDAA65B</UniqueIdentifier>
+			<UniqueIdentifier>8EC91B18-852D-4CC9-8CFC-72D700EA8FED</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\networking\sdl_net">
-			<UniqueIdentifier>265BA4BF-E4BA-4517-A781-55F3392C4A8D</UniqueIdentifier>
+			<UniqueIdentifier>2F59B145-6D49-4866-A649-954877296F64</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\networking\sdl_net\handlers">
-			<UniqueIdentifier>A2980C0B-D167-400F-AD64-F938BC96C482</UniqueIdentifier>
+			<UniqueIdentifier>36C0A822-1F67-4367-922F-211590089CD9</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\platform">
-			<UniqueIdentifier>015AD7EE-0EA3-4CBC-B051-6493CA152165</UniqueIdentifier>
+			<UniqueIdentifier>4AD40CE0-89C0-43A5-8A16-A8A55FD46D4A</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\platform\sdl">
-			<UniqueIdentifier>11247B0B-C1C1-405F-8E22-DEA63685CC91</UniqueIdentifier>
+			<UniqueIdentifier>5DDAD734-1864-4AE0-87D1-37B03BC7500E</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\platform\sdl\win32">
-			<UniqueIdentifier>534C8627-3565-4E1B-A32C-78283F146996</UniqueIdentifier>
+			<UniqueIdentifier>686075FC-3D47-48A0-B5AB-2DE61CE45BAE</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\plugins">
-			<UniqueIdentifier>FE3209EC-ECFA-4A79-B817-1D3A75E530ED</UniqueIdentifier>
+			<UniqueIdentifier>0B8BD216-60F6-4630-888C-32F10937BC84</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\plugins\sdl">
-			<UniqueIdentifier>D975CD99-CF93-454A-B533-27CEDC4A005A</UniqueIdentifier>
+			<UniqueIdentifier>C5918639-0C34-4673-AEC5-840AEED6DDEB</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\plugins\win32">
-			<UniqueIdentifier>FC73A119-C8F2-4375-BFD8-1B167D4328FB</UniqueIdentifier>
+			<UniqueIdentifier>A0A63FFB-3E85-439C-B979-871026968504</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\saves">
-			<UniqueIdentifier>95C296A9-6D09-42B2-977C-317BCE453D2A</UniqueIdentifier>
+			<UniqueIdentifier>BFAD34CD-B9CD-4499-9BC2-84AC6B4B0A37</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\saves\default">
-			<UniqueIdentifier>A6F60C1D-07D7-4EE0-BE99-D2A4B427DF77</UniqueIdentifier>
+			<UniqueIdentifier>4B289A6A-6EFB-4189-BF2B-37DAFDBEB481</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\saves\windows">
-			<UniqueIdentifier>764477A4-90C6-4BCA-B4C3-54F8A8123DD2</UniqueIdentifier>
+			<UniqueIdentifier>99D9AE5F-29BA-4F09-B757-88607F810567</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\taskbar">
-			<UniqueIdentifier>590F974F-7C14-4EAB-A1D9-37DDD0AF9EF6</UniqueIdentifier>
+			<UniqueIdentifier>1BFC6821-E9D3-4D5C-9932-173F6BD12EA3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\taskbar\win32">
-			<UniqueIdentifier>84C98624-55AB-45E3-8FEB-8D7202823F8F</UniqueIdentifier>
+			<UniqueIdentifier>D4597960-B1F1-4F48-9D96-8A0A54EC3F71</UniqueIdentifier>
+		</Filter>
+		<Filter Include="backends\text-to-speech">
+			<UniqueIdentifier>3FB032D3-1A8E-4DF8-B741-AE8D4F3D3C5D</UniqueIdentifier>
+		</Filter>
+		<Filter Include="backends\text-to-speech\windows">
+			<UniqueIdentifier>FEAE3D96-962A-49F4-9624-56452C11D0E3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\timer">
-			<UniqueIdentifier>7F3A7653-C8AD-4662-981A-1A494CB0574B</UniqueIdentifier>
+			<UniqueIdentifier>B8C9BFE8-7D4F-417B-B8F5-54DB36BC0B3F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\timer\default">
-			<UniqueIdentifier>4D6F036F-7403-4605-8AFE-28226A7C7577</UniqueIdentifier>
+			<UniqueIdentifier>ACA582EC-F6FC-4733-B4EA-4CDC824F774F</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\timer\sdl">
-			<UniqueIdentifier>648FD22F-50B8-4940-B9B5-9A53F55D26D6</UniqueIdentifier>
+			<UniqueIdentifier>8BFD984F-C57E-43C7-9021-F495E04F795A</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\updates">
-			<UniqueIdentifier>2936DFF2-EF1F-4706-92BC-AEF9A8CE6FB6</UniqueIdentifier>
+			<UniqueIdentifier>B8E08EE0-EF65-4FBE-B63B-E8B4FEE7A793</UniqueIdentifier>
 		</Filter>
 		<Filter Include="backends\updates\win32">
-			<UniqueIdentifier>43F11147-B4F5-4904-9ECD-018D23685BE6</UniqueIdentifier>
+			<UniqueIdentifier>7B467AB4-BF4F-494F-AED0-1BBF190B0599</UniqueIdentifier>
 		</Filter>
 		<Filter Include="base">
-			<UniqueIdentifier>35801E67-C55C-4DE0-88BB-3158E2E3B9C8</UniqueIdentifier>
+			<UniqueIdentifier>1EAA7D0C-1282-4A40-9664-4B29BCB54231</UniqueIdentifier>
 		</Filter>
 		<Filter Include="common">
-			<UniqueIdentifier>19238FFA-6150-4969-8BB6-DDEE21CADD70</UniqueIdentifier>
+			<UniqueIdentifier>57D39B71-EBFA-4626-9C09-BC9D23C2BA12</UniqueIdentifier>
 		</Filter>
 		<Filter Include="common\lua">
-			<UniqueIdentifier>82DB81E5-7E2D-49EA-8644-22AA300AB20C</UniqueIdentifier>
+			<UniqueIdentifier>EBFDE2DB-992A-488C-A73E-A825D88AB2B0</UniqueIdentifier>
 		</Filter>
 		<Filter Include="dists">
-			<UniqueIdentifier>B14BF0F4-B9BD-4536-AD84-4F810604381A</UniqueIdentifier>
+			<UniqueIdentifier>B53F63CC-47AB-4AE7-A5B0-A142352149B3</UniqueIdentifier>
 		</Filter>
 		<Filter Include="engines">
-			<UniqueIdentifier>60D706F8-F162-40AF-BD9D-A608CAEC56E0</UniqueIdentifier>
+			<UniqueIdentifier>5C5F4FA3-3691-4932-9C56-0BBFBACCFDB0</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics">
-			<UniqueIdentifier>6DBA9632-96DD-4A9F-AE53-777D334303A6</UniqueIdentifier>
+			<UniqueIdentifier>C2869430-2BF0-41EE-A30A-DF01588532BA</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics\fonts">
-			<UniqueIdentifier>87081C85-DC4F-4B60-BDD2-F3269CDBC09F</UniqueIdentifier>
+			<UniqueIdentifier>9C5E4A49-1A4F-4AAF-B808-FD698C4E9D64</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics\macgui">
-			<UniqueIdentifier>B8CE3861-BB5B-498F-B68A-2FD6EB59BCE3</UniqueIdentifier>
+			<UniqueIdentifier>181D1535-193F-48F4-BA27-EF743FC26A0B</UniqueIdentifier>
 		</Filter>
 		<Filter Include="graphics\scaler">
-			<UniqueIdentifier>E595210E-6F26-4849-8BD8-BC3D47E7B44D</UniqueIdentifier>
+			<UniqueIdentifier>12E60AA1-D739-4A9A-8F26-930A668D70F9</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gui">
-			<UniqueIdentifier>A9D9EF0D-7397-45B6-9F38-D38AED3F5C42</UniqueIdentifier>
+			<UniqueIdentifier>310CD303-C182-49E5-8E3B-0F037E9739FD</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gui\animation">
-			<UniqueIdentifier>45F4F232-28C0-4A60-B8BE-34647DB642DB</UniqueIdentifier>
+			<UniqueIdentifier>447E8D71-863F-489A-A5C1-5F76C9343DA2</UniqueIdentifier>
 		</Filter>
 		<Filter Include="gui\widgets">
-			<UniqueIdentifier>51A1B4C1-279B-4290-883E-AC1BB17E02B0</UniqueIdentifier>
+			<UniqueIdentifier>364F90C3-99C7-46B9-A4EE-7B81710E28E5</UniqueIdentifier>
 		</Filter>
 		<Filter Include="icons">
-			<UniqueIdentifier>086FE966-B2DF-4832-8E8A-CEED25616393</UniqueIdentifier>
+			<UniqueIdentifier>CBA05C0D-6A23-40E3-9FA1-1C1315437D8C</UniqueIdentifier>
 		</Filter>
 		<Filter Include="image">
-			<UniqueIdentifier>8B115655-8990-4048-A15F-2907F38E9470</UniqueIdentifier>
+			<UniqueIdentifier>CCD8631D-4F8D-4441-9282-EB8E874E9246</UniqueIdentifier>
 		</Filter>
 		<Filter Include="image\codecs">
-			<UniqueIdentifier>88AFF38A-E7C3-4696-91B7-588BACF22F1B</UniqueIdentifier>
+			<UniqueIdentifier>BB208E54-6FBE-496C-A6CE-439CE74D0B86</UniqueIdentifier>
 		</Filter>
 		<Filter Include="image\codecs\indeo">
-			<UniqueIdentifier>AFA164A7-480B-4251-8F5A-6B80F4E841C1</UniqueIdentifier>
+			<UniqueIdentifier>0B643DD5-C8E6-47C1-970E-4C2A25C038FA</UniqueIdentifier>
 		</Filter>
 		<Filter Include="video">
-			<UniqueIdentifier>AB082022-B3A8-49B9-9DC2-BE00802A0F32</UniqueIdentifier>
+			<UniqueIdentifier>304CC9BC-BC17-4ACF-9CCA-3B5164F46A78</UniqueIdentifier>
 		</Filter>
 	</ItemGroup>
 	<ItemGroup>
@@ -600,6 +606,9 @@
 		<ClCompile Include="..\..\backends\fs\stdiostream.cpp">
 			<Filter>backends\fs</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\backends\graphics\opengl\opengl-graphics.cpp">
+			<Filter>backends\graphics\opengl</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\backends\graphics\opengl\pipelines\clut8.cpp">
 			<Filter>backends\graphics\opengl\pipelines</Filter>
 		</ClCompile>
@@ -619,9 +628,6 @@
 			<Filter>backends\graphics\opengl</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\backends\graphics\opengl\framebuffer.cpp">
-			<Filter>backends\graphics\opengl</Filter>
-		</ClCompile>
-		<ClCompile Include="..\..\backends\graphics\opengl\opengl-graphics.cpp">
 			<Filter>backends\graphics\opengl</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\backends\graphics\opengl\shader.cpp">
@@ -684,6 +690,9 @@
 		<ClCompile Include="..\..\backends\networking\curl\request.cpp">
 			<Filter>backends\networking\curl</Filter>
 		</ClCompile>
+		<ClCompile Include="..\..\backends\networking\sdl_net\getclienthandler.cpp">
+			<Filter>backends\networking\sdl_net</Filter>
+		</ClCompile>
 		<ClCompile Include="..\..\backends\networking\sdl_net\handlers\createdirectoryhandler.cpp">
 			<Filter>backends\networking\sdl_net\handlers</Filter>
 		</ClCompile>
@@ -712,9 +721,6 @@
 			<Filter>backends\networking\sdl_net\handlers</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\backends\networking\sdl_net\client.cpp">
-			<Filter>backends\networking\sdl_net</Filter>
-		</ClCompile>
-		<ClCompile Include="..\..\backends\networking\sdl_net\getclienthandler.cpp">
 			<Filter>backends\networking\sdl_net</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\backends\networking\sdl_net\handlerutils.cpp">
@@ -764,6 +770,9 @@
 		</ClCompile>
 		<ClCompile Include="..\..\backends\taskbar\win32\win32-taskbar.cpp">
 			<Filter>backends\taskbar\win32</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\backends\text-to-speech\windows\windows-text-to-speech.cpp">
+			<Filter>backends\text-to-speech\windows</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\backends\timer\default\default-timer.cpp">
 			<Filter>backends\timer\default</Filter>
@@ -997,6 +1006,9 @@
 			<Filter>common</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\common\system.cpp">
+			<Filter>common</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\common\text-to-speech.cpp">
 			<Filter>common</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\common\textconsole.cpp">
@@ -2009,6 +2021,9 @@
 		<ClInclude Include="..\..\backends\taskbar\win32\win32-taskbar.h">
 			<Filter>backends\taskbar\win32</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\backends\text-to-speech\windows\windows-text-to-speech.h">
+			<Filter>backends\text-to-speech\windows</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\backends\timer\default\default-timer.h">
 			<Filter>backends\timer\default</Filter>
 		</ClInclude>
@@ -2340,6 +2355,9 @@
 			<Filter>common</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\common\taskbar.h">
+			<Filter>common</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\common\text-to-speech.h">
 			<Filter>common</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\common\textconsole.h">
