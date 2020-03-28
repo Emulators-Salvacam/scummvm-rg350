@@ -290,32 +290,40 @@ bool retro_load_game(const struct retro_game_info *game)
 
    if (game)
    {
-      /* Retrieve the game path. */
+      // Retrieve the game path.
       char* path = strdup(game->path);
       char* gamedir = dirname(path);
-
-      // Open the file.
-      FILE * gamefile = fopen(game->path, "r");
-      if (gamefile == NULL)
-      {
-         log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to load given game file.\n");
-         return false;
-      }
-
-      // Load the file data.
-      char filedata[400];
-      if (fgets(filedata, 400, gamefile) == NULL)
-      {
-         fclose(gamefile);
-         log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to load contents of game file.\n");
-         return false;
-      }
-
-      // Create a command line parameters using -p and the game name.
       char buffer[400];
-      sprintf(buffer, "-p \"%s\" %s", gamedir, filedata);
-      fclose(gamefile);
-      parse_command_params(buffer);
+
+      // See if we are loading a .scummvm file.
+      if (strstr(game->path, ".scummvm") != NULL) {
+         // Open the file.
+         FILE * gamefile = fopen(game->path, "r");
+         if (gamefile == NULL)
+         {
+            log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to load given game file.\n");
+            return false;
+         }
+
+         // Load the file data.
+         char filedata[400];
+         if (fgets(filedata, 400, gamefile) == NULL)
+         {
+            fclose(gamefile);
+            log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to load contents of game file.\n");
+            return false;
+         }
+
+         // Create a command line parameters using -p and the game name.
+         sprintf(buffer, "-p \"%s\" %s", gamedir, filedata);
+         fclose(gamefile);
+         parse_command_params(buffer);
+      }
+      else {
+         // Use auto-detect to launch the game from the given directory.
+         sprintf(buffer, "-p \"%s\" --auto-detect", gamedir);
+         parse_command_params(buffer);
+      }
    }
 
 	struct retro_input_descriptor desc[] = {
