@@ -1,4 +1,6 @@
 .core-defs:
+  cache:
+    untracked: true
   variables:
     JNI_PATH: backends/platform/libretro/build
     CORENAME: scummvm
