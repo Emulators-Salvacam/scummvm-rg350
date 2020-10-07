@@ -34,6 +34,7 @@ libretro-build-linux-x64:
     MAKEFILE: Makefile
 
 libretro-build-windows-x64:
+  allow_failure: true
   extends:
     - .core-defs
     - .libretro-windows-x64-mingw-make-default
