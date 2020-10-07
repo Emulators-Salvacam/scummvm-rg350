@@ -488,6 +488,7 @@ OBJS_DEPS += $(LIBRETRO_COMM_DIR)/file/retro_dirent.o \
 			$(LIBRETRO_COMM_DIR)/file/retro_stat.o \
 			$(LIBRETRO_COMM_DIR)/file/file_path.o \
 			$(LIBRETRO_COMM_DIR)/encodings/encoding_utf.o \
+			$(LIBRETRO_COMM_DIR)/compat/fopen_utf8.o \
 			$(LIBRETRO_COMM_DIR)/compat/compat_strl.o
 endif
 
