@@ -1,3 +1,10 @@
+# DESCRIPTION: GitLab CI/CD for libRetro (NOT FOR GitLab-proper)
+
+##############################################################################
+################################# BOILERPLATE ################################
+##############################################################################
+
+# Core definitions
 .core-defs:
   cache:
     untracked: true
@@ -6,63 +13,68 @@
     MAKEFILE_PATH: backends/platform/libretro/build
     CORENAME: scummvm
 
+# Inclusion templates, required for the build to work
 include:
-   #- project: 'libretro-infrastructure/ci-templates'
-    #file: '/libnx-static.yml'
-    #- project: 'libretro-infrastructure/ci-templates'
-    #file: '/vita-static.yml'
+  ################################## DESKTOPS ################################
+  # Linux 64-bit
   - project: 'libretro-infrastructure/ci-templates'
     file: '/linux-x64.yml'
-    #- project: 'libretro-infrastructure/ci-templates'
-    #file: '/windows-x64-mingw.yml'
+    
+  ################################## CELLULAR ################################
+  # Android
   - project: 'libretro-infrastructure/ci-templates'
     file: '/android-jni.yml'
+    
+  ################################## CONSOLES ################################
+  # Nintendo WiiU
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/wiiu-static.yml'
 
+# Stages for building
 stages:
   - build-prepare
   - build-shared
   - build-static
 
-#Desktop
+##############################################################################
+#################################### STAGES ##################################
+##############################################################################
+#
+################################### DESKTOPS #################################
+# Linux 64-bit
 libretro-build-linux-x64:
   extends:
     - .libretro-linux-x64-make-default
     - .core-defs
-
-#libretro-build-windows-x64:
-#allow_failure: true
-#extends:
-#- .libretro-windows-x64-mingw-make-default
-#- .core-defs
     
-# Android
+################################### CELLULAR #################################
+# Android ARMv7a
 android-armeabi-v7a:
   extends:
     - .libretro-android-jni-armeabi-v7a
     - .core-defs
 
+# Android ARMv8a
 android-arm64-v8a:
   extends:
     - .libretro-android-jni-arm64-v8a
     - .core-defs
 
+# Android 64-bit x86
 android-x86_64:
   extends:
     - .libretro-android-jni-x86_64
     - .core-defs
-    
+
+# Android 32-bit x86
 android-x86:
   extends:
     - .libretro-android-jni-x86
     - .core-defs
 
-# Static
-#libretro-build-libnx-aarch64:
-#extends:
-#- .libretro-libnx-static-retroarch-master
-#- .core-defs
-
-#libretro-build-vita:
-#extends:
-#- .libretro-vita-static-retroarch-master
-#- .core-defs
+################################### CONSOLES #################################
+# Nintendo WiiU
+libretro-build-wiiu:
+  extends:
+    - .libretro-wiiu-static-retroarch-master
+    - .core-defs
