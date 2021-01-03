@@ -6,8 +6,6 @@
 
 # Core definitions
 .core-defs:
-  cache:
-    untracked: true
   variables:
     JNI_PATH: backends/platform/libretro/build
     MAKEFILE_PATH: backends/platform/libretro/build
