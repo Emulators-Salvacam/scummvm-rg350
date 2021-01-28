@@ -72,6 +72,7 @@ else ifeq ($(platform), osx)
    TARGET  := $(TARGET_NAME)_libretro.dylib
    DEFINES += -fPIC
    LDFLAGS += -dynamiclib -fPIC
+   DEFINES += -DHAVE_POSIX_MEMALIGN=1
 ifneq ($(shell uname -p),powerpc)
    arch = intel
    TARGET_64BIT := $(BUILD_64BIT)
