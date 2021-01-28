@@ -32,7 +32,10 @@ else ifneq ($(findstring MINGW,$(shell uname -a)),)
    platform = win
 else ifneq ($(findstring Darwin,$(shell uname -a)),)
    platform = osx
-	arch = intel
+   arch = intel
+ifeq ($(shell uname -p),arm64)
+	arch = arm
+endif
 ifeq ($(shell uname -p),powerpc)
 	arch = ppc
 endif
@@ -54,6 +57,8 @@ endif
 TARGET_64BIT = 0
 ifeq ($(shell uname -m), x86_64)
    BUILD_64BIT = 1
+else ifeq ($(shell uname -m), arm64)
+   BUILD_64BIT = 1
 else
    BUILD_64BIT = 0
 endif
@@ -73,12 +78,17 @@ else ifeq ($(platform), osx)
    DEFINES += -fPIC
    LDFLAGS += -dynamiclib -fPIC
    DEFINES += -DHAVE_POSIX_MEMALIGN=1
-ifneq ($(shell uname -p),powerpc)
-   arch = intel
    TARGET_64BIT := $(BUILD_64BIT)
-else
-   arch = ppc
-endif
+
+   ifeq ($(CROSS_COMPILE),1)
+	TARGET_RULE   = -target $(LIBRETRO_APPLE_PLATFORM) -isysroot $(LIBRETRO_APPLE_ISYSROOT)
+	CFLAGS   += $(TARGET_RULE)
+	CPPFLAGS += $(TARGET_RULE)
+	CXXFLAGS += $(TARGET_RULE)
+	LDFLAGS  += $(TARGET_RULE)
+	# Hardcode TARGET_64BIT for now
+	TARGET_64BIT = 1
+   endif
 
 # iOS
 else ifeq ($(platform),ios-arm64)
