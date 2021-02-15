@@ -36,3 +36,11 @@
 
 #define RES_W 640
 #define RES_H 480
+
+#if defined(DINGUX)
+#define RES_W_OVERLAY 320
+#define RES_H_OVERLAY 240
+#else
+#define RES_W_OVERLAY 640
+#define RES_H_OVERLAY 480
+#endif

@@ -62,6 +62,7 @@
 #endif
 
 #include "libretro.h"
+#include "retro_emu_thread.h"
 
 extern retro_log_printf_t log_cb;
 
@@ -358,9 +359,9 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       {
          _savefileManager = new DefaultSaveFileManager(s_saveDir);
 #ifdef FRONTEND_SUPPORTS_RGB565
-         _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
+         _overlay.create(RES_W_OVERLAY, RES_H_OVERLAY, Graphics::PixelFormat(2, 5, 6, 5, 0, 11, 5, 0, 0));
 #else
-         _overlay.create(RES_W, RES_H, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
+         _overlay.create(RES_W_OVERLAY, RES_H_OVERLAY, Graphics::PixelFormat(2, 5, 5, 5, 1, 10, 5, 0, 15));
 #endif
          _mixer = new Audio::MixerImpl(44100);
          _timerManager = new DefaultTimerManager();
@@ -537,12 +538,12 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       {
          const unsigned char *src = (unsigned char*)_overlay.pixels;
          unsigned char *dst = (byte *)buf;
-         unsigned i = RES_H;
+         unsigned i = RES_H_OVERLAY;
 
          do{
-            memcpy(dst, src, RES_W << 1);
+            memcpy(dst, src, RES_W_OVERLAY << 1);
             dst += pitch;
-            src += RES_W << 1;
+            src += RES_W_OVERLAY << 1;
          }while(--i);
       }
 
@@ -610,9 +611,12 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
       {
          if(_threadExitTime <= (getMillis() + offset))
          {
+#if defined(USE_LIBCO)
             extern void retro_leave_thread();
             retro_leave_thread();
-
+#else
+            retro_switch_thread();
+#endif
             _threadExitTime = getMillis() + 10;
          }
       }
