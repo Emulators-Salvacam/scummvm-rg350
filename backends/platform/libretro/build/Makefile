@@ -13,6 +13,7 @@ USE_FREETYPE2=1
 HAVE_MT32EMU=1
 USE_FLUIDSYNTH=1
 USE_LUA    = 1
+USE_LIBCO  = 1
 
 HIDE := @
 SPACE :=
@@ -55,12 +56,14 @@ ifneq ($(GIT_VERSION)," unknown")
 endif
 
 TARGET_64BIT = 0
+ifeq ($(BUILD_64BIT),)
 ifeq ($(shell uname -m), x86_64)
    BUILD_64BIT = 1
 else ifeq ($(shell uname -m), arm64)
    BUILD_64BIT = 1
 else
    BUILD_64BIT = 0
+endif
 endif
 
 LD        = $(CXX)
@@ -203,6 +206,24 @@ else ifeq ($(platform), vita)
 	DEFINES += -DVITA
 	STATIC_LINKING = 1
 
+# GCW0
+else ifeq ($(platform), gcw0)
+   TARGET := $(TARGET_NAME)_libretro.so
+   CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc
+   CXX = /opt/gcw0-toolchain/usr/bin/mipsel-linux-g++
+   LD = /opt/gcw0-toolchain/usr/bin/mipsel-linux-g++
+   AR = /opt/gcw0-toolchain/usr/bin/mipsel-linux-ar cru
+   RANLIB = /opt/gcw0-toolchain/usr/bin/mipsel-linux-ranlib
+   DEFINES += -DDINGUX -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float -fPIC
+   DEFINES += -ffunction-sections -fdata-sections
+   LDFLAGS += -shared -Wl,--gc-sections -Wl,--version-script=../link.T -fPIC
+   USE_VORBIS = 0
+   USE_THEORADEC = 0
+   USE_TREMOR = 1
+   USE_LIBCO  = 0
+   HAVE_MT32EMU = 0
+   NO_HIGH_DEF := 1
+
 else ifeq ($(platform), android-armv7)
    TARGET  := $(TARGET_NAME)_libretro_android.so
    DEFINES += -fPIC -Wno-multichar -D_ARM_ASSEM_
@@ -340,10 +361,10 @@ else ifneq (,$(findstring windows_msvc2017,$(platform)))
 else
 	CC ?= gcc
 	TARGET_64BIT := $(BUILD_64BIT)
-   TARGET  := $(TARGET_NAME)_libretro.dll
-   DEFINES += -DHAVE_FSEEKO -DHAVE_INTTYPES_H
-   CXXFLAGS += -fno-permissive
-   LDFLAGS += -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=../link.T
+	TARGET  := $(TARGET_NAME)_libretro.dll
+	DEFINES += -DHAVE_FSEEKO -DHAVE_INTTYPES_H -fPIC
+	CXXFLAGS += -fno-permissive
+	LDFLAGS += -shared -static-libgcc -static-libstdc++ -s -Wl,--version-script=../link.T -fPIC
 endif
 
 ifeq ($(DEBUG), 1)
@@ -362,6 +383,12 @@ ifeq ($(TARGET_64BIT), 1)
    DEFINES += -DSIZEOF_SIZE_T=8 -DSCUMM_64BITS
 else
    DEFINES += -DSIZEOF_SIZE_T=4
+endif
+
+ifeq ($(USE_LIBCO), 1)
+   DEFINES += -DUSE_LIBCO
+else
+   LDFLAGS += -lpthread
 endif
 
 ###SCUMM VM
@@ -446,7 +473,7 @@ ifeq ($(STATIC_LINKING),1)
 	LD ?= lib.exe
 	STATIC_LINKING=0
 else
-	LD = link.exe
+	LD ?= link.exe
 endif
 endif
 

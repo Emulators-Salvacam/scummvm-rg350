@@ -21,7 +21,7 @@ include:
   # Windows 64-bit
   - project: 'libretro-infrastructure/ci-templates'
     file: '/windows-x64-mingw.yml'
-    
+
   # Linux 64-bit
   - project: 'libretro-infrastructure/ci-templates'
     file: '/linux-x64.yml'
@@ -56,6 +56,10 @@ include:
   - project: 'libretro-infrastructure/ci-templates'
     file: '/libnx-static.yml'
 
+  # OpenDingux
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/dingux-mips32.yml'
+
 # Stages for building
 stages:
   - build-prepare
@@ -67,13 +71,16 @@ stages:
 ##############################################################################
 #
 ################################### DESKTOPS #################################
+
 # Windows 64-bit
 libretro-build-windows-x64:
   extends:
     - .libretro-windows-x64-mingw-make-default
     - .core-defs
     - .win-defs
-    
+  variables:
+    TOOLSET: x86_64-w64-mingw32.static-
+
 # Linux 64-bit
 libretro-build-linux-x64:
   extends:
@@ -85,6 +92,8 @@ libretro-build-linux-i686:
   extends:
     - .libretro-linux-i686-make-default
     - .core-defs
+  variables:
+    BUILD_64BIT: 0
 
 # MacOS 64-bit
 libretro-build-osx-x64:
@@ -140,4 +149,10 @@ libretro-build-wiiu:
 libretro-build-libnx-aarch64:
   extends:
     - .libretro-libnx-static-retroarch-master
+    - .core-defs
+
+# OpenDingux
+libretro-build-dingux-mips32:
+  extends:
+    - .libretro-dingux-mips32-make-default
     - .core-defs

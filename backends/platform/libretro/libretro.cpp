@@ -29,6 +29,7 @@
 #include "base/internal_version.h"
 
 #include "libretro_core_options.h"
+#include "retro_emu_thread.h"
 
 retro_log_printf_t log_cb = NULL;
 static retro_video_refresh_t video_cb = NULL;
@@ -55,6 +56,9 @@ static float mouse_speed = 1.0f;
 
 static bool speed_hack_is_enabled = false;
 
+char cmd_params[20][200];
+char cmd_params_num;
+
 void retro_set_environment(retro_environment_t cb)
 {
    environ_cb = cb;
@@ -64,14 +68,12 @@ void retro_set_environment(retro_environment_t cb)
    libretro_set_core_options(environ_cb);
 }
 
+#if defined(USE_LIBCO)
 bool FRONTENDwantsExit;
 bool EMULATORexited;
 
 cothread_t mainThread;
 cothread_t emuThread;
-
-static char cmd_params[20][200];
-static char cmd_params_num;
 
 void retro_leave_thread(void)
 {
@@ -100,6 +102,7 @@ static void retro_wrap_emulator(void)
          log_cb(RETRO_LOG_ERROR, "Running a dead emulator.\n");
    }
 }
+#endif
 
 unsigned retro_api_version(void)
 {
@@ -302,6 +305,7 @@ bool retro_load_game(const struct retro_game_info *game)
          if (gamefile == NULL)
          {
             log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to load given game file.\n");
+            free(path);
             return false;
          }
 
@@ -311,6 +315,7 @@ bool retro_load_game(const struct retro_game_info *game)
          {
             fclose(gamefile);
             log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to load contents of game file.\n");
+            free(path);
             return false;
          }
 
@@ -324,29 +329,31 @@ bool retro_load_game(const struct retro_game_info *game)
          sprintf(buffer, "-p \"%s\" --auto-detect", gamedir);
          parse_command_params(buffer);
       }
+
+      free(path);
    }
 
-	struct retro_input_descriptor desc[] = {
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Mouse Cursor Left" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Mouse Cursor Up" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Mouse Cursor Down" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Mouse Cursor Right" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "Right Mouse Button" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "Left Mouse Button" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,      "Esc" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,      "." },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Enter" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Numpad 5" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,     "Backspace" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,     "Cursor Fine Control" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3,     "F10" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3,     "Numpad 0" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "ScummVM GUI" },
-		{ 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "F1" },
-		{ 0, RETRO_DEVICE_MOUSE,  0, RETRO_DEVICE_ID_MOUSE_LEFT,    "Left click" },
-		{ 0, RETRO_DEVICE_MOUSE,  0, RETRO_DEVICE_ID_MOUSE_RIGHT,   "Right click" },
-		{ 0 },
-	};
+  struct retro_input_descriptor desc[] = {
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Mouse Cursor Left" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Mouse Cursor Up" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Mouse Cursor Down" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Mouse Cursor Right" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,      "Right Mouse Button" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,      "Left Mouse Button" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,      "Esc" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,      "." },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Enter" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Numpad 5" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,     "Backspace" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,     "Cursor Fine Control" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3,     "F10" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3,     "Numpad 0" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "ScummVM GUI" },
+      { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "F1" },
+      { 0, RETRO_DEVICE_MOUSE,  0, RETRO_DEVICE_ID_MOUSE_LEFT,    "Left click" },
+      { 0, RETRO_DEVICE_MOUSE,  0, RETRO_DEVICE_ID_MOUSE_RIGHT,   "Right click" },
+      { 0 },
+  };
 
    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
@@ -388,11 +395,24 @@ bool retro_load_game(const struct retro_game_info *game)
       retroSetSaveDir(".");
    }
 
+#if defined(USE_LIBCO)
    if(!emuThread && !mainThread)
    {
       mainThread = co_active();
       emuThread = co_create(65536*sizeof(void*), retro_wrap_emulator);
    }
+#else
+   g_system = retroBuildOS(speed_hack_is_enabled);
+   if (!g_system)
+   {
+      if (log_cb)
+         log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to initialize platform driver.\n");
+      return false;
+   }
+   if (!retro_init_emu_thread())
+      if (log_cb)
+         log_cb(RETRO_LOG_ERROR, "[scummvm] Failed to initialize emulation thread!\n");
+#endif
 
    return true;
 }
@@ -404,10 +424,19 @@ bool retro_load_game_special(unsigned game_type, const struct retro_game_info *i
 
 void retro_run (void)
 {
+#if defined(USE_LIBCO)
    if(!emuThread) {
-      environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, 0);
+      environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
       return;
    }
+#else
+   if (!retro_is_emu_thread_initialized() ||
+       retro_emu_thread_exited())
+   {
+      environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+      return;
+   }
+#endif
 
    bool updated = false;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
@@ -421,7 +450,11 @@ void retro_run (void)
    }
 
    /* Run emu */
+#if defined(USE_LIBCO)
    co_switch(emuThread);
+#else
+   retro_switch_thread();
+#endif
 
    if(g_system)
    {
@@ -435,14 +468,17 @@ void retro_run (void)
       audio_batch_cb((int16_t*)buf, count);
    }
 
+#if defined(USE_LIBCO)
    if(EMULATORexited) {
       co_delete(emuThread);
       emuThread = 0;
    }
+#endif
 }
 
 void retro_unload_game (void)
 {
+#if defined(USE_LIBCO)
    if(!emuThread)
       return;
 
@@ -455,6 +491,19 @@ void retro_unload_game (void)
 
    co_delete(emuThread);
    emuThread = 0;
+#else
+   if (!retro_is_emu_thread_initialized())
+      return;
+
+   while (!retro_emu_thread_exited())
+   {
+      retroPostQuit();
+      retro_switch_thread();
+   }
+
+   retro_join_emu_thread();
+   retro_deinit_emu_thread();
+#endif
 }
 
 // Stubs
