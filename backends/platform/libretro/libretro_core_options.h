@@ -132,7 +132,7 @@ struct retro_core_option_definition option_defs_us[] = {
          { "enabled",  NULL },
          { NULL, NULL },
       },
-#if defined(ANDROID) || defined(DINGUX)
+#if defined(ANDROID) || defined(DINGUX) || defined(_3DS)
       "enabled"
 #else
       "disabled"

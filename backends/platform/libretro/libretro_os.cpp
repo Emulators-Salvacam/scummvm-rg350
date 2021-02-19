@@ -569,8 +569,6 @@ class OSystem_RETRO : public EventsBaseBackend, public PaletteManager {
          return _overlay.format;
       }
 
-
-
       virtual bool showMouse(bool visible)
       {
          const bool wasVisible = _mouseVisible;

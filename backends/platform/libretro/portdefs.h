@@ -37,7 +37,7 @@
 #define RES_W 640
 #define RES_H 480
 
-#if defined(DINGUX)
+#if defined(DINGUX) || defined(_3DS)
 #define RES_W_OVERLAY 320
 #define RES_H_OVERLAY 240
 #else

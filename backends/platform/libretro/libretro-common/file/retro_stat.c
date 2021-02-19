@@ -144,7 +144,7 @@ static bool path_stat(const char *path, enum stat_mode mode, int32_t *size)
    return false;
 }
 
-#ifndef WIIU
+#if !defined(WIIU) && !defined(_3DS)
 /**
  * path_is_directory:
  * @path               : path
