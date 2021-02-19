@@ -190,7 +190,7 @@ void parse_command_params(char* cmdline)
    }
 }
 
-#if defined(WIIU) || defined(__SWITCH__) || defined(_MSC_VER)
+#if defined(WIIU) || defined(__SWITCH__) || defined(_MSC_VER) || defined(_3DS)
 #include <stdio.h>
 #include <string.h>
 char * dirname (char *path)
@@ -462,10 +462,23 @@ void retro_run (void)
       const Graphics::Surface& screen = getScreen();
       video_cb(screen.pixels, screen.w, screen.h, screen.pitch);
 
-      // Upload audio
+      /* Upload audio */
       static uint32 buf[735];
       int count = ((Audio::MixerImpl*)g_system->getMixer())->mixCallback((byte*)buf, 735*4);
-      audio_batch_cb((int16_t*)buf, count);
+#if defined(_3DS)
+      /* Hack: 3DS will produce static noise
+       * unless we manually send a zeroed
+       * audio buffer when no samples are
+       * available (i.e. when the overlay
+       * is shown) */
+      if (count == 0)
+      {
+         memset(buf, 0, 735 * sizeof(uint32));
+         audio_batch_cb((int16_t*)buf, 735);
+      }
+      else
+#endif
+         audio_batch_cb((int16_t*)buf, count);
    }
 
 #if defined(USE_LIBCO)

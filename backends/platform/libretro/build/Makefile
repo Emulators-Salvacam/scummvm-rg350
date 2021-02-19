@@ -197,6 +197,28 @@ else ifeq ($(platform), wiiu)
    DEFINES += -DHAVE_STRTOUL -DWIIU -I../libretro-common/include
    LITE := 1
    CP := cp
+
+else ifeq ($(platform), ctr)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
+   CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
+   AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT) rcs
+   RANLIB = $(DEVKITARM)/bin/arm-none-eabi-ranlib$(EXE_EXT)
+   ifeq ($(strip $(CTRULIB)),)
+      $(error "Please set CTRULIB in your environment. export CTRULIB=<path to>libctru")
+   endif
+   DEFINES += -DARM11 -D_3DS -I$(CTRULIB)/include
+   DEFINES += -march=armv6k -mtune=mpcore -mfloat-abi=hard
+   DEFINES += -Wall -mword-relocations
+   DEFINES += -fomit-frame-pointer -ffast-math
+   CXXFLAGS += -std=gnu++11 -fpermissive
+   USE_VORBIS = 0
+   USE_THEORADEC = 0
+   USE_TREMOR = 1
+   HAVE_MT32EMU = 0
+   NO_HIGH_DEF := 1
+   STATIC_LINKING = 1
+
 # Vita
 else ifeq ($(platform), vita)
 	TARGET := $(TARGET_NAME)_libretro_$(platform).a
@@ -487,6 +509,11 @@ $(TARGET): libnx-ln $(OBJS) libdeps.a
 	$(MKDIR) libtemp
 	cp $+ libtemp/
 	$(AR) -M < libnx.mri
+else ifeq ($(platform), ctr)
+$(TARGET): $(OBJS) libdeps.a
+	$(MKDIR) libtemp
+	cp $+ libtemp/
+	$(AR) -M < ctr.mri
 else ifeq ($(STATIC_LINKING), 1)
 $(TARGET): $(OBJS) libdeps.a 
 	@echo Linking $@...
