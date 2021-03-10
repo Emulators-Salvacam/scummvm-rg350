@@ -94,35 +94,41 @@ else ifeq ($(platform), osx)
    endif
 
 # iOS
-else ifeq ($(platform),ios-arm64)
-	CC       = clang -arch arm64 -isysroot $(IOSSDK) -marm
-	CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
-	CFLAGS += -Wno-error=implicit-function-declaration
-	CC      += -miphoneos-version-min=8.0
-	CXX     += -miphoneos-version-min=8.0
-	TARGET  := $(TARGET_NAME)_libretro_ios.dylib
-	DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
-	LDFLAGS += -dynamiclib -fPIC
-
 else ifneq (,$(findstring ios,$(platform)))
    TARGET  := $(TARGET_NAME)_libretro_ios.dylib
    DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
    LDFLAGS += -dynamiclib -fPIC
+   MINVERSION :=
 
 ifeq ($(IOSSDK),)
    IOSSDK := $(shell xcodebuild -version -sdk iphoneos Path)
 endif
-
-   CC       = clang -arch armv7 -isysroot $(IOSSDK) -marm
-   CXX      = clang++ -arch armv7 -isysroot $(IOSSDK) -marm
-
-ifeq ($(platform),ios9)
-	CC      += -miphoneos-version-min=8.0
-	CXX     += -miphoneos-version-min=8.0
+ifeq ($(platform),ios-arm64)
+  CC        = cc -arch arm64 -isysroot $(IOSSDK)
+  CXX       = c++ -arch arm64 -isysroot $(IOSSDK)
 else
-	CC      += -miphoneos-version-min=5.0
-	CXX     += -miphoneos-version-min=5.0
+   CC       = cc -arch armv7 -isysroot $(IOSSDK)
+   CXX      = c++ -arch armv7 -isysroot $(IOSSDK)
 endif
+
+ifeq ($(platform),$(filter $(platform),ios9 ios-arm64))
+   MINVERSION += -miphoneos-version-min=8.0
+else
+   MINVERSION += -miphoneos-version-min=5.0
+endif
+  CFLAGS   += $(MINVERSION)
+  CXXFLAGS += $(MINVERSION)
+
+else ifeq ($(platform), tvos-arm64)
+   EXT?=dylib
+   TARGET := $(TARGET_NAME)_libretro_tvos.$(EXT)
+   DEFINES += -fPIC -DHAVE_POSIX_MEMALIGN=1 -DIOS
+   LDFLAGS += -dynamiclib -fPIC
+ifeq ($(IOSSDK),)
+   IOSSDK := $(shell xcodebuild -version -sdk appletvos Path)
+endif
+   CC  = cc -arch arm64 -isysroot $(IOSSDK)
+   CXX = c++ -arch arm64 -isysroot $(IOSSDK)
 
 # QNX
 else ifeq ($(platform), qnx)
