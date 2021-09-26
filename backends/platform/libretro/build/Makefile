@@ -234,6 +234,24 @@ else ifeq ($(platform), vita)
 	DEFINES += -DVITA
 	STATIC_LINKING = 1
 
+# MIYOO
+else ifeq ($(platform), miyoo)
+   TARGET := $(TARGET_NAME)_libretro.so
+   CC = /opt/miyoo/usr/bin/arm-linux-gcc
+   CXX = /opt/miyoo/usr/bin/arm-linux-g++
+   LD = /opt/miyoo/usr/bin/arm-linux-g++
+   AR = /opt/miyoo/usr/bin/arm-linux-ar cru
+   RANLIB = /opt/miyoo/usr/bin/arm-linux-ranlib
+   DEFINES += -DDINGUX -fomit-frame-pointer -ffast-math -march=armv5te -mtune=arm926ej-s -fPIC
+   DEFINES += -ffunction-sections -fdata-sections
+   LDFLAGS += -shared -Wl,--gc-sections -Wl,--version-script=../link.T -fPIC
+   USE_VORBIS = 0
+   USE_THEORADEC = 0
+   USE_TREMOR = 1
+   USE_LIBCO  = 0
+   HAVE_MT32EMU = 0
+   NO_HIGH_DEF := 1
+
 # GCW0
 else ifeq ($(platform), gcw0)
    TARGET := $(TARGET_NAME)_libretro.so
