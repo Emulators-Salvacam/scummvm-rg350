@@ -87,6 +87,7 @@ class BladeRunnerMetaEngine : public AdvancedMetaEngine {
 public:
 	BladeRunnerMetaEngine();
 
+	const char *getEngineId() const;
 	const char *getName() const override;
 	const char *getOriginalCopyright() const override;
 	bool createInstance(OSystem *syst, Engine **engine, const ADGameDescription *desc) const override;
@@ -104,6 +105,9 @@ BladeRunnerMetaEngine::BladeRunnerMetaEngine()
 		BladeRunner::bladeRunnerGames,
 		BladeRunner::optionsList) {}
 
+const char *BladeRunnerMetaEngine::getEngineId() const {
+	return "bladerunner";
+}
 
 const char *BladeRunnerMetaEngine::getName() const {
 	return "Blade Runner";

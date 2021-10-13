@@ -527,6 +527,10 @@ reg_t GuestAdditions::kScummVMSaveLoad(EngineState *s, int argc, reg_t *argv) co
 		return promptSaveRestoreRama(s, argc, argv);
 	}
 
+	if (g_sci->getGameId() == GID_HOYLE5) {
+		return promptSaveRestoreHoyle5(s, argc, argv);
+	}
+
 	return promptSaveRestoreDefault(s, argc, argv);
 }
 
@@ -715,6 +719,13 @@ int GuestAdditions::runSaveRestore(const bool isSave, reg_t outDescription, cons
 	return saveNo;
 }
 
+reg_t GuestAdditions::promptSaveRestoreHoyle5(EngineState *s, int argc, reg_t *argv) const {
+	assert(argc == 2);
+	Common::String callerName = s->_segMan->getObjectName(s->r_acc);
+	const bool isSave = (callerName == "Save");
+	return make_reg(0, runSaveRestore(isSave, argc > 0 ? argv[0] : NULL_REG, s->_delayedRestoreGameId));
+}
+
 #endif
 
 #pragma mark -
@@ -831,6 +842,7 @@ void GuestAdditions::syncMessageTypeFromScummVM() const {
 		break;
 #endif
 	case kMessageTypeSyncStrategyNone:
+	default:
 		break;
 	}
 }
@@ -929,6 +941,7 @@ void GuestAdditions::syncMessageTypeToScummVM(const int index, const reg_t value
 		// LSL6hires synchronisation happens via send_selector
 #endif
 	case kMessageTypeSyncStrategyNone:
+	default:
 		break;
 	}
 }
@@ -1314,6 +1327,8 @@ void GuestAdditions::syncAudioVolumeGlobalsToScummVM(const int index, const reg_
 				break;
 			case kGlobalVarTorinSpeechVolume:
 				ConfMan.setInt("speech_volume", volume);
+				break;
+			default:
 				break;
 			}
 		}

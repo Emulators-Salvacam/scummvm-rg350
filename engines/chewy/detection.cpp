@@ -67,7 +67,7 @@ static const ChewyGameDescription gameDescriptions[] = {
 			Common::EN_ANY,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NONE)
+			GUIO1(GUIO_NOMIDI)
 		},
 	},
 
@@ -84,7 +84,7 @@ static const ChewyGameDescription gameDescriptions[] = {
 			Common::DE_DEU,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NONE)
+			GUIO1(GUIO_NOMIDI)
 		},
 	},
 
@@ -101,7 +101,7 @@ static const ChewyGameDescription gameDescriptions[] = {
 			Common::DE_DEU,
 			Common::kPlatformDOS,
 			ADGF_NO_FLAGS,
-			GUIO1(GUIO_NONE)
+			GUIO1(GUIO_NOMIDI)
 		},
 	},
 
@@ -115,7 +115,10 @@ public:
 	ChewyMetaEngine() : AdvancedMetaEngine(Chewy::gameDescriptions, sizeof(Chewy::ChewyGameDescription), chewyGames) {
 		_maxScanDepth = 2;
 		_directoryGlobs = directoryGlobs;
-		_singleId = "chewy";
+	}
+
+	const char *getEngineId() const {
+		return "chewy";
 	}
 
 	virtual const char *getName() const {

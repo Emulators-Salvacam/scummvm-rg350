@@ -38,8 +38,12 @@ public:
 	GlkMetaEngine() : MetaEngine() {}
 
 	virtual const char *getName() const {
-		return "ScummGlk";
+		return "Glk";
 	}
+
+        const char *getEngineId() const {
+                return "glk";
+        }
 
 	virtual const char *getOriginalCopyright() const {
 		return "Infocom games (C) Infocom\nScott Adams games (C) Scott Adams";
@@ -112,6 +116,8 @@ public:
 		Common::Language lang);
 	GlkDetectedGame(const char *id, const char *desc, const Common::String &filename,
 		const Common::String &md5, size_t filesize);
+	GlkDetectedGame(const char *id, const char *desc, const char *extra, const Common::String &filename,
+		Common::Language lang);
 };
 
 /**

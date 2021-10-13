@@ -89,18 +89,6 @@ class OSystem_Dreamcast : private DCHardware, public EventsBaseBackend, public P
   // Query the state of the specified feature.
   bool getFeatureState(Feature f);
 
-  // Retrieve a list of all graphics modes supported by this backend.
-  const GraphicsMode *getSupportedGraphicsModes() const;
-
-  // Return the ID of the 'default' graphics mode.
-  int getDefaultGraphicsMode() const;
-
-  // Switch to the specified graphics mode.
-  bool setGraphicsMode(int mode);
-
-  // Determine which graphics mode is currently active.
-  int getGraphicsMode() const;
-
   // Set colors of the palette
   PaletteManager *getPaletteManager() { return this; }
 protected:
@@ -262,7 +250,7 @@ public:
 extern int handleInput(struct mapledev *pad,
 		       int &mouse_x, int &mouse_y,
 		       byte &shiftFlags, Interactive *inter = NULL);
-extern bool selectGame(char *&, char *&, Common::Language &, Common::Platform &, class Icon &);
+extern bool selectGame(char *&, char *&, char *&, Common::Language &, Common::Platform &, class Icon &);
 #ifdef DYNAMIC_MODULES
 extern bool selectPluginDir(Common::String &selection, const Common::FSNode &base);
 #endif

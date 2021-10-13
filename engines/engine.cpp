@@ -22,7 +22,7 @@
 
 #define FORBIDDEN_SYMBOL_EXCEPTION_getcwd
 
-#if defined(WIN32) && !defined(_WIN32_WCE) && !defined(__SYMBIAN32__)
+#if defined(WIN32) && !defined(__SYMBIAN32__)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <direct.h>
@@ -65,10 +65,6 @@
 #include "common/text-to-speech.h"
 #endif
 
-#ifdef _WIN32_WCE
-extern bool isSmartphone();
-#endif
-
 // FIXME: HACK for error()
 Engine *g_engine = 0;
 
@@ -87,10 +83,6 @@ static void defaultErrorHandler(const char *msg) {
 	// now invoke the debugger, if available / supported.
 	if (g_engine) {
 		GUI::Debugger *debugger = g_engine->getDebugger();
-#ifdef _WIN32_WCE
-		if (isSmartphone())
-			debugger = 0;
-#endif
 
 #if defined(USE_TASKBAR)
 		g_system->getTaskbarManager()->notifyError();
@@ -269,6 +261,8 @@ void splashScreen() {
 	// Delay 0.6 secs
 	uint time0 = g_system->getMillis();
 	Common::Event event;
+
+	// We must poll an event in order to have the window shown at least on Mac
 	g_system->getEventManager()->pollEvent(event);
 
 	while (time0 + 600 > g_system->getMillis()) {
@@ -414,7 +408,7 @@ void GUIErrorMessageFormat(const char *fmt, ...) {
 }
 
 void Engine::checkCD() {
-#if defined(WIN32) && !defined(_WIN32_WCE) && !defined(__SYMBIAN32__)
+#if defined(WIN32) && !defined(__SYMBIAN32__)
 	// It is a known bug under Windows that games that play CD audio cause
 	// ScummVM to crash if the data files are read from the same CD. Check
 	// if this appears to be the case and issue a warning.
@@ -675,12 +669,7 @@ bool Engine::shouldQuit() {
 
 /*
 EnginePlugin *Engine::getMetaEnginePlugin() const {
-
-	const EnginePlugin *plugin = 0;
-	Common::String gameid = ConfMan.get("gameid");
-	gameid.toLowercase();
-	EngineMan.findGame(gameid, &plugin);
-	return plugin;
+	return EngineMan.findPlugin(ConfMan.get("engineid"));
 }
 
 */

@@ -78,9 +78,7 @@
 #endif
 #endif
 
-#if defined(_WIN32_WCE)
-#include "backends/platform/wince/CELauncherDialog.h"
-#elif defined(__DC__)
+#if defined(__DC__)
 #include "backends/platform/dc/DCLauncherDialog.h"
 #else
 #include "gui/launcher.h"
@@ -97,9 +95,7 @@ static bool launcherDialog() {
 	// blindly be passed to the first game launched from the launcher.
 	ConfMan.getDomain(Common::ConfigManager::kTransientDomain)->clear();
 
-#if defined(_WIN32_WCE)
-	CELauncherDialog dlg;
-#elif defined(__DC__)
+#if defined(__DC__)
 	DCLauncherDialog dlg;
 #else
 	GUI::LauncherDialog dlg;
@@ -108,37 +104,48 @@ static bool launcherDialog() {
 }
 
 static const Plugin *detectPlugin() {
-	const Plugin *plugin = nullptr;
+	// Figure out the engine ID and game ID
+	Common::String engineId = ConfMan.get("engineid");
+	Common::String gameId = ConfMan.get("gameid");
 
-	// Make sure the gameid is set in the config manager, and that it is lowercase.
-	Common::String gameid(ConfMan.getActiveDomainName());
-	assert(!gameid.empty());
-	if (ConfMan.hasKey("gameid")) {
-		gameid = ConfMan.get("gameid");
+	// Print text saying what's going on
+	printf("User picked target '%s' (engine ID '%s', game ID '%s')...\n", ConfMan.getActiveDomainName().c_str(), engineId.c_str(), gameId.c_str());
 
-		// Set last selected game, that the game will be highlighted
-		// on RTL
-		ConfMan.set("lastselectedgame", ConfMan.getActiveDomainName(), Common::ConfigManager::kApplicationDomain);
-		ConfMan.flushToDisk();
+	// At this point the engine ID and game ID must be known
+	if (engineId.empty()) {
+		warning("The engine ID is not set for target '%s'", ConfMan.getActiveDomainName().c_str());
+		return 0;
 	}
 
-	gameid.toLowercase();
-	ConfMan.set("gameid", gameid);
+	if (gameId.empty()) {
+		warning("The game ID is not set for target '%s'", ConfMan.getActiveDomainName().c_str());
+		return 0;
+	}
 
-	// Query the plugins and find one that will handle the specified gameid
-	printf("User picked target '%s' (gameid '%s')...\n", ConfMan.getActiveDomainName().c_str(), gameid.c_str());
-	printf("  Looking for a plugin supporting this gameid... ");
+	const Plugin *plugin = EngineMan.findPlugin(engineId);
+	if (!plugin) {
+		warning("'%s' is an invalid engine ID. Use the --list-engines command to list supported engine IDs", engineId.c_str());
+		return 0;
+	}
 
-	PlainGameDescriptor game = EngineMan.findGame(gameid, &plugin);
-
-	if (plugin == 0) {
-		printf("failed\n");
-		warning("%s is an invalid gameid. Use the --list-games option to list supported gameid", gameid.c_str());
-	} else {
-		printf("%s\n  Starting '%s'\n", plugin->getName(), game.description);
+	// Query the plugin for the game descriptor
+	printf("   Looking for a plugin supporting this target... %s\n", plugin->getName());
+	PlainGameDescriptor game = plugin->get<MetaEngine>().findGame(gameId.c_str());
+	if (!game.gameId) {
+		warning("'%s' is an invalid game ID for the engine '%s'. Use the --list-games option to list supported game IDs", gameId.c_str(), engineId.c_str());
+		return 0;
 	}
 
 	return plugin;
+}
+
+void saveLastLaunchedTarget(const Common::String &target) {
+	if (ConfMan.hasGameDomain(target)) {
+		// Set the last selected game, so the game will be highlighted next time the user
+		// returns to the launcher.
+		ConfMan.set("lastselectedgame", target, Common::ConfigManager::kApplicationDomain);
+		ConfMan.flushToDisk();
+	}
 }
 
 // TODO: specify the possible return values here
@@ -208,8 +215,8 @@ static Common::Error runGame(const Plugin *plugin, OSystem &system, const Common
 	Common::String caption(ConfMan.get("description"));
 
 	if (caption.empty()) {
-		PlainGameDescriptor game = EngineMan.findGame(ConfMan.get("gameid"));
-		if (game.description) {
+		QualifiedGameDescriptor game = EngineMan.findTarget(ConfMan.getActiveDomainName());
+		if (!game.description.empty()) {
 			caption = game.description;
 		}
 	}
@@ -532,6 +539,10 @@ extern "C" int scummvm_main(int argc, const char * const argv[]) {
 	// work as well as it should. In theory everything should be destroyed
 	// cleanly, so this is now enabled to encourage people to fix bits :)
 	while (0 != ConfMan.getActiveDomain()) {
+		saveLastLaunchedTarget(ConfMan.getActiveDomainName());
+
+		EngineMan.upgradeTargetIfNecessary(ConfMan.getActiveDomainName());
+
 		// Try to find a plugin which feels responsible for the specified game.
 		const Plugin *plugin = detectPlugin();
 		if (plugin) {

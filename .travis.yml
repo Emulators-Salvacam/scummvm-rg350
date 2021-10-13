@@ -1,36 +1,93 @@
-language: generic
-os: linux
-dist: trusty
+language:
+  - cpp
+
 sudo: required
+
 addons:
   apt:
     packages:
-      - g++-7
-    sources:
-      - ubuntu-toolchain-r-test
-env:
-  global:
-    - CORE=scummvm
-    - COMPILER_NAME=gcc CXX=g++-7 CC=gcc-7
-  matrix:
-    - PLATFORM=3ds
-    - PLATFORM=linux_x64
-    - PLATFORM=ngc
-    - PLATFORM=wii
-    - PLATFORM=wiiu
-before_script:
-  - pwd
-  - mkdir -p ~/bin
-  - ln -s /usr/bin/gcc-7 ~/bin/gcc
-  - ln -s /usr/bin/g++-7 ~/bin/g++
-  - ln -s /usr/bin/cpp-7 ~/bin/cpp
-  - export PATH=~/bin:$PATH
-  - ls -l ~/bin
-  - echo $PATH
-  - g++-7 --version
-  - g++ --version
+    - g++ make
+    - ccache
+    - libsdl2-dev
+    - libsdl2-net-dev
+    - libcurl4-openssl-dev
+    - libjpeg-turbo8-dev
+    - libmpeg2-4-dev
+    - libogg-dev
+    - libvorbis-dev
+    - libflac-dev
+    - libmad0-dev
+    - libpng-dev
+    - libtheora-dev
+    - libfaad-dev
+    - libfluidsynth-dev
+    - libfreetype6-dev
+    - zlib1g-dev
+    - libieee1284-3-dev
+    - libsndio-dev
+    - libunity-dev
+  homebrew:
+    packages:
+    - ccache
+    - sdl2
+    - sdl2_net
+    - curl
+    - jpeg-turbo
+    - libmpeg2
+    - a52dec
+    - libogg
+    - libvorbis
+    - flac
+    - mad
+    - libpng
+    - theora
+    - faad2
+    - fluid-synth
+    - freetype
+    - zlib
+    - pandoc
+    - jack
+    update: true
+
+branches:
+ only:
+   - master
+
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+      cache: ccache
+    - os: linux
+      compiler: clang
+      cache: ccache
+      before_script:
+        - sudo ln -s $(which ccache) /usr/lib/ccache/clang
+        - sudo ln -s $(which ccache) /usr/lib/ccache/clang++
+    - os: osx
+      compiler: clang
+      cache:
+        directories:
+          - $HOME/Library/Caches/Homebrew
+        ccache: true
+      before_cache:
+        - brew cleanup
+
+dist: xenial
+
 script:
-  - cd ~/
-  - git clone --depth=50 https://github.com/libretro/libretro-super
-  - cd libretro-super/travis
-  - ./build-long.sh
+  - ccache --show-stats > /tmp/ccache_before
+  - export PATH="/usr/local/opt/ccache/libexec:/usr/lib/ccache:$PATH"
+  - ./configure --enable-all-engines --enable-opl2lpt
+  - make -j 2
+  - make test
+  - make devtools
+  - ccache --show-stats > /tmp/ccache_after
+  - diff -U999 /tmp/ccache_before /tmp/ccache_after || true
+
+notifications:
+  irc:
+    channels:
+      - "chat.freenode.net#scummvm"
+    on_success: change
+    on_failure: always

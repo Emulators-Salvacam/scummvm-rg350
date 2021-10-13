@@ -60,7 +60,7 @@ RecorderDialog::RecorderDialog() : Dialog("RecorderDialog"), _list(0), _currentS
 
 	_backgroundType = ThemeEngine::kDialogBackgroundSpecial;
 
-	new StaticTextWidget(this, "SaveLoadChooser.Title", _("Recorder or Playback Gameplay"));
+	new StaticTextWidget(this, "RecorderDialog.Title", _("Recorder or Playback Gameplay"));
 
 	_list = new GUI::ListWidget(this, "RecorderDialog.List");
 	_list->setNumberingMode(GUI::kListNumberingOff);
@@ -77,7 +77,7 @@ RecorderDialog::RecorderDialog() : Dialog("RecorderDialog"), _list(0), _currentS
 	_playbackButton->setEnabled(false);
 
 	_gfxWidget = new GUI::GraphicsWidget(this, 0, 0, 10, 10);
-	_container = new GUI::ContainerWidget(this, 0, 0, 10, 10);
+	_container = new GUI::ContainerWidget(this, "RecorderDialog.Thumbnail");
 	if (g_gui.xmlEval()->getVar("Globals.RecorderDialog.ExtInfo.Visible") == 1) {
 		new GUI::ButtonWidget(this,"RecorderDialog.NextScreenShotButton", "<", 0, kPrevScreenshotCmd);
 		new GUI::ButtonWidget(this, "RecorderDialog.PreviousScreenShotButton", ">", 0, kNextScreenshotCmd);
@@ -91,6 +91,8 @@ RecorderDialog::RecorderDialog() : Dialog("RecorderDialog"), _list(0), _currentS
 
 
 void RecorderDialog::reflowLayout() {
+	Dialog::reflowLayout();
+
 	if (g_gui.xmlEval()->getVar("Globals.RecorderDialog.ExtInfo.Visible") == 1) {
 		int16 x, y;
 		uint16 w, h;
@@ -114,7 +116,6 @@ void RecorderDialog::reflowLayout() {
 		_container->setVisible(false);
 		_gfxWidget->setVisible(false);
 	}
-	Dialog::reflowLayout();
 }
 
 
@@ -166,8 +167,7 @@ void RecorderDialog::handleCommand(CommandSender *sender, uint32 cmd, uint32 dat
 		break;
 	case kRecordCmd: {
 		TimeDate t;
-		Common::String gameId = ConfMan.get("gameid", _target);
-		PlainGameDescriptor desc = EngineMan.findGame(gameId);
+		QualifiedGameDescriptor desc = EngineMan.findTarget(_target);
 		g_system->getTimeAndDate(t);
 		EditRecordDialog editDlg(_("Unknown Author"), Common::String::format("%.2d.%.2d.%.4d ", t.tm_mday, t.tm_mon, 1900 + t.tm_year) + desc.description, "");
 		if (editDlg.runModal() != kOKCmd) {

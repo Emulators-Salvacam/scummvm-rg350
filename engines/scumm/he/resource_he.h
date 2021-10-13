@@ -24,7 +24,10 @@
 #define SCUMM_HE_RESOURCE_HE_H
 
 #include "common/macresman.h"
-#include "common/winexe_pe.h"
+
+namespace Common {
+class PEResources;
+}
 
 namespace Scumm {
 
@@ -68,10 +71,10 @@ private:
 class Win32ResExtractor : public ResExtractor {
 public:
 	Win32ResExtractor(ScummEngine_v70he *scumm);
-	~Win32ResExtractor() {}
+	~Win32ResExtractor();
 
 private:
-	Common::PEResources _exe;
+	Common::PEResources *_exe;
 
 	bool extractResource(int id, CachedCursor *cc);
 };

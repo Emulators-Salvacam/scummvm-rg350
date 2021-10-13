@@ -25,6 +25,7 @@
 
 #include "gui/gui-manager.h"
 #include "gui/dialog.h"
+#include "gui/ThemeEval.h"
 #include "gui/widget.h"
 
 namespace GUI {
@@ -104,6 +105,10 @@ void Dialog::reflowLayout() {
 	// changed, so any cached image may be invalid. The subsequent redraw
 	// should be treated as the very first draw.
 
+	if (!_name.empty()) {
+		g_gui.xmlEval()->reflowDialogLayout(_name, _firstWidget);
+	}
+
 	GuiObject::reflowLayout();
 
 	Widget *w = _firstWidget;
@@ -163,6 +168,7 @@ void Dialog::drawDialog(DrawLayer layerToDraw) {
 	if (!isVisible())
 		return;
 
+	g_gui.theme()->disableClipRect();
 	g_gui.theme()->_layerToDraw = layerToDraw;
 	g_gui.theme()->drawDialogBackground(Common::Rect(_x, _y, _x + _w, _y + _h), _backgroundType);
 
@@ -352,6 +358,8 @@ void Dialog::handleCommand(CommandSender *sender, uint32 cmd, uint32 data) {
 	switch (cmd) {
 	case kCloseCmd:
 		close();
+		break;
+	default:
 		break;
 	}
 }

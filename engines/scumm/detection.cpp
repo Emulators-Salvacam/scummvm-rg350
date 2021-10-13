@@ -467,6 +467,8 @@ static Common::Language detectLanguage(const Common::FSList &fslist, byte id) {
 				return Common::RU_RUS;
 			case 449787:	// 64f3fe479d45b52902cf88145c41d172
 				return Common::ES_ESP;
+			default:
+				break;
 			}
 		} else { // The DIG
 			switch (size) {
@@ -484,6 +486,8 @@ static Common::Language detectLanguage(const Common::FSList &fslist, byte id) {
 				return Common::JA_JPN;
 			case 180730:	// 424fdd60822722cdc75356d921dad9bf
 				return Common::ZH_TWN;
+			default:
+				break;
 			}
 		}
 	}
@@ -964,6 +968,10 @@ using namespace Scumm;
 
 class ScummMetaEngine : public MetaEngine {
 public:
+	virtual const char *getEngineId() const {
+		return "scumm";
+	}
+
 	virtual const char *getName() const;
 	virtual const char *getOriginalCopyright() const;
 
@@ -1045,7 +1053,7 @@ DetectedGames ScummMetaEngine::detectGames(const Common::FSList &fslist) const {
 		const PlainGameDescriptor *g = findPlainGameDescriptor(x->game.gameid, gameDescriptions);
 		assert(g);
 
-		DetectedGame game = DetectedGame(x->game.gameid, g->description, x->language, x->game.platform, x->extra);
+		DetectedGame game = DetectedGame(getEngineId(), x->game.gameid, g->description, x->language, x->game.platform, x->extra);
 
 		// Compute and set the preferred target name for this game.
 		// Based on generateComplexID() in advancedDetector.cpp.

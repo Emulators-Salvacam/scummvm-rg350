@@ -354,12 +354,7 @@ void PegasusEngine::runIntro() {
 Common::Error PegasusEngine::showLoadDialog() {
 	GUI::SaveLoadChooser slc(_("Load game:"), _("Load"), false);
 
-	Common::String gameId = ConfMan.get("gameid");
-
-	const Plugin *plugin = nullptr;
-	EngineMan.findGame(gameId, &plugin);
-
-	int slot = slc.runModalWithPluginAndTarget(plugin, ConfMan.getActiveDomainName());
+	int slot = slc.runModalWithCurrentTarget();
 
 	Common::Error result;
 
@@ -378,12 +373,7 @@ Common::Error PegasusEngine::showLoadDialog() {
 Common::Error PegasusEngine::showSaveDialog() {
 	GUI::SaveLoadChooser slc(_("Save game:"), _("Save"), true);
 
-	Common::String gameId = ConfMan.get("gameid");
-
-	const Plugin *plugin = nullptr;
-	EngineMan.findGame(gameId, &plugin);
-
-	int slot = slc.runModalWithPluginAndTarget(plugin, ConfMan.getActiveDomainName());
+	int slot = slc.runModalWithCurrentTarget();
 
 	if (slot >= 0)
 		return saveGameState(slot, slc.getResultString());
@@ -2490,6 +2480,8 @@ uint PegasusEngine::getNeighborhoodCD(const NeighborhoodID neighborhood) const {
 		// Tiny TSA exists on three of the CD's, so just continue
 		// with the CD we're on
 		return _currentCD;
+	default:
+		break;
 	}
 
 	// Can't really happen, but it's a good fallback anyway :P

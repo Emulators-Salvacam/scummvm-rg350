@@ -64,7 +64,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::RU_RUS,
 		Common::kPlatformWindows,
 		ADGF_DROPPLATFORM,
-		GUIO1(GUIO_NONE)
+		GUIO1(GUIO_NOMIDI)
 	},
 
 	// Full Pipe German version
@@ -75,7 +75,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::DE_DEU,
 		Common::kPlatformWindows,
 		ADGF_DROPPLATFORM,
-		GUIO1(GUIO_NONE)
+		GUIO1(GUIO_NOMIDI)
 	},
 
 	// Full Pipe Estonian version
@@ -86,7 +86,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::ET_EST,
 		Common::kPlatformWindows,
 		ADGF_DROPPLATFORM,
-		GUIO1(GUIO_NONE)
+		GUIO1(GUIO_NOMIDI)
 	},
 
 	// Full Pipe English version
@@ -97,7 +97,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformWindows,
 		ADGF_DROPPLATFORM,
-		GUIO1(GUIO_NONE)
+		GUIO1(GUIO_NOMIDI)
 	},
 
 	// Full Pipe Russian Demo version
@@ -108,7 +108,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::RU_RUS,
 		Common::kPlatformWindows,
 		ADGF_DROPPLATFORM | ADGF_DEMO,
-		GUIO1(GUIO_NONE)
+		GUIO1(GUIO_NOMIDI)
 	},
 
 	// Full Pipe German Demo version
@@ -119,7 +119,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::DE_DEU,
 		Common::kPlatformWindows,
 		ADGF_DROPPLATFORM | ADGF_DEMO,
-		GUIO1(GUIO_NONE)
+		GUIO1(GUIO_NOMIDI)
 	},
 
 	AD_TABLE_END_MARKER
@@ -130,7 +130,10 @@ static const ADGameDescription gameDescriptions[] = {
 class FullpipeMetaEngine : public AdvancedMetaEngine {
 public:
 	FullpipeMetaEngine() : AdvancedMetaEngine(Fullpipe::gameDescriptions, sizeof(ADGameDescription), fullpipeGames) {
-		_singleId = "fullpipe";
+	}
+
+	const char *getEngineId() const {
+		return "fullpipe";
 	}
 
 	virtual const char *getName() const {
@@ -190,7 +193,7 @@ SaveStateList FullpipeMetaEngine::listSaves(const char *target) const {
 
 				SaveStateDescriptor desc;
 
-				parseSavegameHeader(header, desc);
+				Fullpipe::parseSavegameHeader(header, desc);
 
 				desc.setSaveSlot(slotNum);
 
@@ -221,7 +224,7 @@ SaveStateDescriptor FullpipeMetaEngine::querySaveMetaInfos(const char *target, i
 		// Create the return descriptor
 		SaveStateDescriptor desc;
 
-		parseSavegameHeader(header, desc);
+		Fullpipe::parseSavegameHeader(header, desc);
 
 		desc.setSaveSlot(slot);
 		desc.setThumbnail(header.thumbnail);

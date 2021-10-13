@@ -23,6 +23,9 @@
 #include "common/util.h"
 #include "common/system.h"
 
+#include "gui/gui-manager.h"
+#include "gui/widget.h"
+#include "gui/ThemeEval.h"
 #include "gui/ThemeLayout.h"
 
 #include "graphics/font.h"
@@ -47,6 +50,16 @@ void ThemeLayout::importLayout(ThemeLayout *layout) {
 	} else {
 		_children.push_back(layout->makeClone(this));
 	}
+}
+
+void ThemeLayout::resetLayout() {
+	_x = 0;
+	_y = 0;
+	_w = _defaultW;
+	_h = _defaultH;
+
+	for (uint i = 0; i < _children.size(); ++i)
+		_children[i]->resetLayout();
 }
 
 bool ThemeLayout::getWidgetData(const Common::String &name, int16 &x, int16 &y, uint16 &w, uint16 &h) {
@@ -154,14 +167,73 @@ Graphics::TextAlign ThemeLayoutWidget::getWidgetTextHAlign(const Common::String 
 	return Graphics::kTextAlignInvalid;
 }
 
-void ThemeLayoutMain::reflowLayout() {
+void ThemeLayoutWidget::reflowLayout(Widget *widgetChain) {
+	Widget *guiWidget = getWidget(widgetChain);
+	if (!guiWidget) {
+		return;
+	}
+
+	int minWidth  = -1;
+	int minHeight = -1;
+	guiWidget->getMinSize(minWidth, minHeight);
+
+	if (_w != -1 && minWidth != -1 && minWidth > _w) {
+		_w = minWidth;
+	}
+
+	if (_h != -1 && minHeight != -1 && minHeight > _h) {
+		_h = minHeight;
+	}
+}
+
+bool ThemeLayoutWidget::isBound(Widget *widgetChain) const {
+	Widget *guiWidget = getWidget(widgetChain);
+	return guiWidget != nullptr;
+}
+
+Widget *ThemeLayoutWidget::getWidget(Widget *widgetChain) const {
+	const ThemeLayout *topLevelLayout = this;
+	while (topLevelLayout->_parent) {
+		topLevelLayout = topLevelLayout->_parent;
+	}
+
+	assert(topLevelLayout && topLevelLayout->getLayoutType() == kLayoutMain);
+	const ThemeLayoutMain *dialogLayout = static_cast<const ThemeLayoutMain *>(topLevelLayout);
+
+	Common::String widgetName = Common::String::format("%s.%s", dialogLayout->getName(), _name.c_str());
+	return Widget::findWidgetInChain(widgetChain, widgetName.c_str());
+}
+
+void ThemeLayoutMain::reflowLayout(Widget *widgetChain) {
 	assert(_children.size() <= 1);
 
+	resetLayout();
+
+	if (_overlays == "screen") {
+		_x = 0;
+		_y = 0;
+		_w = g_system->getOverlayWidth();
+		_h = g_system->getOverlayHeight();
+	} else if (_overlays == "screen_center") {
+		_x = -1;
+		_y = -1;
+		_w = -1;
+		_h = -1;
+	} else {
+		if (!g_gui.xmlEval()->getWidgetData(_overlays, _x, _y, (uint16 &) _w, (uint16 &) _h)) {
+			warning("Unable to retrieve overlayed dialog position %s", _overlays.c_str());
+		}
+	}
+
+	if (_x >= 0) _x += _inset;
+	if (_y >= 0) _y += _inset;
+	if (_w >= 0) _w -= 2 * _inset;
+	if (_h >= 0) _h -= 2 * _inset;
+
 	if (_children.size()) {
-		_children[0]->resetLayout();
 		_children[0]->setWidth(_w);
 		_children[0]->setHeight(_h);
-		_children[0]->reflowLayout();
+		_children[0]->reflowLayout(widgetChain);
 
 		if (_w == -1)
 			_w = _children[0]->getWidth();
@@ -177,19 +249,19 @@ void ThemeLayoutMain::reflowLayout() {
 	}
 }
 
-void ThemeLayoutStacked::reflowLayoutVertical() {
-	int curX, curY;
+void ThemeLayoutStacked::reflowLayoutVertical(Widget *widgetChain) {
+	int curY;
 	int resize[8];
 	int rescount = 0;
+	bool fixedWidth = _w != -1;
 
-	curX = _padding.left;
 	curY = _padding.top;
 	_h = _padding.top + _padding.bottom;
 
 	for (uint i = 0; i < _children.size(); ++i) {
+		if (!_children[i]->isBound(widgetChain)) continue;
 
-		_children[i]->resetLayout();
-		_children[i]->reflowLayout();
+		_children[i]->reflowLayout(widgetChain);
 
 		if (_children[i]->getWidth() == -1)
 			_children[i]->setWidth((_w == -1 ? getParentWidth() : _w) - _padding.left - _padding.right);
@@ -202,18 +274,14 @@ void ThemeLayoutStacked::reflowLayoutVertical() {
 
 		_children[i]->offsetY(curY);
 
-		// Center child if it this has been requested *and* the space permits it.
-		if (_centered && _children[i]->getWidth() < _w && _w != -1) {
-			_children[i]->offsetX((_w >> 1) - (_children[i]->getWidth() >> 1));
-		} else
-			_children[i]->offsetX(curX);
-
 		// Advance the vertical offset by the height of the newest item, plus
 		// the item spacing value.
 		curY += _children[i]->getHeight() + _spacing;
 
 		// Update width and height of this stack layout
-		_w = MAX(_w, (int16)(_children[i]->getWidth() + _padding.left + _padding.right));
+		if (!fixedWidth) {
+			_w = MAX(_w, (int16)(_children[i]->getWidth() + _padding.left + _padding.right));
+		}
 		_h += _children[i]->getHeight() + _spacing;
 	}
 
@@ -221,6 +289,35 @@ void ThemeLayoutStacked::reflowLayoutVertical() {
 	// too often. Correct that.
 	if (!_children.empty())
 		_h -= _spacing;
+
+	// If the width is not set at this point, then we have no bound widgets.
+	if (!fixedWidth && _w == -1) {
+		_w = 0;
+	}
+
+	for (uint i = 0; i < _children.size(); ++i) {
+		switch (_itemAlign) {
+		case kItemAlignStart:
+		default:
+			_children[i]->offsetX(_padding.left);
+			break;
+		case kItemAlignCenter:
+			// Center child if it this has been requested *and* the space permits it.
+			if (_children[i]->getWidth() < (_w - _padding.left - _padding.right)) {
+				_children[i]->offsetX((_w >> 1) - (_children[i]->getWidth() >> 1));
+			} else {
+				_children[i]->offsetX(_padding.left);
+			}
+			break;
+		case kItemAlignEnd:
+			_children[i]->offsetX(_w - _children[i]->getWidth() - _padding.right);
+			break;
+		case kItemAlignStretch:
+			_children[i]->offsetX(_padding.left);
+			_children[i]->setWidth(_w - _padding.left - _padding.right);
+			break;
+		}
+	}
 
 	// If there were any items with undetermined height, then compute and set
 	// their height now. We do so by determining how much space is left, and
@@ -240,19 +337,19 @@ void ThemeLayoutStacked::reflowLayoutVertical() {
 	}
 }
 
-void ThemeLayoutStacked::reflowLayoutHorizontal() {
-	int curX, curY;
+void ThemeLayoutStacked::reflowLayoutHorizontal(Widget *widgetChain) {
+	int curX;
 	int resize[8];
 	int rescount = 0;
+	bool fixedHeight = _h != -1;
 
 	curX = _padding.left;
-	curY = _padding.top;
 	_w = _padding.left + _padding.right;
 
 	for (uint i = 0; i < _children.size(); ++i) {
+		if (!_children[i]->isBound(widgetChain)) continue;
 
-		_children[i]->resetLayout();
-		_children[i]->reflowLayout();
+		_children[i]->reflowLayout(widgetChain);
 
 		if (_children[i]->getHeight() == -1)
 			_children[i]->setHeight((_h == -1 ? getParentHeight() : _h) - _padding.top - _padding.bottom);
@@ -265,25 +362,50 @@ void ThemeLayoutStacked::reflowLayoutHorizontal() {
 
 		_children[i]->offsetX(curX);
 
-		// Center child if it this has been requested *and* the space permits it.
-		if (_centered && _children[i]->getHeight() < _h && _h != -1)
-			_children[i]->offsetY((_h >> 1) - (_children[i]->getHeight() >> 1));
-		else
-			_children[i]->offsetY(curY);
-
 		// Advance the horizontal offset by the width of the newest item, plus
 		// the item spacing value.
 		curX += (_children[i]->getWidth() + _spacing);
 
 		// Update width and height of this stack layout
 		_w += _children[i]->getWidth() + _spacing;
-		_h = MAX(_h, (int16)(_children[i]->getHeight() + _padding.top + _padding.bottom));
+		if (!fixedHeight) {
+			_h = MAX(_h, (int16)(_children[i]->getHeight() + _padding.top + _padding.bottom));
+		}
 	}
 
 	// If there are any children at all, then we added the spacing value once
 	// too often. Correct that.
 	if (!_children.empty())
 		_w -= _spacing;
+
+	// If the height is not set at this point, then we have no bound widgets.
+	if (!fixedHeight && _h == -1) {
+		_h = 0;
+	}
+
+	for (uint i = 0; i < _children.size(); ++i) {
+		switch (_itemAlign) {
+		case kItemAlignStart:
+		default:
+			_children[i]->offsetY(_padding.top);
+			break;
+		case kItemAlignCenter:
+			// Center child if it this has been requested *and* the space permits it.
+			if (_children[i]->getHeight() < (_h - _padding.top - _padding.bottom)) {
+				_children[i]->offsetY((_h >> 1) - (_children[i]->getHeight() >> 1));
+			} else {
+				_children[i]->offsetY(_padding.top);
+			}
+			break;
+		case kItemAlignEnd:
+			_children[i]->offsetY(_h - _children[i]->getHeight() - _padding.bottom);
+			break;
+		case kItemAlignStretch:
+			_children[i]->offsetY(_padding.top);
+			_children[i]->setHeight(_w - _padding.top - _padding.bottom);
+			break;
+		}
+	}
 
 	// If there were any items with undetermined width, then compute and set
 	// their width now. We do so by determining how much space is left, and

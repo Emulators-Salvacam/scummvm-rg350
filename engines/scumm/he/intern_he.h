@@ -306,7 +306,7 @@ protected:
 	virtual void redrawBGAreas();
 	virtual void checkExecVerbs();
 
-	byte *defineArray(int array, int type, int dim2start, int dim2end, int dim1start, int dim1end);
+	byte *defineArray(int array, int type, int dim2start, int dim2end, int dim1start, int dim1end, bool newArray = false, int *newid = NULL);
 	virtual int readArray(int array, int idx2, int idx1);
 	virtual void writeArray(int array, int idx2, int idx1, int value);
 	void redimArray(int arrayId, int newDim2start, int newDim2end,
@@ -592,6 +592,8 @@ protected:
 
 class ScummEngine_v100he : public ScummEngine_v99he {
 friend class AI;
+friend class Moonbase;
+friend class Net;
 
 protected:
 	ResType _heResType;
@@ -609,6 +611,7 @@ public:
 	virtual void resetScumm();
 
 	virtual void setupScummVars();
+	virtual void resetScummVars();
 
 protected:
 	virtual void setupOpcodes();
@@ -663,6 +666,10 @@ protected:
 	byte VAR_U32_USER_VAR_D;
 	byte VAR_U32_USER_VAR_E;
 	byte VAR_U32_USER_VAR_F;
+
+	byte VAR_REMOTE_START_SCRIPT;
+	byte VAR_NETWORK_AVAILABLE;
+	byte VAR_NETWORK_RECEIVE_ARRAY_SCRIPT;
 };
 
 class ScummEngine_vCUPhe : public Engine {

@@ -42,8 +42,6 @@ static const PlainGameDescriptor groovieGames[] = {
 	{"tlc", "Tender Loving Care"},
 #endif
 
-	// Unknown
-	{"groovie", "Groovie engine game"},
 	{0, 0}
 };
 
@@ -106,7 +104,7 @@ static const GroovieGameDescription gameDescriptions[] = {
 			{
 				{ "script.grv", 0, "d1b8033b40aa67c076039881eccce90d", 16659},
 				{ "intro.gjd", 0, NULL, 31711554},
-				{ NULL, 0, NULL, 0}
+				AD_LISTEND
 			},
 			Common::RU_RUS, Common::kPlatformDOS, ADGF_NO_FLAGS,
 			GUIO5(GUIO_MIDIADLIB, GUIO_MIDIMT32, GUIO_MIDIGM, GUIO_NOASPECT, GAMEOPTION_T7G_FAST_MOVIE_SPEED)
@@ -120,7 +118,7 @@ static const GroovieGameDescription gameDescriptions[] = {
 			{
 				{ "script.grv", 0, "d1b8033b40aa67c076039881eccce90d", 16659},
 				{ "SeventhGuest", 0, NULL, -1},
-				{ NULL, 0, NULL, 0}
+				AD_LISTEND
 			},
 			Common::EN_ANY, Common::kPlatformIOS, ADGF_NO_FLAGS,
 			GUIO3(GUIO_NOMIDI, GUIO_NOASPECT, GAMEOPTION_T7G_FAST_MOVIE_SPEED)
@@ -333,8 +331,6 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 class GroovieMetaEngine : public AdvancedMetaEngine {
 public:
 	GroovieMetaEngine() : AdvancedMetaEngine(gameDescriptions, sizeof(GroovieGameDescription), groovieGames, optionsList) {
-		_singleId = "groovie";
-
 		// Use kADFlagUseExtraAsHint in order to distinguish the 11th hour from
 		// its "Making of" as well as the Clandestiny Trailer; they all share
 		// the same MD5.
@@ -349,6 +345,10 @@ public:
 		// Need MIDI directory to detect 11H Mac Installed
 		_maxScanDepth = 2;
 		_directoryGlobs = directoryGlobs;
+	}
+
+	const char *getEngineId() const {
+		return "groovie";
 	}
 
 	const char *getName() const {

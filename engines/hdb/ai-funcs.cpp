@@ -88,7 +88,7 @@ AIEntity *AI::spawn(AIType type, AIDir dir, int x, int y, const char *funcInit, 
 	return e;
 }
 
-bool AI::cacheEntGfx(AIEntity *e, bool init) {
+bool AI::cacheEntGfx(AIEntity *e, bool initFlag) {
 	int i = 0;
 	while (true) {
 		if (aiEntList[i].type == END_AI_TYPES)
@@ -425,7 +425,7 @@ bool AI::cacheEntGfx(AIEntity *e, bool init) {
 
 			e->aiInit = aiEntList[i].initFunc;
 			e->aiInit2 = aiEntList[i].initFunc2;
-			if (init) {
+			if (initFlag) {
 				e->aiInit(e);
 				if (e->aiInit2)
 					e->aiInit2(e);
@@ -821,6 +821,8 @@ void AI::killPlayer(Death method) {
 			g_hdb->_sound->playSound(SND_GUY_PLUMMET);
 		}
 		break;
+	default:
+		break;
 	}
 
 	// sound.StopMusic();
@@ -1038,6 +1040,7 @@ void AI::animateEntity(AIEntity *e) {
 					xv = 1;
 					break;
 				case DIR_NONE:
+				default:
 					break;
 				}
 
@@ -1095,6 +1098,7 @@ void AI::animateEntity(AIEntity *e) {
 				yOff = 0;
 				break;
 			case DIR_NONE:
+			default:
 				break;
 			}
 			if ((e->tileX + xOff == _waypoints[_numWaypoints - 1].x &&
@@ -1185,6 +1189,7 @@ void AI::animateEntity(AIEntity *e) {
 							e->state = STATE_MOVERIGHT;
 							break;
 						case DIR_NONE:
+						default:
 							break;
 						}
 						if (_playerRunning) {
@@ -1273,6 +1278,7 @@ void AI::animateEntity(AIEntity *e) {
 						xv = 1;
 						break;
 					case DIR_NONE:
+					default:
 						break;
 					}
 
@@ -1895,6 +1901,7 @@ void AI::entityFace(const char *luaName, int dir) {
 		e->state = STATE_STANDRIGHT;
 		break;
 	case DIR_NONE:
+	default:
 		break;
 	}
 }
@@ -1978,6 +1985,7 @@ bool AI::findPath(AIEntity *e) {
 		xv = 1;
 		break;
 	case DIR_NONE:
+	default:
 		break;
 	}
 

@@ -1419,15 +1419,6 @@ void KyraEngine_HoF::snd_playVoiceFile(int id) {
 	assert(id >= 0 && id <= 9999999);
 	sprintf(vocFile, "%07d", id);
 	if (_sound->isVoicePresent(vocFile)) {
-		// Unlike the original I have added a timeout here. I have chosen a size that makes sure that it
-		// won't get triggered in any of the bug #11309 situations, but still avoids infinite hangups if
-		// something goes wrong.
-		uint32 end = _system->getMillis() + 2500;
-		while (snd_voiceIsPlaying() && _system->getMillis() < end && !skipFlag())
-			delay(10);
-		if (_system->getMillis() >= end && !skipFlag())
-			debugC(3, kDebugLevelSound, "KyraEngine_HoF::snd_playVoiceFile(): Speech finish wait timeout");
-
 		snd_stopVoice();
 
 		while (!_sound->voicePlay(vocFile, &_speechHandle)) {
@@ -1456,9 +1447,6 @@ void KyraEngine_HoF::playVoice(int high, int low) {
 }
 
 void KyraEngine_HoF::snd_playSoundEffect(int track, int volume) {
-	static const uint8 volTable1[] = { 223, 159, 95, 47, 15, 0 };
-	static const uint8 volTable2[] = { 100, 75, 50, 25, 12, 0 };
-
 	if (_flags.platform == Common::kPlatformFMTowns || _flags.platform == Common::kPlatformPC98) {
 		if (track == 10)
 			track = _lastSfxTrack;
@@ -1477,12 +1465,6 @@ void KyraEngine_HoF::snd_playSoundEffect(int track, int volume) {
 	prio = prio <= 0 ? -prio : (prio * volume) >> 8;
 
 	if (file != -1 && _sound->useDigitalSfx()) {
-		for (int i = 0; i < 6; i++) {
-			if (volTable1[i] < volume) {
-				volume = volTable2[i];
-				break;
-			}
-		}
 		_sound->voicePlay(_ingameSoundList[file], 0, volume, prio, true);
 	} else if (_flags.platform == Common::kPlatformDOS) {
 		if (_sound->getSfxType() == Sound::kMidiMT32)
@@ -1493,7 +1475,7 @@ void KyraEngine_HoF::snd_playSoundEffect(int track, int volume) {
 			track = track < _pcSpkSfxMapSize ? _pcSpkSfxMap[track] - 1 : -1;
 
 		if (track != -1)
-			KyraEngine_v1::snd_playSoundEffect(track, volume);
+			KyraEngine_v1::snd_playSoundEffect(track);
 	} else if (file != -1) {
 		KyraEngine_v1::snd_playSoundEffect(file);
 	}

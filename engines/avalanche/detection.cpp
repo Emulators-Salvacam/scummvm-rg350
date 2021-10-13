@@ -66,8 +66,8 @@ static const ADGameDescription gameDescriptions[] = {
 		},
 		Common::EN_ANY,
 		Common::kPlatformDOS,
-		ADGF_NO_FLAGS,
-		GUIO0()
+		ADGF_UNSTABLE,
+		GUIO1(GUIO_NOMIDI)
 	},
 
 	AD_TABLE_END_MARKER
@@ -76,6 +76,10 @@ static const ADGameDescription gameDescriptions[] = {
 class AvalancheMetaEngine : public AdvancedMetaEngine {
 public:
 	AvalancheMetaEngine() : AdvancedMetaEngine(gameDescriptions, sizeof(AvalancheGameDescription), avalancheGames) {
+	}
+
+	const char *getEngineId() const {
+		return "avalanche";
 	}
 
 	const char *getName() const {

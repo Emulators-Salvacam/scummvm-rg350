@@ -952,24 +952,6 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		AD_LISTEND},
 		Common::DE_DEU, Common::kPlatformDOS, ADGF_NO_FLAGS, GUIO_GK2 },
 
-	// Gabriel Knight 2 - Portuguese DOS/Windows (6-CDs original release)
-	// Executable scanning reports "2.100.002", VERSION file reports "1.0"
-	{"gk2", "", {
-		{"resmap.001", 0, "dc313253adfe68584ad43993599dfb7e", 2806},
-		{"ressci.001", 0, "37d2df0e1ec0603b605d0c87f1c09ce5", 50932558},
-		{"resmap.002", 0, "3fd2283c7983d821b894593e97359913", 1999},
-		{"ressci.002", 0, "5d07e6b51afaa3a5850b17a3dbd800a0", 42258859},
-		{"resmap.003", 0, "c9980e5a16d7247f156b056a2e3adca7", 1711},
-		{"ressci.003", 0, "59b597ed3550b5e175746e4f9bc8786d", 35477175},
-		{"resmap.004", 0, "92e24eba78d7bed89954c472a5acc5f6", 2755},
-		{"ressci.004", 0, "5d07e6b51afaa3a5850b17a3dbd800a0", 59781752},
-		{"resmap.005", 0, "207f4f2ce425059bdd2f755a58c66309", 2101},
-		{"ressci.005", 0, "1eb5a72744799f5a5518543f5b4c3c79", 38249037},
-		{"resmap.006", 0, "c92f7b756964c8a57928a0b6558feaa5", 3007},
-		{"ressci.006", 0, "4037d941aec39d2e654e20960429aefc", 60781720},
-		AD_LISTEND},
-		Common::PT_BRA, Common::kPlatformDOS, ADGF_NO_FLAGS, GUIO_GK2 },
-
 	// Gabriel Knight 2 - Italian DOS/Windows (6-CDs original release, provided in Trac #11013)
 	// Executable scanning reports "2.100.002", VERSION file reports "Italian 1.0"
 	{"gk2", "", {
@@ -3870,6 +3852,20 @@ static const struct ADGameDescription SciGameDescriptions[] = {
 		{"ressci.004", 0, "b7e619e6ecf62fe65d5116a3a422e5f0", 46223872},
 		AD_LISTEND},
 		Common::EN_ANY, Common::kPlatformDOS, ADGF_UNSTABLE, GUIO_PQSWAT },
+
+	// Police Quest: SWAT - French 1.100 DOS/Windows
+	// Reported by e-Scarlatti in bug #11100
+	{"pqswat", "", {
+		{"resmap.001", 0, "10abf5d5571f23685604e6d833250ddf", 10066},
+		{"ressci.001", 0, "b2bd962abeb3c1239773fdf7a530231c", 29529649},
+		{"resmap.002", 0, "89c20793199107e78354c6ce7a284b07", 9490},
+		{"ressci.002", 0, "b2bd962abeb3c1239773fdf7a530231c", 31853152},
+		{"resmap.003", 0, "4f4ba573934b1d27d3e4f31116d1d6d9", 9880},
+		{"ressci.003", 0, "b2bd962abeb3c1239773fdf7a530231c", 46769998},
+		{"resmap.004", 0, "93c7638e131b28a251985c5114b14838", 10162},
+		{"ressci.004", 0, "b2bd962abeb3c1239773fdf7a530231c", 50998883},
+		AD_LISTEND},
+		Common::FR_FRA, Common::kPlatformDOS, ADGF_UNSTABLE, GUIO_PQSWAT },
 
 #undef GUIO_PQSWAT_DEMO
 #undef GUIO_PQSWAT

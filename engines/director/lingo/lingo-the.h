@@ -27,7 +27,8 @@ namespace Director {
 
 enum TheEntityType {
 	kTheNOEntity = 0,
-	kTheActorList = 1,
+	kTheObject = 1,
+	kTheActorList = 2,
 	kTheBeepOn,
 	kTheButtonStyle,
 	kTheCast,
@@ -63,7 +64,6 @@ enum TheEntityType {
 	kTheKeyDownScript,
 	kTheKeyUpScript,
 	kTheLabelList,
-	kTheLast,
 	kTheLastClick,
 	kTheLastEvent,
 	kTheLastFrame,
@@ -99,6 +99,7 @@ enum TheEntityType {
 	kThePathName,
 	kThePauseState,
 	kThePerFrameHook,
+	kThePi,
 	kThePreloadEventAbort,
 	kThePreLoadRAM,
 	kTheQuickTimePresent,
@@ -127,7 +128,7 @@ enum TheEntityType {
 	kTheSwitchColorDepth,
 	kTheTicks,
 	kTheTime,
-	kTheTimeoutKeydown,
+	kTheTimeoutKeyDown,
 	kTheTimeoutLapsed,
 	kTheTimeoutLength,
 	kTheTimeoutMouse,
@@ -170,6 +171,7 @@ enum TheFieldType {
 	kTheHilite,
 	kTheImmediate,
 	kTheInk,
+	kTheLast,
 	kTheLeft,
 	kTheLineSize,
 	kTheLoaded,
@@ -209,7 +211,7 @@ enum TheFieldType {
 	kTheText,
 	kTheTextAlign,
 	kTheTextFont,
-	kTheTextheight,
+	kTheTextHeight,
 	kTheTextSize,
 	kTheTextStyle,
 	kTheTitle,
@@ -228,12 +230,14 @@ struct TheEntity {
 	TheEntityType entity;
 	const char *name;
 	bool hasId;
+	int version;
 };
 
 struct TheEntityField {
 	TheEntityType entity;
 	const char *name;
 	TheFieldType field;
+	int version;
 };
 
 } // End of namespace Director

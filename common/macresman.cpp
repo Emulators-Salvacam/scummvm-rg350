@@ -47,7 +47,22 @@ namespace Common {
 #define MAXNAMELEN 63
 
 MacResManager::MacResManager() {
-	memset(this, 0, sizeof(MacResManager));
+	_stream = nullptr;
+	// _baseFileName cleared by String constructor
+
+	_mode = kResForkNone;
+
+	_resForkOffset = 0;
+	_resForkSize = 0;
+
+	_dataOffset = 0;
+	_dataLength = 0;
+	_mapOffset = 0;
+	_mapLength = 0;
+	_resMap.reset();
+	_resTypes = nullptr;
+	_resLists = nullptr;
+
 	close();
 }
 
@@ -105,11 +120,6 @@ String MacResManager::computeResForkMD5AsString(uint32 length) const {
 
 bool MacResManager::open(const String &fileName) {
 	close();
-
-#ifdef WIIU
-//FIXME crash here on wiiU 
-	return false;
-#endif
 
 #ifdef MACOSX
 	// Check the actual fork on a Mac computer
@@ -366,7 +376,8 @@ bool MacResManager::isMacBinary(SeekableReadStream &stream) {
 	byte infoHeader[MBI_INFOHDR];
 	int resForkOffset = -1;
 
-	stream.read(infoHeader, MBI_INFOHDR);
+	if (stream.read(infoHeader, MBI_INFOHDR) != MBI_INFOHDR)
+		return false;
 
 	if (infoHeader[MBI_ZERO1] == 0 && infoHeader[MBI_ZERO2] == 0 &&
 		infoHeader[MBI_ZERO3] == 0 && infoHeader[MBI_NAMELEN] <= MAXNAMELEN) {

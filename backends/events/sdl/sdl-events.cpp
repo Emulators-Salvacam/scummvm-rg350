@@ -668,6 +668,8 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 		event.type = Common::EVENT_QUIT;
 		return true;
 
+	default:
+		break;
 	}
 
 	if (_joystick) {
@@ -680,6 +682,8 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 			return handleJoyAxisMotion(ev, event);
 		case SDL_JOYHATMOTION:
 			return handleJoyHatMotion(ev, event);
+		default:
+			break;
 		}
 	}
 
@@ -692,6 +696,8 @@ bool SdlEventSource::dispatchSDLEvent(SDL_Event &ev, Common::Event &event) {
 			return handleControllerButton(ev, event, true);
 		case SDL_CONTROLLERAXISMOTION:
 			return handleControllerAxisMotion(ev, event);
+		default:
+			break;
 		}
 	}
 #endif
@@ -979,6 +985,8 @@ bool SdlEventSource::handleJoyButtonDown(SDL_Event &ev, Common::Event &event) {
 			event.type = Common::EVENT_VIRTUAL_KEYBOARD;
 			break;
 #endif
+		default:
+			break;
 		}
 		return true;
 	}
@@ -1021,6 +1029,8 @@ bool SdlEventSource::handleJoyButtonUp(SDL_Event &ev, Common::Event &event) {
 			// Handled in key down
 			break;
 #endif
+		default:
+			break;
 		}
 		return true;
 	}
@@ -1334,7 +1344,7 @@ bool SdlEventSource::handleResizeEvent(Common::Event &event, int w, int h) {
 }
 
 SDLKey SdlEventSource::obtainKeycode(const SDL_keysym keySym) {
-#if !SDL_VERSION_ATLEAST(2, 0, 0) && defined(WIN32) && !defined(_WIN32_WCE)
+#if !SDL_VERSION_ATLEAST(2, 0, 0) && defined(WIN32)
 	// WORKAROUND: SDL 1.2 on Windows does not use the user configured keyboard layout,
 	// resulting in "keySym.sym" values to always be those expected for an US keyboard.
 	// For example, SDL returns SDLK_Q when pressing the 'A' key on an AZERTY keyboard.

@@ -1202,7 +1202,6 @@ void KyraEngine_MR::makeCharFacingMouse() {
 		_mainCharacter.facing = 5;
 	else
 		_mainCharacter.facing = 3;
-	// _mainCharacter.facing can not be 0xFF here, so this is safe.
 	_mainCharacter.animFrame = _characterFrameTable[_mainCharacter.facing];
 	updateCharacterAnim(0);
 	refreshAnimObjectsIfNeed();

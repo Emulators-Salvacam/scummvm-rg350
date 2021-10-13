@@ -126,7 +126,6 @@ void GPHGraphicsManager::drawMouse() {
 
 	SDL_Rect dst;
 	int scale;
-	int width, height;
 	int hotX, hotY;
 
 	if (_videoMode.mode == GFX_HALF && !_overlayVisible) {
@@ -139,16 +138,12 @@ void GPHGraphicsManager::drawMouse() {
 
 	if (!_overlayVisible) {
 		scale = _videoMode.scaleFactor;
-		width = _videoMode.screenWidth;
-		height = _videoMode.screenHeight;
 		dst.w = _mouseCurState.vW;
 		dst.h = _mouseCurState.vH;
 		hotX = _mouseCurState.vHotX;
 		hotY = _mouseCurState.vHotY;
 	} else {
 		scale = 1;
-		width = _videoMode.overlayWidth;
-		height = _videoMode.overlayHeight;
 		dst.w = _mouseCurState.rW;
 		dst.h = _mouseCurState.rH;
 		hotX = _mouseCurState.rHotX;
@@ -272,7 +267,6 @@ void GPHGraphicsManager::internUpdateScreen() {
 		width = _videoMode.overlayWidth;
 		height = _videoMode.overlayHeight;
 		scalerProc = Normal1x;
-
 		scale1 = 1;
 	}
 
@@ -346,7 +340,7 @@ void GPHGraphicsManager::internUpdateScreen() {
 
 				assert(scalerProc != NULL);
 
-				if ((_videoMode.mode == GFX_HALF) && (scalerProc == DownscaleAllByHalf)) {
+				if (_videoMode.mode == GFX_HALF && scalerProc == DownscaleAllByHalf) {
 					if (dst_x % 2 == 1) {
 						dst_x--;
 						dst_w++;
@@ -378,7 +372,6 @@ void GPHGraphicsManager::internUpdateScreen() {
 
 			r->x = dst_x;
 			r->y = dst_y;
-
 
 #ifdef USE_SCALERS
 			if (_videoMode.aspectRatioCorrection && orig_dst_y < height && !_overlayVisible)
@@ -414,16 +407,16 @@ void GPHGraphicsManager::internUpdateScreen() {
 
 void GPHGraphicsManager::showOverlay() {
 	if (_videoMode.mode == GFX_HALF) {
-		_cursorX = _cursorX / 2;
-		_cursorY = _cursorY / 2;
+		_cursorX /= 2;
+		_cursorY /= 2;
 	}
 	SurfaceSdlGraphicsManager::showOverlay();
 }
 
 void GPHGraphicsManager::hideOverlay() {
 	if (_videoMode.mode == GFX_HALF) {
-		_cursorX = _cursorX * 2;
-		_cursorY = _cursorY * 2;
+		_cursorX *= 2;
+		_cursorY *= 2;
 	}
 	SurfaceSdlGraphicsManager::hideOverlay();
 }
@@ -502,8 +495,8 @@ bool GPHGraphicsManager::getFeatureState(OSystem::Feature f) const {
 void GPHGraphicsManager::warpMouse(int x, int y) {
 	if (_cursorX != x || _cursorY != y) {
 		if (_videoMode.mode == GFX_HALF && !_overlayVisible) {
-			x = x / 2;
-			y = y / 2;
+			x /= 2;
+			y /= 2;
 		}
 	}
 	SurfaceSdlGraphicsManager::warpMouse(x, y);

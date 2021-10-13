@@ -115,6 +115,10 @@ Common::Error WintermuteEngine::run() {
 	Graphics::PixelFormat format(4, 8, 8, 8, 8, 24, 16, 8, 0);
 	if (_gameDescription->adDesc.flags & GF_LOWSPEC_ASSETS) {
 		initGraphics(320, 240, &format);
+#ifdef ENABLE_FOXTAIL
+	} else if (BaseEngine::isFoxTailCheck(_gameDescription->targetExecutable)) {
+		initGraphics(640, 360, &format);
+#endif
 	} else {
 		initGraphics(800, 600, &format);
 	}
@@ -151,6 +155,17 @@ int WintermuteEngine::init() {
 	#if not defined(USE_PNG) || not defined(USE_JPEG) || not defined(USE_VORBIS)
 		if (!(_gameDescription->adDesc.flags & GF_LOWSPEC_ASSETS)) {
 			GUI::MessageDialog dialog(_("This game requires PNG, JPEG and Vorbis support."));
+			dialog.runModal();
+			delete _game;
+			_game = nullptr;
+			return false;
+		}
+	#endif
+
+	// check dependencies for games with FoxTail subengine
+	#if not defined(ENABLE_FOXTAIL)
+		if (BaseEngine::isFoxTailCheck(_gameDescription->targetExecutable)) {
+			GUI::MessageDialog dialog(_("This game requires the FoxTail subengine, which is not compiled in."));
 			dialog.runModal();
 			delete _game;
 			_game = nullptr;

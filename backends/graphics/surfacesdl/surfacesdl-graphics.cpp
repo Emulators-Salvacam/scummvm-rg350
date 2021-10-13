@@ -106,10 +106,6 @@ static const int s_gfxModeSwitchTable[][4] = {
 		{ GFX_NORMAL, GFX_DOTMATRIX, -1, -1 }
 	};
 
-#ifdef USE_SCALERS
-static int cursorStretch200To240(uint8 *buf, uint32 pitch, int width, int height, int srcX, int srcY, int origSrcY);
-#endif
-
 AspectRatio::AspectRatio(int w, int h) {
 	// TODO : Validation and so on...
 	// Currently, we just ensure the program don't instantiate non-supported aspect ratios
@@ -117,7 +113,7 @@ AspectRatio::AspectRatio(int w, int h) {
 	_kh = h;
 }
 
-#if !defined(_WIN32_WCE) && !defined(__SYMBIAN32__) && defined(USE_SCALERS)
+#if !defined(__SYMBIAN32__) && defined(USE_SCALERS)
 static AspectRatio getDesiredAspectRatio() {
 	const size_t AR_COUNT = 4;
 	const char *desiredAspectRatioAsStrings[AR_COUNT] = {	"auto",				"4/3",				"16/9",				"16/10" };
@@ -181,7 +177,7 @@ SurfaceSdlGraphicsManager::SurfaceSdlGraphicsManager(SdlEventSource *sdlEventSou
 		_enableFocusRectDebugCode = ConfMan.getBool("use_sdl_debug_focusrect");
 #endif
 
-#if !defined(_WIN32_WCE) && !defined(__SYMBIAN32__) && defined(USE_SCALERS)
+#if !defined(__SYMBIAN32__) && defined(USE_SCALERS)
 	_videoMode.mode = GFX_DOUBLESIZE;
 	_videoMode.scaleFactor = 2;
 	_videoMode.aspectRatioCorrection = ConfMan.getBool("aspect_ratio");
@@ -195,7 +191,7 @@ SurfaceSdlGraphicsManager::SurfaceSdlGraphicsManager(SdlEventSource *sdlEventSou
 #endif
 	_scalerType = 0;
 
-#if !defined(_WIN32_WCE) && !defined(__SYMBIAN32__)
+#ifndef __SYMBIAN32__
 	_videoMode.fullscreen = ConfMan.getBool("fullscreen");
 #else
 	_videoMode.fullscreen = true;
@@ -716,6 +712,8 @@ ScalerProc *SurfaceSdlGraphicsManager::getGraphicsScalerProc(int mode) const {
 		newScalerProc = DotMatrix;
 		break;
 #endif // USE_SCALERS
+	default:
+		break;
 	}
 
 	return newScalerProc;
@@ -2222,33 +2220,12 @@ void SurfaceSdlGraphicsManager::blitCursor() {
 
 #ifdef USE_SCALERS
 	if (!_cursorDontScale && _videoMode.aspectRatioCorrection)
-		cursorStretch200To240((uint8 *)_mouseSurface->pixels, _mouseSurface->pitch, rW, rH1, 0, 0, 0);
+		stretch200To240Nearest((uint8 *)_mouseSurface->pixels, _mouseSurface->pitch, rW, rH1, 0, 0, 0);
 #endif
 
 	SDL_UnlockSurface(_mouseSurface);
 	SDL_UnlockSurface(_mouseOrigSurface);
 }
-
-#ifdef USE_SCALERS
-// Basically it is stretch200To240Nearest from common/scale/aspect.cpp
-static int cursorStretch200To240(uint8 *buf, uint32 pitch, int width, int height, int srcX, int srcY, int origSrcY) {
-	int maxDstY = real2Aspect(origSrcY + height - 1);
-	int y;
-	const uint8 *startSrcPtr = buf + srcX * 2 + (srcY - origSrcY) * pitch;
-	uint8 *dstPtr = buf + srcX * 2 + maxDstY * pitch;
-
-	for (y = maxDstY; y >= srcY; y--) {
-		const uint8 *srcPtr = startSrcPtr + aspect2Real(y) * pitch;
-
-		if (srcPtr == dstPtr)
-			break;
-		memcpy(dstPtr, srcPtr, width * 2);
-		dstPtr -= pitch;
-	}
-
-	return 1 + maxDstY - srcY;
-}
-#endif
 
 void SurfaceSdlGraphicsManager::undrawMouse() {
 	const int x = _mouseBackup.x;

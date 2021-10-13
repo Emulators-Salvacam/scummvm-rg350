@@ -49,7 +49,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformWindows,
 		ADGF_NO_FLAGS,
-		GUIO1(GUIO_NONE)
+		GUIO1(GUIO_NOMIDI)
 	},
 
 	/*
@@ -61,7 +61,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatform3DO,
 		ADGF_UNSTABLE,
-		GUIO1(GUIO_NONE)
+		GUIO1(GUIO_NOMIDI)
 	},
 	*/
 
@@ -73,7 +73,10 @@ static const ADGameDescription gameDescriptions[] = {
 class PlumbersMetaEngine : public AdvancedMetaEngine {
 public:
 	PlumbersMetaEngine() : AdvancedMetaEngine(Plumbers::gameDescriptions, sizeof(ADGameDescription), plumbersGames) {
-		_singleId = "plumbers";
+	}
+
+	const char *getEngineId() const {
+		return "plumbers";
 	}
 
 	virtual const char *getName() const {

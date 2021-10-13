@@ -104,10 +104,11 @@ uint16 TabWidget::getHeight() const {
 	return _h + _tabHeight;
 }
 
-int TabWidget::addTab(const String &title) {
+int TabWidget::addTab(const String &title, const String &dialogName) {
 	// Add a new tab page
 	Tab newTab;
 	newTab.title = title;
+	newTab.dialogName = dialogName;
 	newTab.firstWidget = 0;
 
 	// Determine the new tab width
@@ -194,6 +195,9 @@ void TabWidget::handleCommand(CommandSender *sender, uint32 cmd, uint32 data) {
 		if (_lastVisibleTab + 1 < (int)_tabs.size()) {
 			setFirstVisible(_firstVisibleTab + 1, false);
 		}
+		break;
+
+	default:
 		break;
 	}
 }
@@ -297,6 +301,10 @@ void TabWidget::reflowLayout() {
 		_tabs[_activeTab].firstWidget = _firstWidget;
 
 	for (uint i = 0; i < _tabs.size(); ++i) {
+		if (!_tabs[i].dialogName.empty()) {
+			g_gui.xmlEval()->reflowDialogLayout(_tabs[i].dialogName, _tabs[i].firstWidget);
+		}
+
 		Widget *w = _tabs[i].firstWidget;
 		while (w) {
 			w->reflowLayout();

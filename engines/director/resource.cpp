@@ -22,12 +22,14 @@
 
 #include "common/config-manager.h"
 #include "common/macresman.h"
+#include "common/file.h"
 
 #include "graphics/macgui/macwindowmanager.h"
 #include "graphics/macgui/macfontmanager.h"
 
 #include "director/director.h"
 #include "director/archive.h"
+#include "director/score.h"
 #include "director/util.h"
 #include "director/lingo/lingo.h"
 
@@ -55,12 +57,19 @@ void DirectorEngine::loadInitialMovie(const Common::String movie) {
 }
 
 Archive *DirectorEngine::openMainArchive(const Common::String movie) {
+	debug(1, "openMainArchive(\"%s\")", movie.c_str());
+
 	delete _mainArchive;
 
 	_mainArchive = createArchive();
 
-	if (!_mainArchive->openFile(movie))
-		error("Could not open '%s'", movie.c_str());
+	if (!_mainArchive->openFile(movie)) {
+		delete _mainArchive;
+		_mainArchive = nullptr;
+
+		warning("openMainArchive(): Could not open '%s'", movie.c_str());
+		return nullptr;
+	}
 
 	return _mainArchive;
 }
@@ -246,10 +255,34 @@ void DirectorEngine::loadMac(const Common::String movie) {
 	}
 }
 
-void DirectorEngine::loadSharedCastsFrom(Common::String filename) {
-	Archive *shardcst = createArchive();
+void DirectorEngine::clearSharedCast() {
+	if (!_sharedScore)
+		return;
 
-	debug(0, "****** Loading Shared cast '%s'", filename.c_str());
+	delete _sharedScore;
+
+	_sharedScore = nullptr;
+
+	delete _sharedDIB;
+	delete _sharedSTXT;
+	delete _sharedSound;
+	delete _sharedBMP;
+
+	_sharedDIB = nullptr;
+	_sharedSTXT = nullptr;
+	_sharedSound = nullptr;
+	_sharedBMP = nullptr;
+}
+
+void DirectorEngine::loadSharedCastsFrom(Common::String filename) {
+	if (_sharedScore && _sharedScore->_movieArchive) {
+		if (_sharedScore->_movieArchive->getFileName().equalsIgnoreCase(filename))
+			return;
+	}
+
+	clearSharedCast();
+
+	Archive *shardcst = createArchive();
 
 	_sharedDIB = new Common::HashMap<int, Common::SeekableSubReadStreamEndian *>;
 	_sharedSTXT = new Common::HashMap<int, Common::SeekableSubReadStreamEndian *>;
@@ -259,8 +292,14 @@ void DirectorEngine::loadSharedCastsFrom(Common::String filename) {
 	if (!shardcst->openFile(filename)) {
 		warning("No shared cast %s", filename.c_str());
 
+		delete shardcst;
+
 		return;
 	}
+
+	debug(0, "\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	debug(0, "@@@@ Loading Shared cast '%s'", filename.c_str());
+	debug(0, "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n");
 
 	_sharedScore = new Score(this);
 	_sharedScore->setArchive(shardcst);
@@ -273,8 +312,10 @@ void DirectorEngine::loadSharedCastsFrom(Common::String filename) {
 
 	_sharedScore->loadConfig(*shardcst->getResource(MKTAG('V','W','C','F'), 1024));
 
-	if (getVersion() < 4)
-		_sharedScore->loadCastDataVWCR(*shardcst->getResource(MKTAG('V','W','C','R'), 1024));
+	if (getVersion() < 4) {
+		_sharedScore->_castIDoffset = shardcst->getResourceIDList(MKTAG('V', 'W', 'C', 'R'))[0];
+		_sharedScore->loadCastDataVWCR(*shardcst->getResource(MKTAG('V','W','C','R'), _sharedScore->_castIDoffset));
+	}
 
 	Common::Array<uint16> cast = shardcst->getResourceIDList(MKTAG('C','A','S','t'));
 	if (cast.size() > 0) {

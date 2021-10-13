@@ -23,12 +23,13 @@
 #include "audio/decoders/wave.h"
 #include "common/file.h"
 #include "common/macresman.h"
-#include "common/util.h"
+#include "common/system.h"
 
 #include "graphics/macgui/macwindowmanager.h"
 
+#include "director/director.h"
 #include "director/lingo/lingo.h"
-#include "director/lingo/lingo-gr.h"
+#include "director/score.h"
 #include "director/sound.h"
 #include "director/util.h"
 
@@ -181,7 +182,7 @@ void Lingo::func_goto(Datum &frame, Datum &movie) {
 	if (movie.type != VOID) {
 		movie.toString();
 
-		Common::String movieFilename = convertPath(*movie.u.s);
+		Common::String movieFilename = Common::normalizePath(g_director->getCurrentPath() + convertPath(*movie.u.s), '/');
 		Common::String cleanedFilename;
 
 		bool fileExists = false;
@@ -210,6 +211,9 @@ void Lingo::func_goto(Datum &frame, Datum &movie) {
 				fileExists = true;
 			}
 		}
+
+		debug(1, "func_goto: '%s' -> '%s' -> '%s' -> '%s", movie.u.s->c_str(), convertPath(*movie.u.s).c_str(),
+				movieFilename.c_str(), cleanedFilename.c_str());
 
 		if (!fileExists) {
 			warning("Movie %s does not exist", movieFilename.c_str());
@@ -290,6 +294,11 @@ void Lingo::func_play(Datum &frame, Datum &movie) {
 		return;
 	}
 
+	if (!_vm->getCurrentScore()) {
+		warning("Lingo::func_play(): no score");
+		return;
+	}
+
 	ref.frameI = _vm->getCurrentScore()->getCurrentFrame();
 
 	_vm->_movieStack.push_back(ref);
@@ -327,6 +336,7 @@ void Lingo::func_cursor(int c) {
 	switch (c) {
 	case 0:
 	case -1:
+	default:
 		_vm->getMacWindowManager()->pushArrowCursor();
 		break;
 	case 1:
@@ -349,8 +359,11 @@ void Lingo::func_cursor(int c) {
 }
 
 void Lingo::func_beep(int repeats) {
-	for (int r = 0; r <= repeats; r++)
+	for (int r = 1; r <= repeats; r++) {
 		_vm->getSoundManager()->systemBeep();
+		if (r < repeats)
+			g_system->delayMillis(400);
+	}
 }
 
 int Lingo::func_marker(int m) 	{

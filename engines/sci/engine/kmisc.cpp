@@ -369,6 +369,8 @@ reg_t kMemory(EngineState *s, int argc, reg_t *argv) {
 		}
 		break;
 	}
+	default:
+		break;
 	}
 
 	return s->r_acc;
@@ -706,6 +708,9 @@ reg_t kWinDLL(EngineState *s, int argc, reg_t *argv) {
 
 	switch (operation) {
 	case 0:	// load DLL
+		if (dllName == "PENGIN16.DLL")
+			showScummVMDialog("The Poker logic is hardcoded in an external DLL, and is not implemented yet. There exists some dummy logic for now, where opponent actions are chosen randomly");
+
 		// This is originally a call to LoadLibrary() and to the Watcom function GetIndirectFunctionHandle
 		return make_reg(0, 1000);	// fake ID for loaded DLL, normally returned from Windows LoadLibrary()
 	case 1: // free DLL
@@ -754,6 +759,8 @@ reg_t kKawaHacks(EngineState *s, int argc, reg_t *argv) {
 	case 3: // IsDebug
  		// Return 1 if running with an internal debugger, 2 if we have AddMenu support, 3 if both.
 		return make_reg(0, 3);
+	default:
+		break;
 	}
 	return NULL_REG;
 }

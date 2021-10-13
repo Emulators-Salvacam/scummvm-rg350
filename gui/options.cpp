@@ -78,6 +78,7 @@ enum {
 	kChooseExtraDirCmd		= 'chex',
 	kExtraPathClearCmd		= 'clex',
 	kChoosePluginsDirCmd	= 'chpl',
+	kPluginsPathClearCmd	= 'clpl',
 	kChooseThemeCmd			= 'chtf',
 	kUpdatesCheckCmd		= 'updc',
 	kKbdMouseSpeedChanged	= 'kmsc',
@@ -1465,6 +1466,7 @@ GlobalOptionsDialog::GlobalOptionsDialog(LauncherDialog *launcher)
 	_extraPathClearButton = 0;
 #ifdef DYNAMIC_MODULES
 	_pluginsPath = 0;
+	_pluginsPathClearButton = 0;
 #endif
 	_curTheme = 0;
 	_rendererPopUpDesc = 0;
@@ -1548,10 +1550,10 @@ void GlobalOptionsDialog::build() {
 	//
 	// 1) The graphics tab
 	//
-	_graphicsTabId = tab->addTab(g_system->getOverlayWidth() > 320 ? _("Graphics") : _("GFX"));
-	ScrollContainerWidget *graphicsContainer = new ScrollContainerWidget(tab, "GlobalOptions_Graphics.Container", kGraphicsTabContainerReflowCmd);
+	_graphicsTabId = tab->addTab(g_system->getOverlayWidth() > 320 ? _("Graphics") : _("GFX"), "GlobalOptions_Graphics");
+	ScrollContainerWidget *graphicsContainer = new ScrollContainerWidget(tab, "GlobalOptions_Graphics.Container", "GlobalOptions_Graphics_Container", kGraphicsTabContainerReflowCmd);
 	graphicsContainer->setTarget(this);
-	graphicsContainer->setBackgroundType(ThemeEngine::kDialogBackgroundNone);
+	graphicsContainer->setBackgroundType(ThemeEngine::kWidgetBackgroundNo);
 	addGraphicControls(graphicsContainer, "GlobalOptions_Graphics_Container.");
 
 	//
@@ -1559,7 +1561,7 @@ void GlobalOptionsDialog::build() {
 	//
 
 	if (g_system->hasFeature(OSystem::kFeatureShader)) {
-		tab->addTab(_("Shader"));
+		tab->addTab(_("Shader"), "GlobalOptions_Shader");
 		addShaderControls(tab, "GlobalOptions_Shader.");
 	}
 
@@ -1571,21 +1573,21 @@ void GlobalOptionsDialog::build() {
 		g_system->hasFeature(OSystem::kFeatureSwapMenuAndBackButtons) ||
 		g_system->hasFeature(OSystem::kFeatureKbdMouseSpeed) ||
 		g_system->hasFeature(OSystem::kFeatureJoystickDeadzone)) {
-		tab->addTab(_("Control"));
+		tab->addTab(_("Control"), "GlobalOptions_Control");
 		addControlControls(tab, "GlobalOptions_Control.");
 	}
 
 	//
 	// 2) The audio tab
 	//
-	tab->addTab(_("Audio"));
+	tab->addTab(_("Audio"), "GlobalOptions_Audio");
 	addAudioControls(tab, "GlobalOptions_Audio.");
 	addSubtitleControls(tab, "GlobalOptions_Audio.");
 
 	if (g_system->getOverlayWidth() > 320)
-		tab->addTab(_("Volume"));
+		tab->addTab(_("Volume"), "GlobalOptions_Volume");
 	else
-		tab->addTab(_c("Volume", "lowres"));
+		tab->addTab(_c("Volume", "lowres"), "GlobalOptions_Volume");
 	addVolumeControls(tab, "GlobalOptions_Volume.");
 
 	// TODO: cd drive setting
@@ -1593,7 +1595,7 @@ void GlobalOptionsDialog::build() {
 	//
 	// 3) The MIDI tab
 	//
-	_midiTabId = tab->addTab(_("MIDI"));
+	_midiTabId = tab->addTab(_("MIDI"), "GlobalOptions_MIDI");
 	addMIDIControls(tab, "GlobalOptions_MIDI.");
 
 #ifdef USE_FLUIDSYNTH
@@ -1603,16 +1605,16 @@ void GlobalOptionsDialog::build() {
 	//
 	// 4) The MT-32 tab
 	//
-	tab->addTab(_("MT-32"));
+	tab->addTab(_("MT-32"), "GlobalOptions_MT32");
 	addMT32Controls(tab, "GlobalOptions_MT32.");
 
 	//
 	// 5) The Paths tab
 	//
 	if (g_system->getOverlayWidth() > 320)
-		_pathsTabId = tab->addTab(_("Paths"));
+		_pathsTabId = tab->addTab(_("Paths"), "GlobalOptions_Paths");
 	else
-		_pathsTabId = tab->addTab(_c("Paths", "lowres"));
+		_pathsTabId = tab->addTab(_c("Paths", "lowres"), "GlobalOptions_Paths");
 
 #if !defined(__DC__)
 	// These two buttons have to be extra wide, or the text will be
@@ -1649,6 +1651,8 @@ void GlobalOptionsDialog::build() {
 	else
 		new ButtonWidget(tab, "GlobalOptions_Paths.PluginsButton", _c("Plugins Path:", "lowres"), 0, kChoosePluginsDirCmd);
 	_pluginsPath = new StaticTextWidget(tab, "GlobalOptions_Paths.PluginsPath", _c("None", "path"));
+
+	_pluginsPathClearButton = addClearButton(tab, "GlobalOptions_Paths.PluginsPathClearButton", kPluginsPathClearCmd);
 #endif
 #endif
 
@@ -1656,9 +1660,9 @@ void GlobalOptionsDialog::build() {
 	// 6) The miscellaneous tab
 	//
 	if (g_system->getOverlayWidth() > 320)
-		tab->addTab(_("Misc"));
+		tab->addTab(_("Misc"), "GlobalOptions_Misc");
 	else
-		tab->addTab(_c("Misc", "lowres"));
+		tab->addTab(_c("Misc", "lowres"), "GlobalOptions_Misc");
 
 	new ButtonWidget(tab, "GlobalOptions_Misc.ThemeButton", _("Theme:"), 0, kChooseThemeCmd);
 	_curTheme = new StaticTextWidget(tab, "GlobalOptions_Misc.CurTheme", g_gui.theme()->getThemeName());
@@ -1762,13 +1766,13 @@ void GlobalOptionsDialog::build() {
 	// 7) The Cloud tab (remote storages)
 	//
 	if (g_system->getOverlayWidth() > 320)
-		tab->addTab(_("Cloud"));
+		tab->addTab(_("Cloud"), "GlobalOptions_Cloud");
 	else
-		tab->addTab(_c("Cloud", "lowres"));
+		tab->addTab(_c("Cloud", "lowres"), "GlobalOptions_Cloud");
 
-	ScrollContainerWidget *container = new ScrollContainerWidget(tab, "GlobalOptions_Cloud.Container", kCloudTabContainerReflowCmd);
+	ScrollContainerWidget *container = new ScrollContainerWidget(tab, "GlobalOptions_Cloud.Container", "GlobalOptions_Cloud_Container", kCloudTabContainerReflowCmd);
 	container->setTarget(this);
-	container->setBackgroundType(ThemeEngine::kDialogBackgroundNone);
+	container->setBackgroundType(ThemeEngine::kWidgetBackgroundNo);
 	setTarget(container);
 
 	addCloudControls(container, "GlobalOptions_Cloud_Container.", g_system->getOverlayWidth() <= 320);
@@ -1778,9 +1782,9 @@ void GlobalOptionsDialog::build() {
 	// 8) The LAN tab (local "cloud" webserver)
 	//
 	if (g_system->getOverlayWidth() > 320)
-		tab->addTab(_("LAN"));
+		tab->addTab(_("LAN"), "GlobalOptions_Network");
 	else
-		tab->addTab(_c("LAN", "lowres"));
+		tab->addTab(_c("LAN", "lowres"), "GlobalOptions_Network");
 	addNetworkControls(tab, "GlobalOptions_Network.", g_system->getOverlayWidth() <= 320);
 #endif // USE_SDL_NET
 #endif // USE_CLOUD
@@ -1788,9 +1792,9 @@ void GlobalOptionsDialog::build() {
 	//Accessibility
 #ifdef USE_TTS
 	if (g_system->getOverlayWidth() > 320)
-		tab->addTab(_("Accessibility"));
+		tab->addTab(_("Accessibility"), "GlobalOptions_Accessibility");
 	else
-		tab->addTab(_c("Accessibility", "lowres"));
+		tab->addTab(_c("Accessibility", "lowres"), "GlobalOptions_Accessibility");
 	_ttsCheckbox = new CheckboxWidget(tab, "GlobalOptions_Accessibility.TTSCheckbox",
 			_("Use Text to speech"), _("Will read text in gui on mouse over."));
 	if (ConfMan.hasKey("tts_enabled"))
@@ -1996,7 +2000,7 @@ void GlobalOptionsDialog::addNetworkControls(GuiObject *boss, const Common::Stri
 		_featureDescriptionLine1 = new StaticTextWidget(boss, prefix + "FeatureDescriptionLine1", _("Run server to manage files with browser (in the same network)."), "", ThemeEngine::kFontStyleNormal);
 		_featureDescriptionLine2 = new StaticTextWidget(boss, prefix + "FeatureDescriptionLine2", _("Closing options dialog will stop the server."), "", ThemeEngine::kFontStyleNormal);
 	}
-	
+
 	reflowNetworkTabLayout();
 
 }
@@ -2154,28 +2158,30 @@ void GlobalOptionsDialog::apply() {
 	}
 #ifdef USE_TTS
 	Common::TextToSpeechManager *ttsMan = g_system->getTextToSpeechManager();
-	if (newLang != oldLang) {
-		if (newLang == "C")
-			ttsMan->setLanguage("en");
-		else {
-			ttsMan->setLanguage(newLang);
+	if (ttsMan) {
+		if (newLang != oldLang) {
+			if (newLang == "C")
+				ttsMan->setLanguage("en");
+			else {
+				ttsMan->setLanguage(newLang);
+			}
+			_ttsVoiceSelectionPopUp->setSelectedTag(0);
 		}
-		_ttsVoiceSelectionPopUp->setSelectedTag(0);
+		int volume = (ConfMan.getInt("speech_volume", "scummvm") * 100) / 256;
+		if (ConfMan.hasKey("mute", "scummvm") && ConfMan.getBool("mute", "scummvm"))
+			volume = 0;
+		ttsMan->setVolume(volume);
+		ConfMan.setBool("tts_enabled", _ttsCheckbox->getState(), _domain);
+		int selectedVoice = _ttsVoiceSelectionPopUp->getSelectedTag();
+		ConfMan.setInt("tts_voice", selectedVoice, _domain);
+		ttsMan->setVoice(selectedVoice);
 	}
-	int volume = (ConfMan.getInt("speech_volume", "scummvm") * 100) / 256;
-	if (ConfMan.hasKey("mute", "scummvm") && ConfMan.getBool("mute", "scummvm"))
-		volume = 0;
-	ttsMan->setVolume(volume);
-	ConfMan.setBool("tts_enabled", _ttsCheckbox->getState(), _domain);
-	int selectedVoice = _ttsVoiceSelectionPopUp->getSelectedTag();
-	ConfMan.setInt("tts_voice", selectedVoice, _domain);
-	ttsMan->setVoice(selectedVoice);
 #endif
 
 	if (isRebuildNeeded) {
-		rebuild();
 		if (_launcher != 0)
 			_launcher->rebuild();
+		rebuild();
 	}
 
 	_newTheme.clear();
@@ -2269,6 +2275,11 @@ void GlobalOptionsDialog::handleCommand(CommandSender *sender, uint32 cmd, uint3
 	case kSavePathClearCmd:
 		_savePath->setLabel(_("Default"));
 		break;
+#ifdef DYNAMIC_MODULES
+	case kPluginsPathClearCmd:
+		_pluginsPath->setLabel(_c("None", "path"));
+		break;
+#endif
 #ifdef USE_CLOUD
 #ifdef USE_SDL_NET
 	case kRootPathClearCmd:
@@ -2347,6 +2358,8 @@ void GlobalOptionsDialog::handleCommand(CommandSender *sender, uint32 cmd, uint3
 			break;
 		case Cloud::kStorageBoxId:
 			url += "box";
+			break;
+		default:
 			break;
 		}
 
@@ -2732,7 +2745,7 @@ void GlobalOptionsDialog::reflowNetworkTabLayout() {
 			_serverInfoLabel->setLabel(_("Not running"));
 	}
 	if (_rootPathButton) _rootPathButton->setVisible(true);
-	if (_rootPath) _rootPath->setVisible(true);	
+	if (_rootPath) _rootPath->setVisible(true);
 	if (_rootPathClearButton) _rootPathClearButton->setVisible(true);
 #ifdef NETWORKING_LOCALWEBSERVER_ENABLE_PORT_OVERRIDE
 	if (_serverPortDesc) {

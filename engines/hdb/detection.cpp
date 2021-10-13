@@ -77,7 +77,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformWindows,
 		ADGF_NO_FLAGS,
-		GAMEOPTION_CHEATMODE
+		GUIO2(GUIO_NOMIDI,GAMEOPTION_CHEATMODE)
 	},
 	{
 		"hdb",
@@ -86,7 +86,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformLinux,
 		ADGF_NO_FLAGS,
-		GAMEOPTION_CHEATMODE
+		GUIO2(GUIO_NOMIDI,GAMEOPTION_CHEATMODE)
 	},
 	// PocketPC Arm
 	{
@@ -96,7 +96,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformPocketPC,
 		ADGF_NO_FLAGS,
-		GAMEOPTION_CHEATMODE
+		GUIO2(GUIO_NOMIDI,GAMEOPTION_CHEATMODE)
 	},
 
 	// Demos
@@ -107,7 +107,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformLinux,
 		ADGF_DEMO,
-		GAMEOPTION_CHEATMODE
+		GUIO2(GUIO_NOMIDI,GAMEOPTION_CHEATMODE)
 	},
 	{
 		"hdb",
@@ -116,7 +116,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformWindows,
 		ADGF_DEMO,
-		GAMEOPTION_CHEATMODE
+		GUIO2(GUIO_NOMIDI,GAMEOPTION_CHEATMODE)
 	},
 	// provided by sev
 	{
@@ -126,7 +126,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformWindows,
 		ADGF_DEMO,
-		GAMEOPTION_CHEATMODE
+		GUIO2(GUIO_NOMIDI,GAMEOPTION_CHEATMODE)
 	},
 	{
 		"hdb",
@@ -135,7 +135,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformPocketPC,
 		ADGF_DEMO,
-		GAMEOPTION_CHEATMODE
+		GUIO2(GUIO_NOMIDI,GAMEOPTION_CHEATMODE)
 	},
 	{
 		"hdb",
@@ -144,7 +144,7 @@ static const ADGameDescription gameDescriptions[] = {
 		Common::EN_ANY,
 		Common::kPlatformPocketPC,
 		(ADGF_DEMO | GF_HANDANGO),
-		GAMEOPTION_CHEATMODE
+		GUIO2(GUIO_NOMIDI,GAMEOPTION_CHEATMODE)
 	},
 	AD_TABLE_END_MARKER
 };
@@ -167,7 +167,10 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 class HDBMetaEngine : public AdvancedMetaEngine {
 public:
 	HDBMetaEngine() : AdvancedMetaEngine(HDB::gameDescriptions, sizeof(ADGameDescription), hdbGames, optionsList) {
-		_singleId = "hdb";
+	}
+
+	const char *getEngineId() const {
+		return "hdb";
 	}
 
 	virtual const char *getName() const {
@@ -175,7 +178,7 @@ public:
 	}
 
 	virtual const char *getOriginalCopyright() const {
-		return "Hyperspace Delivery Boy! (c) 2001 Monkeystone Games";
+		return "Hyperspace Delivery Boy! (C) 2001 Monkeystone Games";
 	}
 
 	virtual bool hasFeature(MetaEngineFeature f) const;

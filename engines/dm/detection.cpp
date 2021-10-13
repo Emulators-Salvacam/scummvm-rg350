@@ -49,7 +49,7 @@ static const DMADGameDescription gameDescriptions[] = {
 				{"Dungeon.dat", 0, "43a213da8eda413541dd12f90ce202f6", 25006},
 				AD_LISTEND
 			},
-			Common::EN_ANY, Common::kPlatformAmiga, ADGF_NO_FLAGS, GUIO1(GUIO_NONE)
+			Common::EN_ANY, Common::kPlatformAmiga, ADGF_NO_FLAGS, GUIO1(GUIO_NOMIDI)
 		},
 	    kDMSaveTargetDM21, kDMSaveFormatAmigaPC98FmTowns, kDMSavePlatformAmiga,
 		{ kDMSaveTargetDM21, kDMSaveTargetEndOfList },
@@ -63,7 +63,7 @@ static const DMADGameDescription gameDescriptions[] = {
 				{"Dungeon.dat", 0, "be9468b460515741babec9a70501e2e9", 33286},
 				AD_LISTEND
 			},
-	    	Common::EN_ANY, Common::kPlatformAtariST, ADGF_NO_FLAGS, GUIO1(GUIO_NONE),
+	    	Common::EN_ANY, Common::kPlatformAtariST, ADGF_NO_FLAGS, GUIO1(GUIO_NOMIDI),
 	    },
 	    kDMSaveTargetDM21, kDMSaveFormatAmigaPC98FmTowns, kDMSavePlatformAtariSt,
 	    { kDMSaveTargetDM21, kDMSaveTargetEndOfList},
@@ -78,7 +78,7 @@ static const DMADGameDescription gameDescriptions[] = {
 				{"DemoDun.dat", 0, "78848e1a2d3d5a11e5954deb8c7b772b", 1209},
 				AD_LISTEND
 			},
-			Common::EN_ANY, Common::kPlatformAmiga, ADGF_DEMO, GUIO1(GUIO_NONE),
+			Common::EN_ANY, Common::kPlatformAmiga, ADGF_DEMO, GUIO1(GUIO_NOMIDI),
 		},
 		kDMSaveTargetDM21, kDMSaveFormatAmigaPC98FmTowns, kDMSavePlatformAtariSt,
 		{ kDMSaveTargetDM21, kDMSaveTargetEndOfList},
@@ -98,7 +98,10 @@ static const ADExtraGuiOptionsMap optionsList[] = {
 class DMMetaEngine : public AdvancedMetaEngine {
 public:
 	DMMetaEngine() : AdvancedMetaEngine(DM::gameDescriptions, sizeof(DMADGameDescription), DMGames, optionsList) {
-		_singleId = "dm";
+	}
+
+	virtual const char *getEngineId() const {
+		return "dm";
 	}
 
 	virtual const char *getName() const {

@@ -124,7 +124,6 @@ void MenuSystem::handleEvents() {
 		case Common::EVENT_KEYDOWN:
 			handleKeyDown(event.kbd);
 			break;
-		case Common::EVENT_RTL:
 		case Common::EVENT_QUIT:
 			_running = false;
 			break;

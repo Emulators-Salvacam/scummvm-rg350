@@ -25,7 +25,6 @@
 #include "common/random.h"
 #include "common/memstream.h"
 #include "graphics/cursor.h"
-#include "graphics/wincursor.h"
 #include "graphics/cursorman.h"
 
 #include "hdb/hdb.h"
@@ -1237,6 +1236,8 @@ void Gfx::turnOnBonusStars(int which) {
 		case 2:		// Blue Star
 			_starsInfo.gfx[0] = loadPic(SECRETSTAR_BLUE1);
 			_starsInfo.gfx[1] = loadPic(SECRETSTAR_BLUE2);
+			break;
+		default:
 			break;
 		}
 	}

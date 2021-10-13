@@ -20,10 +20,18 @@
  *
  */
 
-#include "common/scummsys.h"
+#if defined(HAVE_CONFIG_H)
+#include "config.h"
+#endif
 
 #ifdef USE_FLUIDSYNTH
 
+// Fluidsynth v2.1+ uses printf in one of it's headers,
+// include/fluidsynth/log.h around line 82 so need to include this
+// prior scummsys.h inclusion and thus forbidden.h
+#include <fluidsynth.h>
+
+#include "common/scummsys.h"
 #include "common/config-manager.h"
 #include "common/error.h"
 #include "common/system.h"
@@ -33,12 +41,6 @@
 #include "audio/softsynth/emumidi.h"
 #if defined(IPHONE_IOS7) && defined(IPHONE_SANDBOXED)
 #include "backends/platform/ios7/ios7_common.h"
-#endif
-
-#ifdef __LIBRETRO__
-#include <fluidlite.h>
-#else
-#include <fluidsynth.h>
 #endif
 
 class MidiDriver_FluidSynth : public MidiDriver_Emulated {
@@ -164,7 +166,7 @@ int MidiDriver_FluidSynth::open() {
 
 		double reverbRoomSize = (double)ConfMan.getInt("fluidsynth_reverb_roomsize") / 100.0;
 		double reverbDamping = (double)ConfMan.getInt("fluidsynth_reverb_damping") / 100.0;
-		double reverbWidth = (double)ConfMan.getInt("fluidsynth_reverb_width") / 100.0;
+		int reverbWidth = ConfMan.getInt("fluidsynth_reverb_width");
 		double reverbLevel = (double)ConfMan.getInt("fluidsynth_reverb_level") / 100.0;
 
 		fluid_synth_set_reverb(_synth, reverbRoomSize, reverbDamping, reverbWidth, reverbLevel);

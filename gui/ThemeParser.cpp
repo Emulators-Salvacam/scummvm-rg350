@@ -629,6 +629,17 @@ bool ThemeParser::parseDrawStep(ParserNode *stepNode, Graphics::DrawStep *drawst
 		}
 	}
 
+	if (stepNode->values.contains("clip")) {
+		val = stepNode->values["clip"];
+		int cl, ct, cr, cb;
+		if (parseIntegerKey(val, 4, &cl, &ct, &cr, &cb)) {
+			drawstep->clip.left = cl;
+			drawstep->clip.top = ct;
+			drawstep->clip.right = cr;
+			drawstep->clip.bottom = cb;
+		}
+	}
+
 #undef PARSER_ASSIGN_INT
 #undef PARSER_ASSIGN_RGB
 
@@ -710,7 +721,7 @@ bool ThemeParser::parserCallback_widget(ParserNode *node) {
 }
 
 bool ThemeParser::parserCallback_dialog(ParserNode *node) {
-	Common::String var = "Dialog." + node->values["name"];
+	Common::String name = node->values["name"];
 	bool enabled = true;
 	int inset = 0;
 
@@ -729,7 +740,7 @@ bool ThemeParser::parserCallback_dialog(ParserNode *node) {
 			return false;
 	}
 
-	_theme->getEvaluator()->addDialog(var, node->values["overlays"], enabled, inset);
+	_theme->getEvaluator()->addDialog(name, node->values["overlays"], enabled, inset);
 
 	if (node->values.contains("shading")) {
 		int shading = 0;
@@ -739,7 +750,7 @@ bool ThemeParser::parserCallback_dialog(ParserNode *node) {
 			shading = 2;
 		else return parserError("Invalid value for Dialog background shading.");
 
-		_theme->getEvaluator()->setVar(var + ".Shading", shading);
+		_theme->getEvaluator()->setVar("Dialog." + name + ".Shading", shading);
 	}
 
 	return true;
@@ -754,22 +765,35 @@ bool ThemeParser::parserCallback_import(ParserNode *node) {
 
 bool ThemeParser::parserCallback_layout(ParserNode *node) {
 	int spacing = -1;
-	bool center = false;
 
 	if (node->values.contains("spacing")) {
 		if (!parseIntegerKey(node->values["spacing"], 1, &spacing))
 			return false;
 	}
 
-	(void)Common::parseBool(node->values["center"], center);
+	ThemeLayout::ItemAlign itemAlign = ThemeLayout::kItemAlignStart;
+
+	if (node->values.contains("align")) {
+		Common::String val = node->values["align"];
+		if (val == "start") {
+			itemAlign = ThemeLayout::kItemAlignStart;
+		} else if (val == "center") {
+			itemAlign = ThemeLayout::kItemAlignCenter;
+		} else if (val == "end") {
+			itemAlign = ThemeLayout::kItemAlignEnd;
+		} else if (val == "stretch") {
+			itemAlign = ThemeLayout::kItemAlignStretch;
+		} else {
+			return parserError("'" + val + "' is not a valid item alignment for a layout.");
+		}
+	}
 
 	if (node->values["type"] == "vertical")
-		_theme->getEvaluator()->addLayout(GUI::ThemeLayout::kLayoutVertical, spacing, center);
+		_theme->getEvaluator()->addLayout(GUI::ThemeLayout::kLayoutVertical, spacing, itemAlign);
 	else if (node->values["type"] == "horizontal")
-		_theme->getEvaluator()->addLayout(GUI::ThemeLayout::kLayoutHorizontal, spacing, center);
+		_theme->getEvaluator()->addLayout(GUI::ThemeLayout::kLayoutHorizontal, spacing, itemAlign);
 	else
 		return parserError("Invalid layout type. Only 'horizontal' and 'vertical' layouts allowed.");
-
 
 	if (node->values.contains("padding")) {
 		int paddingL, paddingR, paddingT, paddingB;

@@ -51,12 +51,12 @@ static const ADGameDescription teenAgentGameDescriptions[] = {
 			{"sam_mmm.res", 0, NULL, -1},
 			{"sam_sam.res", 0, NULL, -1},
 			//{"unlogic.res", 0, NULL, -1}, //skipped if not present
-			{NULL, 0, NULL, 0}
+			AD_LISTEND
 		},
 		Common::EN_ANY,
 		Common::kPlatformDOS,
 		ADGF_NO_FLAGS,
-		GUIO1(GUIO_NOSPEECH)
+		GUIO2(GUIO_NOSPEECH, GUIO_NOMIDI)
 	},
 	{
 		"teenagent",
@@ -71,12 +71,12 @@ static const ADGameDescription teenAgentGameDescriptions[] = {
 			{"sam_sam.res", 0, NULL, -1},
 			{"voices.res", 0, NULL, -1},
 			{"cdlogo.res", 0, NULL, -1},
-			{NULL, 0, NULL, 0}
+			AD_LISTEND
 		},
 		Common::CZ_CZE,
 		Common::kPlatformDOS,
 		ADGF_CD,
-		GUIO0()
+		GUIO1(GUIO_NOMIDI)
 	},
 	AD_TABLE_END_MARKER,
 };
@@ -88,7 +88,10 @@ enum {
 class TeenAgentMetaEngine : public AdvancedMetaEngine {
 public:
 	TeenAgentMetaEngine() : AdvancedMetaEngine(teenAgentGameDescriptions, sizeof(ADGameDescription), teenAgentGames) {
-		_singleId = "teenagent";
+	}
+
+	const char *getEngineId() const {
+		return "teenagent";
 	}
 
 	virtual const char *getName() const {

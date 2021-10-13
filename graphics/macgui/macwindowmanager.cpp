@@ -147,21 +147,23 @@ static const byte macCursorCrossBar[] = {
 
 static void menuTimerHandler(void *refCon);
 
-MacWindowManager::MacWindowManager() {
+MacWindowManager::MacWindowManager(uint32 mode) {
 	_screen = 0;
-	_screenCopy = 0;
+	_screenCopy = nullptr;
 	_lastId = 0;
 	_activeWindow = -1;
 	_needsRemoval = false;
 
-	_mode = kWMModeNone;
+	_mode = mode;
 
 	_menu = 0;
 	_menuDelay = 0;
 	_menuTimerActive = false;
 
-	_engine = nullptr;
+	_engineP = nullptr;
+	_engineR = nullptr;
 	_pauseEngineCallback = nullptr;
+	_redrawEngineCallback = nullptr;
 
 	_colorBlack = 0;
 	_colorWhite = 2;
@@ -173,7 +175,7 @@ MacWindowManager::MacWindowManager() {
 
 	g_system->getPaletteManager()->setPalette(palette, 0, ARRAYSIZE(palette) / 3);
 
-	_fontMan = new MacFontManager();
+	_fontMan = new MacFontManager(mode);
 
 	CursorMan.replaceCursorPalette(palette, 0, ARRAYSIZE(palette) / 3);
 	CursorMan.replaceCursor(macCursorArrow, 11, 16, 1, 1, 3);
@@ -182,14 +184,22 @@ MacWindowManager::MacWindowManager() {
 }
 
 MacWindowManager::~MacWindowManager() {
-	for (int i = 0; i < _lastId; i++)
-		delete _windows[i];
+	for (Common::HashMap<uint, BaseMacWindow *>::iterator it = _windows.begin(); it != _windows.end(); it++)
+		delete it->_value;
 
 	delete _fontMan;
 	delete _screenCopy;
 
 	g_system->getTimerManager()->removeTimerProc(&menuTimerHandler);
 }
+
+void MacWindowManager::setMode(uint32 mode) {
+	_mode = mode;
+
+	if (mode & kWMModeForceBuiltinFonts)
+		_fontMan->forceBuiltinFonts();
+}
+
 
 MacWindow *MacWindowManager::addWindow(bool scrollable, bool resizable, bool editable) {
 	MacWindow *w = new MacWindow(_lastId, scrollable, resizable, editable, this);
@@ -213,14 +223,16 @@ MacTextWindow *MacWindowManager::addTextWindow(const MacFont *font, int fgcolor,
 
 
 void MacWindowManager::addWindowInitialized(MacWindow *macwindow) {
-	_windows.push_back(macwindow);
+	_windows[macwindow->getId()] = macwindow;
 	_windowStack.push_back(macwindow);
 }
 
 MacMenu *MacWindowManager::addMenu() {
+	delete _menu;
+
 	_menu = new MacMenu(getNextId(), _screen->getBounds(), this);
 
-	_windows.push_back(_menu);
+	_windows[_menu->getId()] = _menu;
 
 	return _menu;
 }
@@ -228,6 +240,14 @@ MacMenu *MacWindowManager::addMenu() {
 void MacWindowManager::activateMenu() {
 	if (!_menu)
 		return;
+
+	if (_mode & kWMModalMenuMode) {
+		if (!_screenCopy)
+			_screenCopy = new ManagedSurface(*_screen);	// Create a copy
+		else
+			*_screenCopy = *_screen;
+		pauseEngine(true);
+	}
 
 	_menu->setVisible(true);
 }
@@ -264,7 +284,7 @@ void MacWindowManager::removeWindow(MacWindow *target) {
 void macDrawPixel(int x, int y, int color, void *data) {
 	MacPlotData *p = (MacPlotData *)data;
 
-	if (p->fillType > p->patterns->size())
+	if (p->fillType > p->patterns->size() || !p->fillType)
 		return;
 
 	byte *pat = p->patterns->operator[](p->fillType - 1);
@@ -275,7 +295,7 @@ void macDrawPixel(int x, int y, int color, void *data) {
 			uint yu = (uint)y;
 
 			*((byte *)p->surface->getBasePtr(xu, yu)) =
-				(pat[yu % 8] & (1 << (7 - xu % 8))) ?
+				(pat[(yu - p->fillOriginY) % 8] & (1 << (7 - (xu - p->fillOriginX) % 8))) ?
 					color : p->bgColor;
 		}
 	} else {
@@ -290,7 +310,7 @@ void macDrawPixel(int x, int y, int color, void *data) {
 					uint xu = (uint)x; // for letting compiler optimize it
 					uint yu = (uint)y;
 					*((byte *)p->surface->getBasePtr(xu, yu)) =
-						(pat[yu % 8] & (1 << (7 - xu % 8))) ?
+						(pat[(yu - p->fillOriginY) % 8] & (1 << (7 - (xu - p->fillOriginX) % 8))) ?
 							color : p->bgColor;
 				}
 	}
@@ -299,7 +319,7 @@ void macDrawPixel(int x, int y, int color, void *data) {
 void MacWindowManager::drawDesktop() {
 	Common::Rect r(_screen->getBounds());
 
-	MacPlotData pd(_screen, &_patterns, kPatternCheckers, 1, _colorWhite);
+	MacPlotData pd(_screen, &_patterns, kPatternCheckers, 0, 0, 1, _colorWhite);
 
 	Graphics::drawRoundRect(r, kDesktopArc, _colorBlack, true, macDrawPixel, &pd);
 
@@ -311,8 +331,13 @@ void MacWindowManager::draw() {
 
 	removeMarked();
 
-	if (_fullRefresh && !(_mode & kWMModeNoDesktop))
-		drawDesktop();
+	if (_fullRefresh) {
+		if (!(_mode & kWMModeNoDesktop))
+			drawDesktop();
+
+		if (_redrawEngineCallback != nullptr)
+			_redrawEngineCallback(_engineR);
+	}
 
 	for (Common::List<BaseMacWindow *>::const_iterator it = _windowStack.begin(); it != _windowStack.end(); it++) {
 		BaseMacWindow *w = *it;
@@ -340,13 +365,6 @@ static void menuTimerHandler(void *refCon) {
 
 	if (wm->_menuHotzone.contains(wm->_lastMousePos)) {
 		wm->activateMenu();
-		if (wm->_mode & kWMModalMenuMode) {
-			if (!wm->_screenCopy)
-				wm->_screenCopy = new ManagedSurface(*wm->_screen);	// Create a copy
-			else
-				*wm->_screenCopy = *wm->_screen;
-			wm->pauseEngine(true);
-		}
 	}
 
 	wm->_menuTimerActive = false;
@@ -416,7 +434,13 @@ void MacWindowManager::removeMarked() {
 	}
 	_windowsToRemove.clear();
 	_needsRemoval = false;
-	_lastId = _windows.size();
+
+	// Do we need compact lastid?
+	_lastId = 0;
+	for (Common::HashMap<uint, BaseMacWindow *>::iterator lit = _windows.begin(); lit != _windows.end(); lit++) {
+		if (lit->_key >= (uint)_lastId)
+			_lastId = lit->_key + 1;
+	}
 }
 
 void MacWindowManager::removeFromStack(BaseMacWindow *target) {
@@ -430,14 +454,13 @@ void MacWindowManager::removeFromStack(BaseMacWindow *target) {
 }
 
 void MacWindowManager::removeFromWindowList(BaseMacWindow *target) {
-	int size = _windows.size();
-	int ndx = 0;
-	for (int i = 0; i < size; i++) {
-		if (_windows[i] == target) {
-			ndx = i;
+	// _windows.erase(target->getId()); // Is applicable?
+	for (Common::HashMap<uint, BaseMacWindow *>::iterator it = _windows.begin(); it != _windows.end(); it++) {
+		if (it->_value == target) {
+			_windows.erase(it);
+			break;
 		}
 	}
-	_windows.remove_at(ndx);
 }
 
 /////////////////
@@ -517,14 +540,21 @@ void MacWindowManager::passPalette(const byte *pal, uint size) {
 }
 
 void MacWindowManager::pauseEngine(bool pause) {
-	if (_engine && _pauseEngineCallback) {
-		_pauseEngineCallback(_engine, pause);
+	if (_engineP && _pauseEngineCallback) {
+		_pauseEngineCallback(_engineP, pause);
+	} else {
+		warning("MacWindowManager::pauseEngine(): no pauseEngineCallback is set");
 	}
 }
 
 void MacWindowManager::setEnginePauseCallback(void *engine, void (*pauseCallback)(void *, bool)) {
-	_engine = engine;
+	_engineP = engine;
 	_pauseEngineCallback = pauseCallback;
+}
+
+void MacWindowManager::setEngineRedrawCallback(void *engine, void (*redrawCallback)(void *)) {
+	_engineR = engine;
+	_redrawEngineCallback = redrawCallback;
 }
 
 } // End of namespace Graphics
